@@ -1,0 +1,1 @@
+export * from '../modules/design/data/galleryData';

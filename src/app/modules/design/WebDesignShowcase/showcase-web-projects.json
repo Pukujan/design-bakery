@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "title": "The Street Palette",
+    "description": "Where the City Breathes Color - Art, Culture & Community in Motion",
+    "image": "https://i.imgur.com/idZIzuG.jpg",
+    "color": "#FF6B9D",
+    "link": "https://slice-garb-68693699.figma.site",
+    "type": "Portfolio Web Design for Artists"
+  },
+  {
+    "id": 2,
+    "title": "Canvas United",
+    "description": "Art as a voice, not just visual.",
+    "image": "https://i.imgur.com/9Nbsk5p.png",
+    "color": "#4169E1",
+    "link": "https://puppy-forum-64441493.figma.site",
+    "type": "Community Website Design"
+  },
+  {
+    "id": 3,
+    "title": "Hyperce",
+    "description": "E-Commerce Platform Builder Website & Marketing",
+    "image": "https://i.imgur.com/2RlVpFe.png",
+    "color": "#A8CC00",
+    "link": "https://www.hyperce.io/",
+    "type": "Website Design"
+  },
+  {
+    "id": 4,
+    "title": "Friendship App",
+    "description": "Tinder for Friendship & Community - A blend of Tinder, Instagram, Cats and Luma",
+    "image": "https://i.imgur.com/GW601Pm.png",
+    "color": "#FF8C42",
+    "link": "https://sun-select-22450089.figma.site",
+    "type": "Product Design Demo"
+  },
+  {
+    "id": 5,
+    "title": "Kathmandu Organics",
+    "description": "Organic and local farmer's market e-commerce branding & Marketing",
+    "image": "https://i.imgur.com/1nIF6Lc.png",
+    "color": "#9B6DD6",
+    "link": "https://www.behance.net/gallery/134915083/Branding-and-Packaging-Project",
+    "type": "Branding & Marketing"
+  },
+  {
+    "id": 6,
+    "title": "Bryan's Barbeque",
+    "description": "Since 2001 — Smoke-house classics and steakhouse favourites, made for the local crowd.",
+    "image": "https://images.unsplash.com/photo-1529557050046-60c5f1d35ea4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYXJiZXF1ZSUyMHN0ZWFrJTIwZ3JpbGx8ZW58MXx8fHwxNzYxODU0NTc4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    "color": "#E63946",
+    "link": "https://shout-cameo-39749292.figma.site",
+    "type": "Restaurant Website"
+  },
+  {
+    "id": 7,
+    "title": "Bagel Bob's HTX",
+    "description": "Hand-Rolled. Kettle-Boiled. Houston's Own Taste of New York",
+    "image": "https://images.unsplash.com/photo-1734314316843-a78d2c96a773?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWdlbCUyMG5ldyUyMHlvcmt8ZW58MXx8fHwxNzYxODU0NTc4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    "color": "#FFD93D",
+    "link": "https://ream-agency-22445241.figma.site/",
+    "type": "Food Business Website"
+  },
+  {
+    "id": 8,
+    "title": "Astoria Koulouri",
+    "description": "Homesickness baked fresh daily. From Thessaloniki to Astoria since 1989",
+    "image": "https://images.unsplash.com/photo-1736618626237-61a1e6197537?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncmVlayUyMGJha2VyeSUyMGtvdWxvdXJpfGVufDF8fHx8MTc2MTg1NDU3OHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    "color": "#FF8C42",
+    "link": "https://salad-dazzle-07551633.figma.site",
+    "type": "Bakery Website"
+  },
+  {
+    "id": 9,
+    "title": "More Coming Soon",
+    "description": "Exciting new projects in the works!",
+    "image": "https://images.unsplash.com/photo-1677214467820-ab069619bbb6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjB3ZWIlMjBkZXNpZ258ZW58MXx8fHwxNzYxNjkxOTg0fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    "color": "#9B6DD6",
+    "type": "Coming Soon"
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "title": "Pride & Community",
+  "description": "Celebrating diversity and creating inclusive spaces for all",
+  "color": "#FF6B9D",
+  "items": [
+    {
+      "id": 1,
+      "image": "https://i.postimg.cc/D0LnzBW5/image.png",
+      "title": "SunnyPride 2025",
+      "description": "A grassroots celebration of love, visibility, and joy in Sunnyside, Queens. Community-powered event uplifting LGBTQ+ neighbors, artists, youth, and families. Show up to show out—you belong, you are seen, and you are loved. 🌈",
+      "date": "June 13, 2025",
+      "link": "https://sunnysideshines.org/events/sunnypride2025/"
+    },
+    {
+      "id": 2,
+      "image": "https://media.licdn.com/dms/image/v2/D5622AQFvfhVrW5p0ug/feedshare-shrink_2048_1536/B56Zg4UF_5H0A8-/0/1753291452376?e=1763596800&v=beta&t=QhfJ-BkHP1zts0Z16DtPeUVCyF06VhlMuNFjbg-VJMs",
+      "title": "NYC Designer Meetup",
+      "description": "First NYC designer meetup experience—super fun, inspiring, and packed with amazing conversations. Discovering the fast-paced, competitive, and collaborative design and dev scene in New York.",
+      "date": "June 20, 2025",
+      "link": "https://www.linkedin.com/posts/pujan3645_not-gonna-lie-i-was-stressed-when-i-saw-activity-7354155935918911488-jpQW?utm_source=social_share_send&utm_medium=member_desktop_web"
+    },
+    {
+      "id": 3,
+      "image": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800",
+      "title": "Community Art Project",
+      "description": "Collaborative mural project celebrating love, identity, and community.",
+      "date": "April 18, 2025",
+      "comingSoon": true
+    }
+  ]
+}

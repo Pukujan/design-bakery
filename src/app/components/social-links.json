@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Email",
+    "icon": "Mail",
+    "href": "mailto:pujan3645@gmail.com",
+    "handle": "pujan3645@gmail.com",
+    "color": "#FF6B9D"
+  },
+  {
+    "name": "LinkedIn",
+    "icon": "Linkedin",
+    "href": "https://www.linkedin.com/in/pujan3645",
+    "handle": "/pujan3645",
+    "color": "#4169E1"
+  },
+  {
+    "name": "Behance",
+    "icon": "ExternalLink",
+    "href": "https://www.behance.net/pujan3645",
+    "handle": "/pujan3645",
+    "color": "#FFD93D"
+  },
+  {
+    "name": "Instagram",
+    "icon": "Instagram",
+    "href": "https://www.instagram.com/pujan3645",
+    "handle": "@pujan3645",
+    "color": "#FF8C42"
+  }
+]

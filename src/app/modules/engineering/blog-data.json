@@ -1,0 +1,101 @@
+[
+  {
+    "id": 1,
+    "title": "Building Scalable Form Systems in Next.js",
+    "excerpt": "How we engineered a multi-step form workflow that handles complex validation, real-time error handling, and maintains state across 15+ screens.",
+    "date": "January 2026",
+    "readTime": "8 min read",
+    "tags": [
+      "Systems Design",
+      "React",
+      "TypeScript"
+    ],
+    "category": "systems",
+    "color": "#4169E1",
+    "author": "Design Baker",
+    "content": "\n# Building Scalable Form Systems in Next.js\n\n## Introduction\n\nBuilding forms at scale is one of the most challenging aspects of modern web development. In this article, I'll share how we built a multi-step form workflow that handles complex validation, real-time error handling, and maintains state across 15+ screens.\n\n## The Challenge\n\nWe needed to build a comprehensive onboarding flow that:\n- Collects user data across multiple steps\n- Validates data in real-time\n- Persists state across page reloads\n- Handles conditional logic and branching\n- Provides excellent UX with instant feedback\n\n## Architecture Overview\n\n```mermaid\ngraph TD\n    A[User Input] --> B[Form State Manager]\n    B --> C{Validation Engine}\n    C -->|Valid| D[Progress to Next Step]\n    C -->|Invalid| E[Show Errors]\n    E --> A\n    D --> F[Persist to Storage]\n    F --> G[API Sync]\n```\n\n## Key Components\n\n### 1. State Management\n\nWe used **React Hook Form** for local state and **Zustand** for global persistence.\n\n### 2. Validation Strategy\n\nReal-time validation with debouncing to prevent excessive re-renders.\n\n### 3. Error Handling\n\nUser-friendly error messages with contextual hints and inline corrections.\n\n## Conclusion\n\nBuilding forms at scale requires thoughtful architecture, proper state management, and excellent UX. The patterns we've shared here have served us well across multiple projects.\n"
+  },
+  {
+    "id": 2,
+    "title": "Agentic AI: Orchestrating Multiple LLMs for Complex Tasks",
+    "excerpt": "Lessons learned building an AI workflow system that coordinates multiple agents, manages context windows, and handles streaming responses.",
+    "date": "December 2025",
+    "readTime": "10 min read",
+    "tags": [
+      "AI",
+      "Product Engineering",
+      "OpenAI"
+    ],
+    "category": "ai-ml",
+    "color": "#9B6DD6",
+    "author": "Design Baker",
+    "content": "\n# Agentic AI: Orchestrating Multiple LLMs for Complex Tasks\n\n## Introduction\n\nAgentic AI systems represent the next frontier in AI application development. Learn how to build systems that coordinate multiple AI agents.\n\n## The Multi-Agent Architecture\n\n```mermaid\ngraph LR\n    A[User Request] --> B[Orchestrator]\n    B --> C[Agent 1: Research]\n    B --> D[Agent 2: Analysis]\n    B --> E[Agent 3: Writing]\n    C --> F[Response Synthesis]\n    D --> F\n    E --> F\n    F --> G[Final Output]\n```\n\n## Key Challenges\n\n- Context window management\n- Agent coordination\n- Response streaming\n- Error handling across agents\n\n## Best Practices\n\n1. Design clear agent responsibilities\n2. Implement robust fallback strategies\n3. Monitor token usage carefully\n4. Test extensively with real-world scenarios\n\n## Conclusion\n\nAgentic AI systems unlock powerful capabilities but require careful architectural planning and robust error handling.\n"
+  },
+  {
+    "id": 3,
+    "title": "Frontend Architecture for Multi-Tenant SaaS",
+    "excerpt": "Designing a frontend architecture that serves multiple client types while maintaining code reusability, security, and performance.",
+    "date": "November 2025",
+    "readTime": "12 min read",
+    "tags": [
+      "Architecture",
+      "SaaS",
+      "Next.js"
+    ],
+    "category": "architecture",
+    "color": "#FF8C42",
+    "author": "Design Baker",
+    "content": "\n# Frontend Architecture for Multi-Tenant SaaS\n\n## The Challenge\n\nBuilding a frontend that serves multiple tenants with different needs, branding, and feature sets requires careful architecture.\n\n## Architecture Principles\n\n1. **Isolation**: Clear boundaries between tenant data\n2. **Customization**: Flexible theming and feature flags\n3. **Performance**: Efficient code splitting and lazy loading\n4. **Security**: Robust authentication and authorization\n\n## Implementation Strategy\n\n```mermaid\ngraph TD\n    A[User Login] --> B{Tenant Detection}\n    B --> C[Load Tenant Config]\n    C --> D[Apply Theme]\n    C --> E[Load Features]\n    C --> F[Set Permissions]\n    D --> G[Render App]\n    E --> G\n    F --> G\n```\n\n## Conclusion\n\nMulti-tenant SaaS frontends require thoughtful architecture that balances flexibility with maintainability.\n"
+  },
+  {
+    "id": 4,
+    "title": "RAG Systems: From Embeddings to Production",
+    "excerpt": "Deep dive into building retrieval-augmented generation systems: vector databases, chunking strategies, hybrid search, and optimizing for accuracy.",
+    "date": "January 2026",
+    "readTime": "15 min read",
+    "tags": [
+      "AI",
+      "RAG",
+      "Vector DB",
+      "LangChain"
+    ],
+    "category": "ai-ml",
+    "color": "#9B6DD6",
+    "author": "Design Baker",
+    "content": "\n# RAG Systems: From Embeddings to Production\n\n## What is RAG?\n\nRetrieval-Augmented Generation (RAG) combines the power of large language models with external knowledge retrieval for more accurate, context-aware responses.\n\n## System Components\n\n```mermaid\ngraph LR\n    A[User Query] --> B[Embedding Model]\n    B --> C[Vector Search]\n    C --> D[Retrieve Chunks]\n    D --> E[LLM Context]\n    E --> F[Generate Response]\n```\n\n## Key Considerations\n\n- **Chunking Strategy**: How to split documents\n- **Embedding Quality**: Choosing the right model\n- **Retrieval Accuracy**: Hybrid search techniques\n- **Context Management**: Fitting retrieved data in LLM context\n\n## Conclusion\n\nRAG systems enable AI applications to provide accurate, up-to-date information grounded in your specific data.\n"
+  },
+  {
+    "id": 5,
+    "title": "Fine-Tuning LLMs: When and How",
+    "excerpt": "Practical guide to fine-tuning language models: dataset preparation, evaluation metrics, LoRA vs full fine-tuning, and cost optimization.",
+    "date": "December 2025",
+    "readTime": "12 min read",
+    "tags": [
+      "AI",
+      "Fine-Tuning",
+      "Machine Learning",
+      "OpenAI"
+    ],
+    "category": "ai-ml",
+    "color": "#9B6DD6",
+    "author": "Design Baker",
+    "content": "\n# Fine-Tuning LLMs: When and How\n\n## When to Fine-Tune\n\nFine-tuning is beneficial when:\n- You have domain-specific language patterns\n- You need consistent output formatting\n- Prompt engineering isn't sufficient\n- You have quality training data\n\n## Fine-Tuning Approaches\n\n1. **Full Fine-Tuning**: Update all model parameters\n2. **LoRA**: Low-rank adaptation for efficient training\n3. **Prompt Tuning**: Optimize soft prompts\n\n## Dataset Preparation\n\nQuality over quantity - ensure your training data is:\n- Representative of your use case\n- Properly formatted\n- Diverse in examples\n- Clean and validated\n\n## Conclusion\n\nFine-tuning can unlock significant performance gains when applied correctly to the right use case.\n"
+  },
+  {
+    "id": 6,
+    "title": "Prompt Engineering: Beyond Basic Prompts",
+    "excerpt": "Advanced prompt engineering techniques: chain-of-thought, few-shot learning, prompt chaining, and building reliable AI workflows.",
+    "date": "November 2025",
+    "readTime": "10 min read",
+    "tags": [
+      "AI",
+      "Prompt Engineering",
+      "GPT-4",
+      "Claude"
+    ],
+    "category": "ai-ml",
+    "color": "#9B6DD6",
+    "author": "Design Baker",
+    "content": "\n# Prompt Engineering: Beyond Basic Prompts\n\n## Advanced Techniques\n\n### 1. Chain-of-Thought\n\nGuide the model through step-by-step reasoning for complex problems.\n\n### 2. Few-Shot Learning\n\nProvide examples to establish patterns and expected outputs.\n\n### 3. Prompt Chaining\n\nBreak complex tasks into sequential prompts that build on each other.\n\n## Best Practices\n\n- Be specific about output format\n- Include relevant context\n- Use delimiters for clarity\n- Test extensively\n- Version your prompts\n\n## Conclusion\n\nEffective prompt engineering is essential for reliable AI applications. Master these techniques to build robust systems.\n"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "src": "https://images.unsplash.com/photo-1733006955710-9a68ff104684?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGNvbGxhZ2UlMjBhcnR8ZW58MXx8fHwxNzYxNzgzNTA4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    "caption": "Abstract Collage",
+    "color": "#FF6B9D",
+    "id": "abstract-collage"
+  },
+  {
+    "src": "https://images.unsplash.com/photo-1622249504895-5b2e35c5ef85?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcnRpc3RpYyUyMGlsbHVzdHJhdGlvbiUyMG1peGVkfGVufDF8fHx8MTc2MTc4MzUxMXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    "caption": "Mixed Media",
+    "color": "#4169E1",
+    "id": "mixed-media"
+  },
+  {
+    "src": "https://images.unsplash.com/photo-1636955779321-819753cd1741?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcmVhdGl2ZSUyMHBvc3RlciUyMGFydHxlbnwxfHx8fDE3NjE3ODM1MTJ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    "caption": "Poster Art",
+    "color": "#FFD93D",
+    "id": "poster-art"
+  },
+  {
+    "src": "https://images.unsplash.com/photo-1553989577-14e950184619?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcmlkZSUyMGNlbGVicmF0aW9uJTIwY29tbXVuaXR5fGVufDF8fHx8MTc2MTc4MzUxMXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    "caption": "Pride Month",
+    "color": "#FF8C42",
+    "id": "pride-month"
+  },
+  {
+    "src": "https://images.unsplash.com/photo-1544928147-79a2dbc1f389?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21tdW5pdHklMjBldmVudCUyMHdvcmtzaG9wfGVufDF8fHx8MTc2MTc4MzUxMXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    "caption": "Community Events",
+    "color": "#A8CC00",
+    "id": "community-events"
+  }
+]

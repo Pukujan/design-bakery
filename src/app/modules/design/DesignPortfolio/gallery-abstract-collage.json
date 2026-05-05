@@ -1,0 +1,28 @@
+{
+  "title": "Abstract Collage",
+  "description": "Experimental compositions exploring form, color, and texture",
+  "color": "#FF6B9D",
+  "items": [
+    {
+      "id": 1,
+      "image": "https://images.unsplash.com/photo-1733006955710-9a68ff104684?w=800",
+      "title": "Digital Dreams",
+      "description": "Mixed media exploration of digital and analog aesthetics, blending pixels with paint.",
+      "date": "September 2025"
+    },
+    {
+      "id": 2,
+      "image": "https://images.unsplash.com/photo-1578301978162-7aae4d755744?w=800",
+      "title": "Fragmented Reality",
+      "description": "Collage series examining perspectives through geometric abstraction.",
+      "date": "August 2025"
+    },
+    {
+      "id": 3,
+      "image": "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=800",
+      "title": "Color Theory",
+      "description": "Vibrant compositions playing with complementary colors and visual rhythm.",
+      "date": "July 2025"
+    }
+  ]
+}

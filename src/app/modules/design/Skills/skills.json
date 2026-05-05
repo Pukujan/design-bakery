@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Graphic Design",
+    "color": "#FF6B9D"
+  },
+  {
+    "name": "Branding",
+    "color": "#4169E1"
+  },
+  {
+    "name": "Creative Writing",
+    "color": "#FFD93D"
+  },
+  {
+    "name": "Blogging",
+    "color": "#FF8C42"
+  },
+  {
+    "name": "Illustration",
+    "color": "#A8CC00"
+  },
+  {
+    "name": "Motion Graphics",
+    "color": "#9B6DD6"
+  },
+  {
+    "name": "Photoshop",
+    "color": "#FF6B9D"
+  },
+  {
+    "name": "After Effects",
+    "color": "#4169E1"
+  },
+  {
+    "name": "Figma",
+    "color": "#FFD93D"
+  },
+  {
+    "name": "Next.js",
+    "color": "#FF8C42"
+  },
+  {
+    "name": "UX/UI",
+    "color": "#A8CC00"
+  }
+]

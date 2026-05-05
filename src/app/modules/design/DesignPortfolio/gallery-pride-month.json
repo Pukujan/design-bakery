@@ -1,0 +1,28 @@
+{
+  "title": "Pride Month",
+  "description": "Celebrating love, identity, and community",
+  "color": "#FF8C42",
+  "items": [
+    {
+      "id": 1,
+      "image": "https://images.unsplash.com/photo-1553989577-14e950184619?w=800",
+      "title": "Rainbow Portraits",
+      "description": "Portrait series celebrating LGBTQ+ community members and their stories.",
+      "date": "June 2025"
+    },
+    {
+      "id": 2,
+      "image": "https://images.unsplash.com/photo-1558403194-611308249627?w=800",
+      "title": "Pride Parade",
+      "description": "Photography documenting the joy and energy of annual pride celebrations.",
+      "date": "June 2025"
+    },
+    {
+      "id": 3,
+      "image": "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=800",
+      "title": "Love is Love",
+      "description": "Artistic interpretations of love and acceptance in all its forms.",
+      "date": "June 2025"
+    }
+  ]
+}

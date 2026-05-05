@@ -1,0 +1,28 @@
+{
+  "title": "Poster Art",
+  "description": "Bold graphic design for social causes and events",
+  "color": "#FFD93D",
+  "items": [
+    {
+      "id": 1,
+      "image": "https://images.unsplash.com/photo-1636955779321-819753cd1741?w=800",
+      "title": "Equality Now Campaign",
+      "description": "Poster series promoting gender equality and social justice through striking typography.",
+      "date": "October 2025"
+    },
+    {
+      "id": 2,
+      "image": "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800",
+      "title": "Environmental Action",
+      "description": "Climate awareness posters combining bold visuals with urgent messaging.",
+      "date": "September 2025"
+    },
+    {
+      "id": 3,
+      "image": "https://images.unsplash.com/photo-1626785774625-ddcddc3445e9?w=800",
+      "title": "Cultural Festival",
+      "description": "Vibrant event posters celebrating cultural diversity and community.",
+      "date": "August 2025"
+    }
+  ]
+}

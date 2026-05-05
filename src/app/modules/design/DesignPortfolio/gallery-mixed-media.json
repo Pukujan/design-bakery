@@ -1,0 +1,28 @@
+{
+  "title": "Mixed Media",
+  "description": "Blending traditional and digital techniques",
+  "color": "#4169E1",
+  "items": [
+    {
+      "id": 1,
+      "image": "https://images.unsplash.com/photo-1622249504895-5b2e35c5ef85?w=800",
+      "title": "Analog Meets Digital",
+      "description": "Exploration of texture and dimension combining painting, photography, and digital manipulation.",
+      "date": "October 2025"
+    },
+    {
+      "id": 2,
+      "image": "https://images.unsplash.com/photo-1634986666676-ec8fd927c23d?w=800",
+      "title": "Layered Stories",
+      "description": "Narrative artwork building meaning through layers of different media.",
+      "date": "September 2025"
+    },
+    {
+      "id": 3,
+      "image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800",
+      "title": "Tactile Visions",
+      "description": "Physical and digital textures creating immersive visual experiences.",
+      "date": "August 2025"
+    }
+  ]
+}

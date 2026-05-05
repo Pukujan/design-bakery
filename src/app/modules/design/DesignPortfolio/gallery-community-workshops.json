@@ -1,0 +1,31 @@
+{
+  "title": "Community Workshops",
+  "description": "Empowering communities through design and technology workshops",
+  "color": "#4169E1",
+  "items": [
+    {
+      "id": 1,
+      "image": "https://media.licdn.com/dms/image/v2/D5622AQG8i7VYz3z8yg/feedshare-shrink_1280/B56Zd7zwWdGoAk-/0/1750128855667?e=1763596800&v=beta&t=DMK9Q8eRSOhJYXKb88WcaeQSN-fwsOCWF_aL0g7BFYw",
+      "title": "TechLadies x WomenDevsSG Mentorship 2025",
+      "description": "Empowering women with career guidance from industry professionals in Software Engineering, UI/UX Design, Data Science, and Product Management. Features one-on-one mentoring and Speed Mentorship pilot program.",
+      "date": "June 9, 2025",
+      "link": "https://techladies.netlify.app/mentorship/"
+    },
+    {
+      "id": 2,
+      "image": "https://media.licdn.com/dms/image/v2/D5622AQFwMdhQ2WZKaw/feedshare-shrink_2048_1536/B56ZawubQHGoAo-/0/1746721683403?e=1763596800&v=beta&t=rEZ2sr2CZy3X9tmGnolwtHipU5Me5cupL949qt5ugqI",
+      "title": "(Women Devs SG) AI Talks: Building Robust Software with AI",
+      "description": "Live demos and case studies on leveraging AI tools for better code quality, testability, and preventing IT incidents. Featuring presentations on AI copilots, agentic AI, and co-creating with Cursor.",
+      "date": "May 22, 2025",
+      "link": "https://www.meetup.com/women-devs-sg/events/307683844/?utm_medium=referral&utm_campaign=share-btn_savedevents_share_modal&utm_source=link"
+    },
+    {
+      "id": 3,
+      "image": "https://media.licdn.com/dms/image/v2/D5622AQF3WD1ye25VJg/feedshare-shrink_2048_1536/B56ZYZ1ogoGsAo-/0/1744190213091?e=1763596800&v=beta&t=PmOYiFzx8vOVtoPW4iy24p_iEAcvcPZIww56gxBSUHI",
+      "title": "(Women Devs SG) Building Modern Software Applications #01",
+      "description": "Exploring Fluent localization system for natural translations, plus shift-left and fail-fast strategies in software development. Featuring talks on Continuous Delivery and deploying global-ready, resilient software.",
+      "date": "April 10, 2025",
+      "link": "https://www.linkedin.com/posts/women-devs-sg_april-fluent-continuousdelivery-activity-7315663991739990017-2166?utm_source=social_share_send&utm_medium=member_desktop_web"
+    }
+  ]
+}

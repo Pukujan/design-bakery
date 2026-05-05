@@ -1,0 +1,28 @@
+{
+  "title": "Community Events",
+  "description": "Bringing people together through shared experiences",
+  "color": "#A8CC00",
+  "items": [
+    {
+      "id": 1,
+      "image": "https://images.unsplash.com/photo-1544928147-79a2dbc1f389?w=800",
+      "title": "Design Meetup",
+      "description": "Monthly gathering of designers sharing work, ideas, and building connections.",
+      "date": "October 2025"
+    },
+    {
+      "id": 2,
+      "image": "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800",
+      "title": "Community Potluck",
+      "description": "Cultural exchange through food, stories, and celebration of our diverse community.",
+      "date": "September 2025"
+    },
+    {
+      "id": 3,
+      "image": "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800",
+      "title": "Street Art Festival",
+      "description": "Collaborative public art project transforming neighborhoods with vibrant murals.",
+      "date": "August 2025"
+    }
+  ]
+}
