@@ -86,7 +86,7 @@ export function Contact() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3, duration: 0.8 }}
-            className="bg-white p-8 rounded-3xl border-4 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] max-w-2xl mx-auto mb-12 relative"
+            className="bg-white dark:bg-gray-900 p-8 rounded-3xl border-4 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] max-w-2xl mx-auto mb-12 relative"
           >
             <Heart className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 text-pink-500 fill-pink-500" />
             <p className="text-3xl text-gray italic leading-relaxed">
