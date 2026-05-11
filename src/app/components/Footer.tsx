@@ -1,9 +1,18 @@
 import { motion } from 'motion/react';
 import { Github, Linkedin, Mail, Twitter } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useFooterSection } from '../lib/contentHooks';
+
+const iconMap = {
+  Github,
+  Linkedin,
+  Twitter,
+  Mail,
+} as const;
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const content = useFooterSection();
 
   return (
     <footer className="bg-gray-900 text-white py-16 px-6 border-t-6 border-black">
@@ -15,28 +24,26 @@ export function Footer() {
               className="text-3xl font-black mb-4"
               whileHover={{ scale: 1.05 }}
             >
-              Design Baker
+              {content.brandTitle}
             </motion.h3>
             <p className="text-gray-400 mb-6 text-lg leading-relaxed">
-              Engineered for reliability • Built for real-world impact
+              {content.brandDescription}
             </p>
             <div className="flex gap-4">
-              {[
-                { icon: Github, href: '#', label: 'GitHub' },
-                { icon: Linkedin, href: '#', label: 'LinkedIn' },
-                { icon: Twitter, href: '#', label: 'Twitter' },
-                { icon: Mail, href: '#', label: 'Email' },
-              ].map((social, idx) => (
-                <motion.a
-                  key={idx}
-                  href={social.href}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 border-2 border-white/20 flex items-center justify-center transition-all"
-                  aria-label={social.label}
-                >
-                  <social.icon className="w-5 h-5" />
-                </motion.a>
-              ))}
+              {content.socialLinks.map((social) => {
+                const Icon = iconMap[social.icon as keyof typeof iconMap] ?? Github;
+                return (
+                  <motion.a
+                    key={social.label}
+                    href={social.href}
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 border-2 border-white/20 flex items-center justify-center transition-all"
+                    aria-label={social.label}
+                  >
+                    <Icon className="w-5 h-5" />
+                  </motion.a>
+                );
+              })}
             </div>
           </div>
 
@@ -44,46 +51,25 @@ export function Footer() {
           <div>
             <h4 className="text-lg font-bold mb-4">Navigation</h4>
             <ul className="space-y-2">
-              <li>
-                <Link
-                  to="/"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Engineering
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/design"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Design
-                </Link>
-              </li>
-              <li>
-                <a
-                  href="#projects"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Projects
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#about"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  About
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#contact"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Contact
-                </a>
-              </li>
+              {content.navigationLinks.map((item) => (
+                <li key={item.label}>
+                  {item.type === 'route' ? (
+                    <Link
+                      to={item.href}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <a
+                      href={item.href}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      {item.label}
+                    </a>
+                  )}
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -91,30 +77,25 @@ export function Footer() {
           <div>
             <h4 className="text-lg font-bold mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              <li>
-                <a
-                  href="#skills"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Skills
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#insights"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Insights
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#ekagajpatra"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Case Study
-                </a>
-              </li>
+              {content.quickLinks.map((item) => (
+                <li key={item.label}>
+                  {item.type === 'route' ? (
+                    <Link
+                      to={item.href}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <a
+                      href={item.href}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      {item.label}
+                    </a>
+                  )}
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -122,7 +103,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10 text-center">
           <p className="text-gray-400">
-            © {currentYear} Design Baker. All rights reserved.
+            © {currentYear} {content.copyrightText}
           </p>
         </div>
       </div>

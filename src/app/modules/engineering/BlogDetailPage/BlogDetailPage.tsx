@@ -12,7 +12,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import mermaid from 'mermaid';
-import { blogData, categories } from '../blogData';
+import { useBlogCategories, useBlogData } from '../blogData';
 
 // Initialize mermaid
 mermaid.initialize({
@@ -106,9 +106,10 @@ const MarkdownComponents = {
 export function BlogDetailPage() {
   const { blogId } = useParams<{ blogId: string }>();
   const navigate = useNavigate();
+  const categories = useBlogCategories();
+  const blogs = useBlogData();
   const [isMobileActionsOpen, setIsMobileActionsOpen] = useState(false);
-
-  const blog = blogData.find((b) => b.id === Number(blogId));
+  const blog = blogs.find((b) => b.id === Number(blogId));
 
   if (!blog) {
     return (
@@ -122,11 +123,11 @@ export function BlogDetailPage() {
   }
 
   // Prefer same-category posts, then backfill with other categories so the section is always useful.
-  const sameCategoryBlogs = blogData
+  const sameCategoryBlogs = blogs
     .filter((b) => b.category === blog.category && b.id !== blog.id)
     .slice(0, 3);
 
-  const fallbackBlogs = blogData
+  const fallbackBlogs = blogs
     .filter((b) => b.category !== blog.category && b.id !== blog.id)
     .slice(0, Math.max(0, 3 - sameCategoryBlogs.length));
 
@@ -140,7 +141,7 @@ export function BlogDetailPage() {
         </h3>
         <div className="space-y-3">
           {categories.filter((cat) => cat.id !== 'all').map((category) => {
-            const categoryCount = blogData.filter((b) => b.category === category.id).length;
+            const categoryCount = blogs.filter((b) => b.category === category.id).length;
             const isActive = category.id === blog.category;
 
             return (
@@ -283,7 +284,7 @@ export function BlogDetailPage() {
           </Button>
         </motion.div>
 
-        <div className="grid lg:grid-cols-[1fr_300px] gap-8">
+        <div className="grid max-w-7xl lg:grid-cols-[1fr_200px] gap-8">
           {/* Main Content */}
           <div>
             {/* Blog Header */}

@@ -16,7 +16,7 @@ import { Squiggle, Star, BlobShape } from "../../../components/GraphicElements";
 import { FlowerCharacter } from "../../../components/FlowerCharacter";
 import { Cupcake, Donut, Cookie, IceCream } from "../../../components/BakeryItems";
 import { useState, useRef, useEffect } from "react";
-import allProjectsJson from './projects.json';
+import { useProjectsContent } from '../../../lib/contentHooks';
 
 const projectIconMap = {
   Users,
@@ -25,15 +25,16 @@ const projectIconMap = {
   Sparkles,
 } as const;
 
-const allProjects = allProjectsJson.map((project) => ({
-  ...project,
-  stats: project.stats.map((stat) => ({
-    ...stat,
-    icon: projectIconMap[stat.icon as keyof typeof projectIconMap] ?? Users,
-  })),
-}));
-
 export function EngineeringProjects() {
+  const rawProjects = useProjectsContent();
+  const allProjects = rawProjects.map((project) => ({
+    ...project,
+    stats: (project.stats ?? []).map((stat) => ({
+      ...stat,
+      icon: projectIconMap[(stat as { icon?: string }).icon as keyof typeof projectIconMap] ?? Users,
+    })),
+  }));
+
   const [startIndex, setStartIndex] = useState(0);
   const [featuredIndex, setFeaturedIndex] = useState(0);
   const [shouldScroll, setShouldScroll] = useState(false);
@@ -78,6 +79,10 @@ export function EngineeringProjects() {
 
   const featuredProject = visibleProjects[featuredIndex];
   const otherProjects = visibleProjects.filter((_, idx) => idx !== featuredIndex);
+
+  if (!featuredProject) {
+    return null;
+  }
 
   return (
     <section
@@ -286,7 +291,7 @@ export function EngineeringProjects() {
                                 ${idx === 0 ? 'bg-white text-gray-900' : 'bg-white/20 text-white border-white/40'}
                               `}
                             >
-                              <a href={link.url} target="_blank" rel="noopener noreferrer">
+                              <a href={(link as { href?: string; url?: string }).href ?? (link as { href?: string; url?: string }).url ?? '#'} target="_blank" rel="noopener noreferrer">
                                 {link.label.includes('GitHub') ? (
                                   <Github className="mr-2 h-4 w-4" />
                                 ) : (

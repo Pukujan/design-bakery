@@ -2,8 +2,17 @@ import { motion } from 'motion/react';
 import { ImageWithFallback } from '../../../components/figma/ImageWithFallback';
 import { Squiggle, Star, BlobShape } from '../../../components/GraphicElements';
 import { Code, Zap, Shield } from 'lucide-react';
+import { useEngineeringAboutSection } from '../../../lib/contentHooks';
+
+const iconMap = {
+  Code,
+  Shield,
+  Zap,
+} as const;
 
 export function EngineeringAbout() {
+  const content = useEngineeringAboutSection();
+
   return (
     <section
       id="about"
@@ -39,8 +48,8 @@ export function EngineeringAbout() {
           className="text-center mb-16"
         >
           <h2 className="text-[clamp(3rem,7vw,6rem)] leading-none mb-4 font-black">
-            <span className="text-blue-600 dark:text-blue-400">ABOUT</span>{' '}
-            <span className="text-purple-600 dark:text-purple-400">ME</span>
+            <span className="text-blue-600 dark:text-blue-400">{content.headingLeft}</span>{' '}
+            <span className="text-purple-600 dark:text-purple-400">{content.headingRight}</span>
           </h2>
           <Squiggle color="#4169E1" className="mx-auto" />
         </motion.div>
@@ -56,7 +65,7 @@ export function EngineeringAbout() {
           >
             <div className="relative aspect-[3/4] overflow-hidden rounded-3xl border-6 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] bg-blue-200 transform hover:rotate-2 transition-all">
               <ImageWithFallback
-                src="https://i.imgur.com/umGE4Kd.jpeg"
+                src={content.portraitUrl}
                 alt="Design Baker"
                 className="w-full h-full object-cover"
               />
@@ -73,71 +82,46 @@ export function EngineeringAbout() {
           >
             <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
               <h3 className="text-3xl font-black mb-6 text-gray-900 dark:text-gray-100">
-                Designer–Engineer / Full-Stack Developer
+                {content.roleTitle}
               </h3>
-              <p className="text-xl leading-relaxed mb-6 text-gray-700 dark:text-gray-300">
-                I work at the intersection of design and engineering, owning products end-to-end as 
-                they move from idea to execution and scale.
-              </p>
-              <p className="text-xl leading-relaxed mb-6 text-gray-700 dark:text-gray-300">
-                From 0→1, I focus on product design, UX, and frontend architecture to turn ambiguous 
-                problems into usable systems.
-              </p>
-              <p className="text-xl leading-relaxed mb-6 text-gray-700 dark:text-gray-300">
-                From 1→+, I strengthen those systems through backend integration, reliability 
-                improvements, and AI-enabled workflows.
-              </p>
+              {content.paragraphs.map((paragraph, index) => (
+                <p key={index} className="text-xl leading-relaxed mb-6 text-gray-700 dark:text-gray-300">
+                  {paragraph}
+                </p>
+              ))}
 
               <div className="space-y-4">
-                {[
-                  {
-                    icon: Code,
-                    title: 'Systems Engineering',
-                    desc: 'Building reliable systems for complex domains',
-                    color: '#4169E1',
-                  },
-                  {
-                    icon: Shield,
-                    title: 'Data Correctness',
-                    desc: 'Validation, error handling, and user trust',
-                    color: '#9B6DD6',
-                  },
-                  {
-                    icon: Zap,
-                    title: 'Cross-functional Collaboration',
-                    desc: 'Working with backend engineers, legal experts, and product teams',
-                    color: '#FF8C42',
-                  },
-                ].map((item, idx) => (
-                  <motion.div
-                    key={idx}
-                    whileHover={{ x: 5 }}
-                    className="flex items-start gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-black"
-                  >
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 border-2 border-black"
-                      style={{ backgroundColor: item.color }}
+                {content.highlights.map((item, idx) => {
+                  const Icon = iconMap[item.icon as keyof typeof iconMap] ?? Code;
+                  return (
+                    <motion.div
+                      key={idx}
+                      whileHover={{ x: 5 }}
+                      className="flex items-start gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-black"
                     >
-                      <item.icon className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-1">
-                        {item.title}
-                      </h4>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        {item.desc}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 border-2 border-black"
+                        style={{ backgroundColor: item.color }}
+                      >
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-1">
+                          {item.title}
+                        </h4>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          {item.desc}
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
 
             <div className="p-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <p className="text-white leading-relaxed text-lg">
-                Every system I build combines product design, frontend architecture, supporting backend 
-                APIs, and AI-enabled workflows — written with reliability, maintainability, and 
-                real-world impact in mind.
+                {content.callout}
               </p>
             </div>
           </motion.div>

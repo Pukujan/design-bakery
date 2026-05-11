@@ -3,7 +3,7 @@ import { Squiggle, Star, BlobShape } from '../../../components/GraphicElements';
 import { FlowerCharacter } from '../../../components/FlowerCharacter';
 import { Cupcake, Cookie } from '../../../components/BakeryItems';
 import { Code, Cpu, Layers, Palette } from 'lucide-react';
-import skillCategoriesJson from './skill-categories.json';
+import { useEngineeringSkillsContent, useEngineeringSkillsMetaSection } from '../../../lib/contentHooks';
 
 const skillIconMap = {
   Code,
@@ -12,12 +12,15 @@ const skillIconMap = {
   Palette,
 } as const;
 
-const skillCategories = skillCategoriesJson.map((category) => ({
-  ...category,
-  icon: skillIconMap[category.icon as keyof typeof skillIconMap] ?? Code,
-}));
-
 export function EngineeringSkills() {
+  const skillCategoriesRaw = useEngineeringSkillsContent();
+  const skillsMeta = useEngineeringSkillsMetaSection();
+
+  const skillCategories = skillCategoriesRaw.map((category) => ({
+    ...category,
+    icon: skillIconMap[category.icon as keyof typeof skillIconMap] ?? Code,
+  }));
+
   return (
     <section
       id="skills"
@@ -79,10 +82,10 @@ export function EngineeringSkills() {
           className="text-center mb-16"
         >
           <h2 className="text-[clamp(3rem,7vw,6rem)] leading-none mb-4 font-black">
-            <span className="text-blue-600 dark:text-blue-400">SKILLS</span>{' '}
-            <span className="text-violet-600 dark:text-violet-400">&</span>{' '}
+            <span className="text-blue-600 dark:text-blue-400">{skillsMeta.headingLeft}</span>{' '}
+            <span className="text-violet-600 dark:text-violet-400">{skillsMeta.headingMiddle}</span>{' '}
             <span className="text-fuchsia-600 dark:text-fuchsia-400">
-              TECHNOLOGIES
+              {skillsMeta.headingRight}
             </span>
           </h2>
           <Squiggle color="#9B6DD6" className="mx-auto" />

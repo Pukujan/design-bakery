@@ -4,6 +4,7 @@ import { EngineeringCommunity } from '../EngineeringCommunity/EngineeringCommuni
 import { EngineeringAbout } from '../EngineeringAbout/EngineeringAbout';
 import { EngineeringSkills } from '../EngineeringSkills/EngineeringSkills';
 import { EngineeringInsights } from '../EngineeringInsights/EngineeringInsights';
+import { RelevantExperience } from '../../../components/RelevantExperience';
 import { Contact } from '../../../components/Contact';
 import { Footer } from '../../../components/Footer';
 
@@ -16,6 +17,7 @@ export function EngineeringHome() {
       <EngineeringAbout />
       <EngineeringSkills />
       <EngineeringInsights />
+      <RelevantExperience />
       <Contact />
       <Footer />
     </>

@@ -8,10 +8,12 @@ import { Badge } from '../../../components/ui/badge';
 import { Squiggle, Star, BlobShape } from '../../../components/GraphicElements';
 import { FlowerCharacter } from '../../../components/FlowerCharacter';
 import { Cupcake, Donut } from '../../../components/BakeryItems';
-import { blogData, categories } from '../blogData';
+import { useBlogCategories, useBlogData } from '../blogData';
 
 export function BlogListPage() {
   const navigate = useNavigate();
+  const categories = useBlogCategories();
+  const blogs = useBlogData();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -21,8 +23,8 @@ export function BlogListPage() {
 
   const filteredBlogs =
     selectedCategory === 'all'
-      ? blogData
-      : blogData.filter((blog) => blog.category === selectedCategory);
+      ? blogs
+      : blogs.filter((blog) => blog.category === selectedCategory);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;

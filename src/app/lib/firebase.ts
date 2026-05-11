@@ -1,6 +1,7 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getDatabase, type Database } from 'firebase/database';
 import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getAuth, type Auth } from 'firebase/auth';
 
 function normalizeDatabaseUrl(rawValue: string | undefined, projectId: string | undefined): string {
   const value = rawValue?.trim();
@@ -47,6 +48,7 @@ export const firebaseApp: FirebaseApp | null = hasRequiredFirebaseConfig
 
 export const firestore: Firestore | null = firebaseApp ? getFirestore(firebaseApp) : null;
 export const realtimeDb: Database | null = firebaseApp ? getDatabase(firebaseApp) : null;
+export const auth: Auth | null = firebaseApp ? getAuth(firebaseApp) : null;
 
 export const firebaseDbRoot = import.meta.env.VITE_FIREBASE_DB_ROOT || '';
 

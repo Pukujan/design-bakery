@@ -14,13 +14,13 @@ import { FlowerCharacter } from "../../../components/FlowerCharacter";
 import { Cupcake, IceCream } from "../../../components/BakeryItems";
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { blogData, categories } from "../blogData";
-
-const insights = blogData;
+import { useBlogCategories, useBlogData } from "../blogData";
 
 const ITEMS_PER_PAGE = 3;
 
 export function EngineeringInsights() {
+  const categories = useBlogCategories();
+  const insights = useBlogData();
   const [selectedCategory, setSelectedCategory] =
     useState("all");
   const [currentPage, setCurrentPage] = useState(1);

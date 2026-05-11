@@ -2,8 +2,11 @@ import { motion } from 'motion/react';
 import { ArrowRight, Code, Terminal, Cpu } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { BlobShape, Star } from '../../../components/GraphicElements';
+import { useEngineeringHeroSection } from '../../../lib/contentHooks';
 
 export function EngineeringHero() {
+  const content = useEngineeringHeroSection();
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 pt-20">
       {/* Animated Background Shapes */}
@@ -56,22 +59,20 @@ export function EngineeringHero() {
             whileHover={{ scale: 1.05 }}
           >
             <p className="text-black font-bold text-sm tracking-wide">
-              DESIGNER–ENGINEER / FULL-STACK DEVELOPER
+              {content.badge}
             </p>
           </motion.div>
 
           <h1 className="text-[clamp(2.5rem,3vw,5.5rem)] leading-[1.1] mb-8 text-white">
-           0→1 and 1→+
+            {content.titleLine1}
             <br />
             <span className="text-yellow-300">
-              Design-led engineering with end-to-end ownership
+              {content.titleLine2}
             </span>
           </h1>
 
           <p className="text-lg md:text-lg mb-4 text-white/95 max-w-4xl mx-auto leading-relaxed">
-            Design–Engineer and Full-Stack Developer who takes products from early concept to production and beyond. 
-            I combine product design, frontend architecture, supporting backend APIs, and AI-enabled workflows to build 
-            scalable systems used by real users.
+            {content.description}
           </p>
 
           <motion.div
@@ -85,7 +86,7 @@ export function EngineeringHero() {
               onClick={() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })}
               className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-6 rounded-full group border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all text-lg font-bold"
             >
-              View Engineering Projects
+              {content.primaryCtaLabel}
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
            
@@ -98,11 +99,7 @@ export function EngineeringHero() {
             transition={{ delay: 0.9, duration: 0.8 }}
             className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto"
           >
-            {[
-              { label: 'Users Served', value: '35,000+' },
-              { label: 'Cost Reduction', value: '99%' },
-              { label: 'Awards Won', value: '5' },
-            ].map((stat, idx) => (
+            {content.stats.map((stat, idx) => (
               <motion.div
                 key={idx}
                 whileHover={{ scale: 1.05, rotate: Math.random() * 4 - 2 }}
