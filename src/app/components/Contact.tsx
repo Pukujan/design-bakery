@@ -1,17 +1,14 @@
 import { motion } from 'motion/react';
-import { Mail, Linkedin, Instagram, ExternalLink, Heart } from 'lucide-react';
+import { Heart, ExternalLink } from 'lucide-react';
 import { FlowerCharacter } from './FlowerCharacter';
 import { Star, Squiggle } from './GraphicElements';
-import socialLinksData from './social-links.json';
-
-const socialIconMap = {
-  Mail,
-  Linkedin,
-  Instagram,
-  ExternalLink,
-} as const;
+import { useContactSection, useSocialLinksContent } from '../lib/contentHooks';
+import { resolveIcon } from '../lib/iconResolver';
 
 export function Contact() {
+  const content = useContactSection();
+  const socialLinksData = useSocialLinksContent();
+
   return (
     <section id="contact" className="py-24 px-6 relative overflow-hidden min-h-screen flex items-center bg-gradient-to-br from-yellow-300 via-pink-300 to-purple-400">
       {/* Animated flowers */}
@@ -78,8 +75,8 @@ export function Contact() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-[clamp(3rem,8vw,7rem)] leading-none mb-8 text-white drop-shadow-lg font-black">
-            LET'S<br />CONNECT
+          <h2 className="text-[clamp(3rem,8vw,7rem)] leading-none mb-8 text-white drop-shadow-lg font-black whitespace-pre-line">
+            {content.heading}
           </h2>
           
           <Squiggle color="#FFD93D" className="mx-auto mb-8 w-80" />
@@ -93,7 +90,7 @@ export function Contact() {
           >
             <Heart className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 text-pink-500 fill-pink-500" />
             <p className="text-3xl text-gray italic leading-relaxed">
-              "Let's create something that moves people."
+              "{content.quote}"
             </p>
           </motion.blockquote>
         </motion.div>
@@ -107,7 +104,7 @@ export function Contact() {
           className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto mb-16"
         >
           {socialLinksData.map((link, index) => {
-            const Icon = socialIconMap[link.icon as keyof typeof socialIconMap] ?? ExternalLink;
+            const Icon = resolveIcon(link.icon);
             return (
               <motion.a
                 key={link.name}
@@ -157,7 +154,7 @@ export function Contact() {
         >
           <div className="inline-block bg-white dark:bg-gray-900 px-8 py-4 rounded-full border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
             <p className="font-black text-gray-900 dark:text-gray-100">
-              Designed with <span className="text-pink-500">empathy</span> • Built with <span className="text-blue-600">passion</span> • 2025
+              {content.footerNote}
             </p>
           </div>
         </motion.div>
