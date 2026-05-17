@@ -5,13 +5,17 @@ import {
 } from '../../../lib/adminContentService';
 import { ObjectSectionPage } from '../components/ObjectSectionPage';
 import { JsonObjectEditor } from '../components/JsonObjectEditor';
+import { useAdminPortfolio } from '../AdminPortfolioContext';
 
 export function EngineeringHeroEditor() {
+  const portfolioId = useAdminPortfolio();
+
   return (
     <ObjectSectionPage<EngineeringHeroContent>
       title="Engineering Hero Banner"
-      load={getEngineeringHeroContent}
-      save={setEngineeringHeroContent}
+      reloadKey={portfolioId}
+      load={() => getEngineeringHeroContent(portfolioId)}
+      save={(item) => setEngineeringHeroContent(portfolioId, item)}
     >
       {(item, onChange) => <JsonObjectEditor item={item} onChange={onChange} />}
     </ObjectSectionPage>

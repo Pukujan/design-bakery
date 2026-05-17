@@ -1,0 +1,59 @@
+[
+  {
+    "title": "Frontend Engineering",
+    "icon": "Code",
+    "color": "#4169E1",
+    "skills": [
+      "React",
+      "Next.js",
+      "TypeScript",
+      "TailwindCSS",
+      "CSS Architecture",
+      "Redux",
+      "React Toolkit",
+      "GraphQL",
+      "REST APIs"
+    ]
+  },
+  {
+    "title": "AI & Systems Integration",
+    "icon": "Cpu",
+    "color": "#9B6DD6",
+    "skills": [
+      "Agentic AI Systems",
+      "RAG Pipelines",
+      "OpenAI",
+      "OpenRouter",
+      "Google Gemini",
+      "Supabase",
+      "PostgreSQL",
+      "Vector Databases"
+    ]
+  },
+  {
+    "title": "Product & UX Engineering",
+    "icon": "Layers",
+    "color": "#FF8C42",
+    "skills": [
+      "Complex Form Systems",
+      "Validation & Error Handling",
+      "PDF & Document Generation",
+      "Accessibility (a11y)",
+      "Responsive Design",
+      "Performance Optimization"
+    ]
+  },
+  {
+    "title": "Design (Supporting Skill)",
+    "icon": "Palette",
+    "color": "#FF6B9D",
+    "skills": [
+      "Figma",
+      "Motion Design",
+      "Visual Design",
+      "Design Systems",
+      "Prototyping",
+      "User Research"
+    ]
+  }
+]

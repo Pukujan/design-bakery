@@ -1,0 +1,59 @@
+[
+  {
+    "title": "AI Workflow Systems",
+    "icon": "Cpu",
+    "color": "#9B6DD6",
+    "skills": [
+      "RAG Pipelines",
+      "LLM Agents",
+      "Prompt Engineering",
+      "Eval Pipelines",
+      "Human-in-the-Loop Review",
+      "Structured Extraction",
+      "Source Grounding"
+    ]
+  },
+  {
+    "title": "Document Intelligence",
+    "icon": "Layers",
+    "color": "#0D9488",
+    "skills": [
+      "OCR Workflows",
+      "Document Classification",
+      "Metadata Extraction",
+      "Review Queues",
+      "eDiscovery",
+      "Legal Document Processing",
+      "Validation Workflows"
+    ]
+  },
+  {
+    "title": "Legal Workflow Engineering",
+    "icon": "Shield",
+    "color": "#4169E1",
+    "skills": [
+      "Legal Operations",
+      "Docketing Logic",
+      "NYSCEF Filing Signals",
+      "TrialWorks Workflows",
+      "Court Rules",
+      "Judge / Part Rules",
+      "Procedural Risk Modeling"
+    ]
+  },
+  {
+    "title": "Full-Stack Engineering",
+    "icon": "Code",
+    "color": "#6366F1",
+    "skills": [
+      "React",
+      "Next.js",
+      "Node.js",
+      "Python",
+      "PostgreSQL",
+      "APIs",
+      "Dashboards",
+      "Workflow Interfaces"
+    ]
+  }
+]

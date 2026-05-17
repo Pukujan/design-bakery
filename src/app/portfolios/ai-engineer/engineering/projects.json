@@ -1,0 +1,88 @@
+[
+  {
+    "id": 1,
+    "title": "Legal Dataset Evaluation Pipeline",
+    "tagline": "Golden Dataset + Prompt Optimization System",
+    "description": "A testing workflow for legal AI outputs using golden datasets, ground truth, schema validation, output scoring, failure analysis, and data-driven prompt optimization.",
+    "tech": [
+      "Legal Datasets",
+      "LLM Evals",
+      "Ground Truth",
+      "Prompt Optimization",
+      "Data Analytics",
+      "Schema Validation"
+    ],
+    "color": "#6366F1",
+    "accentColor": "#A78BFA",
+    "stats": [
+      { "label": "Golden Dataset Testing", "icon": "Sparkles" },
+      { "label": "Prompt Standards", "icon": "TrendingUp" },
+      { "label": "Ground-Truth Scoring", "icon": "Award" }
+    ],
+    "links": [
+      { "label": "Workflow Notes", "url": "#" },
+      { "label": "Case Study", "url": "#" }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "RAG-Based Agent",
+    "tagline": "Retrieval-Augmented AI System",
+    "description": "A source-grounded AI agent that retrieves relevant documents, rules, notes, and structured data before generating reviewable answers.",
+    "tech": ["RAG", "LLM Agents", "Vector Search", "Prompt Engineering", "Source Grounding", "Evals"],
+    "color": "#9B6DD6",
+    "accentColor": "#C4B5FD",
+    "stats": [
+      { "label": "Grounded Answers", "icon": "Sparkles" },
+      { "label": "Retrieval Pipeline", "icon": "TrendingUp" },
+      { "label": "Reviewable Outputs", "icon": "Users" }
+    ],
+    "links": [
+      { "label": "Technical Notes", "url": "#" },
+      { "label": "Demo Flow", "url": "#" }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Legal Agent Projects",
+    "tagline": "AI Workflow Agents",
+    "description": "AI agent prototypes for docketing support, document review, court filing signals, procedural rules, and legal workflow automation.",
+    "tech": ["Legal AI", "AI Agents", "Docketing", "Document Intelligence", "Workflow Automation", "Prompt Systems"],
+    "color": "#0D9488",
+    "accentColor": "#14B8A6",
+    "stats": [
+      { "label": "Human Review First", "icon": "Users" },
+      { "label": "Structured Outputs", "icon": "TrendingUp" },
+      { "label": "Workflow Intelligence", "icon": "Award" }
+    ],
+    "links": [
+      { "label": "View Projects", "url": "#" },
+      { "label": "Architecture Notes", "url": "#" }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Prompt Standards + Eval Pipeline",
+    "tagline": "LLM Reliability + Product Feedback System",
+    "description": "A prompt engineering system that uses eval results, golden datasets, data analytics, and product feedback to improve AI output quality over time.",
+    "tech": [
+      "Prompt Engineering",
+      "Golden Datasets",
+      "Data Analytics",
+      "LLM Evals",
+      "Ground Truth",
+      "Product Engineering"
+    ],
+    "color": "#F97316",
+    "accentColor": "#FB923C",
+    "stats": [
+      { "label": "Prompt Optimization", "icon": "Sparkles" },
+      { "label": "Failure Pattern Analysis", "icon": "TrendingUp" },
+      { "label": "Product Feedback Loops", "icon": "Award" }
+    ],
+    "links": [
+      { "label": "Eval Notes", "url": "#" },
+      { "label": "System Design", "url": "#" }
+    ]
+  }
+]

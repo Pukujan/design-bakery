@@ -13,6 +13,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import mermaid from 'mermaid';
 import { useBlogCategories, useBlogData } from '../blogData';
+import { usePortfolio } from '../../../portfolios/PortfolioContext';
 
 // Initialize mermaid
 mermaid.initialize({
@@ -106,6 +107,8 @@ const MarkdownComponents = {
 export function BlogDetailPage() {
   const { blogId } = useParams<{ blogId: string }>();
   const navigate = useNavigate();
+  const { pathTo } = usePortfolio();
+  const blogsPath = pathTo('/blogs');
   const categories = useBlogCategories();
   const blogs = useBlogData();
   const [isMobileActionsOpen, setIsMobileActionsOpen] = useState(false);
@@ -116,7 +119,7 @@ export function BlogDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-4xl font-black mb-4">Blog not found</h1>
-          <Button onClick={() => navigate('/blogs')}>Back to Blogs</Button>
+          <Button onClick={() => navigate(blogsPath)}>Back to Blogs</Button>
         </div>
       </div>
     );
@@ -148,7 +151,7 @@ export function BlogDetailPage() {
               <Button
                 key={category.id}
                 onClick={() => {
-                  navigate('/blogs');
+                  navigate(blogsPath);
                   onAction?.();
                 }}
                 className={`
@@ -187,7 +190,7 @@ export function BlogDetailPage() {
         <div className="space-y-3">
           <Button
             onClick={() => {
-              navigate('/blogs');
+              navigate(blogsPath);
               onAction?.();
             }}
             className="w-full justify-start px-4 py-3 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-blue-500 hover:bg-blue-600 text-white font-black text-sm"
@@ -276,7 +279,7 @@ export function BlogDetailPage() {
           className="fixed top-28 md:top-28 mb-8"
         >
           <Button
-            onClick={() => navigate('/blogs')}
+            onClick={() => navigate(blogsPath)}
             className="px-6 py-3 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-yellow-400 hover:bg-yellow-500 text-black font-black rounded-full"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
@@ -369,7 +372,7 @@ export function BlogDetailPage() {
                       key={similarBlog.id}
                       className="p-6 border-6 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all bg-white dark:bg-gray-900 group cursor-pointer"
                       onClick={() => {
-                        navigate(`/blogs/${similarBlog.id}`);
+                        navigate(pathTo(`/blogs/${similarBlog.id}`));
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                     >

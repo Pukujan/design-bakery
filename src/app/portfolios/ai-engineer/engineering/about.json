@@ -1,0 +1,37 @@
+{
+  "headingLeft": "ABOUT",
+  "headingRight": "ME",
+  "portraitUrl": "https://i.imgur.com/umGE4Kd.jpeg",
+  "roleTitle": "I build AI agents that improve through data, testing, and human feedback.",
+  "paragraphs": [
+    "I'm Pujan Bajracharya, an AI-focused engineer working across legal datasets, agentic workflows, prompt systems, RAG, eval pipelines, LLM distillation, data analytics, and human review.",
+    "I care about AI systems that can retrieve context, follow constraints, produce structured outputs, measure performance against ground truth, and improve through data-driven prompt optimization."
+  ],
+  "highlights": [
+    {
+      "icon": "Shield",
+      "title": "Legal Dataset Testing",
+      "desc": "I create golden datasets, ground-truth labels, edge cases, and evaluation sets for legal AI workflows.",
+      "color": "#4169E1"
+    },
+    {
+      "icon": "Zap",
+      "title": "Prompt Standard Optimization",
+      "desc": "I use eval results, failure patterns, and output scoring to improve prompts, schemas, and AI behavior.",
+      "color": "#9B6DD6"
+    },
+    {
+      "icon": "Code",
+      "title": "Data + AI Insights",
+      "desc": "I combine data analytics and AI output analysis to identify what works, what fails, and what should improve.",
+      "color": "#0D9488"
+    },
+    {
+      "icon": "Layers",
+      "title": "Product Engineering",
+      "desc": "I turn AI insights into usable product workflows, review systems, dashboards, and human-in-the-loop pipelines.",
+      "color": "#F97316"
+    }
+  ],
+  "callout": "The goal is simple: make AI agents measurable, useful, and continuously improvable."
+}

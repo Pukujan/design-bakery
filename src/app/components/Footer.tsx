@@ -2,6 +2,13 @@ import { motion } from 'motion/react';
 import { Github, Linkedin, Mail, Twitter } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useFooterSection } from '../lib/contentHooks';
+import { usePortfolio } from '../portfolios/PortfolioContext';
+
+function resolveFooterRoute(href: string, pathTo: (segment?: string) => string): string {
+  if (href === '/') return pathTo('/');
+  if (href === '/blogs') return pathTo('/blogs');
+  return href;
+}
 
 const iconMap = {
   Github,
@@ -13,6 +20,7 @@ const iconMap = {
 export function Footer() {
   const currentYear = new Date().getFullYear();
   const content = useFooterSection();
+  const { pathTo } = usePortfolio();
 
   return (
     <footer className="bg-gray-900 text-white py-16 px-6 border-t-6 border-black">
@@ -55,7 +63,7 @@ export function Footer() {
                 <li key={item.label}>
                   {item.type === 'route' ? (
                     <Link
-                      to={item.href}
+                      to={resolveFooterRoute(item.href, pathTo)}
                       className="text-gray-400 hover:text-white transition-colors"
                     >
                       {item.label}
@@ -81,7 +89,7 @@ export function Footer() {
                 <li key={item.label}>
                   {item.type === 'route' ? (
                     <Link
-                      to={item.href}
+                      to={resolveFooterRoute(item.href, pathTo)}
                       className="text-gray-400 hover:text-white transition-colors"
                     >
                       {item.label}

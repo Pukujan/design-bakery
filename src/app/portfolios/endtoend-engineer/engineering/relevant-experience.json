@@ -1,0 +1,78 @@
+{
+  "headingLeft": "RELEVANT",
+  "headingRight": "EXPERIENCE",
+  "subtitle": "Work history across product design, full-stack engineering, AI workflows, legal operations, and SaaS systems.",
+  "resumeButtonLabel": "Download My Resume",
+  "experiences": [
+    {
+      "id": 1,
+      "company": "The Fitzgerald Law Firm",
+      "role": "Litigation Operations / AI Workflow Systems",
+      "period": "Feb 2026 - Present · 4 mos",
+      "location": "United States",
+      "icon": "Shield",
+      "color": "#4169E1",
+      "accentColor": "#8EA7FF",
+      "collapsedSummary": "Work on high-volume litigation operations while developing AI workflow research around docketing, court filing signals, judge/part rules, procedural risk, and privacy-safe legal automation.",
+      "expandedSummary": "Work on high-volume litigation operations while developing AI workflow research around docketing, court filing signals, judge/part rules, procedural risk, and privacy-safe legal automation.",
+      "highlights": [],
+      "tags": ["Legal Ops", "AI Workflow", "NYSCEF", "TrialWorks", "Docketing"]
+    },
+    {
+      "id": 2,
+      "company": "Nepasoft LLC",
+      "role": "Data Annotation Associate & AI Orchestration Supervisor",
+      "period": "Mar 2024 - Dec 2025 · 1 yr 10 mos",
+      "location": "Remote",
+      "icon": "Cpu",
+      "color": "#9B6DD6",
+      "accentColor": "#B5A8FF",
+      "collapsedSummary": "Worked on AI orchestration, RAG pipelines, OCR workflows, document classification, validation systems, and governance-sensitive datasets across legal, healthcare, OCR, and geospatial domains.",
+      "expandedSummary": "Worked on AI orchestration, RAG pipelines, OCR workflows, document classification, validation systems, and governance-sensitive datasets across legal, healthcare, OCR, and geospatial domains.",
+      "highlights": [],
+      "tags": ["RAG", "OCR", "AI Orchestration", "Data Validation", "Governance"]
+    },
+    {
+      "id": 3,
+      "company": "Ekagajpatra",
+      "role": "Lead Product Designer / Full-Stack Developer",
+      "period": "Feb 2023 - Apr 2024 · 1 yr 3 mos",
+      "location": "Nepal",
+      "icon": "Rocket",
+      "color": "#A8CC00",
+      "accentColor": "#C5E866",
+      "collapsedSummary": "Led product design and development for a civic-tech platform serving 35,000+ users, turning complex government and legal-documentation processes into guided digital workflows.",
+      "expandedSummary": "Led product design and development for a civic-tech platform serving 35,000+ users, turning complex government and legal-documentation processes into guided digital workflows.",
+      "highlights": [],
+      "tags": ["Product Design", "Full-Stack", "Civic Tech", "UX", "0→1 Product"]
+    },
+    {
+      "id": 4,
+      "company": "Perpetual Motion Nepal",
+      "role": "Frontend Developer",
+      "period": "May 2023 - Apr 2025 · 2 yrs",
+      "location": "Nepal",
+      "icon": "Code",
+      "color": "#FF6B9D",
+      "accentColor": "#FF9BB8",
+      "collapsedSummary": "Built frontend projects using Figma, React, Next.js, Tailwind, Redux, APIs, animations, and QA workflows for client-facing websites and product interfaces.",
+      "expandedSummary": "Built frontend projects using Figma, React, Next.js, Tailwind, Redux, APIs, animations, and QA workflows for client-facing websites and product interfaces.",
+      "highlights": [],
+      "tags": ["React", "Next.js", "Tailwind", "Redux", "Frontend"]
+    },
+    {
+      "id": 5,
+      "company": "Kulchan Pvt. Ltd",
+      "role": "Solutions Engineer",
+      "period": "Jun 2016 - Dec 2018 · 2 yrs 7 mos",
+      "location": "Nepal",
+      "icon": "Lightbulb",
+      "color": "#0D9488",
+      "accentColor": "#14B8A6",
+      "collapsedSummary": "Built 0→1 SaaS solutions, dashboards, workflow prototypes, and client-specific tools for legal, financial, and business operations clients.",
+      "expandedSummary": "Built 0→1 SaaS solutions, dashboards, workflow prototypes, and client-specific tools for legal, financial, and business operations clients.",
+      "highlights": [],
+      "tags": ["Solutions Engineering", "SaaS", "React", "Node.js", "Dashboards"]
+    }
+  ]
+}

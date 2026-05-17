@@ -1,0 +1,73 @@
+[
+  {
+    "title": "Legal Dataset Evaluation",
+    "icon": "Shield",
+    "color": "#4169E1",
+    "skills": [
+      "Golden Datasets",
+      "Ground-Truth Labeling",
+      "Output Scoring",
+      "Failure Analysis",
+      "Edge Case Design",
+      "Regression Sets",
+      "Schema Validation"
+    ]
+  },
+  {
+    "title": "Prompt Engineering Standards",
+    "icon": "Cpu",
+    "color": "#9B6DD6",
+    "skills": [
+      "Prompt Optimization",
+      "Prompt Contracts",
+      "System Prompts",
+      "Few-Shot Examples",
+      "JSON Schemas",
+      "Constraint Design",
+      "Prompt Iteration",
+      "Prompt QA"
+    ]
+  },
+  {
+    "title": "Data + AI Insights",
+    "icon": "Code",
+    "color": "#0D9488",
+    "skills": [
+      "Data Analytics",
+      "AI Output Analysis",
+      "Error Pattern Detection",
+      "Performance Tracking",
+      "Ground-Truth Comparison",
+      "Feedback Loops",
+      "Quality Metrics"
+    ]
+  },
+  {
+    "title": "AI Agent Systems",
+    "icon": "Zap",
+    "color": "#6366F1",
+    "skills": [
+      "Multi-Agent Orchestration",
+      "Agentic Workflows",
+      "Tool Use",
+      "Task Decomposition",
+      "Agent Routing",
+      "Human-in-the-Loop Pipelines",
+      "Structured Outputs"
+    ]
+  },
+  {
+    "title": "RAG + Model Workflows",
+    "icon": "Layers",
+    "color": "#F97316",
+    "skills": [
+      "RAG Pipelines",
+      "Vector Search",
+      "Source Grounding",
+      "Document Intelligence",
+      "LLM Distillation",
+      "Legal Document Processing",
+      "Review Queues"
+    ]
+  }
+]

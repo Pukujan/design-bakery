@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "title": "Ekagajpatra",
+    "tagline": "Civic-Tech Product Platform",
+    "description": "Led product design and full-stack development for a civic-tech platform helping users navigate government documentation, legal guides, and consultation workflows.",
+    "tech": ["Product Design", "Full-Stack", "Civic Tech", "Workflow UX", "Next.js"],
+    "color": "#4169E1",
+    "accentColor": "#FFD93D",
+    "stats": [
+      { "label": "35,000+ Users", "icon": "Users" },
+      { "label": "99% Cost Reduction", "icon": "TrendingUp" },
+      { "label": "5 Awards / Grants", "icon": "Award" }
+    ],
+    "links": [
+      { "label": "Case Study", "url": "https://follow-smog-96608767.figma.site" },
+      { "label": "Live Platform", "url": "https://www.ekagajpatra.com" }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Litigation Workflow Intelligence",
+    "tagline": "AI-Assisted Workflow System",
+    "description": "A workflow intelligence system for modeling litigation operations, court filing signals, deadlines, part rules, and procedural risk patterns.",
+    "tech": ["Legal Ops", "RAG", "Node.js", "Python", "Workflow Systems"],
+    "color": "#9B6DD6",
+    "accentColor": "#FF8C42",
+    "stats": [
+      { "label": "Workflow Modeling", "icon": "TrendingUp" },
+      { "label": "AI-Assisted Ops", "icon": "Sparkles" },
+      { "label": "Human Review", "icon": "Users" }
+    ],
+    "links": [
+      { "label": "Case Study", "url": "#" },
+      { "label": "Architecture Notes", "url": "#" }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "InvestAI",
+    "tagline": "AI Financial Learning Platform",
+    "description": "Built a working MVP for an AI-assisted financial learning platform focused on sentiment analysis, credibility evaluation, and user education.",
+    "tech": ["AI/ML", "Next.js", "Python", "Finance", "Product MVP"],
+    "color": "#A8CC00",
+    "accentColor": "#FF6B9D",
+    "stats": [
+      { "label": "MVP Built", "icon": "Sparkles" },
+      { "label": "AI Analysis", "icon": "TrendingUp" },
+      { "label": "Expert Tested", "icon": "Award" }
+    ],
+    "links": [
+      { "label": "Case Study", "url": "https://portal-genre-93680338.figma.site" },
+      { "label": "Demo Notes", "url": "https://financial-investment-with-gemini-in.vercel.app/" }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "SaaS Dashboard Systems",
+    "tagline": "Client Workflow Tools",
+    "description": "Built dashboards, analytics views, and workflow tools for legal, financial, and business operations clients.",
+    "tech": ["React", "Node.js", "APIs", "Dashboards", "SaaS"],
+    "color": "#FF6B9D",
+    "accentColor": "#A8CC00",
+    "stats": [
+      { "label": "Client Workflows", "icon": "Users" },
+      { "label": "Dashboards", "icon": "TrendingUp" },
+      { "label": "Custom Tools", "icon": "Award" }
+    ],
+    "links": [
+      { "label": "Project Notes", "url": "#" },
+      { "label": "System Design", "url": "#" }
+    ]
+  }
+]

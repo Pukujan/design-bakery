@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed:firestore": "pnpm dlx tsx scripts/seed-portfolios-firestore.ts"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
