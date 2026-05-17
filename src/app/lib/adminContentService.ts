@@ -18,15 +18,24 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 import { firestore } from './firebase';
+import type { PortfolioId } from '../portfolios/registry';
+import { DEFAULT_PORTFOLIO_ID } from '../portfolios/registry';
+import { resolveCollection } from '../portfolios/collections';
 
 // Local JSON fallbacks (used when Firestore collection is empty / not yet seeded)
 import _timelineJson from '../modules/design/About/timeline.json';
 import _skillsJson from '../modules/design/Skills/skills.json';
-import _engSkillsJson from '../modules/engineering/EngineeringSkills/skill-categories.json';
 import _advocacyJson from '../modules/design/Advocacy/advocacy-images.json';
 import _artJson from '../modules/design/ArtGallery/art-pieces.json';
-import _projectsJson from '../modules/engineering/EngineeringProjects/projects.json';
 import _socialLinksJson from '../components/social-links.json';
+import {
+  PROJECT_FALLBACKS,
+  ENG_SKILLS_FALLBACKS,
+  getHeroFallback,
+  getAboutFallback,
+  getSkillsMetaFallback,
+  getExperienceFallback,
+} from '../portfolios/portfolioDefaults';
 import _webProjectsJson from '../modules/design/WebDesignShowcase/showcase-web-projects.json';
 import _aiProjectsJson from '../modules/design/WebDesignShowcase/showcase-ai-projects.json';
 import _blogCategoriesJson from '../modules/engineering/blog-categories.json';
@@ -44,36 +53,90 @@ function db() {
   return firestore;
 }
 
+function col(portfolioId: PortfolioId, baseName: string): string {
+  return resolveCollection(portfolioId, baseName);
+}
+
+/** True when a Firestore field actually carries content (not "", {}, or []). */
+function hasMeaningfulValue(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (typeof value === 'number' || typeof value === 'boolean') return true;
+  if (Array.isArray(value)) return value.length > 0 && value.some(hasMeaningfulValue);
+  if (typeof value === 'object') {
+    return Object.values(value as Record<string, unknown>).some(hasMeaningfulValue);
+  }
+  return false;
+}
+
+/** Supports `{ item }` (admin save), legacy root objects (old seed), and empty-doc fallback. */
+function unwrapObjectFromFirestore<T>(data: DocumentData, fallback: T): T {
+  if (hasMeaningfulValue(data.item)) {
+    return data.item as T;
+  }
+
+  const { item: _item, items: _items, ...legacyFields } = data;
+  if (hasMeaningfulValue(legacyFields)) {
+    return legacyFields as T;
+  }
+
+  return fallback;
+}
+
+/** Supports `{ items }` and rejects empty arrays so repo JSON fallbacks apply. */
+function unwrapArrayFromFirestore<T>(data: DocumentData, fallback: T[]): T[] {
+  const wrapped = data.items;
+  if (
+    Array.isArray(wrapped) &&
+    wrapped.length > 0 &&
+    wrapped.some((entry) => hasMeaningfulValue(entry))
+  ) {
+    return wrapped as T[];
+  }
+
+  return fallback;
+}
+
 // ─────────────────────────────────────────────────────────────
 // Generic helpers
 // ─────────────────────────────────────────────────────────────
 
 /** Replace an entire array-valued document (stored at collection/data). */
 export async function setArrayDoc(collectionName: string, items: unknown[]) {
-  await setDoc(doc(db(), collectionName, 'data'), { items });
+  await setDoc(doc(db(), collectionName, 'data'), { items }, { merge: false });
 }
 
-/** Read an entire array-valued document. Falls back to `fallback` if Firestore has no data yet. */
+/** Read an entire array-valued document. Falls back when Firestore is off, missing, empty, or errors. */
 export async function getArrayDoc<T>(collectionName: string, fallback: T[] = []): Promise<T[]> {
-  const { getDoc } = await import('firebase/firestore');
-  const snap = await getDoc(doc(db(), collectionName, 'data'));
-  if (!snap.exists()) return fallback;
-  const data = snap.data() as { items: T[] };
-  return data.items ?? fallback;
+  if (!firestore) return fallback;
+
+  try {
+    const { getDoc } = await import('firebase/firestore');
+    const snap = await getDoc(doc(firestore, collectionName, 'data'));
+    if (!snap.exists()) return fallback;
+    return unwrapArrayFromFirestore<T>(snap.data(), fallback);
+  } catch {
+    return fallback;
+  }
 }
 
 /** Replace a singleton object document (stored at collection/data). */
 export async function setObjectDoc(collectionName: string, item: unknown) {
-  await setDoc(doc(db(), collectionName, 'data'), { item });
+  await setDoc(doc(db(), collectionName, 'data'), { item }, { merge: false });
 }
 
-/** Read a singleton object document. Falls back to `fallback` if missing. */
+/** Read a singleton object document. Falls back when Firestore is off, missing, or errors. */
 export async function getObjectDoc<T>(collectionName: string, fallback: T): Promise<T> {
-  const { getDoc } = await import('firebase/firestore');
-  const snap = await getDoc(doc(db(), collectionName, 'data'));
-  if (!snap.exists()) return fallback;
-  const data = snap.data() as { item?: T };
-  return data.item ?? fallback;
+  if (!firestore) return fallback;
+
+  try {
+    const { getDoc } = await import('firebase/firestore');
+    const snap = await getDoc(doc(firestore, collectionName, 'data'));
+    if (!snap.exists()) return fallback;
+    return unwrapObjectFromFirestore<T>(snap.data(), fallback);
+  } catch {
+    return fallback;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -218,8 +281,13 @@ export interface SkillCategory {
   skills: string[];
 }
 
-export const getEngineeringSkills = () => getArrayDoc<SkillCategory>('engineering_skills', _engSkillsJson as SkillCategory[]);
-export const setEngineeringSkills = (items: SkillCategory[]) => setArrayDoc('engineering_skills', items);
+export const getEngineeringSkills = (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) =>
+  getArrayDoc<SkillCategory>(
+    col(portfolioId, 'engineering_skills'),
+    ENG_SKILLS_FALLBACKS[portfolioId]
+  );
+export const setEngineeringSkills = (portfolioId: PortfolioId, items: SkillCategory[]) =>
+  setArrayDoc(col(portfolioId, 'engineering_skills'), items);
 
 // ─────────────────────────────────────────────────────────────
 // Advocacy Images
@@ -260,8 +328,10 @@ export interface Project {
   links: { label: string; url: string }[];
 }
 
-export const getProjects = () => getArrayDoc<Project>('engineering_projects', _projectsJson as unknown as Project[]);
-export const setProjects = (items: Project[]) => setArrayDoc('engineering_projects', items);
+export const getProjects = (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) =>
+  getArrayDoc<Project>(col(portfolioId, 'engineering_projects'), PROJECT_FALLBACKS[portfolioId]);
+export const setProjects = (portfolioId: PortfolioId, items: Project[]) =>
+  setArrayDoc(col(portfolioId, 'engineering_projects'), items);
 
 // ─────────────────────────────────────────────────────────────
 // Contact / Social Links
@@ -275,8 +345,10 @@ export interface SocialLink {
   color: string;
 }
 
-export const getSocialLinks = () => getArrayDoc<SocialLink>('social_links', _socialLinksJson as SocialLink[]);
-export const setSocialLinks = (items: SocialLink[]) => setArrayDoc('social_links', items);
+export const getSocialLinks = (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) =>
+  getArrayDoc<SocialLink>(col(portfolioId, 'social_links'), _socialLinksJson as SocialLink[]);
+export const setSocialLinks = (portfolioId: PortfolioId, items: SocialLink[]) =>
+  setArrayDoc(col(portfolioId, 'social_links'), items);
 
 // ─────────────────────────────────────────────────────────────
 // Web Design Showcase
@@ -352,24 +424,15 @@ export interface EngineeringHeroContent {
   stats: HeroStat[];
 }
 
-export const ENGINEERING_HERO_DEFAULT: EngineeringHeroContent = {
-  badge: 'DESIGNER-ENGINEER / FULL-STACK DEVELOPER',
-  titleLine1: '0→1 and 1→+',
-  titleLine2: 'Design-led engineering with end-to-end ownership',
-  description:
-    'Design-Engineer and Full-Stack Developer who takes products from early concept to production and beyond. I combine product design, frontend architecture, supporting backend APIs, and AI-enabled workflows to build scalable systems used by real users.',
-  primaryCtaLabel: 'View Engineering Projects',
-  stats: [
-    { label: 'Users Served', value: '35,000+' },
-    { label: 'Cost Reduction', value: '99%' },
-    { label: 'Awards Won', value: '5' },
-  ],
-};
+export { ENGINEERING_HERO_DEFAULT } from './engineeringStaticDefaults';
 
-export const getEngineeringHeroContent = () =>
-  getObjectDoc<EngineeringHeroContent>('engineering_hero_content', ENGINEERING_HERO_DEFAULT);
-export const setEngineeringHeroContent = (item: EngineeringHeroContent) =>
-  setObjectDoc('engineering_hero_content', item);
+export const getEngineeringHeroContent = (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) =>
+  getObjectDoc<EngineeringHeroContent>(
+    col(portfolioId, 'engineering_hero_content'),
+    getHeroFallback(portfolioId)
+  );
+export const setEngineeringHeroContent = (portfolioId: PortfolioId, item: EngineeringHeroContent) =>
+  setObjectDoc(col(portfolioId, 'engineering_hero_content'), item);
 
 // ─────────────────────────────────────────────────────────────
 // Engineering Community & Advisory (singleton)
@@ -470,13 +533,15 @@ export const ENGINEERING_COMMUNITY_DEFAULT: EngineeringCommunityContent = {
   ],
 };
 
-export const getEngineeringCommunityContent = () =>
+export const getEngineeringCommunityContent = (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) =>
   getObjectDoc<EngineeringCommunityContent>(
-    'engineering_community_content',
+    col(portfolioId, 'engineering_community_content'),
     ENGINEERING_COMMUNITY_DEFAULT
   );
-export const setEngineeringCommunityContent = (item: EngineeringCommunityContent) =>
-  setObjectDoc('engineering_community_content', item);
+export const setEngineeringCommunityContent = (
+  portfolioId: PortfolioId,
+  item: EngineeringCommunityContent
+) => setObjectDoc(col(portfolioId, 'engineering_community_content'), item);
 
 // ─────────────────────────────────────────────────────────────
 // Engineering About Me (singleton)
@@ -499,44 +564,15 @@ export interface EngineeringAboutContent {
   callout: string;
 }
 
-export const ENGINEERING_ABOUT_DEFAULT: EngineeringAboutContent = {
-  headingLeft: 'ABOUT',
-  headingRight: 'ME',
-  portraitUrl: 'https://i.imgur.com/umGE4Kd.jpeg',
-  roleTitle: 'Designer-Engineer / Full-Stack Developer',
-  paragraphs: [
-    'I work at the intersection of design and engineering, owning products end-to-end as they move from idea to execution and scale.',
-    'From 0→1, I focus on product design, UX, and frontend architecture to turn ambiguous problems into usable systems.',
-    'From 1→+, I strengthen those systems through backend integration, reliability improvements, and AI-enabled workflows.',
-  ],
-  highlights: [
-    {
-      icon: 'Code',
-      title: 'Systems Engineering',
-      desc: 'Building reliable systems for complex domains',
-      color: '#4169E1',
-    },
-    {
-      icon: 'Shield',
-      title: 'Data Correctness',
-      desc: 'Validation, error handling, and user trust',
-      color: '#9B6DD6',
-    },
-    {
-      icon: 'Zap',
-      title: 'Cross-functional Collaboration',
-      desc: 'Working with backend engineers, legal experts, and product teams',
-      color: '#FF8C42',
-    },
-  ],
-  callout:
-    'Every system I build combines product design, frontend architecture, supporting backend APIs, and AI-enabled workflows - written with reliability, maintainability, and real-world impact in mind.',
-};
+export { ENGINEERING_ABOUT_DEFAULT } from './engineeringStaticDefaults';
 
-export const getEngineeringAboutContent = () =>
-  getObjectDoc<EngineeringAboutContent>('engineering_about_content', ENGINEERING_ABOUT_DEFAULT);
-export const setEngineeringAboutContent = (item: EngineeringAboutContent) =>
-  setObjectDoc('engineering_about_content', item);
+export const getEngineeringAboutContent = (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) =>
+  getObjectDoc<EngineeringAboutContent>(
+    col(portfolioId, 'engineering_about_content'),
+    getAboutFallback(portfolioId)
+  );
+export const setEngineeringAboutContent = (portfolioId: PortfolioId, item: EngineeringAboutContent) =>
+  setObjectDoc(col(portfolioId, 'engineering_about_content'), item);
 
 // ─────────────────────────────────────────────────────────────
 // Engineering Skills & Technologies heading (singleton)
@@ -548,16 +584,15 @@ export interface EngineeringSkillsMeta {
   headingRight: string;
 }
 
-export const ENGINEERING_SKILLS_META_DEFAULT: EngineeringSkillsMeta = {
-  headingLeft: 'SKILLS',
-  headingMiddle: '&',
-  headingRight: 'TECHNOLOGIES',
-};
+export { ENGINEERING_SKILLS_META_DEFAULT } from './engineeringStaticDefaults';
 
-export const getEngineeringSkillsMeta = () =>
-  getObjectDoc<EngineeringSkillsMeta>('engineering_skills_meta', ENGINEERING_SKILLS_META_DEFAULT);
-export const setEngineeringSkillsMeta = (item: EngineeringSkillsMeta) =>
-  setObjectDoc('engineering_skills_meta', item);
+export const getEngineeringSkillsMeta = (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) =>
+  getObjectDoc<EngineeringSkillsMeta>(
+    col(portfolioId, 'engineering_skills_meta'),
+    getSkillsMetaFallback(portfolioId)
+  );
+export const setEngineeringSkillsMeta = (portfolioId: PortfolioId, item: EngineeringSkillsMeta) =>
+  setObjectDoc(col(portfolioId, 'engineering_skills_meta'), item);
 
 // ─────────────────────────────────────────────────────────────
 // Contact section copy (singleton)
@@ -576,10 +611,13 @@ export const CONTACT_SECTION_DEFAULT: ContactSectionContent = {
     'Designed with empathy • Built with passion • 2025',
 };
 
-export const getContactSectionContent = () =>
-  getObjectDoc<ContactSectionContent>('contact_section_content', CONTACT_SECTION_DEFAULT);
-export const setContactSectionContent = (item: ContactSectionContent) =>
-  setObjectDoc('contact_section_content', item);
+export const getContactSectionContent = (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) =>
+  getObjectDoc<ContactSectionContent>(
+    col(portfolioId, 'contact_section_content'),
+    CONTACT_SECTION_DEFAULT
+  );
+export const setContactSectionContent = (portfolioId: PortfolioId, item: ContactSectionContent) =>
+  setObjectDoc(col(portfolioId, 'contact_section_content'), item);
 
 // ─────────────────────────────────────────────────────────────
 // Footer content (singleton)
@@ -630,10 +668,10 @@ export const FOOTER_CONTENT_DEFAULT: FooterContent = {
   copyrightText: 'Design Baker. All rights reserved.',
 };
 
-export const getFooterContent = () =>
-  getObjectDoc<FooterContent>('footer_content', FOOTER_CONTENT_DEFAULT);
-export const setFooterContent = (item: FooterContent) =>
-  setObjectDoc('footer_content', item);
+export const getFooterContent = (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) =>
+  getObjectDoc<FooterContent>(col(portfolioId, 'footer_content'), FOOTER_CONTENT_DEFAULT);
+export const setFooterContent = (portfolioId: PortfolioId, item: FooterContent) =>
+  setObjectDoc(col(portfolioId, 'footer_content'), item);
 
 // ─────────────────────────────────────────────────────────────
 // Relevant Experience (singleton)
@@ -662,84 +700,78 @@ export interface RelevantExperienceContent {
   experiences: Experience[];
 }
 
-export const RELEVANT_EXPERIENCE_DEFAULT: RelevantExperienceContent = {
-  headingLeft: 'RELEVANT',
-  headingRight: 'EXPERIENCE',
-  subtitle: 'A journey of building, learning, and creating impact across design and engineering',
-  resumeButtonLabel: 'Download My Resume',
-  experiences: [
-    {
-      id: 1,
-      company: 'Women Devs SG',
-      role: 'Volunteer Advocate — Engineering & Product Enablement',
-      period: '2024 - Present',
-      location: 'Singapore',
-      icon: 'Users',
-      color: '#A8C5FF',
-      accentColor: '#8EA7FF',
-      collapsedSummary:
-        'Supporting women in tech through engineering mentorship, product thinking, and AI enablement. Working with participants to understand real-world product development and system thinking.',
-      expandedSummary:
-        'Contributed as a volunteer advocate supporting women in technology through engineering mentorship, product thinking, and AI enablement. Work focused on helping participants understand real-world product development, engineering workflows, and system thinking.',
-      highlights: [
-        'Creating technical and product-focused presentation decks for workshops',
-        'Co-developing mentorship handbooks and community guidance materials',
-        'Supporting programs across engineering mentorship, product ownership, AI enablement, and leadership development',
-        'Collaborating with mentors, engineers, and organizers to scale community impact',
-      ],
-      tags: ['Mentorship', 'Community', 'Product', 'Engineering', 'AI'],
-    },
-    {
-      id: 2,
-      company: 'TAILORU Collective',
-      role: 'AI Engineering Research · Product Ownership',
-      period: '2024 - Present',
-      location: 'Singapore',
-      icon: 'Lightbulb',
-      color: '#B5A8FF',
-      accentColor: '#9B8AFF',
-      collapsedSummary:
-        'Research and advisory work focused on AI-enabled product development and system ownership. Supporting teams in translating business problems into practical, scalable product workflows.',
-      expandedSummary:
-        'Research and advisory work focused on AI-enabled product development and system ownership. Supporting teams in translating business problems into practical, scalable product workflows using AI as an enabling layer.',
-      highlights: [
-        'Researched and prototyped agentic AI architectures for full-stack SaaS products',
-        'Designed and built end-to-end experimental systems (frontend, backend, data, and AI orchestration)',
-        'Explored multi-agent orchestration patterns, task decomposition, and RAG pipelines',
-        'Led 0 → 1 MVP builds and evaluated paths from MVP to production-ready AI systems',
-        'Facilitated co-building sessions with teams to learn through real project constraints',
-      ],
-      tags: ['AI', 'Research', 'Full-Stack', 'Product', 'Architecture'],
-    },
-    {
-      id: 3,
-      company: 'Design Baker',
-      role: 'Founder · Full-Stack Designer-Engineer',
-      period: '2023 - Present',
-      location: 'Singapore',
-      icon: 'Rocket',
-      color: '#A8FFD4',
-      accentColor: '#8EFFBE',
-      collapsedSummary:
-        'Building a multi-disciplinary portfolio showcasing design, engineering, and advocacy work. Combining product design, full-stack development, and AI-enabled workflows.',
-      expandedSummary:
-        'Building a comprehensive portfolio that brings together design, engineering, and community advocacy. Combining product design, full-stack development, and AI-enabled workflows to create systems with real-world impact.',
-      highlights: [
-        'Designed and built responsive, accessible web experiences from concept to deployment',
-        'Integrated AI-powered features to enhance user experiences and streamline workflows',
-        'Managed full product lifecycle from design conception through deployment and iteration',
-        'Created dynamic content management with Firestore integration for seamless updates',
-        'Built admin dashboards for non-technical content management and real-time editing',
-      ],
-      tags: ['Design', 'Full-Stack', 'React', 'TypeScript', 'Firestore', 'UX'],
-    },
-  ],
-};
+export { RELEVANT_EXPERIENCE_DEFAULT } from './engineeringStaticDefaults';
 
-export const getRelevantExperienceContent = () =>
+export const getRelevantExperienceContent = (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) =>
   getObjectDoc<RelevantExperienceContent>(
-    'relevant_experience_content',
-    RELEVANT_EXPERIENCE_DEFAULT
+    col(portfolioId, 'relevant_experience_content'),
+    getExperienceFallback(portfolioId)
   );
-export const setRelevantExperienceContent = (item: RelevantExperienceContent) =>
-  setObjectDoc('relevant_experience_content', item);
+export const setRelevantExperienceContent = (
+  portfolioId: PortfolioId,
+  item: RelevantExperienceContent
+) => setObjectDoc(col(portfolioId, 'relevant_experience_content'), item);
+
+// ─────────────────────────────────────────────────────────────
+// Push repo JSON fallbacks → Firestore (admin + seed script)
+// ─────────────────────────────────────────────────────────────
+
+const SEED_PORTFOLIO_IDS: PortfolioId[] = [
+  'default',
+  'legal-workflow-engineer',
+  'endtoend-engineer',
+  'ai-engineer',
+  'forward-deployed-engineer',
+];
+
+async function verifyPushedHero(portfolioId: PortfolioId): Promise<void> {
+  const { getDoc } = await import('firebase/firestore');
+  const collectionName = col(portfolioId, 'engineering_hero_content');
+  const expected = getHeroFallback(portfolioId);
+  const snap = await getDoc(doc(db(), collectionName, 'data'));
+
+  if (!snap.exists()) {
+    throw new Error(`Firestore doc missing after push: ${collectionName}`);
+  }
+
+  const hero = unwrapObjectFromFirestore(snap.data(), expected);
+  if (!hero.titleLine1?.trim()) {
+    throw new Error(
+      `Push did not persist hero for "${portfolioId}". Check Firestore rules for ${collectionName}.`
+    );
+  }
+}
+
+/** Overwrite engineering CMS docs in Firestore with repo JSON fallbacks for one portfolio. */
+export async function pushPortfolioDefaultsToFirestore(portfolioId: PortfolioId): Promise<void> {
+  await Promise.all([
+    setEngineeringHeroContent(portfolioId, getHeroFallback(portfolioId)),
+    setEngineeringAboutContent(portfolioId, getAboutFallback(portfolioId)),
+    setEngineeringSkillsMeta(portfolioId, getSkillsMetaFallback(portfolioId)),
+    setRelevantExperienceContent(portfolioId, getExperienceFallback(portfolioId)),
+    setProjects(portfolioId, PROJECT_FALLBACKS[portfolioId]),
+    setEngineeringSkills(portfolioId, ENG_SKILLS_FALLBACKS[portfolioId]),
+    setEngineeringCommunityContent(portfolioId, ENGINEERING_COMMUNITY_DEFAULT),
+    setContactSectionContent(portfolioId, CONTACT_SECTION_DEFAULT),
+    setFooterContent(portfolioId, FOOTER_CONTENT_DEFAULT),
+    setSocialLinks(portfolioId, _socialLinksJson as SocialLink[]),
+  ]);
+
+  await verifyPushedHero(portfolioId);
+}
+
+export const PORTFOLIO_CONTENT_PUSH_EVENT = 'portfolio-content-pushed';
+
+export function notifyPortfolioContentPushed() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(PORTFOLIO_CONTENT_PUSH_EVENT));
+  }
+}
+
+/** Push repo defaults for every portfolio route (same scope as `pnpm run seed:firestore`). */
+export async function pushAllPortfolioDefaultsToFirestore(): Promise<PortfolioId[]> {
+  for (const portfolioId of SEED_PORTFOLIO_IDS) {
+    await pushPortfolioDefaultsToFirestore(portfolioId);
+  }
+  return SEED_PORTFOLIO_IDS;
+}

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { usePortfolio } from '../portfolios/PortfolioContext';
+import type { PortfolioId } from '../portfolios/registry';
 import {
   getProjects,
   type Project,
@@ -8,16 +10,13 @@ import {
   type SocialLink,
   getEngineeringHeroContent,
   type EngineeringHeroContent,
-  ENGINEERING_HERO_DEFAULT,
   getEngineeringCommunityContent,
   type EngineeringCommunityContent,
   ENGINEERING_COMMUNITY_DEFAULT,
   getEngineeringAboutContent,
   type EngineeringAboutContent,
-  ENGINEERING_ABOUT_DEFAULT,
   getEngineeringSkillsMeta,
   type EngineeringSkillsMeta,
-  ENGINEERING_SKILLS_META_DEFAULT,
   getContactSectionContent,
   type ContactSectionContent,
   CONTACT_SECTION_DEFAULT,
@@ -26,11 +25,33 @@ import {
   FOOTER_CONTENT_DEFAULT,
   getRelevantExperienceContent,
   type RelevantExperienceContent,
-  RELEVANT_EXPERIENCE_DEFAULT,
+  PORTFOLIO_CONTENT_PUSH_EVENT,
 } from './adminContentService';
+import {
+  PROJECT_FALLBACKS,
+  ENG_SKILLS_FALLBACKS,
+  getHeroFallback,
+  getAboutFallback,
+  getSkillsMetaFallback,
+  getExperienceFallback,
+} from '../portfolios/portfolioDefaults';
+import _socialLinksJson from '../components/social-links.json';
 
-function useAsyncContent<T>(loader: () => Promise<T>, fallback: T): T {
+const SOCIAL_LINKS_FALLBACK = _socialLinksJson as SocialLink[];
+
+function useAsyncContent<T>(
+  loader: () => Promise<T>,
+  fallback: T,
+  portfolioId: PortfolioId
+): T {
   const [data, setData] = useState<T>(fallback);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  useEffect(() => {
+    const onPushed = () => setReloadToken((value) => value + 1);
+    window.addEventListener(PORTFOLIO_CONTENT_PUSH_EVENT, onPushed);
+    return () => window.removeEventListener(PORTFOLIO_CONTENT_PUSH_EVENT, onPushed);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -45,67 +66,95 @@ function useAsyncContent<T>(loader: () => Promise<T>, fallback: T): T {
     return () => {
       active = false;
     };
-    // Intentionally run once per mount; loaders are stable module functions.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [portfolioId, reloadToken]);
 
   return data;
 }
 
 export function useProjectsContent() {
-  return useAsyncContent<Project[]>(() => getProjects(), []);
+  const { portfolioId } = usePortfolio();
+  const fallback = PROJECT_FALLBACKS[portfolioId];
+  return useAsyncContent<Project[]>(() => getProjects(portfolioId), fallback, portfolioId);
 }
 
 export function useEngineeringSkillsContent() {
-  return useAsyncContent<SkillCategory[]>(() => getEngineeringSkills(), []);
+  const { portfolioId } = usePortfolio();
+  const fallback = ENG_SKILLS_FALLBACKS[portfolioId];
+  return useAsyncContent<SkillCategory[]>(
+    () => getEngineeringSkills(portfolioId),
+    fallback,
+    portfolioId
+  );
 }
 
 export function useSocialLinksContent() {
-  return useAsyncContent<SocialLink[]>(() => getSocialLinks(), []);
+  const { portfolioId } = usePortfolio();
+  return useAsyncContent<SocialLink[]>(
+    () => getSocialLinks(portfolioId),
+    SOCIAL_LINKS_FALLBACK,
+    portfolioId
+  );
 }
 
 export function useEngineeringHeroSection() {
+  const { portfolioId } = usePortfolio();
   return useAsyncContent<EngineeringHeroContent>(
-    () => getEngineeringHeroContent(),
-    ENGINEERING_HERO_DEFAULT
+    () => getEngineeringHeroContent(portfolioId),
+    getHeroFallback(portfolioId),
+    portfolioId
   );
 }
 
 export function useEngineeringCommunitySection() {
+  const { portfolioId } = usePortfolio();
   return useAsyncContent<EngineeringCommunityContent>(
-    () => getEngineeringCommunityContent(),
-    ENGINEERING_COMMUNITY_DEFAULT
+    () => getEngineeringCommunityContent(portfolioId),
+    ENGINEERING_COMMUNITY_DEFAULT,
+    portfolioId
   );
 }
 
 export function useEngineeringAboutSection() {
+  const { portfolioId } = usePortfolio();
   return useAsyncContent<EngineeringAboutContent>(
-    () => getEngineeringAboutContent(),
-    ENGINEERING_ABOUT_DEFAULT
+    () => getEngineeringAboutContent(portfolioId),
+    getAboutFallback(portfolioId),
+    portfolioId
   );
 }
 
 export function useEngineeringSkillsMetaSection() {
+  const { portfolioId } = usePortfolio();
   return useAsyncContent<EngineeringSkillsMeta>(
-    () => getEngineeringSkillsMeta(),
-    ENGINEERING_SKILLS_META_DEFAULT
+    () => getEngineeringSkillsMeta(portfolioId),
+    getSkillsMetaFallback(portfolioId),
+    portfolioId
   );
 }
 
 export function useContactSection() {
+  const { portfolioId } = usePortfolio();
   return useAsyncContent<ContactSectionContent>(
-    () => getContactSectionContent(),
-    CONTACT_SECTION_DEFAULT
+    () => getContactSectionContent(portfolioId),
+    CONTACT_SECTION_DEFAULT,
+    portfolioId
   );
 }
 
 export function useFooterSection() {
-  return useAsyncContent<FooterContent>(() => getFooterContent(), FOOTER_CONTENT_DEFAULT);
+  const { portfolioId } = usePortfolio();
+  return useAsyncContent<FooterContent>(
+    () => getFooterContent(portfolioId),
+    FOOTER_CONTENT_DEFAULT,
+    portfolioId
+  );
 }
 
 export function useRelevantExperienceContent() {
+  const { portfolioId } = usePortfolio();
   return useAsyncContent<RelevantExperienceContent>(
-    () => getRelevantExperienceContent(),
-    RELEVANT_EXPERIENCE_DEFAULT
+    () => getRelevantExperienceContent(portfolioId),
+    getExperienceFallback(portfolioId),
+    portfolioId
   );
 }

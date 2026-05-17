@@ -1,0 +1,55 @@
+[
+  {
+    "title": "Workflow Discovery",
+    "icon": "Target",
+    "color": "#4169E1",
+    "skills": [
+      "User Research",
+      "Process Mapping",
+      "Requirements Gathering",
+      "Stakeholder Interviews",
+      "Workflow Design",
+      "Operational Analysis"
+    ]
+  },
+  {
+    "title": "Product Implementation",
+    "icon": "Layers",
+    "color": "#0D9488",
+    "skills": [
+      "React",
+      "Next.js",
+      "Node.js",
+      "TypeScript",
+      "APIs",
+      "Dashboards",
+      "Full-Stack Delivery"
+    ]
+  },
+  {
+    "title": "AI-Enabled Systems",
+    "icon": "Cpu",
+    "color": "#9B6DD6",
+    "skills": [
+      "RAG Pipelines",
+      "AI Agents",
+      "OCR Workflows",
+      "Prompt Systems",
+      "Human Review",
+      "Evals"
+    ]
+  },
+  {
+    "title": "Client & Ops Delivery",
+    "icon": "Users",
+    "color": "#F97316",
+    "skills": [
+      "Solutions Engineering",
+      "SaaS",
+      "Legal Ops",
+      "Financial Workflows",
+      "Internal Tools",
+      "0→1 Systems"
+    ]
+  }
+]

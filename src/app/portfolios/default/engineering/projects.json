@@ -1,0 +1,144 @@
+[
+  {
+    "id": 1,
+    "title": "Ekagajpatra",
+    "tagline": "Civic Tech Platform",
+    "description": "Architected and built a scalable platform serving 35,000+ users, transforming complex documentation into guided workflows with validation, PDF generation, and multi-role dashboards.",
+    "tech": [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "PostgreSQL"
+    ],
+    "color": "#4169E1",
+    "accentColor": "#FFD93D",
+    "stats": [
+      {
+        "label": "35K+ Users",
+        "icon": "Users"
+      },
+      {
+        "label": "99% Cost Cut",
+        "icon": "TrendingUp"
+      },
+      {
+        "label": "5 Awards",
+        "icon": "Award"
+      }
+    ],
+    "links": [
+      {
+        "label": "Live Platform",
+        "url": "https://www.ekagajpatra.com"
+      },
+      {
+        "label": "Case Study",
+        "url": "https://follow-smog-96608767.figma.site"
+      },
+      {
+        "label": "Frontend Study",
+        "url": "https://mock-flee-81526355.figma.site"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "InvestAI",
+    "tagline": "AI Financial Platform",
+    "description": "Built a working MVP financial learning platform using AI for sentiment analysis and market credibility evaluation, tested by 10+ financial experts.",
+    "tech": [
+      "AI/ML",
+      "Next.js",
+      "Python",
+      "OpenAI"
+    ],
+    "color": "#A8CC00",
+    "accentColor": "#FF6B9D",
+    "stats": [
+      {
+        "label": "Live MVP",
+        "icon": "Sparkles"
+      },
+      {
+        "label": "10+ Experts",
+        "icon": "Users"
+      },
+      {
+        "label": "AI-Powered",
+        "icon": "TrendingUp"
+      }
+    ],
+    "links": [
+      {
+        "label": "View Demo",
+        "url": "https://financial-investment-with-gemini-in.vercel.app/"
+      },
+      {
+        "label": "GitHub",
+        "url": "https://github.com/Pukujan/financial-investment-with-gemini-insights"
+      },
+      {
+        "label": "Case Study",
+        "url": "https://portal-genre-93680338.figma.site"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "AI Workflow System",
+    "tagline": "Agentic AI Orchestration",
+    "description": "Multi-agent orchestration with RAG pipelines and real-time streaming for complex automation tasks.",
+    "tech": [
+      "OpenAI",
+      "OpenRouter",
+      "React",
+      "TypeScript"
+    ],
+    "color": "#9B6DD6",
+    "accentColor": "#FF8C42",
+    "stats": [
+      {
+        "label": "Multi-Agent",
+        "icon": "Sparkles"
+      },
+      {
+        "label": "RAG Pipeline",
+        "icon": "TrendingUp"
+      },
+      {
+        "label": "Real-time",
+        "icon": "Award"
+      }
+    ],
+    "links": []
+  },
+  {
+    "id": 4,
+    "title": "SaaS Dashboard",
+    "tagline": "Multi-Tenant Platform",
+    "description": "Enterprise admin system for legal, financial, and business clients with role-based access and advanced analytics.",
+    "tech": [
+      "Next.js",
+      "PostgreSQL",
+      "Redux",
+      "TailwindCSS"
+    ],
+    "color": "#FF6B9D",
+    "accentColor": "#A8CC00",
+    "stats": [
+      {
+        "label": "Multi-Tenant",
+        "icon": "Users"
+      },
+      {
+        "label": "Analytics",
+        "icon": "TrendingUp"
+      },
+      {
+        "label": "RBAC",
+        "icon": "Award"
+      }
+    ],
+    "links": []
+  }
+]

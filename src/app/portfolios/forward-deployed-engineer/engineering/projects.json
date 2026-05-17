@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "title": "Ekagajpatra",
+    "tagline": "Civic-Tech Workflow Platform",
+    "description": "Built a civic-tech product that turned complex government and legal-documentation processes into guided workflows for real users.",
+    "tech": ["Workflow Design", "Product Engineering", "Civic Tech", "User Research", "Full-Stack"],
+    "color": "#4169E1",
+    "accentColor": "#8EA7FF",
+    "stats": [
+      { "label": "35,000+ Users", "icon": "Users" },
+      { "label": "99% Cost Reduction", "icon": "TrendingUp" },
+      { "label": "5 Awards / Grants", "icon": "Award" }
+    ],
+    "links": [
+      { "label": "Case Study", "url": "#" },
+      { "label": "Live Platform", "url": "https://www.ekagajpatra.com" }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "SaaS Dashboard Systems",
+    "tagline": "Client Operations Tools",
+    "description": "Built dashboards, analytics views, workflow prototypes, and client-specific tools for legal, financial, and business operations teams.",
+    "tech": ["Solutions Engineering", "React", "Node.js", "Dashboards", "SaaS", "APIs"],
+    "color": "#0D9488",
+    "accentColor": "#14B8A6",
+    "stats": [
+      { "label": "Client Workflows", "icon": "Sparkles" },
+      { "label": "Custom Tools", "icon": "TrendingUp" },
+      { "label": "Operational Dashboards", "icon": "Award" }
+    ],
+    "links": [
+      { "label": "Project Notes", "url": "#" },
+      { "label": "System Design", "url": "#" }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Litigation Workflow Intelligence",
+    "tagline": "AI-Assisted Operations System",
+    "description": "A workflow intelligence system for modeling litigation operations, court filing signals, deadlines, part rules, and operational risk.",
+    "tech": ["Legal Ops", "AI Workflow", "RAG", "Node.js", "Python", "Internal Tools"],
+    "color": "#9B6DD6",
+    "accentColor": "#C4B5FD",
+    "stats": [
+      { "label": "Workflow Modeling", "icon": "Sparkles" },
+      { "label": "AI-Assisted Ops", "icon": "TrendingUp" },
+      { "label": "Human Review", "icon": "Users" }
+    ],
+    "links": [
+      { "label": "Case Study", "url": "#" },
+      { "label": "Architecture Notes", "url": "#" }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "AI Workflow Agents",
+    "tagline": "Automation + Implementation Systems",
+    "description": "Agentic workflow prototypes for retrieval, document analysis, structured extraction, task routing, and human-in-the-loop review.",
+    "tech": ["AI Agents", "RAG", "Prompt Systems", "Automation", "Human Review", "Evals"],
+    "color": "#F97316",
+    "accentColor": "#FB923C",
+    "stats": [
+      { "label": "RAG Agents", "icon": "Sparkles" },
+      { "label": "Tool Workflows", "icon": "TrendingUp" },
+      { "label": "Review Pipelines", "icon": "Users" }
+    ],
+    "links": [
+      { "label": "Demo Flow", "url": "#" },
+      { "label": "Technical Notes", "url": "#" }
+    ]
+  }
+]

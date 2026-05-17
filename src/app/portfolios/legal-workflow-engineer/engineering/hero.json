@@ -1,0 +1,13 @@
+{
+  "badge": "LEGAL WORKFLOW ENGINEER / AI SYSTEMS BUILDER",
+  "titleLine1": "AI systems for legal workflows.",
+  "titleLine2": "Legal ops · document intelligence · workflow automation · verification-first AI",
+  "description": "I build document-heavy workflow systems using RAG, OCR, full-stack engineering, and human review.",
+  "primaryCtaLabel": "View Projects",
+  "stats": [
+    { "label": "Users Served", "value": "35,000+" },
+    { "label": "Cost Reduction", "value": "99%" },
+    { "label": "Workflow / AI Systems", "value": "4+" },
+    { "label": "Verification-First AI", "value": "Human Review" }
+  ]
+}

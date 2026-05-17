@@ -1,0 +1,37 @@
+{
+  "headingLeft": "ABOUT",
+  "headingRight": "ME",
+  "portraitUrl": "https://i.imgur.com/umGE4Kd.jpeg",
+  "roleTitle": "I work best where product, engineering, and messy real-world workflows overlap.",
+  "paragraphs": [
+    "I'm Pujan Bajracharya, an end-to-end engineer with a background in product design, full-stack development, AI-assisted workflows, and operational systems.",
+    "I like taking vague problems and turning them into structured products: mapping the workflow, designing the interface, building the system, and improving it through use."
+  ],
+  "highlights": [
+    {
+      "icon": "Code",
+      "title": "Product Thinking",
+      "desc": "I start by understanding the user, the workflow, the pain point, and what the system needs to make easier.",
+      "color": "#4169E1"
+    },
+    {
+      "icon": "Zap",
+      "title": "Design-Led Engineering",
+      "desc": "I use UX, prototyping, and interface design to make complex systems clear and usable.",
+      "color": "#9B6DD6"
+    },
+    {
+      "icon": "Shield",
+      "title": "Full-Stack Execution",
+      "desc": "I build interfaces, workflows, APIs, dashboards, and product logic across the stack.",
+      "color": "#FF8C42"
+    },
+    {
+      "icon": "Code",
+      "title": "AI-Assisted Systems",
+      "desc": "I prototype tools using RAG, OCR, structured extraction, evals, and human review workflows.",
+      "color": "#0D9488"
+    }
+  ],
+  "callout": "The common thread across my work is simple: I build systems that make complicated processes easier to use, verify, and improve."
+}

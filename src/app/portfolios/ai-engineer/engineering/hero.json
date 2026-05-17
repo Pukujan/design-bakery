@@ -1,0 +1,13 @@
+{
+  "badge": "AI ENGINEER / PROMPT ENGINEERING SYSTEMS",
+  "titleLine1": "I build AI agents that help turn ideas into working software.",
+  "titleLine2": "Legal datasets · AI agents · prompt standards · evals · data analytics · human review",
+  "description": "I design agentic systems with prompt optimization, legal dataset evaluation, RAG, LLM distillation, multi-agent orchestration, data analytics, and human-in-the-loop pipelines.",
+  "primaryCtaLabel": "View AI Projects",
+  "stats": [
+    { "label": "Ground-Truth Testing", "value": "Golden Datasets" },
+    { "label": "Data-Driven Optimization", "value": "Prompt Standards" },
+    { "label": "Orchestration", "value": "Multi-Agent" },
+    { "label": "Reliable Pipelines", "value": "Human Review" }
+  ]
+}

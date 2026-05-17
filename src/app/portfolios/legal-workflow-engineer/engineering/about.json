@@ -1,0 +1,37 @@
+{
+  "headingLeft": "ABOUT",
+  "headingRight": "ME",
+  "portraitUrl": "https://i.imgur.com/umGE4Kd.jpeg",
+  "roleTitle": "I build systems where documents, rules, people, and deadlines all connect.",
+  "paragraphs": [
+    "I'm Pujan Bajracharya, a legal workflow and AI systems builder with experience across full-stack engineering, product design, AI orchestration, and litigation operations.",
+    "My work focuses on making complex workflows easier to understand, verify, and act on."
+  ],
+  "highlights": [
+    {
+      "icon": "Shield",
+      "title": "Workflow Logic",
+      "desc": "I model processes as states, signals, tasks, deadlines, and review points.",
+      "color": "#4169E1"
+    },
+    {
+      "icon": "Code",
+      "title": "Document Intelligence",
+      "desc": "I work with OCR, classification, metadata extraction, and review queues.",
+      "color": "#9B6DD6"
+    },
+    {
+      "icon": "Zap",
+      "title": "AI With Review",
+      "desc": "I design RAG, eval, and human-in-the-loop systems instead of blind automation.",
+      "color": "#0D9488"
+    },
+    {
+      "icon": "Layers",
+      "title": "Product Engineering",
+      "desc": "I build usable tools with UX, frontend systems, backend logic, and domain research.",
+      "color": "#6366F1"
+    }
+  ],
+  "callout": "The goal is simple: make complex workflows structured, reviewable, and useful."
+}

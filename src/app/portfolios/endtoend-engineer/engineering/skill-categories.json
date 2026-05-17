@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Delivery Pipeline",
+    "icon": "Code",
+    "color": "#0D9488",
+    "skills": ["GitHub Actions", "Argo CD", "Terraform", "Docker", "Helm"]
+  },
+  {
+    "title": "Operations",
+    "icon": "Cpu",
+    "color": "#F97316",
+    "skills": ["OpenTelemetry", "Prometheus", "Grafana", "PagerDuty", "SLO Design"]
+  },
+  {
+    "title": "Application Layer",
+    "icon": "Layers",
+    "color": "#6366F1",
+    "skills": ["TypeScript", "React", "Node.js", "PostgreSQL", "Redis"]
+  }
+]

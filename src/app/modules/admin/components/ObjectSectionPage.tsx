@@ -6,6 +6,7 @@ interface ObjectSectionPageProps<T extends object> {
   title: string;
   load: () => Promise<T>;
   save: (item: T) => Promise<void>;
+  reloadKey?: string;
   children: (item: T, onChange: (item: T) => void) => ReactNode;
 }
 
@@ -13,6 +14,7 @@ export function ObjectSectionPage<T extends object>({
   title,
   load,
   save,
+  reloadKey = '',
   children,
 }: ObjectSectionPageProps<T>) {
   const [item, setItem] = useState<T | null>(null);
@@ -34,7 +36,7 @@ export function ObjectSectionPage<T extends object>({
 
   useEffect(() => {
     void fetch();
-  }, []);
+  }, [reloadKey]);
 
   async function handleSave() {
     if (!item) return;

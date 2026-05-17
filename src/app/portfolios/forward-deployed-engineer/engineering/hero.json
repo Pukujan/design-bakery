@@ -1,0 +1,13 @@
+{
+  "badge": "FORWARD-DEPLOYED ENGINEER / SOLUTIONS BUILDER",
+  "titleLine1": "I turn messy business problems into working systems.",
+  "titleLine2": "Client workflows · internal tools · AI automation · product implementation",
+  "description": "I work across product, engineering, AI workflows, and operations to build tools that fit real users, real processes, and real constraints.",
+  "primaryCtaLabel": "View Projects",
+  "stats": [
+    { "label": "Users Served", "value": "35,000+" },
+    { "label": "Cost Reduction", "value": "99%" },
+    { "label": "Systems Built", "value": "0→1" },
+    { "label": "Ops Domains", "value": "Legal + Finance" }
+  ]
+}

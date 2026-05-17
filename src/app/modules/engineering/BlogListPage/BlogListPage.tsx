@@ -9,12 +9,14 @@ import { Squiggle, Star, BlobShape } from '../../../components/GraphicElements';
 import { FlowerCharacter } from '../../../components/FlowerCharacter';
 import { Cupcake, Donut } from '../../../components/BakeryItems';
 import { useBlogCategories, useBlogData } from '../blogData';
+import { usePortfolio } from '../../../portfolios/PortfolioContext';
 
 export function BlogListPage() {
   const navigate = useNavigate();
+  const { pathTo, config } = usePortfolio();
   const categories = useBlogCategories();
   const blogs = useBlogData();
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState(config.defaultBlogCategory);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -190,7 +192,7 @@ export function BlogListPage() {
               transition={{ duration: 0.6, delay: idx * 0.1 }}
             >
               <Card
-                onClick={() => navigate(`/blogs/${blog.id}`)}
+                onClick={() => navigate(pathTo(`/blogs/${blog.id}`))}
                 className="h-full p-6 border-6 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all bg-white dark:bg-gray-900 group cursor-pointer"
               >
                 <div

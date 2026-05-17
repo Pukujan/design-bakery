@@ -1,6 +1,7 @@
 import { getProjects, setProjects, type Project } from '../../../lib/adminContentService';
 import { SectionPage } from '../components/SectionPage';
 import { JsonArrayEditor } from '../components/JsonArrayEditor';
+import { useAdminPortfolio } from '../AdminPortfolioContext';
 
 const TEMPLATE: Project = {
   id: 0,
@@ -14,17 +15,16 @@ const TEMPLATE: Project = {
   links: [],
 };
 
-
-
-
-
-
-
-
-
 export function ProjectsEditor() {
+  const portfolioId = useAdminPortfolio();
+
   return (
-    <SectionPage title="Engineering Projects" load={getProjects} save={setProjects}>
+    <SectionPage
+      title="Engineering Projects"
+      reloadKey={portfolioId}
+      load={() => getProjects(portfolioId)}
+      save={(items) => setProjects(portfolioId, items)}
+    >
       {(items, onChange) => (
         <JsonArrayEditor
           items={items}

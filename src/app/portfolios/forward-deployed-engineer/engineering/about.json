@@ -1,0 +1,37 @@
+{
+  "headingLeft": "ABOUT",
+  "headingRight": "ME",
+  "portraitUrl": "https://i.imgur.com/umGE4Kd.jpeg",
+  "roleTitle": "I like working close to the problem, the user, and the system.",
+  "paragraphs": [
+    "I'm Pujan Bajracharya, an engineer who works across product design, full-stack development, AI workflows, and operational systems.",
+    "I'm strongest in ambiguous environments where the work is not just coding, but understanding the workflow, shaping the solution, building the tool, and improving it with real feedback."
+  ],
+  "highlights": [
+    {
+      "icon": "Target",
+      "title": "Workflow Discovery",
+      "desc": "I map how people actually work before deciding what the system should do.",
+      "color": "#4169E1"
+    },
+    {
+      "icon": "Layers",
+      "title": "Product Implementation",
+      "desc": "I move from requirements and prototypes into working interfaces, APIs, dashboards, and tools.",
+      "color": "#0D9488"
+    },
+    {
+      "icon": "Cpu",
+      "title": "AI-Enabled Systems",
+      "desc": "I build RAG, agent, OCR, eval, and human-review workflows for messy operational tasks.",
+      "color": "#9B6DD6"
+    },
+    {
+      "icon": "Users",
+      "title": "Stakeholder Translation",
+      "desc": "I turn business, legal, financial, and operational needs into clear technical systems.",
+      "color": "#F97316"
+    }
+  ],
+  "callout": "The goal is simple: build systems that fit the work, not just the spec."
+}

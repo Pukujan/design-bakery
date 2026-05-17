@@ -15,10 +15,12 @@ import { Cupcake, IceCream } from "../../../components/BakeryItems";
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useBlogCategories, useBlogData } from "../blogData";
+import { usePortfolio } from "../../../portfolios/PortfolioContext";
 
 const ITEMS_PER_PAGE = 3;
 
 export function EngineeringInsights() {
+  const { pathTo } = usePortfolio();
   const categories = useBlogCategories();
   const insights = useBlogData();
   const [selectedCategory, setSelectedCategory] =
@@ -175,7 +177,7 @@ export function EngineeringInsights() {
           className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 items-center mb-12"
         >
           {/* View All Button - Always Visible */}
-          <Link to="/blogs">
+          <Link to={pathTo('/blogs')}>
             <motion.div
               whileHover={{ scale: 1.05, y: -5 }}
               whileTap={{ scale: 0.95 }}
@@ -282,7 +284,7 @@ export function EngineeringInsights() {
                   ))}
                 </div>
 
-                <Link to={`/blogs/${insight.id}`}>
+                <Link to={pathTo(`/blogs/${insight.id}`)}>
                   <Button
                     variant="ghost"
                     className="group/btn p-0 h-auto font-bold text-blue-600 dark:text-blue-400 hover:bg-transparent"

@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "title": "Ekagajpatra",
+    "tagline": "Civic-Tech Workflow Platform",
+    "description": "Designed and built a civic-tech platform helping users navigate government documentation, legal guides, consultation workflows, and form-based processes.",
+    "tech": ["Civic Tech", "Legal Documentation", "Workflow UX", "Product Engineering", "Full-Stack"],
+    "color": "#4169E1",
+    "accentColor": "#FFD93D",
+    "stats": [
+      { "label": "35,000+ Users", "icon": "Users" },
+      { "label": "99% Cost Reduction", "icon": "TrendingUp" },
+      { "label": "5 Awards / Grants", "icon": "Award" }
+    ],
+    "links": [
+      { "label": "Case Study", "url": "https://follow-smog-96608767.figma.site" },
+      { "label": "Live Platform", "url": "https://www.ekagajpatra.com" }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Legal Agent Projects",
+    "tagline": "AI Legal Workflow Agents",
+    "description": "Legal workflow agent prototypes for litigation operations, docketing support, court filing signals, judge/part rules, and procedural follow-up.",
+    "tech": ["Legal AI", "Docketing", "NYSCEF", "Court Rules", "Workflow Automation", "Human Review"],
+    "color": "#9B6DD6",
+    "accentColor": "#FF8C42",
+    "stats": [
+      { "label": "Human Review First", "icon": "Users" },
+      { "label": "Privacy-Safe Workflows", "icon": "Sparkles" },
+      { "label": "Procedural Intelligence", "icon": "Award" }
+    ],
+    "links": [
+      { "label": "View Projects", "url": "#" },
+      { "label": "Architecture Notes", "url": "#" }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "eDiscovery System",
+    "tagline": "Document Review & Litigation Intelligence",
+    "description": "A document intelligence system concept for organizing, classifying, searching, and reviewing litigation documents across discovery workflows.",
+    "tech": ["eDiscovery", "Document Intelligence", "OCR", "Classification", "Review Queue", "Litigation Support"],
+    "color": "#0D9488",
+    "accentColor": "#14B8A6",
+    "stats": [
+      { "label": "Document Classification", "icon": "TrendingUp" },
+      { "label": "Review Workflows", "icon": "Users" },
+      { "label": "OCR + Metadata", "icon": "Award" }
+    ],
+    "links": [
+      { "label": "Case Study", "url": "#" },
+      { "label": "System Design", "url": "#" }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "RAG-Based Agent",
+    "tagline": "Retrieval-Augmented Workflow Assistant",
+    "description": "A source-grounded AI agent for answering workflow and document questions using retrieved materials, structured data, and reviewable outputs.",
+    "tech": ["RAG", "LLM Agents", "Vector Search", "Prompt Engineering", "Evals", "Workflow Intelligence"],
+    "color": "#6366F1",
+    "accentColor": "#A78BFA",
+    "stats": [
+      { "label": "Source-Grounded Answers", "icon": "Sparkles" },
+      { "label": "Retrieval Pipeline", "icon": "TrendingUp" },
+      { "label": "Eval-Ready Outputs", "icon": "Award" }
+    ],
+    "links": [
+      { "label": "Technical Notes", "url": "#" },
+      { "label": "Demo Flow", "url": "#" }
+    ]
+  }
+]
