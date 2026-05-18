@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
 import { ArrowLeft, Clock, Tag, Calendar, User, Menu, X } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
-import { Squiggle, Star, BlobShape } from '../../../components/GraphicElements';
-import { FlowerCharacter } from '../../../components/FlowerCharacter';
-import { Cupcake, Donut } from '../../../components/BakeryItems';
+import { Squiggle } from '../../../components/GraphicElements';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -15,27 +12,82 @@ import mermaid from 'mermaid';
 import { useBlogCategories, useBlogData } from '../blogData';
 import { usePortfolio } from '../../../portfolios/PortfolioContext';
 
-// Initialize mermaid
 mermaid.initialize({
-  startOnLoad: true,
+  startOnLoad: false,
   theme: 'default',
   securityLevel: 'loose',
+  themeVariables: {
+    fontSize: '8px',
+    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+  },
+  flowchart: {
+    useMaxWidth: true,
+    htmlLabels: true,
+    nodeSpacing: 12,
+    rankSpacing: 14,
+    padding: 4,
+    curve: 'basis',
+  },
+  sequence: {
+    useMaxWidth: true,
+  },
 });
 
-// Mermaid diagram component
+/** Drop leading # title so it is not duplicated under the page header. */
+function stripLeadingMarkdownTitle(content: string): string {
+  return content.replace(/^\s*#\s+[^\n]+\n+/, '');
+}
+
 function MermaidDiagram({ chart }: { chart: string }) {
+  const [svg, setSvg] = useState('');
+  const [error, setError] = useState('');
+
   useEffect(() => {
-    mermaid.contentLoaded();
+    let cancelled = false;
+
+    const renderDiagram = async () => {
+      try {
+        const id = `blog-mmd-${Math.random().toString(36).slice(2, 11)}`;
+        const { svg: rendered } = await mermaid.render(id, chart.trim());
+        const compactSvg = rendered.replace(
+          /<svg\b([^>]*)>/i,
+          '<svg$1 style="max-width:100%;height:auto;display:block;">'
+        );
+        if (!cancelled) {
+          setSvg(compactSvg);
+          setError('');
+        }
+      } catch (err) {
+        console.error('Mermaid rendering error:', err);
+        if (!cancelled) {
+          setError('Could not render diagram');
+          setSvg('');
+        }
+      }
+    };
+
+    renderDiagram();
+    return () => {
+      cancelled = true;
+    };
   }, [chart]);
 
+  if (error) {
+    return <p className="my-2 text-xs text-red-600 dark:text-red-400">{error}</p>;
+  }
+
+  if (!svg) {
+    return <div className="my-3 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse" aria-hidden />;
+  }
+
   return (
-    <div className="mermaid my-8 p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-      {chart}
-    </div>
+    <div
+      className="blog-mermaid-diagram my-3 rounded-lg border-2 border-black bg-gray-50 dark:bg-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] overflow-x-auto p-2"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
   );
 }
 
-// Custom markdown components
 const MarkdownComponents = {
   code({ inline, className, children, ...props }: any) {
     const match = /language-(\w+)/.exec(className || '');
@@ -46,58 +98,71 @@ const MarkdownComponents = {
     }
 
     return !inline ? (
-      <div className="my-6 rounded-2xl overflow-hidden border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-        <pre className="p-6 overflow-x-auto bg-gray-900 dark:bg-black">
+      <div className="my-2 rounded-lg overflow-hidden border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] max-w-full">
+        <pre className="p-2 overflow-x-auto bg-gray-900 dark:bg-black text-[11px] leading-snug">
           <code className={className} {...props}>
             {children}
           </code>
         </pre>
       </div>
     ) : (
-      <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded border-2 border-black text-sm font-mono" {...props}>
+      <code
+        className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded border border-black text-[11px] font-mono break-all"
+        {...props}
+      >
         {children}
       </code>
     );
   },
+  h1({ children, ...props }: any) {
+    return (
+      <h2 className="text-sm font-black mt-4 mb-2 border-l-4 border-blue-500 pl-2 break-words" {...props}>
+        {children}
+      </h2>
+    );
+  },
   h2({ children, ...props }: any) {
     return (
-      <h2 className="text-3xl font-black mt-12 mb-6 border-l-8 border-blue-500 pl-4" {...props}>
+      <h2 className="text-sm font-black mt-4 mb-2 border-l-4 border-blue-500 pl-2 break-words" {...props}>
         {children}
       </h2>
     );
   },
   h3({ children, ...props }: any) {
     return (
-      <h3 className="text-2xl font-black mt-8 mb-4 border-l-6 border-purple-500 pl-4" {...props}>
+      <h3 className="text-xs font-black mt-3 mb-1.5 border-l-2 border-purple-500 pl-2 break-words" {...props}>
         {children}
       </h3>
     );
   },
   ul({ children, ...props }: any) {
     return (
-      <ul className="my-6 space-y-2 list-none" {...props}>
+      <ul className="my-2 space-y-0.5 list-none" {...props}>
         {children}
       </ul>
     );
   },
   li({ children, ...props }: any) {
     return (
-      <li className="flex items-start gap-3" {...props}>
-        <span className="text-blue-500 font-bold mt-1">▸</span>
-        <span className="flex-1">{children}</span>
+      <li className="flex items-start gap-1.5 text-xs leading-snug" {...props}>
+        <span className="text-blue-500 font-bold shrink-0">▸</span>
+        <span className="flex-1 min-w-0 break-words">{children}</span>
       </li>
     );
   },
   p({ children, ...props }: any) {
     return (
-      <p className="my-4 leading-relaxed text-lg" {...props}>
+      <p className="my-1.5 text-xs leading-relaxed text-gray-800 dark:text-gray-200 break-words" {...props}>
         {children}
       </p>
     );
   },
   blockquote({ children, ...props }: any) {
     return (
-      <blockquote className="my-6 border-l-8 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 p-6 rounded-r-2xl" {...props}>
+      <blockquote
+        className="my-2 border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-r-lg text-xs break-words"
+        {...props}
+      >
         {children}
       </blockquote>
     );
@@ -116,16 +181,17 @@ export function BlogDetailPage() {
 
   if (!blog) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-black mb-4">Blog not found</h1>
-          <Button onClick={() => navigate(blogsPath)}>Back to Blogs</Button>
+      <div className="min-h-screen flex items-center justify-center px-4 pt-24">
+        <div className="text-center max-w-md">
+          <h1 className="text-lg font-black mb-2">Blog not found</h1>
+          <Button onClick={() => navigate(blogsPath)} size="sm">
+            Back to Blogs
+          </Button>
         </div>
       </div>
     );
   }
 
-  // Prefer same-category posts, then backfill with other categories so the section is always useful.
   const sameCategoryBlogs = blogs
     .filter((b) => b.category === blog.category && b.id !== blog.id)
     .slice(0, 3);
@@ -135,14 +201,13 @@ export function BlogDetailPage() {
     .slice(0, Math.max(0, 3 - sameCategoryBlogs.length));
 
   const similarBlogs = [...sameCategoryBlogs, ...fallbackBlogs].slice(0, 3);
+  const articleContent = stripLeadingMarkdownTitle(blog.content);
 
   const renderSidebarContent = (onAction?: () => void) => (
     <>
-      <Card className="p-6 border-6 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900 mb-6">
-        <h3 className="text-2xl font-black mb-6 text-gray-900 dark:text-gray-100">
-          Categories
-        </h3>
-        <div className="space-y-3">
+      <Card className="p-3 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900 mb-3">
+        <h3 className="text-xs font-black mb-2 text-gray-900 dark:text-gray-100">Categories</h3>
+        <div className="space-y-1">
           {categories.filter((cat) => cat.id !== 'all').map((category) => {
             const categoryCount = blogs.filter((b) => b.category === category.id).length;
             const isActive = category.id === blog.category;
@@ -155,10 +220,10 @@ export function BlogDetailPage() {
                   onAction?.();
                 }}
                 className={`
-                  w-full justify-between px-4 py-3 border-4 border-black
-                  shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                  hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]
-                  transition-all font-black text-sm
+                  w-full justify-between px-2 py-1 h-auto min-h-0 border-2 border-black
+                  shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                  hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
+                  transition-all font-bold text-[11px]
                   ${
                     isActive
                       ? 'bg-black text-white'
@@ -167,13 +232,13 @@ export function BlogDetailPage() {
                 `}
                 style={{
                   borderLeftColor: isActive ? category.color : undefined,
-                  borderLeftWidth: isActive ? '8px' : undefined,
+                  borderLeftWidth: isActive ? '4px' : undefined,
                 }}
               >
-                <span>{category.label}</span>
+                <span className="truncate text-left">{category.label}</span>
                 <Badge
                   variant="outline"
-                  className={`border-2 ${isActive ? 'border-white text-white' : 'border-black'}`}
+                  className={`shrink-0 text-[10px] px-1 py-0 border ${isActive ? 'border-white text-white' : 'border-black'}`}
                 >
                   {categoryCount}
                 </Badge>
@@ -183,19 +248,17 @@ export function BlogDetailPage() {
         </div>
       </Card>
 
-      <Card className="p-6 border-6 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900">
-        <h3 className="text-2xl font-black mb-6 text-gray-900 dark:text-gray-100">
-          Quick Actions
-        </h3>
-        <div className="space-y-3">
+      <Card className="p-3 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900">
+        <h3 className="text-xs font-black mb-2 text-gray-900 dark:text-gray-100">Quick Actions</h3>
+        <div className="space-y-1">
           <Button
             onClick={() => {
               navigate(blogsPath);
               onAction?.();
             }}
-            className="w-full justify-start px-4 py-3 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-blue-500 hover:bg-blue-600 text-white font-black text-sm"
+            className="w-full justify-start px-2 py-1 h-auto border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-blue-500 hover:bg-blue-600 text-white font-bold text-[11px]"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-3 h-3 mr-1 shrink-0" />
             All Blogs
           </Button>
           <Button
@@ -203,7 +266,7 @@ export function BlogDetailPage() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
               onAction?.();
             }}
-            className="w-full justify-start px-4 py-3 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900 text-black dark:text-white font-black text-sm"
+            className="w-full justify-start px-2 py-1 h-auto border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900 text-black dark:text-white font-bold text-[11px]"
           >
             ↑ Back to Top
           </Button>
@@ -213,201 +276,128 @@ export function BlogDetailPage() {
   );
 
   return (
-    <section className="min-h-screen py-24 px-6 bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 relative overflow-hidden">
-      {/* Decorative Elements */}
-      <BlobShape color="#9B6DD6" size={400} className="absolute -top-32 -right-40 opacity-20" />
-      <BlobShape color="#4169E1" size={350} className="absolute bottom-20 -left-32 opacity-20" />
-
-      <motion.div
-        className="absolute top-32 right-20 hidden lg:block"
-        animate={{ y: [0, -15, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <Cupcake size={70} animate={false} />
-      </motion.div>
-
-      <motion.div
-        className="absolute bottom-40 left-20 hidden lg:block"
-        animate={{ y: [0, 15, 0], rotate: [0, 360, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-      >
-        <Donut size={80} animate={false} />
-      </motion.div>
-
-      <motion.div
-        className="absolute top-20 left-32"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-      >
-        <Star color="#9B6DD6" size={50} />
-      </motion.div>
-
-      <div className="absolute top-40 left-10 hidden md:block">
-        <FlowerCharacter color="#4169E1" size={70} animate />
-      </div>
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Mobile side actions menu (below navbar) */}
-        <div className="lg:hidden fixed top-28 right-10 mb-4">
-          <div className="flex justify-end">
-            <Button
-              onClick={() => setIsMobileActionsOpen((prev) => !prev)}
-              className="h-12 w-12 rounded-full border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900 text-black dark:text-white p-0"
-              aria-label="Toggle categories and quick actions"
-            >
-              {isMobileActionsOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
-          </div>
-
-          {isMobileActionsOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-3"
-            >
-              {renderSidebarContent(() => setIsMobileActionsOpen(false))}
-            </motion.div>
-          )}
-        </div>
-
-        {/* Sticky Back Button */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="fixed top-28 md:top-28 mb-8"
-        >
+    <section className="min-h-screen pt-24 pb-12 px-4 sm:px-6 bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 overflow-x-hidden">
+      <div className="max-w-4xl mx-auto w-full">
+        <div className="flex items-center justify-between gap-3 mb-5">
           <Button
             onClick={() => navigate(blogsPath)}
-            className="px-6 py-3 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-yellow-400 hover:bg-yellow-500 text-black font-black rounded-full"
+            variant="outline"
+            size="sm"
+            className="shrink-0 px-3 py-1 h-8 text-xs border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-yellow-400 hover:bg-yellow-500 text-black font-bold rounded-full"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-3 h-3 mr-1" />
             Back
           </Button>
-        </motion.div>
 
-        <div className="grid max-w-7xl lg:grid-cols-[1fr_200px] gap-8">
-          {/* Main Content */}
-          <div>
-            {/* Blog Header */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="my-30"
+          <div className="xl:hidden">
+            <Button
+              onClick={() => setIsMobileActionsOpen((prev) => !prev)}
+              size="sm"
+              className="h-8 w-8 p-0 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900"
+              aria-label="Toggle sidebar"
             >
+              {isMobileActionsOpen ? <X className="w-3.5 h-3.5" /> : <Menu className="w-3.5 h-3.5" />}
+            </Button>
+          </div>
+        </div>
+
+        {isMobileActionsOpen && (
+          <div className="xl:hidden mb-5">{renderSidebarContent(() => setIsMobileActionsOpen(false))}</div>
+        )}
+
+        <div className="flex flex-col xl:flex-row xl:gap-6 xl:items-start">
+          <article className="min-w-0 flex-1 w-full">
+            <header className="mb-4">
               <div
-                className="w-full h-4 rounded-full mb-8 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                className="w-full h-1.5 rounded-full mb-3 border-2 border-black"
                 style={{ backgroundColor: blog.color }}
               />
 
-              <h1 className="text-[clamp(3rem,6vw,5rem)] leading-none mb-6 font-black text-gray-900 dark:text-gray-100">
+              <h1 className="text-xl sm:text-2xl leading-snug mb-2 font-black text-gray-900 dark:text-gray-100 break-words">
                 {blog.title}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-6 mb-6 text-gray-600 dark:text-gray-400">
-                <div className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  <span className="font-bold">{blog.author}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  <span>{blog.date}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
-                  <span>{blog.readTime}</span>
-                </div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2 text-[11px] text-gray-600 dark:text-gray-400">
+                <span className="flex items-center gap-1">
+                  <User className="w-3 h-3 shrink-0" />
+                  <span className="font-semibold">{blog.author}</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3 shrink-0" />
+                  {blog.date}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3 h-3 shrink-0" />
+                  {blog.readTime}
+                </span>
               </div>
 
-              <div className="flex flex-wrap gap-2 mb-6">
+              <div className="flex flex-wrap gap-1 mb-2">
                 {blog.tags.map((tag, idx) => (
                   <Badge
                     key={idx}
-                    className="border-3 border-black font-bold text-sm px-3 py-1"
+                    className="border border-black font-semibold text-[10px] px-1.5 py-0 h-5"
                   >
-                    <Tag className="w-3 h-3 mr-1" />
+                    <Tag className="w-2 h-2 mr-0.5" />
                     {tag}
                   </Badge>
                 ))}
               </div>
 
               <Squiggle color={blog.color} />
-            </motion.div>
+            </header>
 
-            {/* Blog Content */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <Card className="p-8 md:p-12 border-6 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900">
-                <div className="prose prose-lg max-w-none dark:prose-invert">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                    components={MarkdownComponents}
-                  >
-                    {blog.content}
-                  </ReactMarkdown>
-                </div>
-              </Card>
-            </motion.div>
+            <Card className="p-4 sm:p-5 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900 w-full overflow-hidden">
+              <div className="blog-article-body text-xs leading-relaxed break-words overflow-x-hidden [&_*]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:overflow-x-auto [&_table]:text-[11px]">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeRaw]}
+                  components={MarkdownComponents}
+                >
+                  {articleContent}
+                </ReactMarkdown>
+              </div>
+            </Card>
 
-            {/* Similar Blogs Section */}
             {similarBlogs.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="mt-16"
-              >
-                <h2 className="text-4xl font-black mb-8 text-gray-900 dark:text-gray-100 border-l-8 border-purple-500 pl-4">
+              <section className="mt-6">
+                <h2 className="text-sm font-black mb-3 text-gray-900 dark:text-gray-100 border-l-4 border-purple-500 pl-2">
                   Similar Articles
                 </h2>
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {similarBlogs.map((similarBlog) => (
                     <Card
                       key={similarBlog.id}
-                      className="p-6 border-6 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all bg-white dark:bg-gray-900 group cursor-pointer"
+                      className="p-3 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-shadow bg-white dark:bg-gray-900 cursor-pointer min-w-0"
                       onClick={() => {
                         navigate(pathTo(`/blogs/${similarBlog.id}`));
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                     >
                       <div
-                        className="w-full h-3 rounded-full mb-4 border-2 border-black"
+                        className="w-full h-1 rounded-full mb-2 border border-black"
                         style={{ backgroundColor: similarBlog.color }}
                       />
-                      <h3 className="text-xl font-black mb-3 text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      <h3 className="text-xs font-black mb-1 text-gray-900 dark:text-gray-100 line-clamp-2">
                         {similarBlog.title}
                       </h3>
-                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 leading-relaxed line-clamp-3">
+                      <p className="text-[11px] text-gray-700 dark:text-gray-300 mb-2 line-clamp-2 leading-snug">
                         {similarBlog.excerpt}
                       </p>
-                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <Clock className="w-4 h-4" />
-                        <span>{similarBlog.readTime}</span>
+                      <div className="flex items-center gap-1 text-[10px] text-gray-500">
+                        <Clock className="w-2.5 h-2.5" />
+                        {similarBlog.readTime}
                       </div>
                     </Card>
                   ))}
                 </div>
-              </motion.div>
+              </section>
             )}
-          </div>
+          </article>
 
-          {/* Fixed Sidebar */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="hidden lg:block"
-          >
-            <div className="sticky top-36">
-              {renderSidebarContent()}
-            </div>
-          </motion.div>
+          <aside className="hidden xl:block w-52 shrink-0 sticky top-24">
+            {renderSidebarContent()}
+          </aside>
         </div>
       </div>
     </section>

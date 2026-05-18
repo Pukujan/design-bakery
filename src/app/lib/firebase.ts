@@ -51,6 +51,8 @@ const hasRequiredFirebaseConfig = [
   firebaseConfig.appId,
 ].every((value) => Boolean(value));
 
+export const isFirebaseConfigured = hasRequiredFirebaseConfig;
+
 export const firebaseApp: FirebaseApp | null = hasRequiredFirebaseConfig
   ? initializeApp(firebaseConfig)
   : null;
