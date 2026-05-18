@@ -13,6 +13,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src/app'),
+      '@ekagajpatra-case-study': path.resolve(
+        __dirname,
+        './extras/Create Presentation Case Study/src'
+      ),
     },
   },
 })

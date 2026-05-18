@@ -13,7 +13,7 @@
       { "label": "5 Awards / Grants", "icon": "Award" }
     ],
     "links": [
-      { "label": "Case Study", "url": "https://follow-smog-96608767.figma.site" },
+      { "label": "Case Study", "url": "/case-studies/ekagajpatra" },
       { "label": "Live Platform", "url": "https://www.ekagajpatra.com" }
     ]
   },

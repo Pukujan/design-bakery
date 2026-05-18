@@ -663,7 +663,7 @@ export const FOOTER_CONTENT_DEFAULT: FooterContent = {
   quickLinks: [
     { label: 'Skills', href: '#skills', type: 'anchor' },
     { label: 'Insights', href: '#insights', type: 'anchor' },
-    { label: 'Case Study', href: '#ekagajpatra', type: 'anchor' },
+    { label: 'Case Study', href: '/case-studies/ekagajpatra', type: 'route' },
   ],
   copyrightText: 'Design Baker. All rights reserved.',
 };
