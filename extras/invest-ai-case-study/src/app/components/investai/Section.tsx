@@ -12,9 +12,9 @@ interface SectionProps {
 
 export const Section = ({ id, title, subtitle, children, className = "", dark = false }: SectionProps) => {
   return (
-    <section 
-      id={id} 
-      className={`py-20 md:py-32 px-4 ${dark ? "bg-gray-900 text-white" : "bg-white text-gray-900"} ${className}`}
+    <section
+      id={id}
+      className={`scroll-mt-28 scroll-mb-36 py-20 md:py-32 px-4 ${dark ? "bg-gray-900 text-white" : "bg-white text-gray-900"} ${className}`}
     >
       <div className="max-w-4xl mx-auto">
         {(title || subtitle) && (

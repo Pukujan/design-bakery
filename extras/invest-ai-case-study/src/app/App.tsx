@@ -7,25 +7,29 @@ import { BottomTabBar } from "./components/investai/BottomTabBar";
 import { ProductDesignCaseStudy } from "./components/investai/ProductDesignCaseStudy";
 import { EngineeringCaseStudy } from "./components/investai/EngineeringCaseStudy";
 import { motion, AnimatePresence } from "motion/react";
+import { scrollToSection, scrollToTop } from "./components/investai/scroll";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<"product" | "engineering">("product");
 
   const handleTabChange = (tab: "product" | "engineering") => {
     setActiveTab(tab);
-    // Smooth scroll to top when switching tabs
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollToTop();
+  };
+
+  const handleReadCaseStudy = () => {
+    setActiveTab("product");
+    window.setTimeout(() => scrollToSection("motivation"), 150);
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-black selection:text-white pb-24">
-      <Header />
+    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-black selection:text-white pb-28 scroll-smooth">
+      <Header onLogoClick={scrollToTop} />
 
       <main>
-        <Hero />
+        <Hero onReadCaseStudy={handleReadCaseStudy} />
 
-        {/* Tab Indicator */}
-        <TabIndicator activeTab={activeTab} />
+        <TabIndicator activeTab={activeTab} onTabChange={handleTabChange} />
 
         {/* Tab Content with Animation */}
         <AnimatePresence mode="wait">

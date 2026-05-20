@@ -13,6 +13,7 @@
 | Topic | Doc | Cursor rule | Main code |
 |-------|-----|-------------|-----------|
 | Blog Mermaid diagrams | [agent-devlog-mermaid.md](agent-devlog-mermaid.md) | `.cursor/rules/blog-mermaid.mdc` | `extras/.../BlogDetailPage.tsx`, `globals.css` `.blog-mermaid-chart` |
+| Engineering blog posts | [agent-devlog-engineering-blog-posts.md](agent-devlog-engineering-blog-posts.md) | — | `blog-data.json`, `posts/*.md` |
 | Blog motion & decor | [agent-devlog-blog-motion.md](agent-devlog-blog-motion.md) | `.cursor/rules/blog-motion.mdc` | `src/app/components/BlogPageMotion.tsx` |
 | CodeGraph usage | [agent-devlog-codegraph.md](agent-devlog-codegraph.md) | `.cursor/rules/codegraph.mdc` | `.codegraph/config.json` |
 
@@ -22,6 +23,7 @@
 
 | Date | Log |
 |------|-----|
+| 2026-05-20 | [dev-log-2026-05-20-regulatory-blog-investai.md](dev-log-2026-05-20-regulatory-blog-investai.md) — post id 7, InvestAI scroll fixes |
 | 2026-05-20 | [dev-log-2026-05-20.md](dev-log-2026-05-20.md) — blog detail v2, port 5300, sort, skeleton |
 | 2026-05-18 | [dev-log-2026-05-18.md](dev-log-2026-05-18.md) |
 | 2026-05-11 | [dev-log-2026-05-11.md](dev-log-2026-05-11.md) |

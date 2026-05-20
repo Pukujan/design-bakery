@@ -2,7 +2,11 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Menu, X, ExternalLink, Github } from "lucide-react";
 
-export const Header = () => {
+type HeaderProps = {
+  onLogoClick?: () => void;
+};
+
+export const Header = ({ onLogoClick }: HeaderProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -26,12 +30,16 @@ export const Header = () => {
       transition={{ duration: 0.5 }}
     >
       <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
-        <a href="#" className="font-bold text-xl tracking-tight text-gray-900 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onLogoClick}
+          className="font-bold text-xl tracking-tight text-gray-900 flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-mono text-sm">
             IA
           </div>
           InvestAI
-        </a>
+        </button>
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
@@ -56,7 +64,10 @@ export const Header = () => {
 
         {/* Mobile Menu Button */}
         <button
+          type="button"
           className="md:hidden text-gray-900"
+          aria-expanded={mobileMenuOpen}
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}

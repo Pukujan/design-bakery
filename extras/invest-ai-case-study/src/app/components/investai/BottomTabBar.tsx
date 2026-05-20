@@ -13,42 +13,46 @@ export function BottomTabBar({ activeTab, onTabChange }: BottomTabBarProps) {
       <div className="max-w-4xl mx-auto px-4 py-3">
         <div className="grid grid-cols-2 gap-3">
           <button
+            type="button"
+            aria-pressed={activeTab === "product"}
             onClick={() => onTabChange("product")}
-            className={`relative flex flex-col items-center justify-center gap-2 py-4 px-4 rounded-xl font-medium transition-all ${
+            className={`relative flex flex-col items-center justify-center gap-2 py-4 px-4 rounded-xl font-medium transition-colors ${
               activeTab === "product"
-                ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200"
+                ? "text-white shadow-lg shadow-blue-200"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
             {activeTab === "product" && (
               <motion.div
-                layoutId="activeTab"
-                className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl"
+                layoutId="investAiBottomTab"
+                className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               />
             )}
-            <div className="relative z-10 flex items-center gap-2">
+            <div className="relative z-10 flex items-center gap-2 pointer-events-none">
               <Palette size={20} />
               <span className="text-sm md:text-base">Product Design</span>
             </div>
           </button>
 
           <button
+            type="button"
+            aria-pressed={activeTab === "engineering"}
             onClick={() => onTabChange("engineering")}
-            className={`relative flex flex-col items-center justify-center gap-2 py-4 px-4 rounded-xl font-medium transition-all ${
+            className={`relative flex flex-col items-center justify-center gap-2 py-4 px-4 rounded-xl font-medium transition-colors ${
               activeTab === "engineering"
-                ? "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-200"
+                ? "text-white shadow-lg shadow-indigo-200"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
             {activeTab === "engineering" && (
               <motion.div
-                layoutId="activeTab"
-                className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl"
+                layoutId="investAiBottomTab"
+                className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               />
             )}
-            <div className="relative z-10 flex items-center gap-2">
+            <div className="relative z-10 flex items-center gap-2 pointer-events-none">
               <Code2 size={20} />
               <span className="text-sm md:text-base">Engineering</span>
             </div>

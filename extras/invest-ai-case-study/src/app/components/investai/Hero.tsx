@@ -1,8 +1,12 @@
 import React from "react";
 import { motion } from "motion/react";
-import { ArrowRight, Code, Database, Brain } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
-export const Hero = () => {
+type HeroProps = {
+  onReadCaseStudy?: () => void;
+};
+
+export const Hero = ({ onReadCaseStudy }: HeroProps) => {
   return (
     <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-4 overflow-hidden">
       <div className="max-w-4xl mx-auto relative z-10">
@@ -40,12 +44,13 @@ export const Hero = () => {
               View Live Demo
               <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </a>
-            <a 
-              href="#motivation"
-              className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            <button
+              type="button"
+              onClick={onReadCaseStudy}
+              className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors cursor-pointer"
             >
               Read Case Study
-            </a>
+            </button>
           </div>
         </motion.div>
       </div>
