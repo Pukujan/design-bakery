@@ -13,6 +13,8 @@ interface ImportMetaEnv {
   readonly VITE_FIREBASE_ENABLE_CONTENT_SYNC: string;
   readonly VITE_FIREBASE_SYNC_COOLDOWN_MS: string;
   readonly VITE_FIREBASE_CACHE_TTL_MS: string;
+  readonly VITE_ENABLE_BLOG_AGENTS?: string;
+  readonly VITE_ENABLE_AGENT_COUNCIL?: string;
 }
 
 interface ImportMeta {

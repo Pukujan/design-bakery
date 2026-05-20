@@ -1,0 +1,14 @@
+---
+description: Blog agents module — contracts, flags, phased rollout
+globs: src/app/modules/agent/**,src/app/modules/admin/adminRoutes.tsx,src/app/modules/admin/AdminLayout.tsx,guidelines/agent-devlog-blog-agents.md
+alwaysApply: false
+---
+
+# Blog agents module
+
+Read **`guidelines/agent-devlog-blog-agents.md`** before changes.
+
+- **Flag:** `VITE_ENABLE_BLOG_AGENTS` — default off until Phase 4
+- **Do not** import agent module into blog detail/list/Mermaid
+- **Do not** put OpenRouter keys in client env
+- **Writes:** `saveBlog()` only; `agent_*` Firestore collections for sessions/audit

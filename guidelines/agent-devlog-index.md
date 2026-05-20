@@ -15,6 +15,7 @@
 | Blog Mermaid diagrams | [agent-devlog-mermaid.md](agent-devlog-mermaid.md) | `.cursor/rules/blog-mermaid.mdc` | `extras/.../BlogDetailPage.tsx`, `globals.css` `.blog-mermaid-chart` |
 | Blog motion & decor | [agent-devlog-blog-motion.md](agent-devlog-blog-motion.md) | `.cursor/rules/blog-motion.mdc` | `src/app/components/BlogPageMotion.tsx` |
 | CodeGraph usage | [agent-devlog-codegraph.md](agent-devlog-codegraph.md) | `.cursor/rules/codegraph.mdc` | `.codegraph/config.json` |
+| Blog agents (promo / SEO / council) | [agent-devlog-blog-agents.md](agent-devlog-blog-agents.md) | `.cursor/rules/blog-agents.mdc` | `src/app/modules/agent/` |
 
 ---
 
