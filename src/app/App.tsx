@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { EngineeringHome } from './modules/engineering/EngineeringHome/EngineeringHome';
 import { PortfolioHub } from './portfolios/PortfolioHub';
 import { EkagajpatraCaseStudyPage } from './modules/case-studies/ekagajpatra/EkagajpatraCaseStudyPage';
+import { InvestAiCaseStudyPage } from './modules/case-studies/invest-ai/InvestAiCaseStudyPage';
 import { DesignPortfolio } from './modules/design/DesignPortfolio/DesignPortfolio';
 import { BlogListPage } from './modules/engineering/BlogListPage/BlogListPage';
 import { BlogDetailPage } from './modules/engineering/BlogDetailPage/BlogDetailPage';
@@ -87,6 +88,7 @@ export default function App() {
 
           <Route path="/" element={<PortfolioHub />} />
           <Route path="/case-studies/ekagajpatra" element={<EkagajpatraCaseStudyPage />} />
+          <Route path="/case-studies/invest-ai" element={<InvestAiCaseStudyPage />} />
           <Route path="/nav/design" element={<DesignPortfolio />} />
           <Route path="/design" element={<DesignPortfolio />} />
 

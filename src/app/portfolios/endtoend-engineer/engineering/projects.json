@@ -49,7 +49,7 @@
       { "label": "Expert Tested", "icon": "Award" }
     ],
     "links": [
-      { "label": "Case Study", "url": "https://portal-genre-93680338.figma.site" },
+      { "label": "Case Study", "url": "/case-studies/invest-ai" },
       { "label": "Demo Notes", "url": "https://financial-investment-with-gemini-in.vercel.app/" }
     ]
   },
