@@ -74,11 +74,51 @@ export function runSeoAudit(input: SeoAuditInput): SeoAuditResult {
   }
 
   if (!input.seo?.metaTitle?.trim()) {
-    push(findings, 'meta-title-fallback', 'info', 'Meta title falls back to post title until you save custom SEO.', 'metaTitle');
+    const preview =
+      metaTitle.length > 72 ? `${metaTitle.slice(0, 72)}…` : metaTitle;
+    push(
+      findings,
+      'meta-title-fallback',
+      'info',
+      `No custom meta title saved — live site uses post title: “${preview}”. Use suggestions or type one below.`,
+      'metaTitle'
+    );
+  } else {
+    const preview =
+      metaTitle.length > 72 ? `${metaTitle.slice(0, 72)}…` : metaTitle;
+    push(
+      findings,
+      'meta-title-custom',
+      'pass',
+      `Custom meta title: “${preview}” (${metaTitle.length} chars).`,
+      'metaTitle'
+    );
   }
 
   if (!input.seo?.metaDescription?.trim()) {
-    push(findings, 'meta-desc-fallback', 'info', 'Meta description falls back to excerpt until you save custom SEO.', 'metaDescription');
+    const preview =
+      metaDescription.length > 100
+        ? `${metaDescription.slice(0, 100)}…`
+        : metaDescription;
+    push(
+      findings,
+      'meta-desc-fallback',
+      'info',
+      `No custom meta description saved — live site uses excerpt: “${preview}”. Use suggestions or type one below.`,
+      'metaDescription'
+    );
+  } else {
+    const preview =
+      metaDescription.length > 100
+        ? `${metaDescription.slice(0, 100)}…`
+        : metaDescription;
+    push(
+      findings,
+      'meta-desc-custom',
+      'pass',
+      `Custom meta description: “${preview}” (${metaDescription.length} chars).`,
+      'metaDescription'
+    );
   }
 
   if (input.tags.length === 0) {

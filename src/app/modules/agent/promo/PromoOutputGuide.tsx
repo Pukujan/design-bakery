@@ -15,8 +15,8 @@ export function PromoOutputGuide({ variant, result }: PromoOutputGuideProps) {
         </p>
         <ul className="list-disc space-y-1.5 pl-4 text-gray-800 dark:text-gray-200">
           <li>
-            <strong>LinkedIn post</strong> — 1 draft (~900–1300 chars) summarizing your article in
-            the tone you picked
+            <strong>LinkedIn post</strong> — 1 detailed draft (~1,500–2,400 chars), human tone, no
+            emojis (DeepSeek via OpenRouter)
           </li>
           <li>
             <strong>3 hook lines</strong> — alternate opening sentences (pick one or merge into

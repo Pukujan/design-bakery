@@ -25,7 +25,8 @@ export async function callOpenRouter(params: {
     },
     body: JSON.stringify({
       model: params.model,
-      temperature: 0.7,
+      temperature: 0.55,
+      max_tokens: 2800,
       messages: [
         { role: 'system', content: params.system },
         { role: 'user', content: params.user },

@@ -4,6 +4,9 @@ import { getBlogs, saveBlog, type BlogPost } from '@/lib/adminContentService';
 import { useAdminPortfolio } from '@/modules/admin/AdminPortfolioContext';
 import { getPortfolioConfig, portfolioPath } from '@/portfolios/registry';
 import { SeoLivePreview } from './SeoLivePreview';
+import { SeoChangesSummary } from './SeoChangesSummary';
+import { buildSeoEffectiveSnapshot, buildSeoFieldChanges } from './seoChanges';
+import type { SeoFieldChange } from './seoChanges';
 import type { BlogSeo } from '@/modules/engineering/blogSeo';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -42,7 +45,10 @@ export function BlogSeoPanel() {
   const [seo, setSeo] = useState<BlogSeo>(EMPTY_SEO);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [suggestionsNotice, setSuggestionsNotice] = useState<string | null>(null);
+  const [changeSummary, setChangeSummary] = useState<{
+    kind: 'suggestions' | 'save';
+    changes: SeoFieldChange[];
+  } | null>(null);
 
   const portfolioId = useAdminPortfolio();
   const portfolioConfig = getPortfolioConfig(portfolioId);
@@ -81,7 +87,7 @@ export function BlogSeoPanel() {
       ogImage: selected.seo?.ogImage ?? '',
     });
     setMessage(null);
-    setSuggestionsNotice(null);
+    setChangeSummary(null);
   }, [selected?.id, selected?.seo?.metaTitle, selected?.seo?.metaDescription, selected?.seo?.ogImage]);
 
   const audit = useMemo(() => {
@@ -99,6 +105,11 @@ export function BlogSeoPanel() {
     if (!selected?.id) return;
     setSaving(true);
     setMessage(null);
+    const beforeSeo: BlogSeo = {
+      metaTitle: selected.seo?.metaTitle ?? '',
+      metaDescription: selected.seo?.metaDescription ?? '',
+      ogImage: selected.seo?.ogImage ?? '',
+    };
     try {
       const nextSeo: BlogSeo = {
         metaTitle: seo.metaTitle?.trim() || undefined,
@@ -106,18 +117,41 @@ export function BlogSeoPanel() {
         ogImage: seo.ogImage?.trim() || undefined,
       };
       const hasAny = Boolean(nextSeo.metaTitle || nextSeo.metaDescription || nextSeo.ogImage);
+      const savedSeo: BlogSeo = hasAny
+        ? nextSeo
+        : { metaTitle: '', metaDescription: '', ogImage: '' };
       await saveBlog({
         ...selected,
         seo: hasAny ? nextSeo : undefined,
       });
       const refreshed = await getBlogs();
       setPosts(refreshed);
-      setSuggestionsNotice(null);
+      const changes = buildSeoFieldChanges(beforeSeo, savedSeo, selected);
+      const summaryChanges =
+        changes.length > 0
+          ? changes
+          : hasAny
+            ? buildSeoEffectiveSnapshot(savedSeo, selected)
+            : [
+                {
+                  field: 'metaTitle' as const,
+                  label: 'SEO fields',
+                  action: 'removed' as const,
+                  before: '(custom meta was cleared)',
+                  after: '(post now uses title + excerpt fallbacks only)',
+                },
+              ];
+      setChangeSummary({ kind: 'save', changes: summaryChanges });
       setMessage(
-        `Saved. Open the public post (button in yellow preview) and check the browser tab title — or DevTools → Elements → <meta name="description">.`
+        changes.length > 0
+          ? 'Saved to Firestore. Values below are what the public post will use.'
+          : hasAny
+            ? 'Saved — same values as before (confirmed below).'
+            : 'Saved — custom SEO cleared; public post uses title and excerpt as meta fallbacks.'
       );
     } catch {
       setMessage('Save failed — check console and Firestore rules.');
+      setChangeSummary(null);
     } finally {
       setSaving(false);
     }
@@ -125,13 +159,16 @@ export function BlogSeoPanel() {
 
   function applySuggestions() {
     if (!audit || !selected) return;
-    setSeo({
+    const beforeSeo = { ...seo };
+    const nextSeo: BlogSeo = {
       ...seo,
       metaTitle: audit.suggested.metaTitle,
       metaDescription: audit.suggested.metaDescription,
-    });
-    setSuggestionsNotice(
-      `Filled meta title (${audit.suggested.metaTitle.length} chars) and description (${audit.suggested.metaDescription.length} chars) from your post text — rule-based trim, not AI. OG image is never auto-filled. Review the yellow preview, then click Apply to post.`
+    };
+    setSeo(nextSeo);
+    const changes = buildSeoFieldChanges(beforeSeo, nextSeo, selected);
+    setChangeSummary(
+      changes.length > 0 ? { kind: 'suggestions', changes } : null
     );
     setMessage(null);
   }
@@ -206,10 +243,20 @@ export function BlogSeoPanel() {
         )}
       </div>
 
-      {suggestionsNotice && (
-        <p className="mb-4 rounded-lg border-2 border-indigo-500 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-950 dark:bg-indigo-950/40 dark:text-indigo-100">
-          {suggestionsNotice}
-        </p>
+      {changeSummary && (
+        <SeoChangesSummary
+          title={
+            changeSummary.kind === 'save'
+              ? 'Saved to post — metadata on Firestore'
+              : 'Suggestions applied to fields (not saved yet)'
+          }
+          subtitle={
+            changeSummary.kind === 'save'
+              ? 'These values are stored on this post. Open the public URL to verify the browser tab and meta tags.'
+              : 'Rule-based trim from your title and excerpt. Edit if needed, then click Apply to post. OG image is never auto-filled.'
+          }
+          changes={changeSummary.changes}
+        />
       )}
 
       {selected && audit && (

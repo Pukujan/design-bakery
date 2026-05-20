@@ -42,8 +42,8 @@ export function BlogAgentsGuide() {
                 (not AI; does not set share image).
               </li>
               <li>
-                <strong>Apply to post</strong> saves — until then the live site still uses old or
-                fallback values.
+                <strong>Apply to post</strong> saves — a <strong>before / after</strong> box shows
+                exactly which meta fields were added or updated.
               </li>
               <li>
                 <strong>Open public post</strong> — confirm the browser tab and meta tags changed.

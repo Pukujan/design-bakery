@@ -94,15 +94,32 @@ export function SeoLivePreview({ post, draftSeo, siteLabel, publicUrl }: SeoLive
       </dl>
 
       {(savedTitle || savedDesc || saved?.ogImage) && (
-        <p className="mt-3 border-t-2 border-black/10 pt-3 text-xs text-gray-700 dark:text-gray-300">
-          <span className="font-bold">Already saved on this post:</span>{' '}
-          {savedTitle ? `title “${savedTitle.slice(0, 40)}${savedTitle.length > 40 ? '…' : ''}”` : 'no custom title'}
-          {' · '}
-          {savedDesc ? 'custom description' : 'no custom description'}
-          {' · '}
-          {saved?.ogImage ? 'has share image' : 'no share image'}
-          . Edits above are not live until you click <strong>Apply to post</strong>.
-        </p>
+        <div className="mt-3 border-t-2 border-black/10 pt-3 text-xs text-gray-700 dark:text-gray-300">
+          <p className="font-bold text-gray-900 dark:text-gray-100">Already saved on this post</p>
+          <dl className="mt-2 grid gap-2">
+            <div>
+              <dt className="font-semibold">Meta title</dt>
+              <dd className="whitespace-pre-wrap break-words">
+                {savedTitle ?? '(none — uses post title on live site)'}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold">Meta description</dt>
+              <dd className="whitespace-pre-wrap break-words">
+                {savedDesc ?? '(none — uses excerpt on live site)'}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold">Share image</dt>
+              <dd className="break-all font-mono">
+                {saved?.ogImage?.trim() ?? '(none)'}
+              </dd>
+            </div>
+          </dl>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Edits in the form above are not live until you click <strong>Apply to post</strong>.
+          </p>
+        </div>
       )}
     </div>
   );

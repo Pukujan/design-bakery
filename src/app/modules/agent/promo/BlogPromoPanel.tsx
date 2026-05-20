@@ -138,9 +138,8 @@ export function BlogPromoPanel() {
         <div>
           <h2 className="text-xl font-black">Promo agent</h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xl">
-            <strong>One-shot AI</strong> — reads your blog, returns a LinkedIn draft + hooks +
-            hashtags. Use <strong>Regenerate</strong> for a new version. No chat thread yet — use
-            extra instructions to steer the next run.
+            <strong>DeepSeek</strong> writes a detailed LinkedIn draft (no emojis, anti–AI-slop
+            rules). Use <strong>Regenerate</strong> or refine instructions for another pass.
           </p>
         </div>
       </div>

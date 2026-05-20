@@ -113,7 +113,7 @@ export const invokeBlogAgent = onCall(
 
       const apiKey = resolveApiKey();
       const model =
-        process.env.OPENROUTER_MODEL?.trim() || 'qwen/qwen-2.5-7b-instruct';
+        process.env.OPENROUTER_MODEL?.trim() || 'deepseek/deepseek-chat-v3.1';
       const blog = await resolveBlogForPromo(body.blogId, body.blogSnapshot);
       const { system, user } = buildPromoPrompt({
         title: blog.title,
