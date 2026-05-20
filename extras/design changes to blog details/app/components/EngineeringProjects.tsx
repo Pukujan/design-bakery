@@ -53,7 +53,7 @@ const allProjects = [
     links: [
       { label: "View Demo", url: "https://financial-investment-with-gemini-in.vercel.app/" },
       { label: "GitHub", url: "https://github.com/Pukujan/financial-investment-with-gemini-insights" },
-      { label: "Case Study", url: "https://portal-genre-93680338.figma.site" },
+      { label: "Case Study", url: "/case-studies/invest-ai" },
     ],
   },
   {

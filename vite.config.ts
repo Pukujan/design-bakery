@@ -29,6 +29,10 @@ export default defineConfig({
         __dirname,
         './extras/design changes to blog details/app'
       ),
+      '@invest-ai-case-study': path.resolve(
+        __dirname,
+        './extras/invest-ai-case-study/src'
+      ),
     },
   },
 })
