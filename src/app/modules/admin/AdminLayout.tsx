@@ -30,12 +30,17 @@ import {
   getPortfolioConfig,
 } from '../../portfolios/registry';
 
-type NavItem = { path: string; label: string; icon: typeof BookOpen };
+type NavItem = { path: string; label: string; icon: typeof BookOpen; title?: string };
 
 const ENGINEERING_NAV: NavItem[] = [
   { path: 'blog', label: 'Blog Posts', icon: BookOpen },
   { path: 'blog-categories', label: 'Blog Categories', icon: Tag },
-  { path: 'blog-agents', label: 'Blog Agents', icon: Sparkles },
+  {
+    path: 'blog-agents',
+    label: 'Blog Agents',
+    icon: Sparkles,
+    title: 'SEO checks + LinkedIn promo drafts for blog posts',
+  },
   { path: 'projects', label: 'Projects', icon: Briefcase },
   { path: 'hero', label: 'Hero Banner', icon: LayoutTemplate },
   { path: 'community', label: 'Community & Advisory', icon: Users },
@@ -117,13 +122,14 @@ export function AdminLayout() {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 pb-4">
-          {navItems.map(({ path, label, icon: Icon }) => {
+          {navItems.map(({ path, label, icon: Icon, title: navTitle }) => {
             const to = path === 'blog' ? adminBase : `${adminBase}/${path}`;
             return (
               <NavLink
                 key={`${path}-${label}`}
                 to={to}
                 end={path === 'blog'}
+                title={navTitle}
                 className={({ isActive }) =>
                   [
                     'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',

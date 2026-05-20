@@ -1,29 +1,28 @@
+import { config as loadEnv } from 'dotenv';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { initializeApp } from 'firebase-admin/app';
+
+// Load from functions/.env (works for both src/ and lib/ after compile).
+const functionsDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+loadEnv({ path: resolve(functionsDir, '.env'), override: true });
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import { defineSecret } from 'firebase-functions/params';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { AGENT_API_VERSION, type AgentInvokeRequest } from './types.js';
+import { isFunctionsEmulator } from './emulator.js';
 import { assertWithinLimits, recordUsage, remainingFromUsage } from './rateLimit.js';
-import { getBlogByNumericId } from './blog.js';
+import { resolveBlogForPromo } from './blog.js';
 import { buildPromoPrompt, parsePromoResponse } from './promo.js';
 import { callOpenRouter } from './openrouter.js';
 
 initializeApp();
 
-const openRouterApiKey = defineSecret('OPENROUTER_API_KEY');
-
 function resolveApiKey(): string {
-  try {
-    const fromSecret = openRouterApiKey.value();
-    if (fromSecret) return fromSecret;
-  } catch {
-    // emulator may not mount secrets
-  }
   const fromEnv = process.env.OPENROUTER_API_KEY?.trim();
-  if (fromEnv) return fromEnv;
+  if (fromEnv?.startsWith('sk-')) return fromEnv;
   throw new HttpsError(
     'failed-precondition',
-    'OPENROUTER_API_KEY is not configured. Set the secret or functions/.env for emulators.'
+    'OPENROUTER_API_KEY is missing or empty in functions/.env. Save the file (⌘S), then restart: pnpm run functions:serve'
   );
 }
 
@@ -64,7 +63,6 @@ export const invokeBlogAgent = onCall(
   {
     region: 'us-central1',
     cors: true,
-    secrets: [openRouterApiKey],
     timeoutSeconds: 120,
     memory: '512MiB',
   },
@@ -94,8 +92,12 @@ export const invokeBlogAgent = onCall(
 
     const uid = request.auth.uid;
 
+    const emulator = isFunctionsEmulator();
+
     try {
-      await assertWithinLimits(uid);
+      if (!emulator) {
+        await assertWithinLimits(uid);
+      }
 
       if (body.action === 'council' || body.action === 'seo_ai') {
         throw new HttpsError('unimplemented', `${body.action} is not available yet.`, {
@@ -110,8 +112,9 @@ export const invokeBlogAgent = onCall(
       }
 
       const apiKey = resolveApiKey();
-      const model = process.env.OPENROUTER_MODEL?.trim() || 'google/gemini-2.0-flash-001';
-      const { blog } = await getBlogByNumericId(body.blogId);
+      const model =
+        process.env.OPENROUTER_MODEL?.trim() || 'qwen/qwen-2.5-7b-instruct';
+      const blog = await resolveBlogForPromo(body.blogId, body.blogSnapshot);
       const { system, user } = buildPromoPrompt({
         title: blog.title,
         excerpt: blog.excerpt,
@@ -127,19 +130,28 @@ export const invokeBlogAgent = onCall(
       const llm = await callOpenRouter({ apiKey, model, system, user });
       const promo = parsePromoResponse(llm.content);
 
-      const usage = await recordUsage(uid, {
-        calls: 1,
-        tokens: llm.usage.inputTokens + llm.usage.outputTokens,
-      });
-      const remaining = remainingFromUsage(usage);
-
-      await writeAudit({
-        uid,
-        action: body.action,
-        blogId: body.blogId,
-        model: llm.model,
-        usage: llm.usage,
-      });
+      let remaining = {
+        remainingDailyCalls: emulator ? 29 : 0,
+        remainingDailyTokens: emulator ? 119_000 : 0,
+      };
+      if (!emulator) {
+        try {
+          const usage = await recordUsage(uid, {
+            calls: 1,
+            tokens: llm.usage.inputTokens + llm.usage.outputTokens,
+          });
+          remaining = remainingFromUsage(usage);
+          await writeAudit({
+            uid,
+            action: body.action,
+            blogId: body.blogId,
+            model: llm.model,
+            usage: llm.usage,
+          });
+        } catch (auditErr) {
+          console.warn('agent_usage/audit write failed (promo still returned):', auditErr);
+        }
+      }
 
       return {
         ok: true as const,
@@ -150,6 +162,8 @@ export const invokeBlogAgent = onCall(
       };
     } catch (error) {
       if (error instanceof HttpsError) throw error;
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error('invokeBlogAgent error:', message, error);
       throw mapError(error);
     }
   }

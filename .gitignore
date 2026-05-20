@@ -10,3 +10,5 @@ temp/
 .codegraph/*.db-journal
 .codegraph/cache/
 .DS_Store
+firebase-debug.log
+firebase-debug.*.log

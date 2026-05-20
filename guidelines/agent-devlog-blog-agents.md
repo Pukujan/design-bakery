@@ -59,7 +59,7 @@ firebase deploy --only functions:invokeBlogAgent
 Local emulator:
 
 ```bash
-# functions/.env with OPENROUTER_API_KEY=...
+# functions/.env — OPENROUTER_API_KEY + OPENROUTER_MODEL=qwen/qwen-2.5-7b-instruct
 pnpm run functions:serve
 # .env: VITE_ENABLE_BLOG_AGENTS=true VITE_USE_FUNCTIONS_EMULATOR=true
 ```

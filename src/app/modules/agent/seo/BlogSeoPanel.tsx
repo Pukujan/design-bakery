@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, RefreshCw, Search } from 'lucide-react';
 import { getBlogs, saveBlog, type BlogPost } from '@/lib/adminContentService';
+import { useAdminPortfolio } from '@/modules/admin/AdminPortfolioContext';
+import { getPortfolioConfig, portfolioPath } from '@/portfolios/registry';
+import { SeoLivePreview } from './SeoLivePreview';
 import type { BlogSeo } from '@/modules/engineering/blogSeo';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -14,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { FieldLabel } from '../components/FieldLabel';
 import { runSeoAudit } from './seoRules';
 import type { SeoFinding } from './seoTypes';
 
@@ -39,8 +42,16 @@ export function BlogSeoPanel() {
   const [seo, setSeo] = useState<BlogSeo>(EMPTY_SEO);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [suggestionsNotice, setSuggestionsNotice] = useState<string | null>(null);
 
+  const portfolioId = useAdminPortfolio();
+  const portfolioConfig = getPortfolioConfig(portfolioId);
   const selected = posts.find((p) => p.id === selectedId) ?? null;
+
+  const publicUrl =
+    selected?.numericId != null
+      ? `${window.location.origin}${portfolioPath(portfolioConfig.basePath, `/blogs/${selected.numericId}`)}`
+      : '';
 
   useEffect(() => {
     let active = true;
@@ -70,6 +81,7 @@ export function BlogSeoPanel() {
       ogImage: selected.seo?.ogImage ?? '',
     });
     setMessage(null);
+    setSuggestionsNotice(null);
   }, [selected?.id, selected?.seo?.metaTitle, selected?.seo?.metaDescription, selected?.seo?.ogImage]);
 
   const audit = useMemo(() => {
@@ -100,7 +112,10 @@ export function BlogSeoPanel() {
       });
       const refreshed = await getBlogs();
       setPosts(refreshed);
-      setMessage('SEO saved. View the public post and check page title / meta in devtools.');
+      setSuggestionsNotice(null);
+      setMessage(
+        `Saved. Open the public post (button in yellow preview) and check the browser tab title — or DevTools → Elements → <meta name="description">.`
+      );
     } catch {
       setMessage('Save failed — check console and Firestore rules.');
     } finally {
@@ -109,12 +124,16 @@ export function BlogSeoPanel() {
   }
 
   function applySuggestions() {
-    if (!audit) return;
+    if (!audit || !selected) return;
     setSeo({
       ...seo,
       metaTitle: audit.suggested.metaTitle,
       metaDescription: audit.suggested.metaDescription,
     });
+    setSuggestionsNotice(
+      `Filled meta title (${audit.suggested.metaTitle.length} chars) and description (${audit.suggested.metaDescription.length} chars) from your post text — rule-based trim, not AI. OG image is never auto-filled. Review the yellow preview, then click Apply to post.`
+    );
+    setMessage(null);
   }
 
   if (loading) {
@@ -131,15 +150,23 @@ export function BlogSeoPanel() {
         <Search className="h-6 w-6 text-purple-600 shrink-0" />
         <div>
           <h2 className="text-xl font-black">SEO audit (rules)</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Free checks — apply updates via <code className="text-xs">saveBlog()</code> only.
+          <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xl">
+            <strong>Not AI</strong> — free rules trim your title/excerpt into meta tags.{' '}
+            <strong>Use suggestions</strong> only fills the two text fields below;{' '}
+            <strong>Apply to post</strong> saves them. The yellow box shows what the live blog
+            will use. AI meta suggestions are planned later (Promo agent is separate).
           </p>
         </div>
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="seo-post-select">Post</Label>
+          <FieldLabel
+            htmlFor="seo-post-select"
+            label="Post"
+            tip="Which blog post to audit and update. Changes apply only after you click Apply to post."
+            hint="Same posts as Admin → Blog Posts."
+          />
           <Select value={selectedId} onValueChange={setSelectedId}>
             <SelectTrigger id="seo-post-select" className="border-2 border-black font-medium">
               <SelectValue placeholder="Select a post" />
@@ -157,15 +184,20 @@ export function BlogSeoPanel() {
 
         {audit && (
           <div className="flex items-end gap-3">
-            <div className="rounded-xl border-3 border-black bg-yellow-300 px-4 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div
+              className="rounded-xl border-3 border-black bg-yellow-300 px-4 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              title="0–100 from rule checks. Warnings lower the score; passes keep it high."
+            >
               <p className="text-xs font-bold uppercase tracking-wide">Score</p>
               <p className="text-3xl font-black tabular-nums">{audit.score}</p>
+              <p className="text-[10px] font-medium text-gray-800">out of 100</p>
             </div>
             <Button
               type="button"
               variant="outline"
               className="border-2 border-black font-bold"
               onClick={applySuggestions}
+              title="Fill meta title and description with recommended lengths (you can still edit before saving)."
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Use suggestions
@@ -174,8 +206,21 @@ export function BlogSeoPanel() {
         )}
       </div>
 
+      {suggestionsNotice && (
+        <p className="mb-4 rounded-lg border-2 border-indigo-500 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-950 dark:bg-indigo-950/40 dark:text-indigo-100">
+          {suggestionsNotice}
+        </p>
+      )}
+
       {selected && audit && (
         <>
+          <SeoLivePreview
+            post={selected}
+            draftSeo={seo}
+            siteLabel={portfolioConfig.label}
+            publicUrl={publicUrl}
+          />
+
           <ul className="mb-6 grid gap-2">
             {audit.findings.map((f) => (
               <li
@@ -189,7 +234,12 @@ export function BlogSeoPanel() {
 
           <div className="mb-6 grid gap-4">
             <div className="space-y-2">
-              <Label htmlFor="meta-title">Meta title</Label>
+              <FieldLabel
+                htmlFor="meta-title"
+                label="Meta title"
+                tip="Shown in the browser tab and Google results. Leave empty to use the post title on the live site."
+                hint="Aim for 50–60 characters."
+              />
               <Input
                 id="meta-title"
                 value={seo.metaTitle ?? ''}
@@ -202,7 +252,12 @@ export function BlogSeoPanel() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="meta-description">Meta description</Label>
+              <FieldLabel
+                htmlFor="meta-description"
+                label="Meta description"
+                tip="Short summary for search engines and link previews. Leave empty to use the post excerpt."
+                hint="Aim for 120–160 characters."
+              />
               <Textarea
                 id="meta-description"
                 value={seo.metaDescription ?? ''}
@@ -216,7 +271,12 @@ export function BlogSeoPanel() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="og-image">OG image URL (optional)</Label>
+              <FieldLabel
+                htmlFor="og-image"
+                label="Share image URL (optional)"
+                tip="Open Graph (OG) image: the large thumbnail when someone pastes your blog link on LinkedIn, Slack, Discord, or iMessage. Must be a public https:// URL (e.g. hosted on Firebase Storage or your CDN). Rules do not suggest this — add manually if you have an image."
+                hint="Leave empty if you don't have a share image yet."
+              />
               <Input
                 id="og-image"
                 value={seo.ogImage ?? ''}
@@ -232,6 +292,7 @@ export function BlogSeoPanel() {
               type="button"
               onClick={() => void handleApply()}
               disabled={saving}
+              title="Writes seo fields to Firestore for this post. Open the public blog URL to verify the tab title and meta tags."
               className="border-2 border-black bg-purple-600 font-black text-white hover:bg-purple-700"
             >
               <Check className="mr-2 h-4 w-4" />

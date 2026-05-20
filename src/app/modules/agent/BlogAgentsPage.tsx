@@ -1,5 +1,7 @@
 import { Sparkles } from 'lucide-react';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { BLOG_AGENTS_ENABLED } from './config';
+import { BlogAgentsGuide } from './components/BlogAgentsGuide';
 import { BlogSeoPanel } from './seo/BlogSeoPanel';
 import { BlogPromoPanel } from './promo/BlogPromoPanel';
 
@@ -9,31 +11,38 @@ import { BlogPromoPanel } from './promo/BlogPromoPanel';
  */
 export function BlogAgentsPage() {
   return (
-    <div className="max-w-4xl space-y-8">
-      <header>
-        <div className="mb-2 flex items-center gap-3">
-          <Sparkles className="h-8 w-8 text-purple-600" />
-          <h1 className="text-2xl font-black">Blog agents</h1>
-        </div>
-        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-          Rule-based SEO is always available. Enable AI promo with{' '}
-          <code className="rounded bg-gray-100 px-1.5 py-0.5 text-sm dark:bg-gray-800">
-            VITE_ENABLE_BLOG_AGENTS=true
-          </code>{' '}
-          after deploying Functions and setting the OpenRouter secret.
-        </p>
-      </header>
+    <TooltipProvider delayDuration={200}>
+      <div className="max-w-4xl space-y-8">
+        <header>
+          <div className="mb-2 flex items-center gap-3">
+            <Sparkles className="h-8 w-8 text-purple-600" />
+            <h1 className="text-2xl font-black">Blog agents</h1>
+          </div>
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed max-w-2xl">
+            Improve how posts appear in Google and social. SEO uses free rules; Promo uses AI only
+            when Functions + OpenRouter are configured.
+          </p>
+        </header>
 
-      <BlogSeoPanel />
+        <BlogAgentsGuide />
 
-      {BLOG_AGENTS_ENABLED ? (
-        <BlogPromoPanel />
-      ) : (
-        <p className="text-sm text-gray-500 dark:text-gray-400 rounded-lg border-2 border-dashed border-gray-400 px-4 py-3">
-          Promo agent is hidden until <code>VITE_ENABLE_BLOG_AGENTS=true</code>. Deploy{' '}
-          <code>invokeBlogAgent</code> and set <code>OPENROUTER_API_KEY</code> first.
-        </p>
-      )}
-    </div>
+        <BlogSeoPanel />
+
+        {BLOG_AGENTS_ENABLED ? (
+          <BlogPromoPanel />
+        ) : (
+          <div className="rounded-lg border-2 border-dashed border-gray-400 bg-gray-50 px-4 py-4 text-sm text-gray-700 dark:bg-gray-900/50 dark:text-gray-300">
+            <p className="font-bold mb-1">Promo agent is off</p>
+            <p className="leading-relaxed">
+              To enable: set <code className="text-xs">VITE_ENABLE_BLOG_AGENTS=true</code> in{' '}
+              <code className="text-xs">.env</code>, add <code className="text-xs">OPENROUTER_API_KEY</code>{' '}
+              to <code className="text-xs">functions/.env</code>, run{' '}
+              <code className="text-xs">pnpm run functions:serve</code>, then restart{' '}
+              <code className="text-xs">npm run dev</code>.
+            </p>
+          </div>
+        )}
+      </div>
+    </TooltipProvider>
   );
 }

@@ -9,10 +9,11 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "serve": "npm run build && firebase emulators:start --only functions",
-    "deploy": "firebase deploy --only functions:invokeBlogAgent"
+    "serve": "npm run build && npx firebase emulators:start --only functions",
+    "deploy": "npm run build && npx firebase deploy --only functions:invokeBlogAgent"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "firebase-admin": "^13.6.0",
     "firebase-functions": "^6.6.0"
   },

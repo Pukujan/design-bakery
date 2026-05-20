@@ -17,6 +17,15 @@ export type AgentBlogPayload = {
   seo?: BlogSeo;
 };
 
+export type AgentBlogSnapshot = {
+  title: string;
+  excerpt: string;
+  content: string;
+  tags: string[];
+  category: string;
+  author: string;
+};
+
 export type AgentInvokeRequest = {
   version: typeof AGENT_API_VERSION;
   action: AgentAction;
@@ -25,6 +34,7 @@ export type AgentInvokeRequest = {
   audienceTheme?: string;
   customInstructions?: string;
   publicUrl?: string;
+  blogSnapshot?: AgentBlogSnapshot;
 };
 
 export type AgentInvokeSuccess = {
