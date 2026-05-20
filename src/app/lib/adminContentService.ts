@@ -21,7 +21,7 @@ import { firestore } from './firebase';
 import type { PortfolioId } from '../portfolios/registry';
 import { DEFAULT_PORTFOLIO_ID } from '../portfolios/registry';
 import { resolveCollection } from '../portfolios/collections';
-import { compareBlogsByDateDesc } from '../modules/engineering/blogData';
+import { blogPostMergeKey, mergeBlogPostsWithFallback } from '../modules/engineering/blogData';
 import { normalizeProjectLinks } from './caseStudyRoutes';
 
 // Local JSON fallbacks (used when Firestore collection is empty / not yet seeded)
@@ -166,39 +166,35 @@ export async function getBlogs(): Promise<BlogPost[]> {
   const firestoreBlogs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as BlogPost));
   const fallbackBlogs = (_blogsJson as unknown as BlogPost[]).map((p, i) => ({
     ...p,
-    numericId: p.numericId ?? i + 1,
+    numericId: p.numericId ?? (p as { id?: number }).id ?? i + 1,
   }));
 
-  // Merge fallback + Firestore so legacy local posts do not disappear after first admin save.
-  const byKey = new Map<string, BlogPost>();
-  for (const post of fallbackBlogs) {
-    byKey.set(`n:${post.numericId ?? -1}|t:${post.title}`, post);
-  }
-  for (const post of firestoreBlogs) {
-    byKey.set(`n:${post.numericId ?? -1}|t:${post.title}`, post);
-  }
-
-  return [...byKey.values()].sort(compareBlogsByDateDesc);
+  return mergeBlogPostsWithFallback(fallbackBlogs, firestoreBlogs);
 }
 
-async function seedMissingFallbackBlogs() {
+/** Write any blog-data.json rows missing from Firestore (doc id `seed-<numericId>`). */
+export async function syncBlogPostsFromSeed(): Promise<number> {
+  return seedMissingFallbackBlogs();
+}
+
+async function seedMissingFallbackBlogs(): Promise<number> {
   const q = query(collection(db(), 'blog_posts'), orderBy('numericId', 'asc'));
   const snap = await getDocs(q);
 
   const existingKeys = new Set(
     snap.docs.map((d) => {
       const p = d.data() as BlogPost;
-      return `n:${p.numericId ?? -1}|t:${p.title}`;
+      return blogPostMergeKey(p);
     })
   );
 
   const fallback = (_blogsJson as unknown as BlogPost[]).map((p, i) => ({
     ...p,
-    numericId: p.numericId ?? i + 1,
+    numericId: p.numericId ?? (p as { id?: number }).id ?? i + 1,
   }));
 
-  const missing = fallback.filter((post) => !existingKeys.has(`n:${post.numericId ?? -1}|t:${post.title}`));
-  if (missing.length === 0) return;
+  const missing = fallback.filter((post) => !existingKeys.has(blogPostMergeKey(post)));
+  if (missing.length === 0) return 0;
 
   await Promise.all(
     missing.map((post) => {
@@ -207,6 +203,7 @@ async function seedMissingFallbackBlogs() {
       return setDoc(doc(db(), 'blog_posts', seedId), data);
     })
   );
+  return missing.length;
 }
 
 export async function saveBlog(post: BlogPost): Promise<string> {

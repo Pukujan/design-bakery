@@ -4,17 +4,19 @@
 
 **List:** http://localhost:5300/endtoend-engineer/blogs  
 **Detail renderer:** `extras/design changes to blog details/app/components/BlogDetailPage.tsx` (via `@blog-detail-v2`)  
-**Data:** `src/app/modules/engineering/blog-data.json` (fallback) + optional Firestore `blog_posts`
+**Canonical data:** Firestore `blog_posts` (edited at `/admin/endtoend-engineer/blog`).  
+**Seed source:** `blog-data.json` — merged on the public site; copied into Firestore when the admin Blog editor loads (`syncBlogPostsFromSeed` → doc id `seed-<numericId>`).
 
 ---
 
-## Adding a new post
+## Adding a new post (correct flow)
 
 1. **Author markdown** under `src/app/modules/engineering/posts/<slug>.md`.
-2. **Append entry** to `blog-data.json` with the next numeric `id`, matching fields on existing rows.
-3. **Category** must exist in `blog-categories.json` (`ai-ml`, `systems`, `product`, `architecture`).
-4. **Color** — use the category color from `blog-categories.json` for the card accent.
-5. **Run** `pnpm run build` and open `/endtoend-engineer/blogs/<id>`.
+2. **Append entry** to `blog-data.json` with the next numeric `id`.
+3. **Open admin** → http://localhost:5300/admin/endtoend-engineer/blog — missing JSON rows sync to Firestore automatically.
+4. **Or** create/edit directly in admin (no JSON required for one-off posts).
+5. **Category** must exist in `blog-categories.json` / admin categories editor.
+6. **Verify** `/endtoend-engineer/blogs/<numericId>`.
 
 Optional helper (from repo root):
 
@@ -62,7 +64,9 @@ Do not convert diagrams to `graph LR` when editing this post.
 
 ## Firestore
 
-`blogData.ts` loads `blog_posts` when Firebase is configured. If the collection is non-empty, it **replaces** the JSON fallback. To show a new JSON-only post in production, add a document with `numericId: 7` (or disable Firestore for local-only testing).
+- **Public site:** `getBlogDataLive()` merges JSON + Firestore (Firestore wins on same `numericId` + title).
+- **Admin:** `getBlogs()` uses the same merge; `syncBlogPostsFromSeed()` writes missing JSON rows to `blog_posts/seed-<numericId>`.
+- **Do not** assume `blog-data.json` alone updates production — visit admin blog once after adding a seed row, or call `syncBlogPostsFromSeed()` from admin code.
 
 ---
 

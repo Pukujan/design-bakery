@@ -5,6 +5,7 @@ import {
   setBlogCategories,
   saveBlog,
   deleteBlog,
+  syncBlogPostsFromSeed,
   type BlogPost,
   type BlogCategory,
 } from '../../../lib/adminContentService';
@@ -63,10 +64,19 @@ export function BlogEditor() {
   const [newCategoryLabel, setNewCategoryLabel] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState('#6366f1');
   const [tagInput, setTagInput] = useState('');
+  const [seedSyncNote, setSeedSyncNote] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
     try {
+      const seeded = await syncBlogPostsFromSeed();
+      if (seeded > 0) {
+        setSeedSyncNote(
+          `Synced ${seeded} post${seeded === 1 ? '' : 's'} from blog-data.json into Firestore.`,
+        );
+      } else {
+        setSeedSyncNote(null);
+      }
       const [loadedPosts, loadedCategories] = await Promise.all([
         getBlogs(),
         getBlogCategories(),
@@ -178,13 +188,25 @@ export function BlogEditor() {
         </Button>
       </div>
 
+      {seedSyncNote && (
+        <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
+          {seedSyncNote}
+        </p>
+      )}
+
+      <p className="mb-4 text-sm text-gray-500">
+        Canonical store: Firestore <code className="text-xs">blog_posts</code>. New rows in{' '}
+        <code className="text-xs">blog-data.json</code> are copied here on load (doc id{' '}
+        <code className="text-xs">seed-&lt;numericId&gt;</code>).
+      </p>
+
       <div className="space-y-3">
         {posts.length === 0 && (
           <p className="text-gray-400 text-sm">No posts yet. Click "New Post" to add one.</p>
         )}
         {posts.map((post) => (
           <div
-            key={post.id}
+            key={post.id ?? `n-${post.numericId}`}
             className="flex items-start gap-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4"
           >
             <div

@@ -30,6 +30,35 @@ function parseBlogDate(date: string): number {
 
 type BlogSortable = { date: string; id?: number; numericId?: number };
 
+/** Stable key for merging JSON seed rows with Firestore docs (admin + public site). */
+export function blogPostMergeKey(post: { numericId?: number; id?: number; title: string }): string {
+  const n = post.numericId ?? (typeof post.id === 'number' ? post.id : undefined) ?? -1;
+  return `n:${n}|t:${post.title}`;
+}
+
+/** JSON fallback first; Firestore wins on same numericId + title. */
+export function mergeBlogPostsWithFallback<T extends BlogSortable & { title: string }>(
+  fallbackPosts: T[],
+  firestorePosts: T[],
+): T[] {
+  const byKey = new Map<string, T>();
+  for (const post of fallbackPosts) {
+    byKey.set(blogPostMergeKey(post), post);
+  }
+  for (const post of firestorePosts) {
+    byKey.set(blogPostMergeKey(post), post);
+  }
+  return sortBlogsByDateDesc([...byKey.values()]);
+}
+
+function fallbackBlogsFromJson(): Blog[] {
+  return (blogDataJson as Blog[]).map((p, i) => ({
+    ...p,
+    id: p.id ?? i + 1,
+    numericId: p.id ?? i + 1,
+  }));
+}
+
 export function compareBlogsByDateDesc(a: BlogSortable, b: BlogSortable): number {
   const byDate = parseBlogDate(b.date) - parseBlogDate(a.date);
   if (byDate !== 0) return byDate;
@@ -65,15 +94,16 @@ function mapFirestoreBlogs(snap: Awaited<ReturnType<typeof getDocs>>): Blog[] {
 }
 
 export async function getBlogDataLive(): Promise<Blog[]> {
-  const fallback = sortBlogsByDateDesc(blogDataJson as Blog[]);
+  const fallback = sortBlogsByDateDesc(fallbackBlogsFromJson());
   if (!firestore) return fallback;
 
   try {
     const q = query(collection(firestore, 'blog_posts'), orderBy('numericId', 'desc'));
     const snap = await getDocs(q);
+    const firestoreBlogs = mapFirestoreBlogs(snap).map((b) => ({ ...b, numericId: b.id }));
     if (snap.empty) return fallback;
 
-    return sortBlogsByDateDesc(mapFirestoreBlogs(snap));
+    return mergeBlogPostsWithFallback(fallback, firestoreBlogs);
   } catch {
     return fallback;
   }
