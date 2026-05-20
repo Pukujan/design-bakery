@@ -29,6 +29,7 @@ import _lweProjectsJson from './legal-workflow-engineer/engineering/projects.jso
 import _lweEngSkillsJson from './legal-workflow-engineer/engineering/skill-categories.json';
 import eteHero from './endtoend-engineer/engineering/hero.json';
 import eteExperience from './endtoend-engineer/engineering/relevant-experience.json';
+import _eteProjectsJson from './endtoend-engineer/engineering/projects.json';
 import fdeHero from './forward-deployed-engineer/engineering/hero.json';
 import fdeAbout from './forward-deployed-engineer/engineering/about.json';
 import fdeExperience from './forward-deployed-engineer/engineering/relevant-experience.json';
@@ -43,7 +44,7 @@ const defaultSkills = _engSkillsJson as SkillCategory[];
 export const PROJECT_FALLBACKS: Record<PortfolioId, Project[]> = {
   default: defaultProjects,
   'legal-workflow-engineer': _lweProjectsJson as unknown as Project[],
-  'endtoend-engineer': defaultProjects,
+  'endtoend-engineer': _eteProjectsJson as unknown as Project[],
   'ai-engineer': _aiProjectsJson as unknown as Project[],
   'forward-deployed-engineer': _fdeProjectsJson as unknown as Project[],
 };

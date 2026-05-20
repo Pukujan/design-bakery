@@ -28,12 +28,12 @@
     ],
     "links": [
       {
-        "label": "Live Platform",
-        "url": "https://www.ekagajpatra.com"
-      },
-      {
         "label": "Case Study",
         "url": "/case-studies/ekagajpatra"
+      },
+      {
+        "label": "Live Platform",
+        "url": "https://www.ekagajpatra.com"
       }
     ]
   },

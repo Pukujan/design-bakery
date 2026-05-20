@@ -33,8 +33,7 @@ const allProjects = [
     ],
     links: [
       { label: "Live Platform", url: "https://www.ekagajpatra.com" },
-      { label: "Case Study", url: "https://follow-smog-96608767.figma.site" },
-      { label: "Frontend Study", url: "https://mock-flee-81526355.figma.site" },
+      { label: "Case Study", url: "/case-studies/ekagajpatra" },
     ],
   },
   {

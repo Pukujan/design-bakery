@@ -22,6 +22,7 @@ import type { PortfolioId } from '../portfolios/registry';
 import { DEFAULT_PORTFOLIO_ID } from '../portfolios/registry';
 import { resolveCollection } from '../portfolios/collections';
 import { compareBlogsByDateDesc } from '../modules/engineering/blogData';
+import { normalizeProjectLinks } from './caseStudyRoutes';
 
 // Local JSON fallbacks (used when Firestore collection is empty / not yet seeded)
 import _timelineJson from '../modules/design/About/timeline.json';
@@ -329,8 +330,13 @@ export interface Project {
   links: { label: string; url: string }[];
 }
 
-export const getProjects = (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) =>
-  getArrayDoc<Project>(col(portfolioId, 'engineering_projects'), PROJECT_FALLBACKS[portfolioId]);
+export const getProjects = async (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) => {
+  const projects = await getArrayDoc<Project>(
+    col(portfolioId, 'engineering_projects'),
+    PROJECT_FALLBACKS[portfolioId]
+  );
+  return normalizeProjectLinks(projects);
+};
 export const setProjects = (portfolioId: PortfolioId, items: Project[]) =>
   setArrayDoc(col(portfolioId, 'engineering_projects'), items);
 

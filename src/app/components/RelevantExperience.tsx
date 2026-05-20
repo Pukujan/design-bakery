@@ -7,8 +7,10 @@ import { Badge } from './ui/badge';
 import { Squiggle, Star, BlobShape } from './GraphicElements';
 import { FlowerCharacter } from './FlowerCharacter';
 import { Cupcake, Cookie } from './BakeryItems';
+import { Link } from 'react-router-dom';
 import { useRelevantExperienceContent } from '../lib/contentHooks';
 import { resolveIcon } from '../lib/iconResolver';
+import { EKAGAJPATRA_CASE_STUDY_PATH } from '../lib/caseStudyRoutes';
 
 /**
  * Create a gradient string from two hex colors at 135 degrees
@@ -203,6 +205,18 @@ export function RelevantExperience() {
                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base mb-6">
                     {experience.collapsedSummary}
                   </p>
+
+                  {experience.company === 'Ekagajpatra' && (
+                    <div className="mb-6">
+                      <Button
+                        asChild
+                        className="border-3 border-black font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                        style={{ background: gradient }}
+                      >
+                        <Link to={EKAGAJPATRA_CASE_STUDY_PATH}>View Ekagajpatra case study</Link>
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Expand Button */}
                   <motion.div

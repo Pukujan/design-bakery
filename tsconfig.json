@@ -20,5 +20,6 @@
       "@invest-ai-case-study/*": ["extras/invest-ai-case-study/src/*"]
     }
   },
-  "include": ["src", "extras/invest-ai-case-study/src", "extras/Create Presentation Case Study/src"]
+  "include": ["src", "extras/invest-ai-case-study/src", "extras/Create Presentation Case Study/src"],
+  "exclude": ["node_modules", "dist", "functions"]
 }
