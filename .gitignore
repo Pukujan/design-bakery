@@ -9,3 +9,4 @@ temp/
 .codegraph/codegraph.db
 .codegraph/*.db-journal
 .codegraph/cache/
+.DS_Store
