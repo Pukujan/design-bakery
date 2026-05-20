@@ -17,12 +17,14 @@ import { EngineeringSkillsMetaEditor } from './sections/EngineeringSkillsMetaEdi
 import { ContactSectionEditor } from './sections/ContactSectionEditor';
 import { FooterEditor } from './sections/FooterEditor';
 import { RelevantExperienceEditor } from './sections/RelevantExperienceEditor';
+import { BlogAgentsPage } from '../agent/BlogAgentsPage';
 import type { PortfolioId } from '../../portfolios/registry';
 
 const ENGINEERING_ROUTES: RouteObject[] = [
   { index: true, element: <BlogEditor /> },
   { path: 'blog', element: <BlogEditor /> },
   { path: 'blog-categories', element: <BlogCategoriesEditor /> },
+  { path: 'blog-agents', element: <BlogAgentsPage /> },
   { path: 'projects', element: <ProjectsEditor /> },
   { path: 'hero', element: <EngineeringHeroEditor /> },
   { path: 'community', element: <EngineeringCommunityEditor /> },
