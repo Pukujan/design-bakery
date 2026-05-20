@@ -19,6 +19,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import mermaid from 'mermaid';
 import { useBlogCategories, useBlogData } from '@/modules/engineering/blogData';
+import { BlogPostHead } from '@/modules/engineering/BlogDetailPage/BlogPostHead';
 import { BlogDetailPageSkeleton } from '@/modules/engineering/BlogDetailPage/BlogDetailPageSkeleton';
 import { useStickySidebar } from '@/modules/engineering/BlogDetailPage/useStickySidebar';
 import { usePortfolio } from '@/portfolios/PortfolioContext';
@@ -284,7 +285,7 @@ const MarkdownComponents = {
 export function BlogDetailPage() {
   const { blogId } = useParams<{ blogId: string }>();
   const navigate = useNavigate();
-  const { pathTo } = usePortfolio();
+  const { pathTo, config } = usePortfolio();
   const { blogs, isLoading } = useBlogData();
   const categories = useBlogCategories();
   const blogsPath = pathTo('/blogs');
@@ -315,6 +316,7 @@ export function BlogDetailPage() {
 
   return (
     <section className="min-h-screen pt-28 sm:pt-32 md:pt-36 pb-12 sm:pb-14 md:pb-16 px-4 sm:px-5 md:px-6 bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 relative overflow-hidden">
+      <BlogPostHead blog={blog} siteLabel={config.label} />
       <BlogPageDecor variant="detail" seed={blogId ?? blog.id} />
 
       {/* Fixed Back Button */}

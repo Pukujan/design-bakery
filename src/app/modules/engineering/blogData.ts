@@ -3,6 +3,7 @@ import blogDataJson from './blog-data.json';
 import categoriesJson from './blog-categories.json';
 import { collection, doc, getDoc, getDocs, orderBy, query } from 'firebase/firestore';
 import { firestore } from '../../lib/firebase';
+import type { BlogSeo } from './blogSeo';
 
 export interface Blog {
   id: number;
@@ -15,6 +16,7 @@ export interface Blog {
   color: string;
   author: string;
   content: string;
+  seo?: BlogSeo;
 }
 
 export interface BlogCategory {
@@ -60,6 +62,7 @@ function mapFirestoreBlogs(snap: Awaited<ReturnType<typeof getDocs>>): Blog[] {
       color: row.color,
       author: row.author,
       content: row.content,
+      seo: row.seo,
     };
   });
 }

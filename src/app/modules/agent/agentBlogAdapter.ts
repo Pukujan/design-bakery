@@ -12,5 +12,6 @@ export function toAgentBlogPayload(blog: Blog, publicUrl: string): AgentBlogPayl
     category: blog.category,
     author: blog.author,
     publicUrl,
+    seo: blog.seo,
   };
 }

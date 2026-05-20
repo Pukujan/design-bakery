@@ -1,4 +1,5 @@
 import type { AGENT_API_VERSION } from './config';
+import type { BlogSeo } from '@/modules/engineering/blogSeo';
 
 export type AgentAction = 'promo' | 'seo_ai' | 'council';
 
@@ -13,6 +14,7 @@ export type AgentBlogPayload = {
   category: string;
   author: string;
   publicUrl: string;
+  seo?: BlogSeo;
 };
 
 export type AgentInvokeRequest = {

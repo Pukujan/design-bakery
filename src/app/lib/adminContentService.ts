@@ -18,6 +18,7 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 import { firestore } from './firebase';
+import type { BlogSeo } from '../modules/engineering/blogSeo';
 import type { PortfolioId } from '../portfolios/registry';
 import { DEFAULT_PORTFOLIO_ID } from '../portfolios/registry';
 import { resolveCollection } from '../portfolios/collections';
@@ -156,6 +157,7 @@ export interface BlogPost {
   color: string;
   author: string;
   content: string;
+  seo?: BlogSeo;
 }
 
 export async function getBlogs(): Promise<BlogPost[]> {
