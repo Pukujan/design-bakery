@@ -18,10 +18,10 @@ import { usePortfolio } from '../../../portfolios/PortfolioContext';
 
 export function BlogListPage() {
   const navigate = useNavigate();
-  const { pathTo, config } = usePortfolio();
+  const { pathTo } = usePortfolio();
   const categories = useBlogCategories();
   const { blogs } = useBlogData();
-  const [selectedCategory, setSelectedCategory] = useState(config.defaultBlogCategory);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
