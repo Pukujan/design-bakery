@@ -13,6 +13,7 @@ import {
   blogButtonMotion,
   blogCardMotion,
 } from '@/components/BlogPageMotion';
+import { BlogContactFab } from '@/components/BlogContactFab';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -520,6 +521,8 @@ export function BlogDetailPage() {
           </aside>
         </div>
       </div>
+
+      <BlogContactFab />
     </section>
   );
 }
