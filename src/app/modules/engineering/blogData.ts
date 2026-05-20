@@ -23,35 +23,57 @@ export interface BlogCategory {
   color: string;
 }
 
-export const blogData = blogDataJson as Blog[];
+function parseBlogDate(date: string): number {
+  const ts = Date.parse(date.trim());
+  return Number.isNaN(ts) ? 0 : ts;
+}
+
+type BlogSortable = { date: string; id?: number; numericId?: number };
+
+export function compareBlogsByDateDesc(a: BlogSortable, b: BlogSortable): number {
+  const byDate = parseBlogDate(b.date) - parseBlogDate(a.date);
+  if (byDate !== 0) return byDate;
+  return (b.id ?? b.numericId ?? 0) - (a.id ?? a.numericId ?? 0);
+}
+
+/** Newest first (by `date` string, then `id` as tiebreaker). */
+export function sortBlogsByDateDesc(blogs: Blog[]): Blog[] {
+  return [...blogs].sort(compareBlogsByDateDesc);
+}
+
+export const blogData = sortBlogsByDateDesc(blogDataJson as Blog[]);
 export const categories = categoriesJson as BlogCategory[];
 
 type FirestoreBlog = Omit<Blog, 'id'> & { numericId?: number };
 
+function mapFirestoreBlogs(snap: Awaited<ReturnType<typeof getDocs>>): Blog[] {
+  return snap.docs.map((d, idx) => {
+    const row = d.data() as FirestoreBlog;
+    return {
+      id: row.numericId ?? idx + 1,
+      title: row.title,
+      excerpt: row.excerpt,
+      date: row.date,
+      readTime: row.readTime,
+      tags: row.tags ?? [],
+      category: row.category,
+      color: row.color,
+      author: row.author,
+      content: row.content,
+    };
+  });
+}
+
 export async function getBlogDataLive(): Promise<Blog[]> {
-  const fallback = blogDataJson as Blog[];
+  const fallback = sortBlogsByDateDesc(blogDataJson as Blog[]);
   if (!firestore) return fallback;
 
   try {
-    const q = query(collection(firestore, 'blog_posts'), orderBy('numericId', 'asc'));
+    const q = query(collection(firestore, 'blog_posts'), orderBy('numericId', 'desc'));
     const snap = await getDocs(q);
     if (snap.empty) return fallback;
 
-    return snap.docs.map((d, idx) => {
-      const row = d.data() as FirestoreBlog;
-      return {
-        id: row.numericId ?? idx + 1,
-        title: row.title,
-        excerpt: row.excerpt,
-        date: row.date,
-        readTime: row.readTime,
-        tags: row.tags ?? [],
-        category: row.category,
-        color: row.color,
-        author: row.author,
-        content: row.content,
-      };
-    });
+    return sortBlogsByDateDesc(mapFirestoreBlogs(snap));
   } catch {
     return fallback;
   }
@@ -87,18 +109,34 @@ export function useBlogCategories() {
   return liveCategories;
 }
 
-export function useBlogData() {
+export type UseBlogDataResult = {
+  blogs: Blog[];
+  isLoading: boolean;
+};
+
+export function useBlogData(): UseBlogDataResult {
+  const hasLiveSource = Boolean(firestore);
   const [liveBlogs, setLiveBlogs] = useState<Blog[]>(blogData);
+  const [isLoading, setIsLoading] = useState(hasLiveSource);
 
   useEffect(() => {
+    if (!hasLiveSource) {
+      setIsLoading(false);
+      return;
+    }
+
     let active = true;
     void getBlogDataLive().then((items) => {
-      if (active) setLiveBlogs(items);
+      if (active) {
+        setLiveBlogs(items);
+        setIsLoading(false);
+      }
     });
+
     return () => {
       active = false;
     };
-  }, []);
+  }, [hasLiveSource]);
 
-  return liveBlogs;
+  return { blogs: liveBlogs, isLoading };
 }

@@ -21,6 +21,7 @@ import { firestore } from './firebase';
 import type { PortfolioId } from '../portfolios/registry';
 import { DEFAULT_PORTFOLIO_ID } from '../portfolios/registry';
 import { resolveCollection } from '../portfolios/collections';
+import { compareBlogsByDateDesc } from '../modules/engineering/blogData';
 
 // Local JSON fallbacks (used when Firestore collection is empty / not yet seeded)
 import _timelineJson from '../modules/design/About/timeline.json';
@@ -158,7 +159,7 @@ export interface BlogPost {
 }
 
 export async function getBlogs(): Promise<BlogPost[]> {
-  const q = query(collection(db(), 'blog_posts'), orderBy('numericId', 'asc'));
+  const q = query(collection(db(), 'blog_posts'), orderBy('numericId', 'desc'));
   const snap = await getDocs(q);
 
   const firestoreBlogs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as BlogPost));
@@ -176,7 +177,7 @@ export async function getBlogs(): Promise<BlogPost[]> {
     byKey.set(`n:${post.numericId ?? -1}|t:${post.title}`, post);
   }
 
-  return [...byKey.values()].sort((a, b) => (a.numericId ?? 0) - (b.numericId ?? 0));
+  return [...byKey.values()].sort(compareBlogsByDateDesc);
 }
 
 async function seedMissingFallbackBlogs() {
@@ -663,7 +664,7 @@ export const FOOTER_CONTENT_DEFAULT: FooterContent = {
   quickLinks: [
     { label: 'Skills', href: '#skills', type: 'anchor' },
     { label: 'Insights', href: '#insights', type: 'anchor' },
-    { label: 'Case Study', href: '#ekagajpatra', type: 'anchor' },
+    { label: 'Case Study', href: '/case-studies/ekagajpatra', type: 'route' },
   ],
   copyrightText: 'Design Baker. All rights reserved.',
 };

@@ -16,7 +16,9 @@ import { Squiggle, Star, BlobShape } from "../../../components/GraphicElements";
 import { FlowerCharacter } from "../../../components/FlowerCharacter";
 import { Cupcake, Donut, Cookie, IceCream } from "../../../components/BakeryItems";
 import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useProjectsContent } from '../../../lib/contentHooks';
+import { isInternalAppPath } from '../../../lib/caseStudyRoutes';
 
 const projectIconMap = {
   Users,
@@ -272,7 +274,32 @@ export function EngineeringProjects() {
                     {/* Action Buttons */}
                     {featuredProject.links.length > 0 && (
                       <div className="flex flex-wrap gap-3">
-                        {featuredProject.links.map((link, idx) => (
+                        {featuredProject.links.map((link, idx) => {
+                          const href =
+                            (link as { href?: string; url?: string }).href ??
+                            (link as { href?: string; url?: string }).url ??
+                            '#';
+                          const internal = isInternalAppPath(href);
+                          const buttonClass = `
+                                px-6 py-3 rounded-full border-3 border-black
+                                shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                                hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]
+                                transition-all group font-black
+                                ${idx === 0 ? 'bg-white text-gray-900' : 'bg-white/20 text-white border-white/40'}
+                              `;
+                          const label = (
+                            <>
+                              {link.label.includes('GitHub') ? (
+                                <Github className="mr-2 h-4 w-4" />
+                              ) : (
+                                <ExternalLink className="mr-2 h-4 w-4" />
+                              )}
+                              {link.label}
+                              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            </>
+                          );
+
+                          return (
                           <motion.div
                             key={idx}
                             initial={{ opacity: 0, x: -20 }}
@@ -281,28 +308,18 @@ export function EngineeringProjects() {
                             whileHover={{ scale: 1.05, y: -5 }}
                             whileTap={{ scale: 0.95 }}
                           >
-                            <Button
-                              asChild
-                              className={`
-                                px-6 py-3 rounded-full border-3 border-black
-                                shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                                hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]
-                                transition-all group font-black
-                                ${idx === 0 ? 'bg-white text-gray-900' : 'bg-white/20 text-white border-white/40'}
-                              `}
-                            >
-                              <a href={(link as { href?: string; url?: string }).href ?? (link as { href?: string; url?: string }).url ?? '#'} target="_blank" rel="noopener noreferrer">
-                                {link.label.includes('GitHub') ? (
-                                  <Github className="mr-2 h-4 w-4" />
-                                ) : (
-                                  <ExternalLink className="mr-2 h-4 w-4" />
-                                )}
-                                {link.label}
-                                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                              </a>
+                            <Button asChild className={buttonClass}>
+                              {internal ? (
+                                <Link to={href}>{label}</Link>
+                              ) : (
+                                <a href={href} target="_blank" rel="noopener noreferrer">
+                                  {label}
+                                </a>
+                              )}
                             </Button>
                           </motion.div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </motion.div>

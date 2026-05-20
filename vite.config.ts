@@ -4,6 +4,14 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
+  server: {
+    port: 5300,
+    strictPort: true,
+  },
+  preview: {
+    port: 4174,
+    strictPort: true,
+  },
   plugins: [
     // The React and Tailwind plugins are both required for Make, even if
     // Tailwind is not being actively used – do not remove them
@@ -13,6 +21,14 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src/app'),
+      '@ekagajpatra-case-study': path.resolve(
+        __dirname,
+        './extras/Create Presentation Case Study/src'
+      ),
+      '@blog-detail-v2': path.resolve(
+        __dirname,
+        './extras/design changes to blog details/app'
+      ),
     },
   },
 })

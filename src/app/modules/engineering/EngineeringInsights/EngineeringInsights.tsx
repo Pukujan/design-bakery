@@ -22,7 +22,7 @@ const ITEMS_PER_PAGE = 3;
 export function EngineeringInsights() {
   const { pathTo } = usePortfolio();
   const categories = useBlogCategories();
-  const insights = useBlogData();
+  const { blogs: insights } = useBlogData();
   const [selectedCategory, setSelectedCategory] =
     useState("all");
   const [currentPage, setCurrentPage] = useState(1);

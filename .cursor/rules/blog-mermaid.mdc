@@ -1,0 +1,19 @@
+---
+description: Blog Mermaid — read agent devlog before styling or render changes
+globs: extras/design changes to blog details/app/components/BlogDetailPage.tsx,src/app/modules/engineering/BlogDetailPage/**,src/styles/globals.css,guidelines/agent-devlog-mermaid.md
+alwaysApply: false
+---
+
+# Blog Mermaid
+
+**Before editing Mermaid init, `MermaidDiagram`, or `.blog-mermaid-chart` CSS, read:**
+
+`guidelines/agent-devlog-mermaid.md`  
+**Index:** `guidelines/agent-devlog-index.md`
+
+## Quick rules (full history in that file)
+
+- **Use:** `theme: 'default'`, `startOnLoad: false`, `mermaid.render()` per chart, wrapper class `blog-mermaid-chart`
+- **Do not:** `theme: 'base'` + `themeVariables`, `contentLoaded()`, post-render SVG JS, `#mermaid-*` CSS selectors
+- **Colors:** change hex in `globals.css` under `.blog-mermaid-chart` only
+- **Test:** http://localhost:5300/endtoend-engineer/blogs/1 after any change

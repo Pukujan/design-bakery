@@ -1,10 +1,12 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { ThemeSwitcher } from "./ThemeSwitcher";
-import { Menu, X, BookOpen } from "lucide-react";
+import { Menu, X, BookOpen, Tag } from "lucide-react";
 import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
 import { useState } from "react";
 import { usePortfolio } from "../portfolios/PortfolioContext";
+import { useBlogCategories, useBlogData } from "../modules/engineering/blogData";
 
 export function Navigation() {
   const location = useLocation();
@@ -18,6 +20,15 @@ export function Navigation() {
     location.pathname === homePath ||
     (homePath !== "/" && location.pathname === homePath);
   const isBlogs = location.pathname.startsWith(blogsPath);
+  const isBlogDetail = /\/blogs\/\d+$/.test(location.pathname);
+  const { blogs } = useBlogData();
+  const categories = useBlogCategories();
+
+  const desktopNavClass = isBlogDetail
+    ? "hidden min-[1020px]:flex items-center gap-6"
+    : "hidden md:flex items-center gap-6";
+  const mobileMenuToggleClass = isBlogDetail ? "min-[1020px]:hidden" : "md:hidden";
+  const mobileMenuPanelClass = isBlogDetail ? "min-[1020px]:hidden" : "md:hidden";
 
   const scrollToSection = (sectionId: string) => {
     if (isHome) {
@@ -51,42 +62,52 @@ export function Navigation() {
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-6">
-            <Link to={blogsPath}>
-              <Button
-                variant={isBlogs ? "default" : "ghost"}
-                className={`gap-2 ${
-                  isBlogs
-                    ? "bg-purple-600 hover:bg-purple-700 text-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-800"
-                }`}
-              >
+          <div className={desktopNavClass}>
+            <Button
+              asChild
+              variant={isBlogs ? "default" : "ghost"}
+              className={`gap-2 ${
+                isBlogs
+                  ? "bg-purple-600 hover:bg-purple-700 text-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              }`}
+            >
+              <Link to={blogsPath}>
                 <BookOpen className="w-4 h-4" />
                 Blogs
-              </Button>
-            </Link>
-            <button type="button" onClick={() => scrollToSection("projects")}>
-              <Button variant="ghost" className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                Projects
-              </Button>
-            </button>
-            <button type="button" onClick={() => scrollToSection("about")}>
-              <Button variant="ghost" className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                About
-              </Button>
-            </button>
-            <button type="button" onClick={() => scrollToSection("contact")}>
-              <Button variant="ghost" className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                Contact
-              </Button>
-            </button>
+              </Link>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={() => scrollToSection("projects")}
+            >
+              Projects
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={() => scrollToSection("about")}
+            >
+              About
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={() => scrollToSection("contact")}
+            >
+              Contact
+            </Button>
             <ThemeSwitcher />
           </div>
 
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className={mobileMenuToggleClass}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X /> : <Menu />}
@@ -97,54 +118,95 @@ export function Navigation() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="md:hidden mt-4 pb-4 flex flex-col gap-2"
+            className={`${mobileMenuPanelClass} mt-4 pb-4 flex flex-col gap-2`}
           >
-            <Link to={blogsPath} onClick={() => setMobileMenuOpen(false)}>
-              <Button
-                variant={isBlogs ? "default" : "ghost"}
-                className={`w-full justify-start gap-2 ${
-                  isBlogs
-                    ? "bg-purple-600 hover:bg-purple-700 text-white border-2 border-black"
-                    : ""
-                }`}
-              >
+            <Button
+              asChild
+              variant={isBlogs ? "default" : "ghost"}
+              className={`w-full justify-start gap-2 ${
+                isBlogs
+                  ? "bg-purple-600 hover:bg-purple-700 text-white border-2 border-black"
+                  : ""
+              }`}
+            >
+              <Link to={blogsPath} onClick={() => setMobileMenuOpen(false)}>
                 <BookOpen className="w-4 h-4" />
                 Blogs
-              </Button>
-            </Link>
-            <button
+              </Link>
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
+              className="w-full justify-start"
               onClick={() => {
                 setMobileMenuOpen(false);
                 scrollToSection("projects");
               }}
             >
-              <Button variant="ghost" className="w-full justify-start">
-                Projects
-              </Button>
-            </button>
-            <button
+              Projects
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
+              className="w-full justify-start"
               onClick={() => {
                 setMobileMenuOpen(false);
                 scrollToSection("about");
               }}
             >
-              <Button variant="ghost" className="w-full justify-start">
-                About
-              </Button>
-            </button>
-            <button
+              About
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
+              className="w-full justify-start"
               onClick={() => {
                 setMobileMenuOpen(false);
                 scrollToSection("contact");
               }}
             >
-              <Button variant="ghost" className="w-full justify-start">
-                Contact
-              </Button>
-            </button>
+              Contact
+            </Button>
+
+            {isBlogDetail && (
+              <div className="border-t-2 border-black my-3 pt-3">
+                <p className="px-2 mb-2 text-xs font-black text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                  Categories
+                </p>
+                {categories
+                  .filter((cat) => cat.id !== "all")
+                  .map((category) => {
+                    const categoryCount = blogs.filter(
+                      (b) => b.category === category.id
+                    ).length;
+
+                    return (
+                      <Button
+                        key={category.id}
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          navigate(blogsPath);
+                          setMobileMenuOpen(false);
+                        }}
+                        className="w-full justify-between px-3 py-2 text-sm"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Tag className="w-3 h-3" style={{ color: category.color }} />
+                          {category.label}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className="border-2 border-black text-xs"
+                        >
+                          {categoryCount}
+                        </Badge>
+                      </Button>
+                    );
+                  })}
+              </div>
+            )}
+
             <ThemeSwitcher />
           </motion.div>
         )}

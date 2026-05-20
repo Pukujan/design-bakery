@@ -32,6 +32,13 @@ import {
 } from '../../../components/ui/alert-dialog';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 
+/** Prevent long unbroken strings from blowing out admin form layout. */
+const FIELD_OVERFLOW =
+  'min-w-0 max-w-full overflow-x-auto [overflow-wrap:anywhere]';
+
+const TEXTAREA_OVERFLOW =
+  'min-w-0 max-w-full field-sizing-fixed overflow-x-auto overflow-y-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere]';
+
 const EMPTY_POST: Omit<BlogPost, 'id'> = {
   numericId: 0,
   title: '',
@@ -212,61 +219,66 @@ export function BlogEditor() {
 
       {/* Edit / New dialog */}
       <Dialog open={!!editPost} onOpenChange={(open) => { if (!open) setEditPost(null); }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl w-[calc(100vw-2rem)] max-h-[90vh] overflow-x-hidden overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editPost?.id ? 'Edit Post' : 'New Post'}</DialogTitle>
           </DialogHeader>
 
           {editPost && (
-            <div className="space-y-4 py-2">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
+            <div className="min-w-0 space-y-4 overflow-hidden py-2">
+              <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="min-w-0 space-y-1">
                   <Label>Title</Label>
                   <Input
+                    className={FIELD_OVERFLOW}
                     value={editPost.title}
                     onChange={(e) => setEditPost({ ...editPost, title: e.target.value })}
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="min-w-0 space-y-1">
                   <Label>Author</Label>
                   <Input
+                    className={FIELD_OVERFLOW}
                     value={editPost.author}
                     onChange={(e) => setEditPost({ ...editPost, author: e.target.value })}
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div className="min-w-0 space-y-1">
                 <Label>Excerpt</Label>
                 <Textarea
                   rows={2}
+                  className={TEXTAREA_OVERFLOW}
                   value={editPost.excerpt}
                   onChange={(e) => setEditPost({ ...editPost, excerpt: e.target.value })}
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-1">
+              <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="min-w-0 space-y-1">
                   <Label>Date (e.g. May 2026)</Label>
                   <Input
+                    className={FIELD_OVERFLOW}
                     value={editPost.date}
                     onChange={(e) => setEditPost({ ...editPost, date: e.target.value })}
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="min-w-0 space-y-1">
                   <Label>Read Time</Label>
                   <Input
+                    className={FIELD_OVERFLOW}
                     value={editPost.readTime}
                     onChange={(e) => setEditPost({ ...editPost, readTime: e.target.value })}
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="min-w-0 space-y-1 sm:col-span-1">
                   <Label>Category</Label>
-                  <div className="flex gap-2">
+                  <div className="flex min-w-0 gap-2">
                     <select
                       value={editPost.category}
                       onChange={(e) => setEditPost({ ...editPost, category: e.target.value })}
-                      className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="h-10 min-w-0 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     >
                       <option value="" disabled>Select category</option>
                       {categories.filter((c) => c.id !== 'all').map((category) => (
@@ -276,8 +288,9 @@ export function BlogEditor() {
                       ))}
                     </select>
                   </div>
-                  <div className="mt-2 flex gap-2">
+                  <div className="mt-2 flex min-w-0 flex-wrap gap-2">
                     <Input
+                      className={`min-w-0 flex-1 ${FIELD_OVERFLOW}`}
                       placeholder="New category name"
                       value={newCategoryLabel}
                       onChange={(e) => setNewCategoryLabel(e.target.value)}
@@ -300,25 +313,27 @@ export function BlogEditor() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
+              <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="min-w-0 space-y-1">
                   <Label>Accent Color</Label>
-                  <div className="flex gap-2">
+                  <div className="flex min-w-0 gap-2">
                     <input
                       type="color"
                       value={editPost.color}
                       onChange={(e) => setEditPost({ ...editPost, color: e.target.value })}
-                      className="h-9 w-12 cursor-pointer rounded border border-gray-200"
+                      className="h-9 w-12 shrink-0 cursor-pointer rounded border border-gray-200"
                     />
                     <Input
+                      className={FIELD_OVERFLOW}
                       value={editPost.color}
                       onChange={(e) => setEditPost({ ...editPost, color: e.target.value })}
                     />
                   </div>
                 </div>
-                <div className="space-y-1">
+                <div className="min-w-0 space-y-1">
                   <Label>Sort Order (numeric ID)</Label>
                   <Input
+                    className={FIELD_OVERFLOW}
                     type="number"
                     value={editPost.numericId ?? ''}
                     onChange={(e) =>
@@ -328,7 +343,7 @@ export function BlogEditor() {
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div className="min-w-0 space-y-1">
                 <Label>Tags</Label>
                 <div className="flex flex-wrap gap-1 mb-2">
                   {editPost.tags.map((t) => (
@@ -342,8 +357,9 @@ export function BlogEditor() {
                     </Badge>
                   ))}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex min-w-0 gap-2">
                   <Input
+                    className={`min-w-0 flex-1 ${FIELD_OVERFLOW}`}
                     placeholder="Add tag…"
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
@@ -353,11 +369,11 @@ export function BlogEditor() {
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div className="min-w-0 space-y-1">
                 <Label>Content (Markdown)</Label>
                 <Textarea
                   rows={18}
-                  className="font-mono text-xs"
+                  className={`font-mono text-xs ${TEXTAREA_OVERFLOW}`}
                   value={editPost.content}
                   onChange={(e) => setEditPost({ ...editPost, content: e.target.value })}
                 />
