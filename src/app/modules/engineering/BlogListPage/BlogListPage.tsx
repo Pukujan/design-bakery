@@ -1,3 +1,4 @@
+/** Blog motion: guidelines/agent-devlog-blog-motion.md — decor via BlogPageMotion */
 import { useState, useRef } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, Clock, Tag } from 'lucide-react';
@@ -5,9 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
-import { Squiggle, Star, BlobShape } from '../../../components/GraphicElements';
-import { FlowerCharacter } from '../../../components/FlowerCharacter';
-import { Cupcake, Donut } from '../../../components/BakeryItems';
+import { Squiggle } from '../../../components/GraphicElements';
+import {
+  BlogPageDecor,
+  PlayfulBlogTitle,
+  blogButtonMotion,
+  blogCardMotion,
+} from '../../../components/BlogPageMotion';
 import { useBlogCategories, useBlogData } from '../blogData';
 import { usePortfolio } from '../../../portfolios/PortfolioContext';
 
@@ -15,7 +20,7 @@ export function BlogListPage() {
   const navigate = useNavigate();
   const { pathTo, config } = usePortfolio();
   const categories = useBlogCategories();
-  const blogs = useBlogData();
+  const { blogs } = useBlogData();
   const [selectedCategory, setSelectedCategory] = useState(config.defaultBlogCategory);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -60,52 +65,7 @@ export function BlogListPage() {
 
   return (
     <section className="py-24 px-6 bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 relative overflow-hidden min-h-screen">
-      {/* Decorative Elements */}
-      <BlobShape color="#9B6DD6" size={400} className="absolute -top-32 -right-40 opacity-20" />
-      <BlobShape color="#4169E1" size={350} className="absolute bottom-20 -left-32 opacity-20" />
-      <BlobShape color="#FF6B9D" size={300} className="absolute top-1/2 left-1/4 opacity-15" />
-
-      {/* Floating Items */}
-      <motion.div
-        className="absolute top-32 right-32 hidden lg:block"
-        animate={{ y: [0, -15, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <Cupcake size={80} animate={false} />
-      </motion.div>
-
-      <motion.div
-        className="absolute bottom-40 left-32 hidden lg:block"
-        animate={{ y: [0, 20, 0], rotate: [-5, 5, -5] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <Donut size={85} animate={false} />
-      </motion.div>
-
-      {/* Stars */}
-      <motion.div
-        className="absolute top-20 left-20"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-      >
-        <Star color="#9B6DD6" size={50} />
-      </motion.div>
-
-      <motion.div
-        className="absolute bottom-32 right-20"
-        animate={{ rotate: -360, scale: [1, 1.2, 1] }}
-        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-      >
-        <Star color="#4169E1" size={45} />
-      </motion.div>
-
-      {/* Flowers */}
-      <div className="absolute top-40 left-10 hidden md:block">
-        <FlowerCharacter color="#9B6DD6" size={70} animate />
-      </div>
-      <div className="absolute bottom-20 right-10 hidden md:block">
-        <FlowerCharacter color="#4169E1" size={75} animate />
-      </div>
+      <BlogPageDecor variant="list" seed={`blogs-${selectedCategory}`} />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
@@ -116,7 +76,10 @@ export function BlogListPage() {
           className="text-center mb-16"
         >
           <h2 className="text-[clamp(3rem,7vw,6rem)] leading-none mb-4 font-black">
-            <span className="text-purple-600 dark:text-purple-400">BLOGS</span>
+            <PlayfulBlogTitle
+              text="BLOGS"
+              className="text-purple-600 dark:text-purple-400"
+            />
           </h2>
           <p className="text-xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto mb-6">
             Deep dives into systems thinking, AI workflows, and engineering
@@ -143,12 +106,7 @@ export function BlogListPage() {
               className="flex gap-4 overflow-x-auto p-2 scrollbar-hide snap-x snap-mandatory scroll-smooth cursor-grab active:cursor-grabbing select-none"
             >
               {categories.map((category) => (
-                <motion.div
-                  key={category.id}
-                  whileHover={{ scale: 1.05, y: -3 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="snap-start"
-                >
+                <motion.div key={category.id} {...blogButtonMotion} className="snap-start">
                   <Button
                     onClick={(e) => {
                       if (dragStartRef.current) {
@@ -190,6 +148,7 @@ export function BlogListPage() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: idx * 0.1 }}
+              {...blogCardMotion}
             >
               <Card
                 onClick={() => navigate(pathTo(`/blogs/${blog.id}`))}

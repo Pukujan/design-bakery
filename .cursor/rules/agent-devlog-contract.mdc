@@ -1,0 +1,14 @@
+---
+description: Agent devlog contract — index, topic logs, session logs, CodeGraph workflow
+globs: guidelines/**,AGENTS.md,.cursor/rules/**
+alwaysApply: true
+---
+
+# Agent devlog contract
+
+**Start:** `guidelines/agent-devlog-index.md`  
+**Workflow:** `guidelines/agent-devlog-contract.md`
+
+Before fragile edits, read the matching **topic** devlog (`guidelines/agent-devlog-*.md`), not only session logs (`dev-log-*.md`).
+
+After rule-changing work: update the topic devlog + in-repo comments / cursor rules per contract.

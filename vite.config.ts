@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   server: {
-    port: 5174,
+    port: 5300,
     strictPort: true,
   },
   preview: {
@@ -24,6 +24,10 @@ export default defineConfig({
       '@ekagajpatra-case-study': path.resolve(
         __dirname,
         './extras/Create Presentation Case Study/src'
+      ),
+      '@blog-detail-v2': path.resolve(
+        __dirname,
+        './extras/design changes to blog details/app'
       ),
     },
   },

@@ -1,0 +1,20 @@
+---
+description: Blog motion — read agent devlog before animation or decor changes
+globs: src/app/components/BlogPageMotion.tsx,src/app/modules/engineering/BlogListPage/**,src/app/modules/engineering/BlogDetailPage/**,extras/design changes to blog details/app/components/BlogDetailPage.tsx,guidelines/agent-devlog-blog-motion.md
+alwaysApply: false
+---
+
+# Blog page motion
+
+**Before editing `BlogPageDecor`, motion presets, or blog list/detail interactions, read:**
+
+`guidelines/agent-devlog-blog-motion.md`
+
+**Index:** `guidelines/agent-devlog-index.md`
+
+## Quick rules
+
+- **Single module:** `src/app/components/BlogPageMotion.tsx` — do not duplicate home float markup in pages
+- **Presets:** `blogCardMotion`, `blogButtonMotion`, `blogReveal`, `MotionSection`, `PlayfulBlogTitle`
+- **Seeds:** `BlogPageDecor` `seed` prop drives deterministic layout variation
+- **Test:** http://localhost:5300/endtoend-engineer/blogs and `/blogs/1`

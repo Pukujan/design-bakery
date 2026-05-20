@@ -319,47 +319,70 @@ body::before {
   display: none;
 }
 
-/* Keep Mermaid arrows and edge outlines visible in dark mode. */
-.dark .mermaid .edgePath .path,
-.dark .mermaid .flowchart-link,
-.dark .mermaid .arrowheadPath,
-.dark .mermaid marker path {
+/*
+ * Blog Mermaid styles — READ FIRST: guidelines/agent-devlog-mermaid.md
+ * Do not use theme: base / themeVariables in JS; do not target #mermaid-* IDs.
+ * Scoped to .blog-mermaid-chart only (see BlogDetailPage.tsx MermaidDiagram).
+ */
+/* Blog Mermaid — bluish-white nodes (CSS only; keep theme: default in JS) */
+.blog-mermaid-chart svg g.node rect,
+.blog-mermaid-chart svg g.node circle,
+.blog-mermaid-chart svg g.node ellipse,
+.blog-mermaid-chart svg g.node polygon {
+  fill: #e8f2fa !important;
+  stroke: #6b9ac4 !important;
+}
+
+.blog-mermaid-chart svg .nodeLabel,
+.blog-mermaid-chart svg .label,
+.blog-mermaid-chart svg g.node text,
+.blog-mermaid-chart svg .nodeLabel tspan,
+.blog-mermaid-chart svg .edgeLabel,
+.blog-mermaid-chart svg .edgeLabel tspan {
+  fill: #1a2a3a !important;
+  color: #1a2a3a !important;
+}
+
+.blog-mermaid-chart svg .nodeLabel foreignObject div,
+.blog-mermaid-chart svg .nodeLabel span,
+.blog-mermaid-chart svg .edgeLabel foreignObject div {
+  color: #1a2a3a !important;
+}
+
+/* Arrows — visible in dark mode */
+.dark .blog-mermaid-chart svg .flowchart-link,
+.dark .blog-mermaid-chart svg .edgePath .path,
+.dark .blog-mermaid-chart svg .edgePath path,
+.dark .blog-mermaid-chart svg .arrowheadPath,
+.dark .blog-mermaid-chart svg marker path {
   stroke: #ffffff !important;
 }
 
-/* Ensure Mermaid arrows and edge outlines are dark in light mode. */
-:root:not(.dark) .mermaid .edgePath .path,
-:root:not(.dark) .mermaid .flowchart-link,
-:root:not(.dark) .mermaid .arrowheadPath,
-:root:not(.dark) .mermaid marker path {
-  stroke: #1a1a1a !important;
+.dark .blog-mermaid-chart svg .flowchart-link {
+  fill: none !important;
 }
 
-/* Compact Mermaid diagrams inside blog articles */
-.blog-mermaid-diagram {
-  width: 100%;
-  max-width: 280px;
-  margin-left: auto;
-  margin-right: auto;
-  zoom: 0.48;
+/* Fenced code — dark panel in all site modes */
+.blog-fenced-code-wrap,
+.blog-fenced-code-wrap pre.blog-fenced-code,
+.blog-article-prose .blog-fenced-code-wrap,
+.blog-article-prose .blog-fenced-code-wrap pre,
+.blog-article-prose pre.blog-fenced-code {
+  background-color: var(--color-gray-900) !important;
+  background-image: none !important;
+  color: #fff8e7 !important;
 }
 
-@supports not (zoom: 1) {
-  .blog-mermaid-diagram {
-    transform: scale(0.48);
-    transform-origin: top center;
-  }
-}
-
-.blog-mermaid-diagram svg {
-  display: block;
-  width: 100% !important;
-  max-width: 280px !important;
-  height: auto !important;
-}
-
-.blog-mermaid-diagram .nodeLabel,
-.blog-mermaid-diagram .label,
-.blog-mermaid-diagram .edgeLabel {
-  font-size: 8px !important;
+.blog-fenced-code-wrap .blog-fenced-code__text,
+.blog-fenced-code-wrap pre code,
+.blog-article-prose .blog-fenced-code-wrap code,
+.blog-article-prose .blog-fenced-code-wrap .blog-fenced-code__text,
+.blog-article-prose pre.blog-fenced-code code,
+.prose .blog-fenced-code-wrap :where(code):not(:where([class~='not-prose'] *)) {
+  color: #fff8e7 !important;
+  background-color: transparent !important;
+  background: transparent !important;
+  font-weight: 500;
+  white-space: pre-wrap;
+  font-size: inherit;
 }

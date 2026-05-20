@@ -1,0 +1,131 @@
+Yes, **expandable format is better** for your site.
+
+It keeps the homepage clean and aesthetic, while still giving recruiters proof when they want details. The card can show only:
+
+```text
+Company · Role · Period · 1-line summary · Click to Expand
+```
+
+Then expanded state shows highlights, tags, and deeper context.
+
+Use this structure:
+
+```json
+{
+  "headingLeft": "RELEVANT",
+  "headingRight": "EXPERIENCE",
+  "subtitle": "A focused history of work across litigation operations, AI systems, workflow engineering, and product development.",
+  "experiences": [
+    {
+      "id": 1,
+      "company": "The Fitzgerald Law Firm",
+      "role": "Litigation Operations / AI Systems Lead",
+      "period": "Feb 2026 - Present",
+      "location": "Yonkers, NY",
+      "collapsedSummary": "High-volume litigation operations with legal AI workflow research focused on docketing, court notices, procedural tracking, and workflow intelligence.",
+      "expandedSummary": "Work inside a litigation firm managing real operational workflows while researching and prototyping AI-powered systems for docketing, NYSCEF/court notice interpretation, TrialWorks workflows, judge/part rule lookup, incident logging, and procedural risk detection.",
+      "highlights": [
+        "Monitor NYSCEF filings, court notices, TrialWorks calendars, and litigation deadlines",
+        "Model litigation workflows using deterministic rules, incident logs, and human-in-the-loop safeguards",
+        "Prototype legal AI systems for motion docketing, conference tracking, procedural risk detection, and legal operations intelligence"
+      ],
+      "tags": [
+        "Litigation Ops",
+        "NYSCEF",
+        "TrialWorks",
+        "Docketing",
+        "Legal AI",
+        "Workflow Intelligence"
+      ]
+    },
+    {
+      "id": 2,
+      "company": "Nepasoft LLC",
+      "role": "Data Annotation Associate & AI Orchestration Supervisor",
+      "period": "Mar 2024 - Dec 2025",
+      "location": "Remote",
+      "collapsedSummary": "AI orchestration and supervised data workflows across legal, healthcare, OCR, document processing, and compliance-oriented domains.",
+      "expandedSummary": "Supported AI systems across legal, healthcare, OCR, and document-heavy workflows, including legal AI research, RAG pipelines, prompt orchestration, document classification, validation workflows, and supervised annotation operations.",
+      "highlights": [
+        "Worked on AI workflows involving court filings, legal documents, eDiscovery-style data, and compliance use cases",
+        "Built and optimized RAG and prompt orchestration patterns for document analysis and procedural reasoning",
+        "Supervised data workflows with attention to HIPAA, PII, privacy, and AI governance requirements"
+      ],
+      "tags": [
+        "AI Orchestration",
+        "RAG",
+        "Document AI",
+        "Legal AI",
+        "OCR",
+        "Data Governance"
+      ]
+    },
+    {
+      "id": 3,
+      "company": "Ekagajpatra",
+      "role": "Lead Product Designer / Full-Stack Developer",
+      "period": "Feb 2023 - Apr 2024",
+      "location": "Remote",
+      "collapsedSummary": "Built a civic-tech workflow platform serving 35,000+ users through guided documentation workflows, validation, dashboards, and PDF generation.",
+      "expandedSummary": "Led product design and full-stack development for a civic-tech platform that turned complex government documentation into accessible digital workflows for users and businesses.",
+      "highlights": [
+        "Designed and engineered complex form workflows for document-heavy government processes",
+        "Built user-facing dashboards, validation systems, and PDF/document generation flows",
+        "Helped the platform win national and international recognition for civic-tech impact"
+      ],
+      "tags": [
+        "Workflow Systems",
+        "PDF Generation",
+        "Complex Forms",
+        "Next.js",
+        "PostgreSQL",
+        "Product Engineering"
+      ]
+    },
+    {
+      "id": 4,
+      "company": "Kulchan Pvt. Ltd.",
+      "role": "Solutions Engineer",
+      "period": "Jun 2014 - Dec 2018",
+      "location": "Kathmandu, Nepal",
+      "collapsedSummary": "Built 0-to-1 SaaS solutions for legal, financial, and business operations clients with dashboards, workflows, and custom automation.",
+      "expandedSummary": "Worked as a solutions engineer building early-stage SaaS systems for business, legal, and financial operations clients, translating client problems into working dashboards, workflows, and production applications.",
+      "highlights": [
+        "Partnered with clients and stakeholders to define workflow and software requirements",
+        "Built customer-facing dashboards and business process tools",
+        "Delivered custom features and integrations for operational automation"
+      ],
+      "tags": [
+        "Solutions Engineering",
+        "SaaS",
+        "Dashboards",
+        "Client Workflows",
+        "React",
+        "Node.js"
+      ]
+    }
+  ]
+}
+```
+
+For the collapsed card UI, I’d display:
+
+```text
+The Fitzgerald Law Firm
+Litigation Operations / AI Systems Lead
+Feb 2026 - Present · Yonkers, NY
+
+High-volume litigation operations with legal AI workflow research focused on docketing, court notices, procedural tracking, and workflow intelligence.
+
+Click to Expand
+```
+
+Expanded state:
+
+```text
+Full summary
+3 bullet highlights
+Tags
+```
+
+This is better than showing a full resume because your homepage stays clean, but recruiters can still verify your background quickly.
