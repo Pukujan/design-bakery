@@ -24,6 +24,7 @@ export type AgentInvokeRequest = {
   theme?: string;
   audienceTheme?: string;
   customInstructions?: string;
+  publicUrl?: string;
 };
 
 export type AgentInvokeSuccess = {

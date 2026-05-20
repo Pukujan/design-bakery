@@ -2,6 +2,7 @@ import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getDatabase, type Database } from 'firebase/database';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getAuth, type Auth } from 'firebase/auth';
+import { connectFunctionsEmulator, getFunctions, type Functions } from 'firebase/functions';
 
 function normalizeDatabaseUrl(rawValue: string | undefined, projectId: string | undefined): string {
   const value = rawValue?.trim();
@@ -60,6 +61,18 @@ export const firebaseApp: FirebaseApp | null = hasRequiredFirebaseConfig
 export const firestore: Firestore | null = firebaseApp ? getFirestore(firebaseApp) : null;
 export const realtimeDb: Database | null = firebaseApp ? getDatabase(firebaseApp) : null;
 export const auth: Auth | null = firebaseApp ? getAuth(firebaseApp) : null;
+
+export const functions: Functions | null = firebaseApp
+  ? getFunctions(firebaseApp, 'us-central1')
+  : null;
+
+if (
+  functions &&
+  import.meta.env.DEV &&
+  import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === 'true'
+) {
+  connectFunctionsEmulator(functions, '127.0.0.1', 5001);
+}
 
 export const firebaseDbRoot = env('VITE_FIREBASE_DB_ROOT') || '';
 

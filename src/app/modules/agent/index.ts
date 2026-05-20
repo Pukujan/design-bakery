@@ -1,6 +1,8 @@
 export { BLOG_AGENTS_ENABLED, AGENT_API_VERSION } from './config';
+export { invokeBlogAgent } from './agentClient';
 export { runSeoAudit } from './seo/seoRules';
 export type { SeoAuditResult, SeoFinding } from './seo/seoTypes';
+export type { PromoAgentData, PromoTheme } from './promo/promoTypes';
 export type {
   AgentAction,
   AgentBlogPayload,

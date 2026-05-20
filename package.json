@@ -11,7 +11,10 @@
     "seed:firestore": "pnpm dlx tsx scripts/seed-portfolios-firestore.ts",
     "codegraph:init": "codegraph init -i",
     "codegraph:sync": "codegraph sync",
-    "codegraph:status": "codegraph status"
+    "codegraph:status": "codegraph status",
+    "functions:install": "npm install --prefix functions",
+    "functions:build": "npm run build --prefix functions",
+    "functions:serve": "npm run serve --prefix functions"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
