@@ -10,7 +10,7 @@
 
 Two updates shipped on `main`:
 
-1. **New engineering blog post** — *Understanding the Database Architecture: Postgres, Qdrant, and Neo4j* (id **7**, category **Architecture**). It documents the regulatory impact demo: why three databases, how `/analyze` uses them, setup pitfalls, and phase roadmap. All Mermaid diagrams use **top-down** layout so they render cleanly on the blog detail page.
+1. **New engineering blog post** — *Understanding the Database Architecture: Postgres, Qdrant, and Neo4j* (id **8**, category **Architecture**). It documents the regulatory impact demo: why three databases, how `/analyze` uses them, setup pitfalls, and phase roadmap. All Mermaid diagrams use **top-down** layout so they render cleanly on the blog detail page.
 
 2. **InvestAI case study navigation fixes** — In-page scrolling no longer relies on `href="#"` (which breaks inside the parent React Router shell). Hero “Read Case Study”, header logo, tab strip, and bottom bar use shared scroll helpers; sections have scroll margin for the fixed header/footer.
 
@@ -20,7 +20,7 @@ Two updates shipped on `main`:
 
 | Area | What changed |
 |------|----------------|
-| **Blog** | Post id 7 in `blog-data.json`; source markdown in `posts/regulatory-impact-database-architecture.md`. |
+| **Blog** | Post id 8 in `blog-data.json`; source markdown in `posts/regulatory-impact-database-architecture.md`. |
 | **Category** | `architecture` — shows under **Architecture** on `/endtoend-engineer/blogs`. |
 | **Mermaid** | All charts in the post use `flowchart TD` or `sequenceDiagram` (no `graph LR`). |
 | **InvestAI** | `scroll.ts`, `App.tsx`, `Header`, `Hero`, `TabIndicator`, `BottomTabBar`, `Section` (`scroll-mt` / `scroll-mb`). |
@@ -32,7 +32,7 @@ Two updates shipped on `main`:
 | Page | URL |
 |------|-----|
 | Blog list (Architecture filter) | http://localhost:5300/endtoend-engineer/blogs |
-| New post | http://localhost:5300/endtoend-engineer/blogs/7 |
+| New post | http://localhost:5300/endtoend-engineer/blogs/8 |
 | InvestAI case study | http://localhost:5300/case-studies/invest-ai |
 
 ---
@@ -45,9 +45,9 @@ Two updates shipped on `main`:
 | **Adding blog posts** | `guidelines/agent-devlog-engineering-blog-posts.md` |
 | **Mermaid on detail page** | `guidelines/agent-devlog-mermaid.md` |
 
-**After editing post id 7 or `blog-data.json`:** open `/endtoend-engineer/blogs/7` and confirm every diagram renders.
+**After editing post id 8 or `blog-data.json`:** open `/endtoend-engineer/blogs/8` and confirm every diagram renders.
 
-**Firestore note:** Local seed is `blog-data.json`. If production uses Firestore `blog_posts`, sync the same `numericId: 7` document there or the live site may not show the new article.
+**Firestore note:** Local seed is `blog-data.json`. If production uses Firestore `blog_posts`, sync the same `numericId: 8` document there or the live site may not show the new article. **Important:** do not reuse a `numericId` that is already taken by another Firestore blog — this causes two posts to share the same URL.
 
 ---
 
