@@ -335,32 +335,19 @@ export function BlogEditor() {
                 </div>
               </div>
 
-              <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="min-w-0 space-y-1">
-                  <Label>Accent Color</Label>
-                  <div className="flex min-w-0 gap-2">
-                    <input
-                      type="color"
-                      value={editPost.color}
-                      onChange={(e) => setEditPost({ ...editPost, color: e.target.value })}
-                      className="h-9 w-12 shrink-0 cursor-pointer rounded border border-gray-200"
-                    />
-                    <Input
-                      className={FIELD_OVERFLOW}
-                      value={editPost.color}
-                      onChange={(e) => setEditPost({ ...editPost, color: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="min-w-0 space-y-1">
-                  <Label>Sort Order (numeric ID)</Label>
+              <div className="min-w-0 space-y-1">
+                <Label>Accent Color</Label>
+                <div className="flex min-w-0 gap-2">
+                  <input
+                    type="color"
+                    value={editPost.color}
+                    onChange={(e) => setEditPost({ ...editPost, color: e.target.value })}
+                    className="h-9 w-12 shrink-0 cursor-pointer rounded border border-gray-200"
+                  />
                   <Input
                     className={FIELD_OVERFLOW}
-                    type="number"
-                    value={editPost.numericId ?? ''}
-                    onChange={(e) =>
-                      setEditPost({ ...editPost, numericId: Number(e.target.value) })
-                    }
+                    value={editPost.color}
+                    onChange={(e) => setEditPost({ ...editPost, color: e.target.value })}
                   />
                 </div>
               </div>
