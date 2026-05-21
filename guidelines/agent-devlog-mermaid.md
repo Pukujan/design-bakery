@@ -44,7 +44,7 @@ These have all caused “broken” or blank Mermaid on blog detail in this proje
 
 ## Authoring diagrams in `blog-data.json` / `posts/*.md`
 
-For **new long-form posts**, default to **`flowchart TD`** or **`sequenceDiagram`**. Horizontal `graph LR` often overflows the blog detail column and looks broken on mobile. Post id **7** (regulatory databases) is the reference for vertical-only charts.
+For **new long-form posts**, default to **`flowchart TD`** or **`sequenceDiagram`**. Horizontal `graph LR` often overflows the blog detail column and looks broken on mobile. Post id **8** (regulatory databases) is the reference for vertical-only charts.
 
 ---
 

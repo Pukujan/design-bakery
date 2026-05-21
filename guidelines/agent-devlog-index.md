@@ -23,7 +23,7 @@
 
 | Date | Log |
 |------|-----|
-| 2026-05-20 | [dev-log-2026-05-20-regulatory-blog-investai.md](dev-log-2026-05-20-regulatory-blog-investai.md) — post id 7, InvestAI scroll fixes |
+| 2026-05-20 | [dev-log-2026-05-20-regulatory-blog-investai.md](dev-log-2026-05-20-regulatory-blog-investai.md) — post id 8, InvestAI scroll fixes |
 | 2026-05-20 | [dev-log-2026-05-20.md](dev-log-2026-05-20.md) — blog detail v2, port 5300, sort, skeleton |
 | 2026-05-18 | [dev-log-2026-05-18.md](dev-log-2026-05-18.md) |
 | 2026-05-11 | [dev-log-2026-05-11.md](dev-log-2026-05-11.md) |

@@ -49,11 +49,11 @@ See **`agent-devlog-mermaid.md`** for render/CSS rules — do not change init th
 
 ---
 
-## Post id 7 (regulatory impact databases)
+## Post id 8 (regulatory impact databases)
 
 | Field | Value |
 |-------|--------|
-| **id** | 7 |
+| **id** | 8 |
 | **category** | `architecture` |
 | **slug file** | `posts/regulatory-impact-database-architecture.md` |
 | **Topic** | Postgres + Qdrant + Neo4j for regulatory `/analyze` demo |
@@ -67,6 +67,7 @@ Do not convert diagrams to `graph LR` when editing this post.
 - **Public site:** `getBlogDataLive()` merges JSON + Firestore (Firestore wins on same `numericId` + title).
 - **Admin:** `getBlogs()` uses the same merge; `syncBlogPostsFromSeed()` writes missing JSON rows to `blog_posts/seed-<numericId>`.
 - **Do not** assume `blog-data.json` alone updates production — visit admin blog once after adding a seed row, or call `syncBlogPostsFromSeed()` from admin code.
+- **ID collision warning:** If a Firestore blog already exists at a given `numericId`, do **not** add a different blog to `blog-data.json` with the same `id`. Two blogs sharing an `id` will both appear at the same URL (`/blogs/<id>`), and the `Array.find` lookup will return the wrong one. Always check the current max `id` in `blog-data.json` **and** Firestore before assigning a new `id`. When in doubt, skip an integer to leave room (e.g. use `id: 9` if `id: 8` is already in Firestore).
 
 ---
 
