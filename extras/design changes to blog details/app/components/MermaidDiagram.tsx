@@ -2,7 +2,7 @@
  * Blog Mermaid render + scroll viewport + zoom controls.
  * guidelines/agent-devlog-mermaid.md
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import mermaid from 'mermaid';
@@ -24,10 +24,10 @@ const ZOOM_STEP_BUTTON = 0.25;
 const ZOOM_STEP_SLIDER = 0.05;
 const TRACKPAD_ZOOM_STEP = 0.08;
 const WHEEL_SNAP_MS = 150;
-const SCROLL_EDGE_TOLERANCE_PX = 2;
 
 type ChartSize = { width: number; height: number };
 type PointerPoint = { x: number; y: number };
+type ZoomFocal = { clientX: number; clientY: number };
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -48,14 +48,8 @@ function pointerDistance(a: PointerPoint, b: PointerPoint): number {
   return Math.hypot(b.x - a.x, b.y - a.y);
 }
 
-function isAtScrollEdge(viewport: HTMLElement) {
-  const t = SCROLL_EDGE_TOLERANCE_PX;
-  return {
-    atTop: viewport.scrollTop <= t,
-    atBottom: viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - t,
-    atLeft: viewport.scrollLeft <= t,
-    atRight: viewport.scrollLeft + viewport.clientWidth >= viewport.scrollWidth - t,
-  };
+function pointerCenter(a: PointerPoint, b: PointerPoint): PointerPoint {
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
 }
 
 function chartNeedsScroll(
@@ -67,6 +61,27 @@ function chartNeedsScroll(
   const tall = baseSize.height > TALL_THRESHOLD_PX;
   const wide = baseSize.width > viewport.clientWidth + WIDTH_SLOP_PX;
   return tall || wide;
+}
+
+/** Keep the point under (clientX, clientY) fixed while zoom changes. */
+function adjustScrollForFocal(
+  viewport: HTMLElement,
+  prevZoom: number,
+  nextZoom: number,
+  focal: ZoomFocal,
+) {
+  if (prevZoom === nextZoom || prevZoom <= 0) return;
+
+  const rect = viewport.getBoundingClientRect();
+  const px = focal.clientX - rect.left;
+  const py = focal.clientY - rect.top;
+  const ratio = nextZoom / prevZoom;
+
+  const maxLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+  const maxTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
+
+  viewport.scrollLeft = clamp((viewport.scrollLeft + px) * ratio - px, 0, maxLeft);
+  viewport.scrollTop = clamp((viewport.scrollTop + py) * ratio - py, 0, maxTop);
 }
 
 export function MermaidDiagram({ chart }: { chart: string }) {
@@ -86,18 +101,49 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   const pointersRef = useRef<Map<number, PointerPoint>>(new Map());
   const pinchStartRef = useRef<{ distance: number; zoom: number } | null>(null);
   const wheelSnapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const useScrollFrameRef = useRef(false);
+  const lastWheelFocalRef = useRef<ZoomFocal | null>(null);
+  const lastPinchFocalRef = useRef<ZoomFocal | null>(null);
+  const focalPendingRef = useRef<{ prevZoom: number; focal: ZoomFocal } | null>(null);
 
-  const applyZoom = useCallback((next: number, snapToSliderStep: boolean) => {
+  const getViewportCenterFocal = useCallback((): ZoomFocal | undefined => {
+    const viewport = viewportRef.current;
+    if (!viewport) return undefined;
+    const rect = viewport.getBoundingClientRect();
+    return {
+      clientX: rect.left + rect.width / 2,
+      clientY: rect.top + rect.height / 2,
+    };
+  }, []);
+
+  const applyZoom = useCallback((next: number, snapToSliderStep: boolean, focal?: ZoomFocal) => {
+    const prevZoom = zoomRef.current;
     const clamped = clamp(next, ZOOM_MIN, ZOOM_MAX);
     const value = snapToSliderStep
       ? clamp(Math.round(clamped / ZOOM_STEP_SLIDER) * ZOOM_STEP_SLIDER, ZOOM_MIN, ZOOM_MAX)
       : clamped;
+
+    if (focal && prevZoom !== value) {
+      focalPendingRef.current = { prevZoom, focal };
+    }
     setZoom(value);
   }, []);
 
   const applyZoomRef = useRef(applyZoom);
   applyZoomRef.current = applyZoom;
+
+  useLayoutEffect(() => {
+    const pending = focalPendingRef.current;
+    if (!pending) return;
+
+    const viewport = viewportRef.current;
+    if (!viewport) {
+      focalPendingRef.current = null;
+      return;
+    }
+
+    adjustScrollForFocal(viewport, pending.prevZoom, zoomRef.current, pending.focal);
+    focalPendingRef.current = null;
+  }, [zoom]);
 
   /** Layout measurement only — must not be a dependency of the mermaid render effect. */
   const measureChart = useCallback(() => {
@@ -126,6 +172,7 @@ export function MermaidDiagram({ chart }: { chart: string }) {
         bindFunctions?.(el);
         setError(null);
         setZoom(1);
+        focalPendingRef.current = null;
         requestAnimationFrame(() => {
           if (!cancelled) measureChart();
         });
@@ -159,42 +206,28 @@ export function MermaidDiagram({ chart }: { chart: string }) {
     return () => observer.disconnect();
   }, [measureChart]);
 
-  /** Ctrl/Cmd+scroll = zoom; at scroll edge, extra wheel moves the page. */
+  /** Trackpad pinch on laptop (Ctrl/Cmd + scroll). */
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
 
     const onWheel = (event: WheelEvent) => {
       if (errorRef.current) return;
+      if (!event.ctrlKey && !event.metaKey) return;
 
-      if (event.ctrlKey || event.metaKey) {
-        event.preventDefault();
-        const delta = event.deltaY > 0 ? -TRACKPAD_ZOOM_STEP : TRACKPAD_ZOOM_STEP;
-        applyZoomRef.current(zoomRef.current + delta, false);
+      event.preventDefault();
+      const focal: ZoomFocal = { clientX: event.clientX, clientY: event.clientY };
+      lastWheelFocalRef.current = focal;
 
-        if (wheelSnapTimerRef.current) clearTimeout(wheelSnapTimerRef.current);
-        wheelSnapTimerRef.current = setTimeout(() => {
-          applyZoomRef.current(zoomRef.current, true);
-          wheelSnapTimerRef.current = null;
-        }, WHEEL_SNAP_MS);
-        return;
-      }
+      const delta = event.deltaY > 0 ? -TRACKPAD_ZOOM_STEP : TRACKPAD_ZOOM_STEP;
+      applyZoomRef.current(zoomRef.current + delta, false, focal);
 
-      if (!useScrollFrameRef.current) return;
-
-      const { atTop, atBottom, atLeft, atRight } = isAtScrollEdge(viewport);
-      const { deltaY, deltaX } = event;
-
-      const chainToPage =
-        (deltaY > 0 && atBottom) ||
-        (deltaY < 0 && atTop) ||
-        (deltaX > 0 && atRight) ||
-        (deltaX < 0 && atLeft);
-
-      if (chainToPage) {
-        event.preventDefault();
-        window.scrollBy({ top: deltaY, left: deltaX, behavior: 'auto' });
-      }
+      if (wheelSnapTimerRef.current) clearTimeout(wheelSnapTimerRef.current);
+      wheelSnapTimerRef.current = setTimeout(() => {
+        const snapFocal = lastWheelFocalRef.current ?? focal;
+        applyZoomRef.current(zoomRef.current, true, snapFocal);
+        wheelSnapTimerRef.current = null;
+      }, WHEEL_SNAP_MS);
     };
 
     viewport.addEventListener('wheel', onWheel, { passive: false });
@@ -203,8 +236,6 @@ export function MermaidDiagram({ chart }: { chart: string }) {
       if (wheelSnapTimerRef.current) clearTimeout(wheelSnapTimerRef.current);
     };
   }, []);
-
-  const setZoomClamped = (next: number) => applyZoom(next, true);
 
   const getLocalPoint = (event: React.PointerEvent): PointerPoint => ({
     x: event.clientX,
@@ -235,7 +266,9 @@ export function MermaidDiagram({ chart }: { chart: string }) {
       const pts = [...pointersRef.current.values()].slice(0, 2);
       const dist = Math.max(pointerDistance(pts[0], pts[1]), 1);
       const ratio = dist / pinchStartRef.current.distance;
-      applyZoom(pinchStartRef.current.zoom * ratio, false);
+      const center = pointerCenter(pts[0], pts[1]);
+      lastPinchFocalRef.current = center;
+      applyZoom(pinchStartRef.current.zoom * ratio, false, center);
     }
   };
 
@@ -244,7 +277,8 @@ export function MermaidDiagram({ chart }: { chart: string }) {
 
     if (pointersRef.current.size < 2) {
       if (pinchStartRef.current) {
-        applyZoom(zoomRef.current, true);
+        const focal = lastPinchFocalRef.current ?? getViewportCenterFocal();
+        if (focal) applyZoom(zoomRef.current, true, focal);
       }
       pinchStartRef.current = null;
     } else if (pointersRef.current.size === 2) {
@@ -256,17 +290,16 @@ export function MermaidDiagram({ chart }: { chart: string }) {
     }
   };
 
-  const zoomOut = () => setZoomClamped(zoom - ZOOM_STEP_BUTTON);
-  const zoomIn = () => setZoomClamped(zoom + ZOOM_STEP_BUTTON);
+  const zoomOut = () => applyZoom(zoom - ZOOM_STEP_BUTTON, true, getViewportCenterFocal());
+  const zoomIn = () => applyZoom(zoom + ZOOM_STEP_BUTTON, true, getViewportCenterFocal());
 
   const zoomPercent = Math.round(zoom * 100);
   const useScrollFrame = isScrollable || zoom > 1;
-  useScrollFrameRef.current = useScrollFrame;
   const scaledWidth = chartSize.width * zoom;
   const scaledHeight = chartSize.height * zoom;
 
   const hintText = useScrollFrame
-    ? 'Pinch or Ctrl/⌘+scroll to zoom · scroll inside the frame · at the edge, keep scrolling to move the page'
+    ? 'Pinch or Ctrl/⌘+scroll to zoom · scroll inside the frame to move · or use +/− and the slider'
     : 'Pinch or Ctrl/⌘+scroll to zoom · or use +/− and the slider';
 
   return (
@@ -313,7 +346,10 @@ export function MermaidDiagram({ chart }: { chart: string }) {
             step={ZOOM_STEP_SLIDER * 100}
             value={zoomPercent}
             disabled={Boolean(error)}
-            onChange={(e) => setZoomClamped(Number(e.target.value) / 100)}
+            onChange={(e) => {
+              const focal = getViewportCenterFocal();
+              applyZoom(Number(e.target.value) / 100, true, focal);
+            }}
             aria-valuemin={ZOOM_MIN * 100}
             aria-valuemax={ZOOM_MAX * 100}
             aria-valuenow={zoomPercent}
