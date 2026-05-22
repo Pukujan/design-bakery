@@ -48,6 +48,7 @@ Every diagram has a **toolbar**: zoom out / zoom in buttons, **% label**, and a 
 
 - Zoom applies via `transform: scale()` on `.blog-mermaid-zoom-layer` inside a sized `.blog-mermaid-zoom-spacer` so scroll area grows correctly.
 - Scroll frame (`.blog-mermaid-viewport--scroll`) when the chart is large at 100% **or** when zoom &gt; 1: `max-height: min(70vh, 520px)`, `overflow: auto`.
+- **Phones** (`pointer: coarse` / `hover: none`): **pinch** on the viewport updates zoom (same state as slider); **one-finger swipe** scrolls inside the frame (native overflow, not a custom drag layer).
 - **Do not** mutate SVG node styles after render — only wrapper transform.
 
 **Test:** http://localhost:5300/endtoend-engineer/blogs/7

@@ -24,6 +24,7 @@ const ZOOM_STEP_BUTTON = 0.25;
 const ZOOM_STEP_SLIDER = 0.05;
 
 type ChartSize = { width: number; height: number };
+type PointerPoint = { x: number; y: number };
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -38,6 +39,10 @@ function measureSvgSize(svg: SVGSVGElement): ChartSize {
     width: svg.scrollWidth || 1,
     height: svg.scrollHeight || 1,
   };
+}
+
+function pointerDistance(a: PointerPoint, b: PointerPoint): number {
+  return Math.hypot(b.x - a.x, b.y - a.y);
 }
 
 function chartNeedsScroll(
@@ -59,9 +64,13 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   const [chartSize, setChartSize] = useState<ChartSize>({ width: 0, height: 0 });
   const [isScrollable, setIsScrollable] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [touchPinchEnabled, setTouchPinchEnabled] = useState(false);
 
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
+
+  const pointersRef = useRef<Map<number, PointerPoint>>(new Map());
+  const pinchStartRef = useRef<{ distance: number; zoom: number } | null>(null);
 
   /** Layout measurement only — must not be a dependency of the mermaid render effect. */
   const measureChart = useCallback(() => {
@@ -123,8 +132,77 @@ export function MermaidDiagram({ chart }: { chart: string }) {
     return () => observer.disconnect();
   }, [measureChart]);
 
-  const setZoomClamped = (next: number) => {
-    setZoom(clamp(Math.round(next / ZOOM_STEP_SLIDER) * ZOOM_STEP_SLIDER, ZOOM_MIN, ZOOM_MAX));
+  useEffect(() => {
+    const coarseMq = window.matchMedia('(pointer: coarse)');
+    const noHoverMq = window.matchMedia('(hover: none)');
+
+    const update = () => setTouchPinchEnabled(coarseMq.matches || noHoverMq.matches);
+    update();
+    coarseMq.addEventListener('change', update);
+    noHoverMq.addEventListener('change', update);
+    return () => {
+      coarseMq.removeEventListener('change', update);
+      noHoverMq.removeEventListener('change', update);
+    };
+  }, []);
+
+  const applyZoom = (next: number, snapToSliderStep: boolean) => {
+    const clamped = clamp(next, ZOOM_MIN, ZOOM_MAX);
+    const value = snapToSliderStep
+      ? clamp(Math.round(clamped / ZOOM_STEP_SLIDER) * ZOOM_STEP_SLIDER, ZOOM_MIN, ZOOM_MAX)
+      : clamped;
+    setZoom(value);
+  };
+
+  const setZoomClamped = (next: number) => applyZoom(next, true);
+
+  const getLocalPoint = (event: React.PointerEvent): PointerPoint => ({
+    x: event.clientX,
+    y: event.clientY,
+  });
+
+  const handleViewportPointerDown = (event: React.PointerEvent) => {
+    if (!touchPinchEnabled || error) return;
+    pointersRef.current.set(event.pointerId, getLocalPoint(event));
+
+    if (pointersRef.current.size === 2) {
+      const pts = [...pointersRef.current.values()];
+      pinchStartRef.current = {
+        distance: Math.max(pointerDistance(pts[0], pts[1]), 1),
+        zoom: zoomRef.current,
+      };
+    }
+  };
+
+  const handleViewportPointerMove = (event: React.PointerEvent) => {
+    if (!touchPinchEnabled || error || !pointersRef.current.has(event.pointerId)) return;
+
+    pointersRef.current.set(event.pointerId, getLocalPoint(event));
+
+    if (pointersRef.current.size >= 2 && pinchStartRef.current) {
+      event.preventDefault();
+      const pts = [...pointersRef.current.values()].slice(0, 2);
+      const dist = Math.max(pointerDistance(pts[0], pts[1]), 1);
+      const ratio = dist / pinchStartRef.current.distance;
+      applyZoom(pinchStartRef.current.zoom * ratio, false);
+    }
+  };
+
+  const handleViewportPointerUp = (event: React.PointerEvent) => {
+    pointersRef.current.delete(event.pointerId);
+
+    if (pointersRef.current.size < 2) {
+      if (pinchStartRef.current) {
+        applyZoom(zoomRef.current, true);
+      }
+      pinchStartRef.current = null;
+    } else if (pointersRef.current.size === 2) {
+      const pts = [...pointersRef.current.values()];
+      pinchStartRef.current = {
+        distance: Math.max(pointerDistance(pts[0], pts[1]), 1),
+        zoom: zoomRef.current,
+      };
+    }
   };
 
   const zoomOut = () => setZoomClamped(zoom - ZOOM_STEP_BUTTON);
@@ -190,7 +268,11 @@ export function MermaidDiagram({ chart }: { chart: string }) {
 
       <div
         ref={viewportRef}
-        className={`blog-mermaid-viewport${useScrollFrame ? ' blog-mermaid-viewport--scroll' : ''}`}
+        className={`blog-mermaid-viewport${useScrollFrame ? ' blog-mermaid-viewport--scroll' : ''}${touchPinchEnabled ? ' blog-mermaid-viewport--touch' : ''}`}
+        onPointerDown={handleViewportPointerDown}
+        onPointerMove={handleViewportPointerMove}
+        onPointerUp={handleViewportPointerUp}
+        onPointerCancel={handleViewportPointerUp}
       >
         <div
           className="blog-mermaid-zoom-spacer"
@@ -213,7 +295,13 @@ export function MermaidDiagram({ chart }: { chart: string }) {
       </div>
 
       {useScrollFrame ? (
-        <p className="blog-mermaid-hint">Use zoom controls or scroll inside the frame to explore</p>
+        <p className="blog-mermaid-hint">
+          {touchPinchEnabled
+            ? 'Pinch to zoom · swipe inside the frame to move · or use the slider'
+            : 'Use zoom controls or scroll inside the frame to explore'}
+        </p>
+      ) : touchPinchEnabled ? (
+        <p className="blog-mermaid-hint">Pinch to zoom · or use the slider above</p>
       ) : null}
 
       {error ? <p className="text-red-600 dark:text-red-400 text-sm font-medium mt-2">{error}</p> : null}
