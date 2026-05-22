@@ -24,6 +24,7 @@ const ZOOM_STEP_BUTTON = 0.25;
 const ZOOM_STEP_SLIDER = 0.05;
 const TRACKPAD_ZOOM_STEP = 0.08;
 const WHEEL_SNAP_MS = 150;
+const SCROLL_EDGE_TOLERANCE_PX = 2;
 
 type ChartSize = { width: number; height: number };
 type PointerPoint = { x: number; y: number };
@@ -45,6 +46,16 @@ function measureSvgSize(svg: SVGSVGElement): ChartSize {
 
 function pointerDistance(a: PointerPoint, b: PointerPoint): number {
   return Math.hypot(b.x - a.x, b.y - a.y);
+}
+
+function isAtScrollEdge(viewport: HTMLElement) {
+  const t = SCROLL_EDGE_TOLERANCE_PX;
+  return {
+    atTop: viewport.scrollTop <= t,
+    atBottom: viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - t,
+    atLeft: viewport.scrollLeft <= t,
+    atRight: viewport.scrollLeft + viewport.clientWidth >= viewport.scrollWidth - t,
+  };
 }
 
 function chartNeedsScroll(
@@ -75,6 +86,7 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   const pointersRef = useRef<Map<number, PointerPoint>>(new Map());
   const pinchStartRef = useRef<{ distance: number; zoom: number } | null>(null);
   const wheelSnapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const useScrollFrameRef = useRef(false);
 
   const applyZoom = useCallback((next: number, snapToSliderStep: boolean) => {
     const clamped = clamp(next, ZOOM_MIN, ZOOM_MAX);
@@ -147,24 +159,42 @@ export function MermaidDiagram({ chart }: { chart: string }) {
     return () => observer.disconnect();
   }, [measureChart]);
 
-  /** Trackpad pinch on laptop (Ctrl/Cmd + scroll). */
+  /** Ctrl/Cmd+scroll = zoom; at scroll edge, extra wheel moves the page. */
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
 
     const onWheel = (event: WheelEvent) => {
       if (errorRef.current) return;
-      if (!event.ctrlKey && !event.metaKey) return;
 
-      event.preventDefault();
-      const delta = event.deltaY > 0 ? -TRACKPAD_ZOOM_STEP : TRACKPAD_ZOOM_STEP;
-      applyZoomRef.current(zoomRef.current + delta, false);
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        const delta = event.deltaY > 0 ? -TRACKPAD_ZOOM_STEP : TRACKPAD_ZOOM_STEP;
+        applyZoomRef.current(zoomRef.current + delta, false);
 
-      if (wheelSnapTimerRef.current) clearTimeout(wheelSnapTimerRef.current);
-      wheelSnapTimerRef.current = setTimeout(() => {
-        applyZoomRef.current(zoomRef.current, true);
-        wheelSnapTimerRef.current = null;
-      }, WHEEL_SNAP_MS);
+        if (wheelSnapTimerRef.current) clearTimeout(wheelSnapTimerRef.current);
+        wheelSnapTimerRef.current = setTimeout(() => {
+          applyZoomRef.current(zoomRef.current, true);
+          wheelSnapTimerRef.current = null;
+        }, WHEEL_SNAP_MS);
+        return;
+      }
+
+      if (!useScrollFrameRef.current) return;
+
+      const { atTop, atBottom, atLeft, atRight } = isAtScrollEdge(viewport);
+      const { deltaY, deltaX } = event;
+
+      const chainToPage =
+        (deltaY > 0 && atBottom) ||
+        (deltaY < 0 && atTop) ||
+        (deltaX > 0 && atRight) ||
+        (deltaX < 0 && atLeft);
+
+      if (chainToPage) {
+        event.preventDefault();
+        window.scrollBy({ top: deltaY, left: deltaX, behavior: 'auto' });
+      }
     };
 
     viewport.addEventListener('wheel', onWheel, { passive: false });
@@ -231,11 +261,12 @@ export function MermaidDiagram({ chart }: { chart: string }) {
 
   const zoomPercent = Math.round(zoom * 100);
   const useScrollFrame = isScrollable || zoom > 1;
+  useScrollFrameRef.current = useScrollFrame;
   const scaledWidth = chartSize.width * zoom;
   const scaledHeight = chartSize.height * zoom;
 
   const hintText = useScrollFrame
-    ? 'Pinch or Ctrl/⌘+scroll to zoom · scroll inside the frame to move · or use +/− and the slider'
+    ? 'Pinch or Ctrl/⌘+scroll to zoom · scroll inside the frame · at the edge, keep scrolling to move the page'
     : 'Pinch or Ctrl/⌘+scroll to zoom · or use +/− and the slider';
 
   return (
