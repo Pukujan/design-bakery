@@ -51,6 +51,7 @@ Every diagram has a **toolbar**: zoom out / zoom in buttons, **% label**, and a 
 - **Pinch** (touchscreen or trackpad that reports two pointers): updates zoom, synced with slider.
 - **Laptop trackpad:** **Ctrl+scroll** (Windows/Linux) or **⌘+scroll** (Mac) on the viewport zooms the chart.
 - **Pan:** scroll / swipe inside the frame (native `overflow: auto`); one-finger on touch, wheel or drag scroll on laptop.
+- **Scroll chaining:** `overscroll-behavior: auto` on the viewport — at top/bottom/edge, continued scrolling moves the **page** (do not use `contain`; it traps scroll inside the chart).
 - **Do not** mutate SVG node styles after render — only wrapper transform.
 
 **Test:** http://localhost:5300/endtoend-engineer/blogs/7

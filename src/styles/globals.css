@@ -419,7 +419,8 @@ body::before {
   overflow: auto;
   max-height: min(70vh, 520px);
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  /* When scrolled to an edge, further wheel/swipe moves the page (avoids scroll trap) */
+  overscroll-behavior: auto;
 }
 
 /* One-finger scroll inside frame; two-finger pinch handled in JS */
