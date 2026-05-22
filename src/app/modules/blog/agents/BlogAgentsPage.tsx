@@ -36,7 +36,7 @@ export function BlogAgentsPage() {
             <p className="leading-relaxed">
               To enable: set <code className="text-xs">VITE_ENABLE_BLOG_AGENTS=true</code> in{' '}
               <code className="text-xs">.env</code>, add <code className="text-xs">OPENROUTER_API_KEY</code>{' '}
-              to <code className="text-xs">functions/.env</code>, run{' '}
+              to root <code className="text-xs">.env</code>, run{' '}
               <code className="text-xs">pnpm run functions:serve</code>, then restart{' '}
               <code className="text-xs">npm run dev</code>.
             </p>

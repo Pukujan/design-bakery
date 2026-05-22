@@ -85,7 +85,7 @@ export function BlogAgentsGuide() {
               <p className="leading-relaxed">
                 Hidden until <code className="text-xs">VITE_ENABLE_BLOG_AGENTS=true</code> in root{' '}
                 <code className="text-xs">.env</code>, OpenRouter key in{' '}
-                <code className="text-xs">functions/.env</code>, and the Functions emulator is
+                <code className="text-xs">.env</code> at the repo root, and the Functions emulator is
                 running. Restart Vite after changing env.
               </p>
             )}

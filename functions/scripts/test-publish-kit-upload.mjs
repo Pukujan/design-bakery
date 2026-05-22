@@ -37,37 +37,9 @@ function fail(msg) {
   console.error(`  ✗ ${msg}`);
 }
 
-function readRootEnv() {
-  const out = {};
-  try {
-    for (const line of readFileSync(resolve(root, '.env'), 'utf8').split('\n')) {
-      const t = line.trim();
-      if (!t || t.startsWith('#')) continue;
-      const i = t.indexOf('=');
-      if (i <= 0) continue;
-      out[t.slice(0, i).trim()] = t.slice(i + 1).trim().replace(/^["']|["']$/g, '');
-    }
-  } catch {
-    /* optional */
-  }
-  return out;
-}
-
-function loadEnv() {
-  const envPath = resolve(functionsDir, '.env');
-  try {
-    for (const line of readFileSync(envPath, 'utf8').split('\n')) {
-      const t = line.trim();
-      if (!t || t.startsWith('#')) continue;
-      const i = t.indexOf('=');
-      if (i <= 0) continue;
-      const key = t.slice(0, i).trim();
-      const value = t.slice(i + 1).trim().replace(/^["']|["']$/g, '');
-      if (!process.env[key]) process.env[key] = value;
-    }
-  } catch {
-    console.warn(`  (no ${envPath})`);
-  }
+async function loadEnv() {
+  const { loadRootEnv } = await import('../../scripts/load-root-env.mjs');
+  loadRootEnv();
 }
 
 const TINY_PNG_BASE64 =
@@ -89,10 +61,7 @@ async function main() {
   console.log(`  blog numericId: ${blogId}`);
   console.log(`  emulator HTTP:  ${useEmulator ? 'yes' : 'no'}`);
 
-  loadEnv();
-  for (const [k, v] of Object.entries(readRootEnv())) {
-    if (!process.env[k]) process.env[k] = v;
-  }
+  await loadEnv();
 
   step('Build');
   const build = spawnSync('npm', ['run', 'build'], { cwd: functionsDir, stdio: 'inherit' });

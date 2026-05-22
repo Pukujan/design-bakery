@@ -31,7 +31,7 @@ VITE_ENABLE_BLOG_PUBLISH_KIT=true
 VITE_USE_FUNCTIONS_EMULATOR=true
 ```
 
-Functions: `OPENROUTER_API_KEY` in `functions/.env`. Optional `OPENROUTER_IMAGE_MODEL` (default `google/gemini-2.5-flash-image`), `PUBLISH_KIT_VISUAL_MODE=hybrid|template|ai`.
+Functions: `OPENROUTER_API_KEY` in repo root `.env` (same file as `VITE_*`; no `VITE_` prefix on secrets). Optional `OPENROUTER_IMAGE_MODEL`, `PUBLISH_KIT_VISUAL_MODE=hybrid|template|ai`.
 
 **Dev:** `pnpm run dev` — frees port **5300**, starts Vite + Functions. Open the URL Vite prints (must be **5300** — not an old tab). Terminal must show `[functions] ready — invokeBlogPublishKit`. `pnpm run dev:verbose` for full logs. `pnpm run dev:web` — Vite only (no callables).
 
@@ -147,7 +147,7 @@ One **1:1** AI hero (`unifiedVisual.ts`) → same artwork, different crops + **s
 
 `pnpm run dev` runs **Functions emulator only** (no Java / Storage emulator required). `commit_visual` uploads PNGs to the **project Firebase Storage bucket** and returns public **https://** URLs.
 
-Set `PUBLISH_KIT_SKIP_PRODUCTION_STORAGE=true` in `functions/.env` only if you must block bucket uploads from local.
+Set `PUBLISH_KIT_SKIP_PRODUCTION_STORAGE=true` in root `.env` only if you must block bucket uploads from local.
 
 Admin blocks Save if URLs are still `data:` (`assertImagesReadyForFirestore`).
 

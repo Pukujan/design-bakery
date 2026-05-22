@@ -264,7 +264,7 @@ export function BlogPromoPanel() {
               running (port 5001)
             </li>
             <li>
-              <code className="font-mono">functions/.env</code> — save the file (⌘S) with{' '}
+              <code className="font-mono">.env</code> (repo root) — save the file (⌘S) with{' '}
               <code className="font-mono">OPENROUTER_API_KEY=sk-or-…</code> (empty on disk =
               failure)
             </li>

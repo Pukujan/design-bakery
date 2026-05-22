@@ -1,11 +1,7 @@
-import { config as loadEnv } from 'dotenv';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { loadProjectEnv } from './loadEnv.js';
 import { ensureFirebaseAdminApp } from './firebaseApp.js';
 
-// Load from functions/.env (works for both src/ and lib/ after compile).
-const functionsDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-loadEnv({ path: resolve(functionsDir, '.env'), override: true, quiet: true });
+loadProjectEnv();
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { AGENT_API_VERSION, type AgentInvokeRequest } from './types.js';
@@ -27,7 +23,7 @@ function resolveApiKey(): string {
   if (fromEnv?.startsWith('sk-')) return fromEnv;
   throw new HttpsError(
     'failed-precondition',
-    'OPENROUTER_API_KEY is missing or empty in functions/.env. Save the file (⌘S), then restart: pnpm run dev'
+    'OPENROUTER_API_KEY is missing or empty in the repo root .env. Save the file (⌘S), then restart: pnpm run dev'
   );
 }
 

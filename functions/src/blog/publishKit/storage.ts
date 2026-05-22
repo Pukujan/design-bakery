@@ -28,7 +28,7 @@ export async function uploadBlogImage(params: {
 
   if (inFunctionsEmu && !storageEmu && skipProductionStorageUpload()) {
     console.warn(
-      '[publishKit] Storage upload skipped (PUBLISH_KIT_SKIP_PRODUCTION_STORAGE=true). Remove it from functions/.env to upload on save.',
+      '[publishKit] Storage upload skipped (PUBLISH_KIT_SKIP_PRODUCTION_STORAGE=true). Remove it from root .env to upload on save.',
     );
     return null;
   }

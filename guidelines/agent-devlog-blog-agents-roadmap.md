@@ -222,8 +222,8 @@
 | `VITE_ENABLE_BLOG_AGENTS` | root `.env` | 3+ | Show Promo panel |
 | `VITE_USE_FUNCTIONS_EMULATOR` | root `.env` | 3 | Callable → localhost:5001 |
 | `VITE_ENABLE_AGENT_COUNCIL` | root `.env` | 6 | Council UI (future) |
-| `OPENROUTER_API_KEY` | `functions/.env` / secret | 3+ | LLM auth |
-| `OPENROUTER_MODEL` | `functions/.env` | 3+ | Default model id |
+| `OPENROUTER_API_KEY` | root `.env` / Firebase secret | 3+ | LLM auth |
+| `OPENROUTER_MODEL` | root `.env` | 3+ | Default model id |
 | `ALLOWED_ADMIN_EMAILS` | Functions env | 3+ | Optional allowlist |
 
 Firebase project (current): `auth-system-be464` — Auth/Firestore cloud; Functions emulator local only when flagged.
@@ -252,7 +252,7 @@ main
 
 **Recommended merge path:** QA on `test/blog-agents-integration` → PR to `main` → deploy Functions → enable flags in production env → document in session dev log.
 
-**Do not merge:** `functions/.env`, root `.env`, `.codegraph/codegraph.db`, `extras/` design sandbox (unless explicitly productized).
+**Do not merge:** root `.env`, `.codegraph/codegraph.db`, `extras/` design sandbox (unless explicitly productized).
 
 ---
 
@@ -287,7 +287,7 @@ main
 - [ ] SEO: suggestions + apply + public meta verified on 2+ posts
 - [ ] Promo: generate/regenerate on emulator and staging Functions
 - [ ] No agent imports in `BlogDetailPage` / Mermaid paths
-- [ ] `functions/.env` not committed; `.env.example` updated
+- [ ] root `.env` not committed; `.env.example` includes `OPENROUTER_*`
 - [ ] Topic devlog + session dev log current
 - [ ] `codegraph sync` run; eval passes
 - [ ] OpenRouter secret set in Firebase (prod)

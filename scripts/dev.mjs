@@ -9,8 +9,10 @@ import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadRootEnv } from './load-root-env.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+loadRootEnv();
 const verbose = process.argv.includes('--verbose');
 
 function readRootEnvFlag(name) {

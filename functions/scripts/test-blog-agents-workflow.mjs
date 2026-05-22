@@ -188,7 +188,7 @@ Options:
 
   if (flags.live) {
     if (!hasOpenRouterKey()) {
-      r.skip('Publish kit — meta + tags (live)', 'OPENROUTER_API_KEY missing in functions/.env');
+      r.skip('Publish kit — meta + tags (live)', 'OPENROUTER_API_KEY missing in root .env');
       r.skip('Promo agent — OpenRouter (live)', 'OPENROUTER_API_KEY missing');
     } else {
       r.step('Publish kit — meta + tags (live OpenRouter)');
@@ -360,7 +360,7 @@ Options:
     console.log(`
 Tips:
   • Offline (default): pnpm run test:blog-workflow
-  • Full AI text:       pnpm run test:blog-workflow:live  (needs OPENROUTER_API_KEY in functions/.env)
+  • Full AI text:       pnpm run test:blog-workflow:live  (needs OPENROUTER_API_KEY in root .env)
   • AI hero images:     pnpm run test:blog-workflow:live:ai
   • Storage uploads:    pnpm run test:blog-workflow:storage  (+ gcloud auth application-default login)
   • Emulator probe:     pnpm run dev  then  pnpm run test:blog-workflow:emulator
