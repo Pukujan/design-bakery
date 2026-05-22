@@ -17,7 +17,7 @@ import { BlogContactFab } from '@/components/BlogContactFab';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import mermaid from 'mermaid';
+import { MermaidDiagram } from './MermaidDiagram';
 import { useBlogCategories, useBlogData } from '@/modules/engineering/blogData';
 import { BlogDetailPageSkeleton } from '@/modules/engineering/BlogDetailPage/BlogDetailPageSkeleton';
 import { useStickySidebar } from '@/modules/engineering/BlogDetailPage/useStickySidebar';
@@ -53,60 +53,6 @@ function scrollToHashTarget(hash: string) {
   if (target) {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-}
-
-/**
- * MERMAID — read before changing init, render, or colors:
- * guidelines/agent-devlog-mermaid.md
- * (Also: .cursor/rules/blog-mermaid.mdc, globals.css `.blog-mermaid-chart`)
- */
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'default',
-  securityLevel: 'loose',
-});
-
-const MERMAID_CHART_CLASS =
-  'blog-mermaid-chart my-4 sm:my-5 md:my-6 p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg md:rounded-xl border-2 sm:border-2 md:border-3 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-xs sm:text-xs md:text-sm overflow-x-auto';
-
-function MermaidDiagram({ chart }: { chart: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    let cancelled = false;
-
-    const renderChart = async () => {
-      try {
-        const id = `blog-mmd-${Math.random().toString(36).slice(2, 11)}`;
-        const { svg, bindFunctions } = await mermaid.render(id, chart);
-        if (cancelled) return;
-        el.innerHTML = svg;
-        bindFunctions?.(el);
-        setError(null);
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to render diagram');
-        }
-      }
-    };
-
-    void renderChart();
-
-    return () => {
-      cancelled = true;
-      el.innerHTML = '';
-    };
-  }, [chart]);
-
-  return (
-    <div ref={containerRef} className={MERMAID_CHART_CLASS} role="img" aria-label="Diagram">
-      {error ? <p className="text-red-600 dark:text-red-400 text-sm font-medium">{error}</p> : null}
-    </div>
-  );
 }
 
 // Custom markdown components

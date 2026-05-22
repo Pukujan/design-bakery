@@ -7,7 +7,7 @@
 - `src/styles/globals.css` — comment above `.blog-mermaid-chart`
 - `.cursor/rules/blog-mermaid.mdc` — auto-attached when editing those files
 
-**Canonical implementation:** `extras/design changes to blog details/app/components/BlogDetailPage.tsx` (`MermaidDiagram` + `mermaid.initialize`).  
+**Canonical implementation:** `extras/design changes to blog details/app/components/MermaidDiagram.tsx` (imported by `BlogDetailPage.tsx`).  
 **Styles:** `src/styles/globals.css` (`.blog-mermaid-chart` only).  
 **Test URL:** http://localhost:5300/endtoend-engineer/blogs/1 (dev port **5300**).
 
@@ -39,6 +39,24 @@ These have all caused “broken” or blank Mermaid on blog detail in this proje
 4. **Raw chart text in `<div class="mermaid">`** with `startOnLoad: true` while also calling `contentLoaded()` — fragile with re-renders.
 5. **Heavy global overrides** — broad `!important` on all node types across `.mermaid` without scoping; old `.blog-mermaid-diagram` zoom/scale hacks.
 6. **CSS targeting dynamic IDs** — `#mermaid-1234567890` breaks on every render.
+
+---
+
+## Interactive zoom (safe)
+
+Large diagrams use **overlay interaction** — not post-render styling of the live SVG.
+
+| Mode | When | Behavior |
+|------|------|----------|
+| **Desktop loupe** | `(hover: hover) and (pointer: fine)` + chart exceeds viewport/tall threshold | Circular lens follows cursor (`position: fixed` so it is not clipped by article `overflow-hidden`); **cloned** SVG; cursor mapped via `viewBox` / intrinsic SVG size |
+| **Touch pan/zoom** | Coarse pointer + same threshold | Pinch scale (1–4×) + drag pan on `.blog-mermaid-transform` wrapper |
+| **Default** | Small charts | Horizontal scroll on `.blog-mermaid-viewport--scroll` only |
+
+**Allowed:** `svg.cloneNode(true)` for loupe; `transform` on clone or wrapper; pointer listeners on viewport.
+
+**Still forbidden:** changing `fill` / `stroke` / `transform` on nodes in the **primary** rendered SVG after `mermaid.render()`.
+
+**Test:** http://localhost:5300/endtoend-engineer/blogs/7
 
 ---
 
@@ -88,7 +106,8 @@ For **new long-form posts**, default to **`flowchart TD`** or **`sequenceDiagram
 
 ## Related files
 
-- `extras/design changes to blog details/app/components/BlogDetailPage.tsx` — `MermaidDiagram`, markdown `code` for `language-mermaid`
+- `extras/design changes to blog details/app/components/MermaidDiagram.tsx` — render, loupe, touch pan/zoom
+- `extras/design changes to blog details/app/components/BlogDetailPage.tsx` — markdown `code` for `language-mermaid`
 - `src/app/modules/engineering/BlogDetailPage/BlogDetailPage.tsx` — re-export only
 - `src/styles/globals.css` — `.blog-mermaid-chart` rules
 - `guidelines/dev-log-2026-05-20.md` — broader blog detail session log
