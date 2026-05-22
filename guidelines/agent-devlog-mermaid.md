@@ -50,7 +50,7 @@ Every diagram has a **toolbar**: zoom out / zoom in buttons, **% label**, and a 
 - **Focal zoom:** after each zoom change, scroll is adjusted so the point under the cursor / pinch center stays fixed (not top-left growth only).
 - Scroll frame (`.blog-mermaid-viewport--scroll`) when the chart is large at 100% **or** when zoom &gt; 1: `max-height: min(70vh, 520px)`, `overflow: auto`.
 - **Pinch** (touchscreen or trackpad that reports two pointers): updates zoom, synced with slider.
-- **Laptop trackpad:** **Ctrl+scroll** (Windows/Linux) or **⌘+scroll** (Mac) on the viewport zooms the chart.
+- **Mouse / trackpad wheel:** **Shift+scroll** or **Ctrl+scroll** (Windows/Linux) or **⌘+scroll** (Mac) on the viewport zooms toward the cursor.
 - **Pan:** scroll / swipe inside the frame (native `overflow: auto`); one-finger on touch, wheel or drag scroll on laptop.
 - **Scroll chaining:** `overscroll-behavior: auto` on the viewport — at top/bottom/edge, continued scrolling moves the **page** (do not use `contain`; it traps scroll inside the chart).
 - **Do not** mutate SVG node styles after render — only wrapper transform.

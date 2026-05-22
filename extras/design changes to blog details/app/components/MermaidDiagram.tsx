@@ -213,7 +213,8 @@ export function MermaidDiagram({ chart }: { chart: string }) {
 
     const onWheel = (event: WheelEvent) => {
       if (errorRef.current) return;
-      if (!event.ctrlKey && !event.metaKey) return;
+      const isZoomWheel = event.ctrlKey || event.metaKey || event.shiftKey;
+      if (!isZoomWheel) return;
 
       event.preventDefault();
       const focal: ZoomFocal = { clientX: event.clientX, clientY: event.clientY };
@@ -299,8 +300,8 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   const scaledHeight = chartSize.height * zoom;
 
   const hintText = useScrollFrame
-    ? 'Pinch or Ctrl/⌘+scroll to zoom · scroll inside the frame to move · or use +/− and the slider'
-    : 'Pinch or Ctrl/⌘+scroll to zoom · or use +/− and the slider';
+    ? 'Pinch, Shift+scroll, or Ctrl/⌘+scroll to zoom · scroll inside the frame to move · or use +/− and the slider'
+    : 'Pinch, Shift+scroll, or Ctrl/⌘+scroll to zoom · or use +/− and the slider';
 
   return (
     <div
