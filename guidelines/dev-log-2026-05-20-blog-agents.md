@@ -1,5 +1,11 @@
 # Dev log — 2026-05-20 (Blog agents)
 
+| Field | Value |
+|-------|-------|
+| **Document date** | 2026-05-20 |
+| **Created** | 2026-05-20 |
+| **Last updated** | 2026-05-20 |
+
 **Branches:** `feature/slice-3-ai-agents` · **`test/blog-agents-integration`** (integration test)  
 **Latest commit:** `d0a2078` — promo quality + SEO change visibility  
 **Build:** `pnpm run build` (client) · `cd functions && npm run build` (Functions)  

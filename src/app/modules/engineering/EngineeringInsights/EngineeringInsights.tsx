@@ -14,7 +14,7 @@ import { FlowerCharacter } from "../../../components/FlowerCharacter";
 import { Cupcake, IceCream } from "../../../components/BakeryItems";
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { useBlogCategories, useBlogData } from "../blogData";
+import { useBlogCategories, useBlogData } from "@/modules/blog/data/blogData";
 import { usePortfolio } from "../../../portfolios/PortfolioContext";
 
 const ITEMS_PER_PAGE = 3;

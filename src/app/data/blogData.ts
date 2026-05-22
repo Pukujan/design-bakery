@@ -1,1 +1,1 @@
-export * from '../modules/engineering/blogData';
+export * from '@/modules/blog/data/blogData';

@@ -1,6 +1,6 @@
 import { getFirestore } from 'firebase-admin/firestore';
-import { isFunctionsEmulator } from './emulator.js';
-import type { AgentBlogSnapshot } from './types.js';
+import { isFunctionsEmulator } from '../emulator.js';
+import type { AgentBlogSnapshot } from '../types.js';
 
 export type FirestoreBlog = {
   numericId?: number;
@@ -10,11 +10,14 @@ export type FirestoreBlog = {
   tags?: string[];
   category: string;
   author: string;
+  color?: string;
   coverImageUrl?: string;
+  thumbnailImageUrl?: string;
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
     ogImageUrl?: string;
+    ogImageThumbUrl?: string;
     ogImage?: string;
   };
 };
@@ -42,7 +45,21 @@ export async function resolveBlogForPromo(
   blogId: number,
   snapshot?: AgentBlogSnapshot
 ): Promise<FirestoreBlog> {
-  if (snapshot?.title?.trim() && snapshot.content?.trim()) {
+  if (!snapshot) {
+    if (isFunctionsEmulator()) {
+      throw new Error(
+        `Blog ${blogId}: no editor snapshot. Open the post in Blog Posts and try again.`,
+      );
+    }
+    const { blog } = await getBlogByNumericId(blogId);
+    return blog;
+  }
+
+  const title = snapshot.title?.trim() ?? '';
+  const content = snapshot.content?.trim() ?? '';
+
+  if (title && content) {
+    const ext = snapshot as AgentBlogSnapshot & { color?: string; numericId?: number };
     return {
       title: snapshot.title,
       excerpt: snapshot.excerpt ?? '',
@@ -50,15 +67,20 @@ export async function resolveBlogForPromo(
       tags: snapshot.tags ?? [],
       category: snapshot.category ?? '',
       author: snapshot.author ?? '',
+      color: ext.color,
+      numericId: ext.numericId ?? blogId,
     };
   }
 
-  if (isFunctionsEmulator()) {
+  if (!title && !content) {
     throw new Error(
-      `Blog ${blogId}: post content missing from admin. Pick a post again or save the post in Blog Posts first.`
+      'Post snapshot is empty. Wait for the editor to finish loading (title + markdown visible), then try again.',
     );
   }
-
-  const { blog } = await getBlogByNumericId(blogId);
-  return blog;
+  if (!content) {
+    throw new Error(
+      'Post content is missing from the editor. Add markdown content before generating SEO text or images.',
+    );
+  }
+  throw new Error('Post title is missing from the editor. Add a title, then try again.');
 }

@@ -525,3 +525,65 @@ body::before {
   white-space: pre-wrap;
   font-size: inherit;
 }
+
+/* Blog cover — loading shell (see BlogCoverImage.tsx) */
+.blog-cover-shell {
+  position: relative;
+}
+
+.blog-cover-shell--card {
+  aspect-ratio: 1 / 1;
+}
+
+.blog-cover-shell--hero.blog-cover-shell--loading {
+  min-height: min(280px, 40vh);
+}
+
+.blog-cover-shell--card.blog-cover-shell--loading {
+  min-height: 0;
+}
+
+.blog-cover-skeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    110deg,
+    rgba(148, 163, 184, 0.12) 0%,
+    rgba(148, 163, 184, 0.28) 45%,
+    rgba(148, 163, 184, 0.12) 90%
+  );
+  background-size: 200% 100%;
+  animation: blog-cover-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.dark .blog-cover-skeleton {
+  background: linear-gradient(
+    110deg,
+    rgba(71, 85, 105, 0.2) 0%,
+    rgba(71, 85, 105, 0.45) 45%,
+    rgba(71, 85, 105, 0.2) 90%
+  );
+  background-size: 200% 100%;
+}
+
+.blog-cover-skeleton__label {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--muted-foreground, #6b7280);
+}
+
+@keyframes blog-cover-skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

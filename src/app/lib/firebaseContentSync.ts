@@ -18,8 +18,8 @@ import showcaseAiProjects from '../modules/design/WebDesignShowcase/showcase-ai-
 import showcaseWebProjects from '../modules/design/WebDesignShowcase/showcase-web-projects.json';
 import engineeringProjects from '../modules/engineering/EngineeringProjects/projects.json';
 import engineeringSkillCategories from '../modules/engineering/EngineeringSkills/skill-categories.json';
-import engineeringBlogCategories from '../modules/engineering/blog-categories.json';
-import engineeringBlogData from '../modules/engineering/blog-data.json';
+import engineeringBlogCategories from '@/modules/blog/data/blog-categories.json';
+import engineeringBlogData from '@/modules/blog/data/blog-data.json';
 
 const CACHE_KEY = 'firebase-content-cache-v1';
 const CACHE_META_KEY = 'firebase-content-cache-meta-v1';

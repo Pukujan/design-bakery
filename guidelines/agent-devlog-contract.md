@@ -1,5 +1,11 @@
 # Agent devlog contract — design-bakery
 
+| Field | Value |
+|-------|-------|
+| **Document date** | 2026-05-20 |
+| **Created** | 2026-05-20 |
+| **Last updated** | 2026-05-22 |
+
 **For Cursor agents and humans.** This is the **workflow contract** for preserving context across sessions: topic devlogs, session logs, CodeGraph, and in-repo pointers.
 
 ---
@@ -20,13 +26,25 @@ Topic devlogs are **normative** (“do / don’t”). Session logs are **histori
 When adding or materially changing a **topic devlog**:
 
 1. **Title** — `Agent devlog — <Topic> (<scope>)`
-2. **Audience line** — “For Cursor agents. Read before …”
-3. **In-repo pointers** — list files + `.cursor/rules/*.mdc` that point back to the doc
-4. **Canonical paths** — single source of truth files
-5. **Test URLs** — localhost port **5300** for this project
-6. **What works / what breaks** (or **safe / avoid** tables)
-7. **Checklist** before merge (when regressions are costly)
-8. **Link** from `guidelines/agent-devlog-index.md`
+2. **Date metadata (required)** — immediately under the title:
+
+```markdown
+| Field | Value |
+|-------|-------|
+| **Document date** | YYYY-MM-DD |
+| **Created** | YYYY-MM-DD |
+| **Last updated** | YYYY-MM-DD [HH:MM optional, 24h local] |
+```
+
+- Set **Last updated** whenever rules or behavior change (same PR/session).
+- Add a **Revision history** section (dated bullets) for non-trivial edits.
+3. **Audience line** — “For Cursor agents. Read before …”
+4. **In-repo pointers** — list files + `.cursor/rules/*.mdc` that point back to the doc
+5. **Canonical paths** — single source of truth files
+6. **Test URLs** — localhost; dev port is first free from **5300** (check `pnpm run dev` output)
+7. **What works / what breaks** (or **safe / avoid** tables)
+8. **Checklist** before merge (when regressions are costly)
+9. **Link** from `guidelines/agent-devlog-index.md`
 
 ### In-repo pointers (required for fragile topics)
 
@@ -38,10 +56,18 @@ When adding or materially changing a **topic devlog**:
 
 ## 3. Session dev log requirements
 
+**Filename:** `guidelines/dev-log-YYYY-MM-DD.md` (date in filename must match **Document date**).
+
 When the user asks for a dev log or a session ends with substantial changes:
 
 ```markdown
-# Dev Log - YYYY-MM-DD
+# Dev log — YYYY-MM-DD
+
+| Field | Value |
+|-------|-------|
+| **Document date** | YYYY-MM-DD |
+| **Created** | YYYY-MM-DD [HH:MM optional] |
+| **Last updated** | YYYY-MM-DD [HH:MM optional] |
 
 ## Summary
 (1–3 sentences)
@@ -54,7 +80,7 @@ When the user asks for a dev log or a session ends with substantial changes:
 | File | Notes |
 
 ## Local URLs
-- App: http://localhost:5300
+- App: http://localhost:5300 (or next free port — see Vite log)
 - …
 
 ## Agent topic logs updated
@@ -119,8 +145,8 @@ Before editing a known-fragle area:
 
 After shipping:
 
-- [ ] Update topic devlog if rules changed
-- [ ] Add/update session dev log if user wants history
+- [ ] Update topic devlog if rules changed (**Last updated** date + revision history)
+- [ ] Add/update session dev log if user wants history (metadata table + filename date)
 - [ ] Add in-repo comments + cursor rule if new fragile topic
 
 ---

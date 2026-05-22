@@ -1,6 +1,20 @@
 # Agent devlog — Blog Mermaid (do not break)
 
+| Field | Value |
+|-------|-------|
+| **Document date** | 2026-05-18 |
+| **Created** | 2026-05-18 |
+| **Last updated** | 2026-05-21 |
+
 **For Cursor agents.** Read this **before** any change to blog Mermaid styling or rendering.
+
+### Revision history
+
+| Date | Notes |
+|------|--------|
+| 2026-05-18 | Mermaid on blog detail; globals.css chart shell |
+| 2026-05-20 | Blog detail v2 integration |
+| 2026-05-21 | Interactive zoom toolbar; scroll viewport |
 
 **In-repo pointers (so this doc is not missed):**
 - `src/app/modules/engineering/BlogDetailPage/MermaidDiagram.tsx` — `mermaid.initialize`
@@ -10,7 +24,7 @@
 
 **Canonical implementation:** `src/app/modules/engineering/BlogDetailPage/MermaidDiagram.tsx` (imported by `BlogDetailPage.tsx`).  
 **Styles:** `src/styles/globals.css` (`.blog-mermaid-chart` only).  
-**Test URL:** http://localhost:5300/endtoend-engineer/blogs/1 (dev port **5300**).
+**Test URL:** http://localhost:5300/endtoend-engineer/blogs/1 (first free dev port from 5300 — see Vite log).
 
 ---
 
@@ -103,7 +117,7 @@ For **new long-form posts**, default to **`flowchart TD`** or **`sequenceDiagram
 - [ ] No `contentLoaded()` in `BlogDetailPage`
 - [ ] No post-render SVG JS (gradients, hover, attribute rewrites)
 - [ ] Styles scoped to `.blog-mermaid-chart`, not `#mermaid-*`
-- [ ] Hard refresh http://localhost:5300/endtoend-engineer/blogs/1 — multiple diagrams visible, no red error text in chart boxes
+- [ ] Hard refresh blog detail URL on the port Vite printed at startup — multiple diagrams visible, no red error text in chart boxes
 
 ---
 

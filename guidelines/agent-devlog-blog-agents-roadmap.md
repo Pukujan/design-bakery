@@ -1,5 +1,11 @@
 # Blog agents — full roadmap & plan
 
+| Field | Value |
+|-------|-------|
+| **Document date** | 2026-05-20 |
+| **Created** | 2026-05-20 |
+| **Last updated** | 2026-05-20 |
+
 **For Cursor agents and humans.** Master plan for AI-assisted blog workflows on design-bakery.  
 **Operational reference (today):** [`agent-devlog-blog-agents.md`](agent-devlog-blog-agents.md)  
 **Session history:** [`dev-log-2026-05-20-blog-agents.md`](dev-log-2026-05-20-blog-agents.md)

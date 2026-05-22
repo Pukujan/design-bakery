@@ -1,28 +1,33 @@
 import { config as loadEnv } from 'dotenv';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { initializeApp } from 'firebase-admin/app';
+import { ensureFirebaseAdminApp } from './firebaseApp.js';
 
 // Load from functions/.env (works for both src/ and lib/ after compile).
 const functionsDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-loadEnv({ path: resolve(functionsDir, '.env'), override: true });
+loadEnv({ path: resolve(functionsDir, '.env'), override: true, quiet: true });
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { AGENT_API_VERSION, type AgentInvokeRequest } from './types.js';
 import { isFunctionsEmulator } from './emulator.js';
 import { assertWithinLimits, recordUsage, remainingFromUsage } from './rateLimit.js';
-import { resolveBlogForPromo } from './blog.js';
+import { resolveBlogForPromo } from './blog/firestore.js';
 import { buildPromoPrompt, parsePromoResponse } from './promo.js';
 import { callOpenRouter } from './openrouter.js';
+import {
+  PUBLISH_KIT_API_VERSION,
+  type PublishKitRequest,
+} from './blog/publishKit/types.js';
+import { handlePublishKit } from './blog/publishKit/handler.js';
 
-initializeApp();
+ensureFirebaseAdminApp();
 
 function resolveApiKey(): string {
   const fromEnv = process.env.OPENROUTER_API_KEY?.trim();
   if (fromEnv?.startsWith('sk-')) return fromEnv;
   throw new HttpsError(
     'failed-precondition',
-    'OPENROUTER_API_KEY is missing or empty in functions/.env. Save the file (⌘S), then restart: pnpm run functions:serve'
+    'OPENROUTER_API_KEY is missing or empty in functions/.env. Save the file (⌘S), then restart: pnpm run dev'
   );
 }
 
@@ -164,6 +169,45 @@ export const invokeBlogAgent = onCall(
       if (error instanceof HttpsError) throw error;
       const message = error instanceof Error ? error.message : 'Unknown error';
       console.error('invokeBlogAgent error:', message, error);
+      throw mapError(error);
+    }
+  }
+);
+
+export const invokeBlogPublishKit = onCall(
+  {
+    region: 'us-central1',
+    cors: true,
+    timeoutSeconds: 120,
+    memory: '1GiB',
+  },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError('unauthenticated', 'Sign in to admin before using publish kit.', {
+        code: 'AUTH',
+      });
+    }
+
+    assertAdminEmail(request.auth.token.email);
+
+    const body = request.data as PublishKitRequest;
+    if (!body || typeof body !== 'object') {
+      throw new HttpsError('invalid-argument', 'Missing request body.', { code: 'VALIDATION' });
+    }
+    if (body.version !== PUBLISH_KIT_API_VERSION) {
+      throw new HttpsError('invalid-argument', `Unsupported API version ${body.version}.`, {
+        code: 'VALIDATION',
+      });
+    }
+
+    try {
+      const apiKey = resolveApiKey();
+      const model = process.env.OPENROUTER_MODEL?.trim() || 'deepseek/deepseek-chat-v3.1';
+      return await handlePublishKit({ body, apiKey, model });
+    } catch (error) {
+      if (error instanceof HttpsError) throw error;
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error('invokeBlogPublishKit error:', message, error);
       throw mapError(error);
     }
   }

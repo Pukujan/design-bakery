@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { useState } from "react";
 import { usePortfolio } from "../portfolios/PortfolioContext";
-import { useBlogCategories, useBlogData } from "../modules/engineering/blogData";
+import { useBlogCategories, useBlogData } from "@/modules/blog/data/blogData";
 
 export function Navigation() {
   const location = useLocation();

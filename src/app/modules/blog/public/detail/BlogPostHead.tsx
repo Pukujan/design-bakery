@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import type { Blog } from '@/modules/engineering/blogData';
-import { resolveBlogMeta } from '@/modules/engineering/blogMeta';
+import type { Blog } from '@/modules/blog/data/blogData';
+import { resolveBlogMeta } from '@/modules/blog/seo/blogMeta';
 
 function upsertMeta(
   attribute: 'name' | 'property',

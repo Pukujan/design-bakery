@@ -28,8 +28,8 @@ import {
   nextBlogNumericId,
   resolveBlogNumericId,
   type BlogSeo,
-} from '../modules/engineering/blogData';
-import { normalizeBlogSeo } from '../modules/engineering/blogMeta';
+} from '@/modules/blog/data/blogData';
+import { normalizeBlogSeo } from '@/modules/blog/seo/blogMeta';
 import { normalizeProjectLinks } from './caseStudyRoutes';
 
 // Local JSON fallbacks (used when Firestore collection is empty / not yet seeded)
@@ -48,7 +48,7 @@ import {
 } from '../portfolios/portfolioDefaults';
 import _webProjectsJson from '../modules/design/WebDesignShowcase/showcase-web-projects.json';
 import _aiProjectsJson from '../modules/design/WebDesignShowcase/showcase-ai-projects.json';
-import _blogCategoriesJson from '../modules/engineering/blog-categories.json';
+import _blogCategoriesJson from '@/modules/blog/data/blog-categories.json';
 import _abstractCollageJson from '../modules/design/DesignPortfolio/gallery-abstract-collage.json';
 import _communityEventsJson from '../modules/design/DesignPortfolio/gallery-community-events.json';
 import _communityWorkshopsJson from '../modules/design/DesignPortfolio/gallery-community-workshops.json';
@@ -56,7 +56,7 @@ import _mixedMediaJson from '../modules/design/DesignPortfolio/gallery-mixed-med
 import _posterArtJson from '../modules/design/DesignPortfolio/gallery-poster-art.json';
 import _prideCommunityJson from '../modules/design/DesignPortfolio/gallery-pride-community.json';
 import _prideMonthJson from '../modules/design/DesignPortfolio/gallery-pride-month.json';
-import _blogsJson from '../modules/engineering/blog-data.json';
+import _blogsJson from '@/modules/blog/data/blog-data.json';
 
 function db() {
   if (!firestore) throw new Error('Firestore is not configured.');
@@ -168,16 +168,39 @@ export interface BlogPost {
   author: string;
   content: string;
   coverImageUrl?: string;
+  thumbnailImageUrl?: string;
   seo?: BlogSeo;
 }
 
+/** Firestore rejects explicit `undefined` field values (e.g. empty coverImageUrl). */
+function stripUndefinedShallow<T extends Record<string, unknown>>(obj: T): T {
+  const out = { ...obj };
+  for (const key of Object.keys(out)) {
+    if (out[key] === undefined) delete out[key];
+  }
+  return out;
+}
+
 function normalizeBlogPostForSave(post: BlogPost): Omit<BlogPost, 'id'> {
-  const { id: _id, ...data } = post;
-  return {
+  const {
+    id: _id,
+    coverImageUrl: _cover,
+    thumbnailImageUrl: _thumb,
+    seo: _seo,
+    ...data
+  } = post;
+  const tags = (data.tags ?? []).filter(Boolean).slice(0, 5);
+  const coverImageUrl = post.coverImageUrl?.trim();
+  const thumbnailImageUrl = post.thumbnailImageUrl?.trim();
+  const seo = normalizeBlogSeo(post.seo);
+
+  return stripUndefinedShallow({
     ...data,
-    coverImageUrl: data.coverImageUrl?.trim() || undefined,
-    seo: normalizeBlogSeo(data.seo),
-  };
+    tags,
+    ...(coverImageUrl ? { coverImageUrl } : {}),
+    ...(thumbnailImageUrl ? { thumbnailImageUrl } : {}),
+    ...(seo ? { seo } : {}),
+  }) as Omit<BlogPost, 'id'>;
 }
 
 export async function getBlogs(): Promise<BlogPost[]> {

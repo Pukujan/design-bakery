@@ -1,6 +1,18 @@
 # Agent devlog — Blog page motion & decor
 
+| Field | Value |
+|-------|-------|
+| **Document date** | 2026-05-20 |
+| **Created** | 2026-05-20 |
+| **Last updated** | 2026-05-20 |
+
 **For Cursor agents.** Read this **before** changing blog list/detail animations, `BlogPageMotion`, or related motion props.
+
+### Revision history
+
+| Date | Notes |
+|------|--------|
+| 2026-05-20 | `BlogPageMotion` shared presets; list + detail wiring |
 
 **In-repo pointers:**
 - `src/app/components/BlogPageMotion.tsx` — file header comment + all shared motion API
@@ -8,7 +20,7 @@
 - `src/app/modules/engineering/BlogDetailPage/BlogDetailPage.tsx` — detail page usage
 - `.cursor/rules/blog-motion.mdc` — auto-attached when editing those files
 
-**Test URLs (dev port 5300):**
+**Test URLs (first free port from 5300):**
 - List: http://localhost:5300/endtoend-engineer/blogs
 - Detail: http://localhost:5300/endtoend-engineer/blogs/1
 

@@ -3,18 +3,19 @@ import { useState, useRef } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, Clock, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../../../components/ui/button';
-import { Card } from '../../../components/ui/card';
-import { Badge } from '../../../components/ui/badge';
-import { Squiggle } from '../../../components/GraphicElements';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Squiggle } from '@/components/GraphicElements';
 import {
   BlogPageDecor,
   PlayfulBlogTitle,
   blogButtonMotion,
   blogCardMotion,
-} from '../../../components/BlogPageMotion';
-import { useBlogCategories, useBlogData } from '../blogData';
-import { usePortfolio } from '../../../portfolios/PortfolioContext';
+} from '@/modules/blog/shared/BlogPageMotion';
+import { BlogCoverImage } from '@/modules/blog/shared/BlogCoverImage';
+import { useBlogCategories, useBlogData } from '@/modules/blog/data/blogData';
+import { usePortfolio } from '@/portfolios/PortfolioContext';
 
 export function BlogListPage() {
   const navigate = useNavigate();
@@ -161,8 +162,9 @@ export function BlogListPage() {
             >
               <Card
                 onClick={() => navigate(pathTo(`/blogs/${blog.id}`))}
-                className="h-full p-6 border-6 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all bg-white dark:bg-gray-900 group cursor-pointer"
+                className="h-full p-6 border-6 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all bg-white dark:bg-gray-900 group cursor-pointer overflow-hidden"
               >
+                <BlogCoverImage blog={blog} variant="card" />
                 <div
                   className="w-full h-3 rounded-full mb-6 border-2 border-black"
                   style={{ backgroundColor: blog.color }}

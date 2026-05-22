@@ -5,13 +5,27 @@
   "packageManager": "pnpm@10.32.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "predev": "node scripts/codegraph-sync.mjs --quiet",
+    "dev": "node scripts/dev.mjs",
+    "dev:verbose": "node scripts/dev.mjs --verbose",
+    "dev:web": "vite",
+    "dev:functions": "node scripts/dev-functions.mjs",
+    "dev:functions:verbose": "node scripts/dev-functions.mjs --verbose",
+    "functions:serve": "pnpm run dev:functions",
     "build": "vite build",
     "preview": "vite preview",
     "seed:firestore": "pnpm dlx tsx scripts/seed-portfolios-firestore.ts",
     "codegraph:init": "codegraph init -i",
     "codegraph:sync": "codegraph sync",
-    "codegraph:status": "codegraph status"
+    "codegraph:status": "codegraph status",
+    "test:publish-kit-upload": "pnpm --dir functions run test:publish-kit-upload",
+    "test:publish-kit-upload:emulator": "pnpm --dir functions run test:publish-kit-upload:emulator",
+    "test:blog-workflow": "pnpm --dir functions run test:blog-workflow",
+    "test:blog-workflow:live": "pnpm --dir functions run test:blog-workflow:live",
+    "test:blog-workflow:live:ai": "pnpm --dir functions run test:blog-workflow:live:ai",
+    "test:blog-workflow:storage": "pnpm --dir functions run test:blog-workflow:storage",
+    "test:blog-workflow:full": "pnpm --dir functions run test:blog-workflow:full",
+    "test:blog-workflow:emulator": "pnpm --dir functions run test:blog-workflow:emulator"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
@@ -76,6 +90,8 @@
     "vaul": "1.1.2"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
+    "firebase-tools": "^15.18.0",
     "@tailwindcss/vite": "4.1.12",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

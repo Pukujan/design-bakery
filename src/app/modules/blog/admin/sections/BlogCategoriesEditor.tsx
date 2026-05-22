@@ -1,6 +1,6 @@
-import { getBlogCategories, setBlogCategories, type BlogCategory } from '../../../lib/adminContentService';
-import { SectionPage } from '../components/SectionPage';
-import { JsonArrayEditor } from '../components/JsonArrayEditor';
+import { getBlogCategories, setBlogCategories, type BlogCategory } from '@/lib/adminContentService';
+import { SectionPage } from '@/modules/admin/components/SectionPage';
+import { JsonArrayEditor } from '@/modules/admin/components/JsonArrayEditor';
 
 const TEMPLATE: BlogCategory = { id: '', label: '', color: '#6366f1' };
 

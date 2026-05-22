@@ -12,14 +12,14 @@ import {
   MotionSection,
   blogButtonMotion,
   blogCardMotion,
-} from '@/components/BlogPageMotion';
-import { BlogContactFab } from '@/components/BlogContactFab';
+} from '@/modules/blog/shared/BlogPageMotion';
+import { BlogContactFab } from '@/modules/blog/shared/BlogContactFab';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { MermaidDiagram } from './MermaidDiagram';
-import { useBlogCategories, useBlogData, useBlogPost } from '@/modules/engineering/blogData';
-import { resolveBlogCoverUrl } from '@/modules/engineering/blogMeta';
+import { MermaidDiagram } from '@/modules/blog/render/MermaidDiagram';
+import { useBlogCategories, useBlogData, useBlogPost } from '@/modules/blog/data/blogData';
+import { BlogCoverImage } from '@/modules/blog/shared/BlogCoverImage';
 import { BlogPostHead } from './BlogPostHead';
 import { BlogDetailPageSkeleton } from './BlogDetailPageSkeleton';
 import { useStickySidebar } from './useStickySidebar';
@@ -260,7 +260,6 @@ export function BlogDetailPage() {
     .slice(0, 3);
 
   const contentToRender = blog.content || 'No content available';
-  const coverImageUrl = resolveBlogCoverUrl(blog);
 
   return (
     <section className="min-h-screen pt-28 sm:pt-32 md:pt-36 pb-12 sm:pb-14 md:pb-16 px-4 sm:px-5 md:px-6 bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 relative overflow-hidden">
@@ -301,17 +300,7 @@ export function BlogDetailPage() {
                 {blog.title}
               </h1>
 
-              {coverImageUrl ? (
-                <div className="mb-4 sm:mb-5 md:mb-6 ml-11 sm:ml-12 md:ml-0">
-                  <img
-                    src={coverImageUrl}
-                    alt=""
-                    className="w-full max-h-[min(420px,50vh)] object-cover rounded-lg md:rounded-xl border-2 sm:border-2 md:border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                    loading="eager"
-                    decoding="async"
-                  />
-                </div>
-              ) : null}
+              <BlogCoverImage blog={blog} variant="hero" />
 
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mb-2.5 sm:mb-3 md:mb-4 text-xs sm:text-xs md:text-sm text-gray-600 dark:text-gray-400 ml-11 sm:ml-12 md:ml-0">
                 <div className="flex items-center gap-1 sm:gap-1 md:gap-1.5">

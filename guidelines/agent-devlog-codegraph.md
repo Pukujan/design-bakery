@@ -1,6 +1,20 @@
 # Agent devlog — CodeGraph in design-bakery
 
+| Field | Value |
+|-------|-------|
+| **Document date** | 2026-05-20 |
+| **Created** | 2026-05-20 |
+| **Last updated** | 2026-05-22 |
+
 **For Cursor agents.** Use CodeGraph for **navigation and impact analysis**; use **topic devlogs** for conventions and “do not break” rules.
+
+### Revision history
+
+| Date | Notes |
+|------|--------|
+| 2026-05-20 | Init + MCP workflow in contract |
+| 2026-05-21 | Index stats after BlogDetailPage move |
+| 2026-05-22 | `predev` quiet sync; documented in AGENTS.md |
 
 **Upstream:** https://github.com/colbymchenry/codegraph  
 **Contract:** [`agent-devlog-contract.md`](agent-devlog-contract.md)
@@ -43,6 +57,16 @@ npm run codegraph:status   # stats
 npm run codegraph:sync     # after big refactors
 npm run codegraph:query -- BlogPageDecor
 ```
+
+### Auto sync (this repo)
+
+| Trigger | What runs |
+|---------|-----------|
+| `pnpm run dev` / `npm run dev` | **`predev`** → `node scripts/codegraph-sync.mjs` (incremental sync before Vite) |
+| Cursor **agent session start** | `.cursor/hooks/codegraph-sync.sh` (background sync, non-blocking) |
+| Cursor **CodeGraph MCP** | File watcher (~500ms debounce) while MCP server is connected |
+
+Manual sync still useful after large moves: `npm run codegraph:sync`.
 
 ---
 

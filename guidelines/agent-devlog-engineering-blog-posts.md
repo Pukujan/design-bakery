@@ -1,8 +1,20 @@
 # Agent devlog — Engineering blog posts
 
+| Field | Value |
+|-------|-------|
+| **Document date** | 2026-05-20 |
+| **Created** | 2026-05-20 |
+| **Last updated** | 2026-05-20 |
+
 **For Cursor agents.** Read before adding or editing posts on the end-to-end engineer blog.
 
-**List:** http://localhost:5300/endtoend-engineer/blogs  
+### Revision history
+
+| Date | Notes |
+|------|--------|
+| 2026-05-20 | Post flow; Mermaid in body; post id 8; Firestore seed |
+
+**List:** http://localhost:5300/endtoend-engineer/blogs (or next free port — Vite log)  
 **Detail renderer:** `src/app/modules/engineering/BlogDetailPage/BlogDetailPage.tsx`  
 **Canonical data:** Firestore `blog_posts` (edited at `/admin/endtoend-engineer/blog`).  
 **Seed source:** `blog-data.json` — merged on the public site; copied into Firestore when the admin Blog editor loads (`syncBlogPostsFromSeed` → doc id `seed-<numericId>`).
@@ -13,7 +25,7 @@
 
 1. **Author markdown** under `src/app/modules/engineering/posts/<slug>.md`.
 2. **Append entry** to `blog-data.json` with the next numeric `id`.
-3. **Open admin** → http://localhost:5300/admin/endtoend-engineer/blog — missing JSON rows sync to Firestore automatically.
+3. **Open admin** → `/admin/endtoend-engineer/blog` on the port Vite prints at startup — missing JSON rows sync to Firestore automatically.
 4. **Or** create/edit directly in admin (no JSON required for one-off posts).
 5. **Category** must exist in `blog-categories.json` / admin categories editor.
 6. **Verify** `/endtoend-engineer/blogs/<numericId>`.

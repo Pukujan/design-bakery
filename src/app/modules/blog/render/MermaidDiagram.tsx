@@ -7,7 +7,7 @@ import { ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import mermaid from 'mermaid';
 import { enqueueMermaidRender } from './mermaidRenderQueue';
-import { useInView } from './useInView';
+import { useInView } from '@/hooks/useInView';
 
 mermaid.initialize({
   startOnLoad: false,
