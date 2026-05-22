@@ -1,4 +1,4 @@
 /**
- * Canonical implementation: src/app/modules/blog/public/detail/BlogDetailPage.tsx
+ * Canonical implementation: frontend/src/app/modules/blog/public/detail/BlogDetailPage.tsx
  */
-export { BlogDetailPage } from '../../../../src/app/modules/blog/public/detail/BlogDetailPage';
+export { BlogDetailPage } from '../../../../frontend/src/app/modules/blog/public/detail/BlogDetailPage';

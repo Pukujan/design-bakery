@@ -4,7 +4,7 @@
 |-------|-------|
 | **Document date** | 2026-05-22 |
 | **Created** | 2026-05-22 |
-| **Last updated** | 2026-05-22 (workflow test) |
+| **Last updated** | 2026-05-22 (Express API / Railway) |
 
 **Branch:** `test/blog-publish-kit` (not on `main` until reviewed).
 
@@ -18,6 +18,7 @@
 | 2026-05-22 | **Unified hero v0.3** — one 1:1 AI image → cover 1200×800 + OG 1200×630 + square thumbs; scaled overlay text |
 | 2026-05-22 | **meta_and_tags apply** — single `applyPublishKitSeoToPost` (tags no longer overwrite meta); excerpt backfill when blank |
 | 2026-05-22 | **`generateMeta` excerpt** — LLM returns `excerpt` (~200 chars) + meta fields; applied with SEO text + tags |
+| 2026-05-22 | **Express API** (`backend/`) — optional Railway backend; frontend uses `VITE_BLOG_API_URL` instead of Firebase callables |
 
 ## Purpose
 
@@ -43,11 +44,15 @@ firebase functions:secrets:set OPENROUTER_API_KEY --project auth-system-be464
 # paste key from repo root .env when prompted
 ```
 
-Gen2 callables use `CALLABLE_CORS` for `https://www.design-bakery.com`. A 404 from `cloudfunctions.net` means deploy did not run yet (browser may show CORS instead of 404).
+Gen2 callables use `CALLABLE_CORS` for `https://www.design-bakery.com`. A 404 from `cloudfunctions.net` means deploy did not run yet (browser may show CORS instead of 404). **Blaze** billing is required for Gen2 deploy.
 
-Functions: `OPENROUTER_API_KEY` in repo root `.env` (same file as `VITE_*`; no `VITE_` prefix on secrets). Optional `OPENROUTER_IMAGE_MODEL`, `PUBLISH_KIT_VISUAL_MODE=hybrid|template|ai`.
+**Alternative (no Blaze):** Express API in `backend/` on **Railway** — full steps: [`doc/deploy-vercel-railway.md`](../doc/deploy-vercel-railway.md). Set `VITE_BLOG_API_URL` on Vercel and in `frontend/.env` locally; client routes via `src/app/lib/blogCallables.ts` → `postBlogApi` (`/api/publish-kit`, `/api/blog-agent`). Railway needs `OPENROUTER_API_KEY`, `FIREBASE_STORAGE_BUCKET`, `GOOGLE_APPLICATION_CREDENTIALS_JSON`, `ALLOWED_ORIGINS`.
 
-**Dev:** `pnpm run dev` — frees port **5300**, starts Vite + Functions. Open the URL Vite prints (must be **5300** — not an old tab). Terminal must show `[functions] ready — invokeBlogPublishKit`. `pnpm run dev:verbose` for full logs. `pnpm run dev:web` — Vite only (no callables).
+Functions / Express: `OPENROUTER_API_KEY` in **`backend/.env`** (see `doc/env.md`). Frontend flags in **`frontend/.env`** (`VITE_*` only).
+
+**Dev (callables):** `pnpm run dev` — frees port **5300**, starts Vite + Functions when `OPENROUTER_API_KEY` is set and `VITE_BLOG_API_URL` is unset. Terminal must show `[functions] ready — invokeBlogPublishKit`. `pnpm run dev:verbose` for full logs.
+
+**Dev (Express):** `VITE_BLOG_API_URL=http://localhost:8787` + `pnpm run dev:api` or `pnpm run dev:stack`. Skips Functions emulator (`scripts/dev.mjs`).
 
 **404 on `invokeBlogPublishKit`:** Usually a stale Vite on 5300 without the proxy while the new dev server is on 5301 — restart `pnpm run dev` and use the URL from the terminal.
 
@@ -55,7 +60,7 @@ Deploy callable: `cd functions && npm run deploy` (includes `invokeBlogPublishKi
 
 ## API
 
-- Callable: **`invokeBlogPublishKit`** (`functions/src/blog/publishKit/`)
+- Callable: **`invokeBlogPublishKit`** (`functions/src/blog/publishKit/`) — or **POST `/api/publish-kit`** on Express when `VITE_BLOG_API_URL` is set
 - Fonts: `publishKit/fonts.ts` resolves WOFF via `require.resolve('@fontsource/inter/...')` (not relative to `lib/` — avoids ENOENT after `blog/publishKit/` move)
 - Version: `PUBLISH_KIT_API_VERSION = 1`
 - Actions: `meta` | `visual` | `visual_and_meta` | **`tags`** | **`meta_and_tags`** | **`commit_visual`**

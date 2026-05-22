@@ -23,12 +23,20 @@ If not initialized: `npx @colbymchenry/codegraph` then `codegraph init -i` (see 
 
 **Auto sync:** `pnpm run dev` runs `codegraph sync` first (`predev`); Cursor `sessionStart` hook also syncs in the background. MCP still watches files while connected.
 
+## Layout
+
+- **`frontend/`** — Vite/React app (`src/`, `vite.config.ts`)
+- **`backend/`** — Express API + `functions/` (publish kit, agents)
+- **`scripts/`** — dev orchestration at repo root
+
 ## Dev server
 
-- **`pnpm run dev`** — Vite + Functions (quiet terminal). Callables proxied via Vite (no CORS). **`pnpm run dev:verbose`** for full Firebase logs.
-- **`pnpm run dev:web`** — Vite only (no emulator).
-- Publish kit history (old CORS/upload flow, prompt v0.1): [guidelines/agent-devlog-blog-publish-kit.md](guidelines/agent-devlog-blog-publish-kit.md)
-- Dev port: first free from **5300** (`vite.config.ts`). Check terminal for the actual URL.
+- **Env:** `frontend/.env` (`VITE_*`); `backend/.env` (secrets) — [doc/env.md](doc/env.md).
+- **`pnpm run dev`** — Vite + Functions emulator when `OPENROUTER_API_KEY` is in **`backend/.env`** and **`VITE_BLOG_API_URL` is unset** in `frontend/.env`.
+- **`pnpm run dev:api`** / **`pnpm run dev:stack`** — Express on **8787**; `VITE_BLOG_API_URL=http://localhost:8787` in **`frontend/.env`**.
+- **`pnpm run dev:web`** — Vite only (no AI backend).
+- **Production AI backend:** Railway Express + `VITE_BLOG_API_URL` on Vercel — **[doc/deploy-vercel-railway.md](doc/deploy-vercel-railway.md)**. Alternative: Firebase callables (Blaze + `functions` deploy).
+- Dev port: first free from **5300** (`vite.config.ts`). With callables, confirm `[functions] ready — invokeBlogPublishKit` in the terminal.
 
 ## Blog agents tests
 

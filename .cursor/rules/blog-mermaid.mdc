@@ -1,6 +1,6 @@
 ---
 description: Blog Mermaid — read agent devlog before styling or render changes
-globs: src/app/modules/blog/render/**,src/app/modules/blog/public/detail/**,src/styles/globals.css,guidelines/agent-devlog-mermaid.md
+globs: frontend/src/app/modules/blog/render/**,frontend/src/app/modules/blog/public/detail/**,frontend/src/styles/globals.css,guidelines/agent-devlog-mermaid.md
 alwaysApply: false
 ---
 

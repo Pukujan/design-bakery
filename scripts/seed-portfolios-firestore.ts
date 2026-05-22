@@ -8,8 +8,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { signInAnonymously } from 'firebase/auth';
-import { assertFirebaseConfigured, auth } from '../src/app/lib/firebase';
-import { pushAllPortfolioDefaultsToFirestore } from '../src/app/lib/adminContentService';
+import { assertFirebaseConfigured, auth } from '../frontend/src/app/lib/firebase';
+import { pushAllPortfolioDefaultsToFirestore } from '../frontend/src/app/lib/adminContentService';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
@@ -28,9 +28,9 @@ function loadEnvFile(filePath: string) {
   }
 }
 
-loadEnvFile(resolve(repoRoot, '.env'));
-loadEnvFile(resolve(repoRoot, '.env.local'));
-loadEnvFile(resolve(repoRoot, '.env.example'));
+loadEnvFile(resolve(repoRoot, 'frontend/.env'));
+loadEnvFile(resolve(repoRoot, 'frontend/.env.local'));
+loadEnvFile(resolve(repoRoot, 'frontend/.env.example'));
 
 async function main() {
   assertFirebaseConfigured();

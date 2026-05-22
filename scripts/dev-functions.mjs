@@ -6,8 +6,10 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadBackendEnv } from './load-backend-env.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+loadBackendEnv();
 const verbose = process.argv.includes('--verbose');
 
 function log(msg) {
@@ -37,7 +39,7 @@ const free = spawnSync('node', ['scripts/free-emulator-port.mjs'], {
 if (free.status !== 0) process.exit(free.status ?? 1);
 
 if (verbose) log('building…');
-const build = spawnSync('pnpm', ['--dir', 'functions', 'run', 'build'], {
+const build = spawnSync('pnpm', ['--dir', 'backend/functions', 'run', 'build'], {
   cwd: root,
   stdio: verbose ? 'inherit' : 'pipe',
   encoding: 'utf8',

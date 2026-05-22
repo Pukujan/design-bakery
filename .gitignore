@@ -1,8 +1,16 @@
 node_modules
 dist
+frontend/dist
+backend/lib
 .env
 .env.local
 .env.*.local
+frontend/.env
+frontend/.env.local
+backend/.env
+backend/.env.local
+server/.env
+server/.env.local
 temp/
 
 # CodeGraph — commit .codegraph/config.json only; index is local

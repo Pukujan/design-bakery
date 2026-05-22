@@ -50,4 +50,4 @@ See **[routes.md](./routes.md)** for the full route reference: every public URL,
 
 ## Environment
 
-See root `.env.example`. For normal admin + Firestore use, **disable** content sync (`VITE_FIREBASE_ENABLE_CONTENT_SYNC=false` or omit).
+See `frontend/.env.example` and `backend/.env.example` ([env.md](./env.md)). For normal admin + Firestore use, **disable** content sync (`VITE_FIREBASE_ENABLE_CONTENT_SYNC=false` or omit).

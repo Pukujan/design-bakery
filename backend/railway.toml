@@ -1,0 +1,8 @@
+[build]
+builder = "NIXPACKS"
+buildCommand = "corepack enable pnpm && cd .. && pnpm install --frozen-lockfile && pnpm --dir backend/functions run build && pnpm --dir backend run build"
+
+[deploy]
+startCommand = "node lib/index.js"
+healthcheckPath = "/health"
+healthcheckTimeout = 120
