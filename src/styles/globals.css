@@ -362,7 +362,54 @@ body::before {
   fill: none !important;
 }
 
-/* Blog Mermaid — scrollable viewport for large charts (see MermaidDiagram.tsx) */
+/* Blog Mermaid — scroll viewport + zoom toolbar (see MermaidDiagram.tsx) */
+.blog-mermaid-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.blog-mermaid-toolbar__buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.blog-mermaid-toolbar__btn {
+  border-width: 2px !important;
+  border-color: #000 !important;
+  box-shadow: 2px 2px 0 0 #000 !important;
+}
+
+.dark .blog-mermaid-toolbar__btn {
+  border-color: #fff !important;
+  box-shadow: 2px 2px 0 0 rgba(255, 255, 255, 0.35) !important;
+}
+
+.blog-mermaid-toolbar__label {
+  min-width: 3.25rem;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.blog-mermaid-toolbar__slider-wrap {
+  flex: 1 1 8rem;
+  min-width: 6rem;
+  display: flex;
+  align-items: center;
+}
+
+.blog-mermaid-toolbar__slider {
+  width: 100%;
+  height: 0.5rem;
+  accent-color: #4169e1;
+  cursor: pointer;
+}
+
 .blog-mermaid-viewport {
   position: relative;
   min-height: 4rem;
@@ -373,6 +420,15 @@ body::before {
   max-height: min(70vh, 520px);
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+}
+
+.blog-mermaid-zoom-spacer {
+  position: relative;
+  min-width: min-content;
+}
+
+.blog-mermaid-zoom-layer {
+  transform-origin: 0 0;
 }
 
 .blog-mermaid-svg-host svg {
