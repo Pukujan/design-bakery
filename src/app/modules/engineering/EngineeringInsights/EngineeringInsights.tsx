@@ -22,7 +22,7 @@ const ITEMS_PER_PAGE = 3;
 export function EngineeringInsights() {
   const { pathTo } = usePortfolio();
   const categories = useBlogCategories();
-  const { blogs: insights } = useBlogData();
+  const { blogs: insights, isLoading } = useBlogData();
   const [selectedCategory, setSelectedCategory] =
     useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -241,12 +241,21 @@ export function EngineeringInsights() {
 
         {/* Insights Grid */}
         <div className="grid md:grid-cols-3 gap-8 mb-12">
+          {isLoading && paginatedInsights.length === 0
+            ? Array.from({ length: ITEMS_PER_PAGE }, (_, idx) => (
+                <div
+                  key={`insight-skeleton-${idx}`}
+                  className="h-full min-h-[320px] rounded-xl border-6 border-black bg-white/80 dark:bg-gray-900/80 animate-pulse shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+                  aria-hidden
+                />
+              ))
+            : null}
           {paginatedInsights.map((insight, idx) => (
             <motion.div
               key={insight.id}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: idx * 0.1 }}
+              transition={{ duration: 0.4, delay: Math.min(idx * 0.05, 0.25) }}
             >
               <Card className="h-full p-6 border-6 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all bg-white dark:bg-gray-900 group">
                 <div

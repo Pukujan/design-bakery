@@ -5,7 +5,7 @@
 **In-repo pointers:**
 - `src/app/components/BlogPageMotion.tsx` — file header comment + all shared motion API
 - `src/app/modules/engineering/BlogListPage/BlogListPage.tsx` — list page usage
-- `extras/design changes to blog details/app/components/BlogDetailPage.tsx` — detail page usage
+- `src/app/modules/engineering/BlogDetailPage/BlogDetailPage.tsx` — detail page usage
 - `.cursor/rules/blog-motion.mdc` — auto-attached when editing those files
 
 **Test URLs (dev port 5300):**

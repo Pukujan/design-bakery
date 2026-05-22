@@ -32,6 +32,26 @@ import {
   AlertDialogTitle,
 } from '../../../components/ui/alert-dialog';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
+import type { BlogSeo } from '../../../lib/adminContentService';
+
+function ImageUrlPreview({ url, label }: { url: string; label: string }) {
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  return (
+    <img
+      src={trimmed}
+      alt={label}
+      className="mt-2 max-h-36 w-full rounded-md border border-gray-200 object-cover dark:border-gray-700"
+      onError={(e) => {
+        (e.currentTarget as HTMLImageElement).style.display = 'none';
+      }}
+    />
+  );
+}
+
+function emptySeo(): BlogSeo {
+  return {};
+}
 
 /** Prevent long unbroken strings from blowing out admin form layout. */
 const FIELD_OVERFLOW =
@@ -65,6 +85,7 @@ export function BlogEditor() {
   const [newCategoryColor, setNewCategoryColor] = useState('#6366f1');
   const [tagInput, setTagInput] = useState('');
   const [seedSyncNote, setSeedSyncNote] = useState<string | null>(null);
+  const [mirrorCoverToOg, setMirrorCoverToOg] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -94,11 +115,33 @@ export function BlogEditor() {
     const defaultCategory = categories.find((c) => c.id !== 'all')?.id ?? '';
     setEditPost({ ...EMPTY_POST, category: defaultCategory });
     setTagInput('');
+    setMirrorCoverToOg(false);
   }
 
   function openEdit(post: BlogPost) {
     setEditPost({ ...post });
     setTagInput('');
+    const og = post.seo?.ogImageUrl ?? post.seo?.ogImage ?? '';
+    const cover = post.coverImageUrl ?? '';
+    setMirrorCoverToOg(Boolean(og && cover && og === cover));
+  }
+
+  function patchSeo(patch: Partial<BlogSeo>) {
+    if (!editPost) return;
+    const seo = { ...emptySeo(), ...editPost.seo, ...patch };
+    const next: BlogPost = { ...editPost, seo };
+    if (mirrorCoverToOg && patch.ogImageUrl !== undefined) {
+      next.coverImageUrl = patch.ogImageUrl;
+    }
+    setEditPost(next);
+  }
+
+  function patchCoverImageUrl(url: string) {
+    if (!editPost) return;
+    setEditPost({ ...editPost, coverImageUrl: url });
+    if (mirrorCoverToOg) {
+      patchSeo({ ogImageUrl: url });
+    }
   }
 
   async function handleSave() {
@@ -275,6 +318,81 @@ export function BlogEditor() {
                   value={editPost.excerpt}
                   onChange={(e) => setEditPost({ ...editPost, excerpt: e.target.value })}
                 />
+                <p className="text-xs text-gray-500">
+                  Used as the default meta description when SEO description is empty.
+                </p>
+              </div>
+
+              <div className="min-w-0 space-y-3 rounded-lg border border-gray-200 bg-gray-50/80 p-4 dark:border-gray-800 dark:bg-gray-900/50">
+                <p className="text-sm font-bold">SEO &amp; images</p>
+
+                <div className="min-w-0 space-y-1">
+                  <Label htmlFor="seo-meta-title">Meta title</Label>
+                  <Input
+                    id="seo-meta-title"
+                    className={FIELD_OVERFLOW}
+                    placeholder={editPost.title || 'Defaults to post title'}
+                    value={editPost.seo?.metaTitle ?? ''}
+                    onChange={(e) => patchSeo({ metaTitle: e.target.value })}
+                  />
+                </div>
+
+                <div className="min-w-0 space-y-1">
+                  <Label htmlFor="seo-meta-description">Meta description</Label>
+                  <Textarea
+                    id="seo-meta-description"
+                    rows={2}
+                    className={TEXTAREA_OVERFLOW}
+                    placeholder={editPost.excerpt || 'Defaults to excerpt'}
+                    value={editPost.seo?.metaDescription ?? ''}
+                    onChange={(e) => patchSeo({ metaDescription: e.target.value })}
+                  />
+                </div>
+
+                <div className="min-w-0 space-y-1">
+                  <Label htmlFor="seo-og-image">Social / SEO image URL</Label>
+                  <Input
+                    id="seo-og-image"
+                    className={FIELD_OVERFLOW}
+                    placeholder="https://… (Open Graph, Twitter, LinkedIn)"
+                    value={editPost.seo?.ogImageUrl ?? editPost.seo?.ogImage ?? ''}
+                    onChange={(e) => patchSeo({ ogImageUrl: e.target.value })}
+                  />
+                  <ImageUrlPreview
+                    url={editPost.seo?.ogImageUrl ?? editPost.seo?.ogImage ?? ''}
+                    label="Social preview"
+                  />
+                </div>
+
+                <div className="min-w-0 space-y-1">
+                  <Label htmlFor="cover-image">Cover image URL (below title on blog)</Label>
+                  <Input
+                    id="cover-image"
+                    className={FIELD_OVERFLOW}
+                    placeholder="https://…"
+                    value={editPost.coverImageUrl ?? ''}
+                    onChange={(e) => patchCoverImageUrl(e.target.value)}
+                    disabled={mirrorCoverToOg}
+                  />
+                  <ImageUrlPreview url={editPost.coverImageUrl ?? ''} label="Cover preview" />
+                </div>
+
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={mirrorCoverToOg}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setMirrorCoverToOg(checked);
+                      if (checked && editPost) {
+                        const og = editPost.seo?.ogImageUrl ?? editPost.seo?.ogImage ?? '';
+                        setEditPost({ ...editPost, coverImageUrl: og });
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  Use social image as cover (same URL for both)
+                </label>
               </div>
 
               <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-3">

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 
 const DESKTOP_MQ = '(min-width: 1020px)';
+const SIDEBAR_LAYOUT_DEBOUNCE_MS = 120;
 
 function getNavBottom(): number {
   const nav = document.querySelector('nav');
@@ -35,7 +36,7 @@ export function useStickySidebar() {
       const columnHeight = Math.max(
         column.offsetHeight,
         mainColumn?.offsetHeight ?? 0,
-        columnRect.height
+        columnRect.height,
       );
       const columnTop = columnRect.top + window.scrollY;
       const scrollY = window.scrollY;
@@ -67,12 +68,21 @@ export function useStickySidebar() {
       }
     };
 
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    mq.addEventListener('change', update);
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleUpdate = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null;
+        update();
+      }, SIDEBAR_LAYOUT_DEBOUNCE_MS);
+    };
 
-    const observer = new ResizeObserver(update);
+    update();
+    window.addEventListener('scroll', scheduleUpdate, { passive: true });
+    window.addEventListener('resize', scheduleUpdate);
+    mq.addEventListener('change', scheduleUpdate);
+
+    const observer = new ResizeObserver(scheduleUpdate);
     const observeTargets = () => {
       observer.disconnect();
       if (sidebarRef.current) observer.observe(sidebarRef.current);
@@ -87,9 +97,10 @@ export function useStickySidebar() {
 
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-      mq.removeEventListener('change', update);
+      if (debounceTimer) clearTimeout(debounceTimer);
+      window.removeEventListener('scroll', scheduleUpdate);
+      window.removeEventListener('resize', scheduleUpdate);
+      mq.removeEventListener('change', scheduleUpdate);
       observer.disconnect();
     };
   }, []);

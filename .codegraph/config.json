@@ -133,7 +133,9 @@
     "**/temp/**",
     "**/_build/**",
     "**/docs/_build/**",
-    "**/site/**"
+    "**/site/**",
+    "**/archive/**",
+    "extras/design changes to blog details/**"
   ],
   "languages": [],
   "frameworks": [],

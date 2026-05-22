@@ -1,15 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Mail, X } from 'lucide-react';
 import { useSocialLinksContent } from '@/lib/contentHooks';
-import { resolveIcon } from '@/lib/iconResolver';
+import { normalizeContactSocialLinks } from '@/lib/normalizeSocialLinks';
+import { resolveContactSocialIcon } from '@/lib/socialIconResolver';
 
 /**
  * Blog detail only — floating contact speed-dial (Phase 0).
  * Data: social-links.json / Firestore via useSocialLinksContent.
  */
 export function BlogContactFab() {
-  const links = useSocialLinksContent();
+  const linksRaw = useSocialLinksContent();
+  const links = useMemo(() => normalizeContactSocialLinks(linksRaw), [linksRaw]);
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
@@ -57,10 +59,10 @@ export function BlogContactFab() {
             aria-label="Contact links"
           >
             {links.map((link, index) => {
-              const Icon = resolveIcon(link.icon);
+              const Icon = resolveContactSocialIcon(link.name, link.icon, link.href);
               return (
                 <motion.a
-                  key={link.name}
+                  key={`${link.name}-${link.href}`}
                   href={link.href}
                   target={link.href.startsWith('mailto:') ? undefined : '_blank'}
                   rel={link.href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
@@ -78,10 +80,10 @@ export function BlogContactFab() {
                     {link.name}
                   </span>
                   <span
-                    className="flex h-11 w-11 items-center justify-center justify-self-end rounded-full border-3 border-black"
+                    className="flex h-11 w-11 items-center justify-center justify-self-end rounded-full border-3 border-black p-1"
                     style={{ backgroundColor: link.color }}
                   >
-                    <Icon className="h-5 w-5 text-gray-900" aria-hidden />
+                    <Icon className="h-full w-full text-gray-900" aria-hidden />
                   </span>
                 </motion.a>
               );

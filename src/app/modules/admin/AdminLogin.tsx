@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../lib/adminAuth';
+import { consumeAdminSessionExpired } from '../../lib/adminSession';
 import { isFirebaseConfigured } from '../../lib/firebase';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -36,6 +37,13 @@ export function AdminLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sessionExpiredNote, setSessionExpiredNote] = useState(false);
+
+  useEffect(() => {
+    if (consumeAdminSessionExpired()) {
+      setSessionExpiredNote(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -89,6 +97,15 @@ export function AdminLogin() {
               from <code className="font-mono">.env.example</code> and restart{' '}
               <code className="font-mono">npm run dev</code>. On Vercel, add the same{' '}
               <code className="font-mono">VITE_FIREBASE_*</code> variables in project settings.
+            </div>
+          )}
+
+          {sessionExpiredNote && (
+            <div
+              className="mb-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100"
+              role="status"
+            >
+              You were signed out after 10 minutes of inactivity. Sign in again to continue.
             </div>
           )}
 

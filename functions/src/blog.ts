@@ -10,9 +10,12 @@ export type FirestoreBlog = {
   tags?: string[];
   category: string;
   author: string;
+  coverImageUrl?: string;
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
+    ogImageUrl?: string;
+    ogImage?: string;
   };
 };
 

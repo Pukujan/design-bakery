@@ -15,16 +15,16 @@
   },
   {
     "name": "Behance",
-    "icon": "ExternalLink",
+    "icon": "Behance",
     "href": "https://www.behance.net/pujan3645",
     "handle": "/pujan3645",
     "color": "#FFD93D"
   },
   {
-    "name": "Instagram",
-    "icon": "Instagram",
-    "href": "https://www.instagram.com/pujan3645",
-    "handle": "@pujan3645",
+    "name": "GitHub",
+    "icon": "Github",
+    "href": "https://github.com/pukujan",
+    "handle": "github.com/pukujan",
     "color": "#FF8C42"
   }
 ]

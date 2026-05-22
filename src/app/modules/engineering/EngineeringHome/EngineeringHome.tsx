@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { EngineeringHero } from '../EngineeringHero/EngineeringHero';
 import { EngineeringProjects } from '../EngineeringProjects/EngineeringProjects';
 import { EngineeringCommunity } from '../EngineeringCommunity/EngineeringCommunity';
@@ -9,6 +11,16 @@ import { Contact } from '../../../components/Contact';
 import { Footer } from '../../../components/Footer';
 
 export function EngineeringHome() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.hash) return;
+    const id = decodeURIComponent(location.hash.replace(/^#/, ''));
+    requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    });
+  }, [location.pathname, location.hash]);
+
   return (
     <>
       <EngineeringHero />

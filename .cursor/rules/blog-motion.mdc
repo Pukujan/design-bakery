@@ -1,6 +1,6 @@
 ---
 description: Blog motion — read agent devlog before animation or decor changes
-globs: src/app/components/BlogPageMotion.tsx,src/app/modules/engineering/BlogListPage/**,src/app/modules/engineering/BlogDetailPage/**,extras/design changes to blog details/app/components/BlogDetailPage.tsx,guidelines/agent-devlog-blog-motion.md
+globs: src/app/components/BlogPageMotion.tsx,src/app/modules/engineering/BlogListPage/**,src/app/modules/engineering/BlogDetailPage/**,guidelines/agent-devlog-blog-motion.md
 alwaysApply: false
 ---
 

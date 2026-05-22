@@ -1,0 +1,439 @@
+/**
+ * Blog Mermaid render + scroll viewport + zoom controls.
+ * guidelines/agent-devlog-mermaid.md
+ */
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ZoomIn, ZoomOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import mermaid from 'mermaid';
+import { enqueueMermaidRender } from './mermaidRenderQueue';
+import { useInView } from './useInView';
+
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'default',
+  securityLevel: 'loose',
+});
+
+const CHART_SHELL_CLASS =
+  'blog-mermaid-chart my-4 sm:my-5 md:my-6 p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg md:rounded-xl border-2 sm:border-2 md:border-3 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-xs sm:text-xs md:text-sm';
+
+const TALL_THRESHOLD_PX = 280;
+const WIDTH_SLOP_PX = 8;
+const ZOOM_MIN = 0.75;
+const ZOOM_MAX = 3;
+const ZOOM_STEP_BUTTON = 0.25;
+const ZOOM_STEP_SLIDER = 0.05;
+const TRACKPAD_ZOOM_STEP = 0.08;
+const WHEEL_SNAP_MS = 150;
+
+type ChartSize = { width: number; height: number };
+type PointerPoint = { x: number; y: number };
+type ZoomFocal = { clientX: number; clientY: number };
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getSvg(container: HTMLElement | null): SVGSVGElement | null {
+  return container?.querySelector('svg') ?? null;
+}
+
+function measureSvgSize(svg: SVGSVGElement): ChartSize {
+  return {
+    width: svg.scrollWidth || 1,
+    height: svg.scrollHeight || 1,
+  };
+}
+
+function pointerDistance(a: PointerPoint, b: PointerPoint): number {
+  return Math.hypot(b.x - a.x, b.y - a.y);
+}
+
+function pointerCenter(a: PointerPoint, b: PointerPoint): PointerPoint {
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+}
+
+function chartNeedsScroll(
+  viewport: HTMLElement,
+  baseSize: ChartSize,
+  zoom: number,
+): boolean {
+  if (zoom > 1) return true;
+  const tall = baseSize.height > TALL_THRESHOLD_PX;
+  const wide = baseSize.width > viewport.clientWidth + WIDTH_SLOP_PX;
+  return tall || wide;
+}
+
+/** Keep the point under (clientX, clientY) fixed while zoom changes. */
+function adjustScrollForFocal(
+  viewport: HTMLElement,
+  prevZoom: number,
+  nextZoom: number,
+  focal: ZoomFocal,
+) {
+  if (prevZoom === nextZoom || prevZoom <= 0) return;
+
+  const rect = viewport.getBoundingClientRect();
+  const px = focal.clientX - rect.left;
+  const py = focal.clientY - rect.top;
+  const ratio = nextZoom / prevZoom;
+
+  const maxLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+  const maxTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
+
+  viewport.scrollLeft = clamp((viewport.scrollLeft + px) * ratio - px, 0, maxLeft);
+  viewport.scrollTop = clamp((viewport.scrollTop + py) * ratio - py, 0, maxTop);
+}
+
+function estimateLoadingMinHeight(chart: string): number {
+  const lines = chart.split('\n').filter((line) => line.trim().length > 0).length;
+  return clamp(200 + lines * 14, TALL_THRESHOLD_PX, 520);
+}
+
+export function MermaidDiagram({ chart }: { chart: string }) {
+  const shellRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const chartSourceRef = useRef(chart);
+  const shouldRender = useInView(shellRef);
+
+  const [error, setError] = useState<string | null>(null);
+  const [chartSize, setChartSize] = useState<ChartSize>({ width: 0, height: 0 });
+  const [isScrollable, setIsScrollable] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [isRendering, setIsRendering] = useState(true);
+
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
+  const errorRef = useRef(error);
+  errorRef.current = error;
+
+  const pointersRef = useRef<Map<number, PointerPoint>>(new Map());
+  const pinchStartRef = useRef<{ distance: number; zoom: number } | null>(null);
+  const wheelSnapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastWheelFocalRef = useRef<ZoomFocal | null>(null);
+  const lastPinchFocalRef = useRef<ZoomFocal | null>(null);
+  const focalPendingRef = useRef<{ prevZoom: number; focal: ZoomFocal } | null>(null);
+
+  const getViewportCenterFocal = useCallback((): ZoomFocal | undefined => {
+    const viewport = viewportRef.current;
+    if (!viewport) return undefined;
+    const rect = viewport.getBoundingClientRect();
+    return {
+      clientX: rect.left + rect.width / 2,
+      clientY: rect.top + rect.height / 2,
+    };
+  }, []);
+
+  const applyZoom = useCallback((next: number, snapToSliderStep: boolean, focal?: ZoomFocal) => {
+    const prevZoom = zoomRef.current;
+    const clamped = clamp(next, ZOOM_MIN, ZOOM_MAX);
+    const value = snapToSliderStep
+      ? clamp(Math.round(clamped / ZOOM_STEP_SLIDER) * ZOOM_STEP_SLIDER, ZOOM_MIN, ZOOM_MAX)
+      : clamped;
+
+    if (focal && prevZoom !== value) {
+      focalPendingRef.current = { prevZoom, focal };
+    }
+    setZoom(value);
+  }, []);
+
+  const applyZoomRef = useRef(applyZoom);
+  applyZoomRef.current = applyZoom;
+
+  useLayoutEffect(() => {
+    const pending = focalPendingRef.current;
+    if (!pending) return;
+
+    const viewport = viewportRef.current;
+    if (!viewport) {
+      focalPendingRef.current = null;
+      return;
+    }
+
+    adjustScrollForFocal(viewport, pending.prevZoom, zoomRef.current, pending.focal);
+    focalPendingRef.current = null;
+  }, [zoom]);
+
+  /** Layout measurement only — must not be a dependency of the mermaid render effect. */
+  const measureChart = useCallback(() => {
+    const viewport = viewportRef.current;
+    const svg = getSvg(containerRef.current);
+    if (!viewport || !svg || viewport.clientWidth === 0) {
+      return;
+    }
+    const size = measureSvgSize(svg);
+    setChartSize(size);
+    setIsScrollable(chartNeedsScroll(viewport, size, zoomRef.current));
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !shouldRender) return;
+
+    let cancelled = false;
+    const chartChanged = chartSourceRef.current !== chart;
+    chartSourceRef.current = chart;
+
+    const renderChart = async () => {
+      try {
+        const id = `blog-mmd-${Math.random().toString(36).slice(2, 11)}`;
+        const { svg, bindFunctions } = await enqueueMermaidRender(() => mermaid.render(id, chart));
+        if (cancelled) return;
+        el.innerHTML = svg;
+        bindFunctions?.(el);
+        setError(null);
+        setZoom(1);
+        focalPendingRef.current = null;
+        requestAnimationFrame(() => {
+          if (!cancelled) {
+            measureChart();
+            setIsRendering(false);
+          }
+        });
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to render diagram');
+          setIsRendering(false);
+        }
+      }
+    };
+
+    setIsRendering(true);
+    if (chartChanged) {
+      setChartSize({ width: 0, height: 0 });
+      setIsScrollable(false);
+      setError(null);
+    }
+    void renderChart();
+
+    return () => {
+      cancelled = true;
+      el.innerHTML = '';
+    };
+  }, [chart, measureChart, shouldRender]);
+
+  useEffect(() => {
+    measureChart();
+  }, [zoom, measureChart]);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const observer = new ResizeObserver(() => measureChart());
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, [measureChart]);
+
+  /** Trackpad pinch on laptop (Ctrl/Cmd + scroll). */
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const onWheel = (event: WheelEvent) => {
+      if (errorRef.current) return;
+      const isZoomWheel = event.ctrlKey || event.metaKey || event.shiftKey;
+      if (!isZoomWheel) return;
+
+      event.preventDefault();
+      const focal: ZoomFocal = { clientX: event.clientX, clientY: event.clientY };
+      lastWheelFocalRef.current = focal;
+
+      const delta = event.deltaY > 0 ? -TRACKPAD_ZOOM_STEP : TRACKPAD_ZOOM_STEP;
+      applyZoomRef.current(zoomRef.current + delta, false, focal);
+
+      if (wheelSnapTimerRef.current) clearTimeout(wheelSnapTimerRef.current);
+      wheelSnapTimerRef.current = setTimeout(() => {
+        const snapFocal = lastWheelFocalRef.current ?? focal;
+        applyZoomRef.current(zoomRef.current, true, snapFocal);
+        wheelSnapTimerRef.current = null;
+      }, WHEEL_SNAP_MS);
+    };
+
+    viewport.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      viewport.removeEventListener('wheel', onWheel);
+      if (wheelSnapTimerRef.current) clearTimeout(wheelSnapTimerRef.current);
+    };
+  }, []);
+
+  const getLocalPoint = (event: React.PointerEvent): PointerPoint => ({
+    x: event.clientX,
+    y: event.clientY,
+  });
+
+  const handleViewportPointerDown = (event: React.PointerEvent) => {
+    if (error) return;
+    pointersRef.current.set(event.pointerId, getLocalPoint(event));
+
+    if (pointersRef.current.size === 2) {
+      const pts = [...pointersRef.current.values()];
+      pinchStartRef.current = {
+        distance: Math.max(pointerDistance(pts[0], pts[1]), 1),
+        zoom: zoomRef.current,
+      };
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+  };
+
+  const handleViewportPointerMove = (event: React.PointerEvent) => {
+    if (error || !pointersRef.current.has(event.pointerId)) return;
+
+    pointersRef.current.set(event.pointerId, getLocalPoint(event));
+
+    if (pointersRef.current.size >= 2 && pinchStartRef.current) {
+      event.preventDefault();
+      const pts = [...pointersRef.current.values()].slice(0, 2);
+      const dist = Math.max(pointerDistance(pts[0], pts[1]), 1);
+      const ratio = dist / pinchStartRef.current.distance;
+      const center = pointerCenter(pts[0], pts[1]);
+      lastPinchFocalRef.current = center;
+      applyZoom(pinchStartRef.current.zoom * ratio, false, center);
+    }
+  };
+
+  const handleViewportPointerUp = (event: React.PointerEvent) => {
+    pointersRef.current.delete(event.pointerId);
+
+    if (pointersRef.current.size < 2) {
+      if (pinchStartRef.current) {
+        const focal = lastPinchFocalRef.current ?? getViewportCenterFocal();
+        if (focal) applyZoom(zoomRef.current, true, focal);
+      }
+      pinchStartRef.current = null;
+    } else if (pointersRef.current.size === 2) {
+      const pts = [...pointersRef.current.values()];
+      pinchStartRef.current = {
+        distance: Math.max(pointerDistance(pts[0], pts[1]), 1),
+        zoom: zoomRef.current,
+      };
+    }
+  };
+
+  const zoomOut = () => applyZoom(zoom - ZOOM_STEP_BUTTON, true, getViewportCenterFocal());
+  const zoomIn = () => applyZoom(zoom + ZOOM_STEP_BUTTON, true, getViewportCenterFocal());
+
+  const zoomPercent = Math.round(zoom * 100);
+  const isLoading = !shouldRender || (isRendering && !error);
+  const loadingMinHeight = estimateLoadingMinHeight(chart);
+  const useScrollFrame = isScrollable || zoom > 1;
+  const scaledWidth = chartSize.width * zoom;
+  const scaledHeight = chartSize.height * zoom;
+
+  const viewportClassName = [
+    'blog-mermaid-viewport blog-mermaid-viewport--gesture',
+    isLoading ? 'blog-mermaid-viewport--loading' : '',
+    useScrollFrame ? 'blog-mermaid-viewport--scroll' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const hintText = useScrollFrame
+    ? 'Pinch, Shift+scroll, or Ctrl/⌘+scroll to zoom · scroll inside the frame to move · or use +/− and the slider'
+    : 'Pinch, Shift+scroll, or Ctrl/⌘+scroll to zoom · or use +/− and the slider';
+
+  return (
+    <div
+      ref={shellRef}
+      className={CHART_SHELL_CLASS}
+      role="group"
+      aria-label="Diagram with zoom and scroll controls"
+      aria-busy={isLoading}
+    >
+      <div className="blog-mermaid-toolbar">
+        <div className="blog-mermaid-toolbar__buttons">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="blog-mermaid-toolbar__btn"
+            onClick={zoomOut}
+            disabled={isLoading || zoom <= ZOOM_MIN || Boolean(error)}
+            aria-label="Zoom out"
+          >
+            <ZoomOut className="h-4 w-4" aria-hidden />
+          </Button>
+          <span className="blog-mermaid-toolbar__label" aria-live="polite">
+            {zoomPercent}%
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="blog-mermaid-toolbar__btn"
+            onClick={zoomIn}
+            disabled={isLoading || zoom >= ZOOM_MAX || Boolean(error)}
+            aria-label="Zoom in"
+          >
+            <ZoomIn className="h-4 w-4" aria-hidden />
+          </Button>
+        </div>
+        <label className="blog-mermaid-toolbar__slider-wrap">
+          <span className="sr-only">Diagram zoom level</span>
+          <input
+            type="range"
+            className="blog-mermaid-toolbar__slider"
+            min={ZOOM_MIN * 100}
+            max={ZOOM_MAX * 100}
+            step={ZOOM_STEP_SLIDER * 100}
+            value={zoomPercent}
+            disabled={isLoading || Boolean(error)}
+            onChange={(e) => {
+              const focal = getViewportCenterFocal();
+              applyZoom(Number(e.target.value) / 100, true, focal);
+            }}
+            aria-valuemin={ZOOM_MIN * 100}
+            aria-valuemax={ZOOM_MAX * 100}
+            aria-valuenow={zoomPercent}
+            aria-valuetext={`${zoomPercent} percent`}
+          />
+        </label>
+      </div>
+
+      <div
+        ref={viewportRef}
+        className={viewportClassName}
+        style={isLoading ? { minHeight: loadingMinHeight } : undefined}
+        onPointerDown={isLoading ? undefined : handleViewportPointerDown}
+        onPointerMove={isLoading ? undefined : handleViewportPointerMove}
+        onPointerUp={isLoading ? undefined : handleViewportPointerUp}
+        onPointerCancel={isLoading ? undefined : handleViewportPointerUp}
+      >
+        {isLoading ? (
+          <div className="blog-mermaid-skeleton" aria-hidden>
+            <p className="blog-mermaid-skeleton__label">Loading diagram…</p>
+          </div>
+        ) : null}
+        <div
+          className="blog-mermaid-zoom-spacer"
+          style={{
+            width: scaledWidth > 0 ? scaledWidth : undefined,
+            height: scaledHeight > 0 ? scaledHeight : undefined,
+          }}
+        >
+          <div
+            className="blog-mermaid-zoom-layer"
+            style={{
+              width: chartSize.width > 0 ? chartSize.width : undefined,
+              height: chartSize.height > 0 ? chartSize.height : undefined,
+              transform: `scale(${zoom})`,
+            }}
+          >
+            <div ref={containerRef} className="blog-mermaid-svg-host" role="img" aria-label="Diagram" />
+          </div>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <p className="blog-mermaid-hint" aria-live="polite">
+          Loading diagram…
+        </p>
+      ) : null}
+      {!error && !isLoading ? <p className="blog-mermaid-hint">{hintText}</p> : null}
+
+      {error ? <p className="text-red-600 dark:text-red-400 text-sm font-medium mt-2">{error}</p> : null}
+    </div>
+  );
+}

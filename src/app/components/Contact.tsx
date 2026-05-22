@@ -2,12 +2,18 @@ import { motion } from 'motion/react';
 import { Heart, ExternalLink } from 'lucide-react';
 import { FlowerCharacter } from './FlowerCharacter';
 import { Star, Squiggle } from './GraphicElements';
+import { useMemo } from 'react';
 import { useContactSection, useSocialLinksContent } from '../lib/contentHooks';
-import { resolveIcon } from '../lib/iconResolver';
+import { normalizeContactSocialLinks } from '../lib/normalizeSocialLinks';
+import { resolveContactSocialIcon } from '../lib/socialIconResolver';
 
 export function Contact() {
   const content = useContactSection();
-  const socialLinksData = useSocialLinksContent();
+  const socialLinksRaw = useSocialLinksContent();
+  const socialLinksData = useMemo(
+    () => normalizeContactSocialLinks(socialLinksRaw),
+    [socialLinksRaw],
+  );
 
   return (
     <section id="contact" className="py-24 px-6 relative overflow-hidden min-h-screen flex items-center bg-gradient-to-br from-yellow-300 via-pink-300 to-purple-400">
@@ -104,10 +110,10 @@ export function Contact() {
           className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto mb-16"
         >
           {socialLinksData.map((link, index) => {
-            const Icon = resolveIcon(link.icon);
+            const Icon = resolveContactSocialIcon(link.name, link.icon, link.href);
             return (
               <motion.a
-                key={link.name}
+                key={`${link.name}-${link.href}`}
                 href={link.href}
                 initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
                 whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
@@ -123,11 +129,11 @@ export function Contact() {
                 <div
                   className="flex items-center gap-4 p-6 bg-white dark:bg-gray-900 rounded-3xl border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all"
                 >
-                  <div 
-                    className="flex-shrink-0 w-16 h-16 flex items-center justify-center rounded-2xl border-4 border-black"
+                  <div
+                    className="flex-shrink-0 w-16 h-16 flex items-center justify-center rounded-2xl border-4 border-black p-1.5"
                     style={{ backgroundColor: link.color }}
                   >
-                    <Icon className="w-8 h-8 text-white" />
+                    <Icon className="w-full h-full text-white" />
                   </div>
                   
                   <div className="flex-1 min-w-0">

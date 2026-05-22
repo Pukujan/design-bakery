@@ -16,10 +16,15 @@
     "paths": {
       "@/*": ["src/app/*"],
       "@ekagajpatra-case-study/*": ["extras/Create Presentation Case Study/src/*"],
-      "@blog-detail-v2/*": ["extras/design changes to blog details/app/*"],
       "@invest-ai-case-study/*": ["extras/invest-ai-case-study/src/*"]
     }
   },
   "include": ["src", "extras/invest-ai-case-study/src", "extras/Create Presentation Case Study/src"],
-  "exclude": ["node_modules", "dist", "functions"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "functions",
+    "archive",
+    "extras/design changes to blog details/**"
+  ]
 }

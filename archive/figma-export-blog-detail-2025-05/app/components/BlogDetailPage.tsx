@@ -1,12 +1,12 @@
 /** Blog motion: guidelines/agent-devlog-blog-motion.md | Mermaid: guidelines/agent-devlog-mermaid.md */
-import { Children, isValidElement, useRef, useState, type ReactNode } from 'react';
+import { Children, isValidElement, useEffect, useRef, useState, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Clock, Tag, Calendar, User } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Squiggle } from '@/components/GraphicElements';
+import { Squiggle } from './GraphicElements';
 import {
   BlogPageDecor,
   MotionSection,
@@ -18,11 +18,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { MermaidDiagram } from './MermaidDiagram';
-import { useBlogCategories, useBlogData, useBlogPost } from '@/modules/engineering/blogData';
-import { resolveBlogCoverUrl } from '@/modules/engineering/blogMeta';
-import { BlogPostHead } from './BlogPostHead';
-import { BlogDetailPageSkeleton } from './BlogDetailPageSkeleton';
-import { useStickySidebar } from './useStickySidebar';
+import { useBlogCategories, useBlogData } from '@/modules/engineering/blogData';
+import { BlogDetailPageSkeleton } from '@/modules/engineering/BlogDetailPage/BlogDetailPageSkeleton';
+import { useStickySidebar } from '@/modules/engineering/BlogDetailPage/useStickySidebar';
 import { usePortfolio } from '@/portfolios/PortfolioContext';
 
 const HEADING_SCROLL_MARGIN = 'scroll-mt-32';
@@ -33,7 +31,7 @@ function flattenMarkdownText(node: ReactNode): string {
       if (typeof child === 'string' || typeof child === 'number') {
         return String(child);
       }
-      if (isValidElement<{ children?: ReactNode }>(child) && child.props.children) {
+      if (isValidElement(child) && child.props.children) {
         return flattenMarkdownText(child.props.children);
       }
       return '';
@@ -233,11 +231,11 @@ export function BlogDetailPage() {
   const { blogId } = useParams<{ blogId: string }>();
   const navigate = useNavigate();
   const { pathTo } = usePortfolio();
-  const routeId = Number(blogId);
-  const { blog, isLoading } = useBlogPost(routeId);
-  const { blogs: blogSummaries } = useBlogData();
+  const { blogs, isLoading } = useBlogData();
   const categories = useBlogCategories();
   const blogsPath = pathTo('/blogs');
+
+  const blog = blogs.find((b) => b.id === Number(blogId));
   const { columnRef, sidebarRef, sidebarStyle } = useStickySidebar();
 
   if (isLoading && !blog) {
@@ -255,16 +253,14 @@ export function BlogDetailPage() {
     );
   }
 
-  const similarBlogs = blogSummaries
+  const similarBlogs = blogs
     .filter((b) => b.category === blog.category && b.id !== blog.id)
     .slice(0, 3);
 
   const contentToRender = blog.content || 'No content available';
-  const coverImageUrl = resolveBlogCoverUrl(blog);
 
   return (
     <section className="min-h-screen pt-28 sm:pt-32 md:pt-36 pb-12 sm:pb-14 md:pb-16 px-4 sm:px-5 md:px-6 bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 relative overflow-hidden">
-      <BlogPostHead blog={blog} />
       <BlogPageDecor variant="detail" seed={blogId ?? blog.id} />
 
       {/* Fixed Back Button */}
@@ -301,18 +297,6 @@ export function BlogDetailPage() {
                 {blog.title}
               </h1>
 
-              {coverImageUrl ? (
-                <div className="mb-4 sm:mb-5 md:mb-6 ml-11 sm:ml-12 md:ml-0">
-                  <img
-                    src={coverImageUrl}
-                    alt=""
-                    className="w-full max-h-[min(420px,50vh)] object-cover rounded-lg md:rounded-xl border-2 sm:border-2 md:border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                    loading="eager"
-                    decoding="async"
-                  />
-                </div>
-              ) : null}
-
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mb-2.5 sm:mb-3 md:mb-4 text-xs sm:text-xs md:text-sm text-gray-600 dark:text-gray-400 ml-11 sm:ml-12 md:ml-0">
                 <div className="flex items-center gap-1 sm:gap-1 md:gap-1.5">
                   <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
@@ -346,7 +330,7 @@ export function BlogDetailPage() {
             </MotionSection>
 
             {/* Blog Content */}
-            <MotionSection className="w-full">
+            <MotionSection delay={0.15} className="w-full">
               <motion.div whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 300, damping: 22 }}>
               <Card className="p-4 sm:p-5 md:p-6 lg:p-8 border-3 md:border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900 overflow-hidden">
                 <div className="blog-article-prose prose prose-sm sm:prose-sm md:prose-base max-w-none dark:prose-invert leading-relaxed break-words">
@@ -364,7 +348,7 @@ export function BlogDetailPage() {
 
             {/* Similar Blogs Section */}
             {similarBlogs.length > 0 && (
-              <MotionSection className="mt-6 sm:mt-8 md:mt-12">
+              <MotionSection delay={0.25} className="mt-6 sm:mt-8 md:mt-12">
                 <h2 className="text-lg sm:text-xl md:text-2xl font-black mb-4 sm:mb-5 md:mb-6 text-gray-900 dark:text-gray-100 border-l-4 sm:border-l-5 md:border-l-6 border-purple-500 pl-2 sm:pl-2.5 md:pl-3">
                   Similar Articles
                 </h2>
@@ -417,7 +401,7 @@ export function BlogDetailPage() {
                 </h3>
                 <div className="space-y-3">
                   {categories.filter((cat) => cat.id !== 'all').map((category) => {
-                    const categoryCount = blogSummaries.filter((b) => b.category === category.id).length;
+                    const categoryCount = blogs.filter((b) => b.category === category.id).length;
                     const isActive = category.id === blog.category;
 
                     return (

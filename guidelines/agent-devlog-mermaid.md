@@ -3,11 +3,12 @@
 **For Cursor agents.** Read this **before** any change to blog Mermaid styling or rendering.
 
 **In-repo pointers (so this doc is not missed):**
-- `extras/design changes to blog details/app/components/BlogDetailPage.tsx` — comment above `mermaid.initialize`
+- `src/app/modules/engineering/BlogDetailPage/MermaidDiagram.tsx` — `mermaid.initialize`
+- `src/app/modules/engineering/BlogDetailPage/BlogDetailPage.tsx` — markdown `code` for `language-mermaid`
 - `src/styles/globals.css` — comment above `.blog-mermaid-chart`
 - `.cursor/rules/blog-mermaid.mdc` — auto-attached when editing those files
 
-**Canonical implementation:** `extras/design changes to blog details/app/components/MermaidDiagram.tsx` (imported by `BlogDetailPage.tsx`).  
+**Canonical implementation:** `src/app/modules/engineering/BlogDetailPage/MermaidDiagram.tsx` (imported by `BlogDetailPage.tsx`).  
 **Styles:** `src/styles/globals.css` (`.blog-mermaid-chart` only).  
 **Test URL:** http://localhost:5300/endtoend-engineer/blogs/1 (dev port **5300**).
 
@@ -49,13 +50,16 @@ Every diagram has a **toolbar**: zoom out / zoom in buttons, **% label**, and a 
 - Zoom applies via `transform: scale()` on `.blog-mermaid-zoom-layer` inside a sized `.blog-mermaid-zoom-spacer` so scroll area grows correctly.
 - **Focal zoom:** after each zoom change, scroll is adjusted so the point under the cursor / pinch center stays fixed (not top-left growth only).
 - Scroll frame (`.blog-mermaid-viewport--scroll`) when the chart is large at 100% **or** when zoom &gt; 1: `max-height: min(70vh, 520px)`, `overflow: auto`.
+- **Loading placeholder:** shimmer + inline `min-height` from chart line-count estimate (cap 520px). Do not reset `chartSize` unless the `chart` string changed.
+- **Lazy render:** `useInView` + `rootMargin: 240px` — `mermaid.render()` only when the block nears the viewport.
+- **Queue:** `enqueueMermaidRender()` in `mermaidRenderQueue.ts` — one diagram at a time on diagram-heavy posts.
 - **Pinch** (touchscreen or trackpad that reports two pointers): updates zoom, synced with slider.
 - **Mouse / trackpad wheel:** **Shift+scroll** or **Ctrl+scroll** (Windows/Linux) or **⌘+scroll** (Mac) on the viewport zooms toward the cursor.
 - **Pan:** scroll / swipe inside the frame (native `overflow: auto`); one-finger on touch, wheel or drag scroll on laptop.
 - **Scroll chaining:** `overscroll-behavior: auto` on the viewport — at top/bottom/edge, continued scrolling moves the **page** (do not use `contain`; it traps scroll inside the chart).
 - **Do not** mutate SVG node styles after render — only wrapper transform.
 
-**Test:** http://localhost:5300/endtoend-engineer/blogs/7
+**Test:** http://localhost:5300/endtoend-engineer/blogs/9 (CodeGraph agents post; was `/blogs/7` before 2026-05 swap with post 9)
 
 ---
 
@@ -105,9 +109,8 @@ For **new long-form posts**, default to **`flowchart TD`** or **`sequenceDiagram
 
 ## Related files
 
-- `extras/design changes to blog details/app/components/MermaidDiagram.tsx` — render + scroll viewport
-- `extras/design changes to blog details/app/components/BlogDetailPage.tsx` — markdown `code` for `language-mermaid`
-- `src/app/modules/engineering/BlogDetailPage/BlogDetailPage.tsx` — re-export only
+- `src/app/modules/engineering/BlogDetailPage/MermaidDiagram.tsx` — render + scroll viewport
+- `src/app/modules/engineering/BlogDetailPage/BlogDetailPage.tsx` — markdown `code` for `language-mermaid`
 - `src/styles/globals.css` — `.blog-mermaid-chart` rules
 - `guidelines/dev-log-2026-05-20.md` — broader blog detail session log
 - `guidelines/agent-devlog-index.md` — master agent index

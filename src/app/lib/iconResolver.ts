@@ -1,5 +1,7 @@
+import type { ComponentType } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { ExternalLink, type LucideIcon } from 'lucide-react';
+import { BehanceIcon } from '../components/SocialBrandIcons';
 
 /**
  * Dynamically resolve a Lucide icon by name from JSON config.
@@ -14,15 +16,24 @@ import { ExternalLink, type LucideIcon } from 'lucide-react';
  * const icon = resolveIcon('LinkedIn');  // Returns Linkedin icon (auto-aliased)
  * const icon = resolveIcon('NonExistent');  // Returns ExternalLink icon (fallback)
  */
-export function resolveIcon(iconName: string | undefined, fallback: LucideIcon = ExternalLink): LucideIcon {
+export function resolveIcon(
+  iconName: string | undefined,
+  fallback: LucideIcon = ExternalLink,
+): ComponentType<{ className?: string }> {
   if (!iconName) return fallback;
-  
+
   const normalized = iconName.trim();
 
-  // Handle aliases (e.g., LinkedIn → Linkedin)
-  const alias = normalized === 'LinkedIn' ? 'Linkedin' : normalized;
+  if (normalized === 'Behance') return BehanceIcon;
 
-  // Try to find the icon in the Lucide namespace
+  // Handle aliases (e.g., LinkedIn → Linkedin)
+  const alias =
+    normalized === 'LinkedIn'
+      ? 'Linkedin'
+      : normalized === 'GitHub'
+        ? 'Github'
+        : normalized;
+
   const resolvedIcon = LucideIcons[alias as keyof typeof LucideIcons] as LucideIcon | undefined;
 
   return resolvedIcon ?? fallback;

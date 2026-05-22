@@ -20,7 +20,7 @@ export function BlogListPage() {
   const navigate = useNavigate();
   const { pathTo } = usePortfolio();
   const categories = useBlogCategories();
-  const { blogs } = useBlogData();
+  const { blogs, isLoading } = useBlogData();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -142,12 +142,21 @@ export function BlogListPage() {
 
         {/* Blogs Grid */}
         <div className="grid md:grid-cols-3 gap-8">
+          {isLoading && filteredBlogs.length === 0
+            ? Array.from({ length: 6 }, (_, idx) => (
+                <div
+                  key={`blog-skeleton-${idx}`}
+                  className="h-full min-h-[320px] rounded-xl border-6 border-black bg-white/80 dark:bg-gray-900/80 animate-pulse shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+                  aria-hidden
+                />
+              ))
+            : null}
           {filteredBlogs.map((blog, idx) => (
             <motion.div
               key={blog.id}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: idx * 0.1 }}
+              transition={{ duration: 0.4, delay: Math.min(idx * 0.05, 0.25) }}
               {...blogCardMotion}
             >
               <Card

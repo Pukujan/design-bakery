@@ -1,5 +1,6 @@
 import { NavLink, Outlet, Navigate, Link } from 'react-router-dom';
 import { useAdminAuth } from '../../lib/adminAuth';
+import { ADMIN_IDLE_TIMEOUT_MS } from '../../lib/adminSession';
 import { Button } from '../../components/ui/button';
 import {
   BookOpen,
@@ -141,7 +142,10 @@ export function AdminLayout() {
         <AdminPushDefaults />
 
         <div className="border-t border-gray-200 p-3 dark:border-gray-800">
-          <p className="mb-2 truncate text-xs text-gray-400">{user.email}</p>
+          <p className="mb-1 truncate text-xs text-gray-400">{user.email}</p>
+          <p className="mb-2 text-[10px] leading-snug text-gray-400">
+            Auto sign-out after {Math.round(ADMIN_IDLE_TIMEOUT_MS / 60000)} min idle
+          </p>
           <Button variant="outline" size="sm" className="w-full" onClick={signOut}>
             <LogOut className="mr-2 h-4 w-4" />
             Sign out

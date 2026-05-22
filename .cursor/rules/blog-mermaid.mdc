@@ -1,6 +1,6 @@
 ---
 description: Blog Mermaid — read agent devlog before styling or render changes
-globs: extras/design changes to blog details/app/components/BlogDetailPage.tsx,src/app/modules/engineering/BlogDetailPage/**,src/styles/globals.css,guidelines/agent-devlog-mermaid.md
+globs: src/app/modules/engineering/BlogDetailPage/**,src/styles/globals.css,guidelines/agent-devlog-mermaid.md
 alwaysApply: false
 ---
 
@@ -16,4 +16,5 @@ alwaysApply: false
 - **Use:** `theme: 'default'`, `startOnLoad: false`, `mermaid.render()` per chart, wrapper class `blog-mermaid-chart`
 - **Do not:** `theme: 'base'` + `themeVariables`, `contentLoaded()`, post-render SVG JS, `#mermaid-*` CSS selectors
 - **Colors:** change hex in `globals.css` under `.blog-mermaid-chart` only
+- **Loading:** `.blog-mermaid-viewport--loading` reserves `min-height: min(70vh, 520px)` until SVG measures; do not zero `chartSize` unless `chart` text changed
 - **Test:** http://localhost:5300/endtoend-engineer/blogs/1 after any change

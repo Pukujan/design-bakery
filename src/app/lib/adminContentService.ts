@@ -21,7 +21,15 @@ import { firestore } from './firebase';
 import type { PortfolioId } from '../portfolios/registry';
 import { DEFAULT_PORTFOLIO_ID } from '../portfolios/registry';
 import { resolveCollection } from '../portfolios/collections';
-import { blogPostMergeKey, mergeBlogPostsWithFallback } from '../modules/engineering/blogData';
+import {
+  blogPostMergeKey,
+  invalidateBlogCache,
+  mergeBlogPostsWithFallback,
+  nextBlogNumericId,
+  resolveBlogNumericId,
+  type BlogSeo,
+} from '../modules/engineering/blogData';
+import { normalizeBlogSeo } from '../modules/engineering/blogMeta';
 import { normalizeProjectLinks } from './caseStudyRoutes';
 
 // Local JSON fallbacks (used when Firestore collection is empty / not yet seeded)
@@ -145,6 +153,8 @@ export async function getObjectDoc<T>(collectionName: string, fallback: T): Prom
 // Blog Posts  (stored as individual docs for easy CRUD)
 // ─────────────────────────────────────────────────────────────
 
+export type { BlogSeo };
+
 export interface BlogPost {
   id?: string;          // Firestore doc ID
   numericId?: number;   // original numeric ordering
@@ -157,6 +167,17 @@ export interface BlogPost {
   color: string;
   author: string;
   content: string;
+  coverImageUrl?: string;
+  seo?: BlogSeo;
+}
+
+function normalizeBlogPostForSave(post: BlogPost): Omit<BlogPost, 'id'> {
+  const { id: _id, ...data } = post;
+  return {
+    ...data,
+    coverImageUrl: data.coverImageUrl?.trim() || undefined,
+    seo: normalizeBlogSeo(data.seo),
+  };
 }
 
 export async function getBlogs(): Promise<BlogPost[]> {
@@ -206,28 +227,47 @@ async function seedMissingFallbackBlogs(): Promise<number> {
   return missing.length;
 }
 
+async function ensureUniqueNumericId(
+  data: Omit<BlogPost, 'id'>,
+  excludeDocId?: string,
+): Promise<void> {
+  const existing = await getBlogs();
+  const usedByOthers = new Set(
+    existing
+      .filter((p) => p.id !== excludeDocId)
+      .map((p) => resolveBlogNumericId(p))
+      .filter((n) => n > 0),
+  );
+
+  const current = resolveBlogNumericId(data);
+  if (current <= 0 || usedByOthers.has(current)) {
+    data.numericId = nextBlogNumericId(existing);
+  } else {
+    data.numericId = current;
+  }
+}
+
 export async function saveBlog(post: BlogPost): Promise<string> {
   await seedMissingFallbackBlogs();
+  invalidateBlogCache();
 
   if (post.id) {
-    const { id, ...data } = post;
+    const { id } = post;
+    const data = normalizeBlogPostForSave(post);
+    await ensureUniqueNumericId(data, id);
     await setDoc(doc(db(), 'blog_posts', id), data);
     return id;
   }
 
-  const data: BlogPost = { ...post };
-  if (!data.numericId || data.numericId <= 0) {
-    const existing = await getBlogs();
-    const maxId = existing.reduce((max, p) => Math.max(max, p.numericId ?? 0), 0);
-    data.numericId = maxId + 1;
-  }
-
+  const data = normalizeBlogPostForSave(post);
+  await ensureUniqueNumericId(data);
   const ref = await addDoc(collection(db(), 'blog_posts'), data);
   return ref.id;
 }
 
 export async function deleteBlog(id: string) {
   await deleteDoc(doc(db(), 'blog_posts', id));
+  invalidateBlogCache();
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -652,10 +692,10 @@ export const FOOTER_CONTENT_DEFAULT: FooterContent = {
   brandTitle: 'Design Baker',
   brandDescription: 'Engineered for reliability • Built for real-world impact',
   socialLinks: [
-    { icon: 'Github', href: '#', label: 'GitHub' },
-    { icon: 'Linkedin', href: '#', label: 'LinkedIn' },
-    { icon: 'Twitter', href: '#', label: 'Twitter' },
-    { icon: 'Mail', href: '#', label: 'Email' },
+    { icon: 'Github', href: 'https://github.com/pukujan', label: 'GitHub' },
+    { icon: 'Linkedin', href: 'https://www.linkedin.com/in/pujan3645', label: 'LinkedIn' },
+    { icon: 'Behance', href: 'https://www.behance.net/pujan3645', label: 'Behance' },
+    { icon: 'Mail', href: 'mailto:pujan3645@gmail.com', label: 'Email' },
   ],
   navigationLinks: [
     { label: 'Engineering', href: '/', type: 'route' },

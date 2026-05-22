@@ -3,7 +3,7 @@
 **For Cursor agents.** Read before adding or editing posts on the end-to-end engineer blog.
 
 **List:** http://localhost:5300/endtoend-engineer/blogs  
-**Detail renderer:** `extras/design changes to blog details/app/components/BlogDetailPage.tsx` (via `@blog-detail-v2`)  
+**Detail renderer:** `src/app/modules/engineering/BlogDetailPage/BlogDetailPage.tsx`  
 **Canonical data:** Firestore `blog_posts` (edited at `/admin/endtoend-engineer/blog`).  
 **Seed source:** `blog-data.json` — merged on the public site; copied into Firestore when the admin Blog editor loads (`syncBlogPostsFromSeed` → doc id `seed-<numericId>`).
 
@@ -17,6 +17,7 @@
 4. **Or** create/edit directly in admin (no JSON required for one-off posts).
 5. **Category** must exist in `blog-categories.json` / admin categories editor.
 6. **Verify** `/endtoend-engineer/blogs/<numericId>`.
+7. **Optional SEO & images** (admin Blog Posts editor): `seo.metaTitle`, `seo.metaDescription`, `seo.ogImageUrl`, `coverImageUrl` — cover can mirror OG via checkbox.
 
 Optional helper (from repo root):
 
@@ -64,10 +65,17 @@ Do not convert diagrams to `graph LR` when editing this post.
 
 ## Firestore
 
-- **Public site:** `getBlogDataLive()` merges JSON + Firestore (Firestore wins on same `numericId` + title).
-- **Admin:** `getBlogs()` uses the same merge; `syncBlogPostsFromSeed()` writes missing JSON rows to `blog_posts/seed-<numericId>`.
+- **List / insights / nav:** `useBlogData()` → `getBlogSummariesLive()` — metadata only in React state; **5 min in-memory cache** shared across hooks (still one Firestore read for all docs; network size unchanged until a `blog_posts_index` doc exists).
+- **Detail:** `useBlogPost(id)` → `getBlogByNumericIdLive()` — **single** `where('numericId', '==', id)` query (not the full collection).
+- **Public merge:** JSON + Firestore by **`numericId` only** (Firestore wins on collision).
+- **Admin:** `saveBlog()` / `deleteBlog()` call `invalidateBlogCache()`.
+- **Public meta:** `BlogPostHead` on detail — reads `blog.seo` + fallbacks to title/excerpt.
+- **Cover:** `coverImageUrl` below title; if empty, falls back to `seo.ogImageUrl`.
+- **Admin auth:** 10 min idle auto sign-out (`adminAuth.tsx`, `adminSession.ts`).
+- **Admin:** `getBlogs()` uses full merge; `syncBlogPostsFromSeed()` writes missing JSON rows to `blog_posts/seed-<numericId>`.
 - **Do not** assume `blog-data.json` alone updates production — visit admin blog once after adding a seed row, or call `syncBlogPostsFromSeed()` from admin code.
-- **ID collision warning:** If a Firestore blog already exists at a given `numericId`, do **not** add a different blog to `blog-data.json` with the same `id`. Two blogs sharing an `id` will both appear at the same URL (`/blogs/<id>`), and the `Array.find` lookup will return the wrong one. Always check the current max `id` in `blog-data.json` **and** Firestore before assigning a new `id`. When in doubt, skip an integer to leave room (e.g. use `id: 9` if `id: 8` is already in Firestore).
+- **ID collision:** `saveBlog()` calls `ensureUniqueNumericId()` — reassigns on clash. Do **not** hand-pick a `numericId` already used in JSON or Firestore. After a title edit, the post must keep the same `numericId` (merge is keyed by id, not title).
+- **Legacy duplicates:** `findBlogByNumericId()` prefers the newest `date` when two rows still share an id until you re-save the admin post (which bumps a clashing id).
 
 ---
 
