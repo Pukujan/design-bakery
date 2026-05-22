@@ -34,7 +34,16 @@ VITE_USE_FUNCTIONS_EMULATOR=true
 
 On Vercel: leave flags unset (enabled in prod) or set `VITE_ENABLE_BLOG_PUBLISH_KIT=false` to hide. Do **not** set `VITE_USE_FUNCTIONS_EMULATOR=true` in production.
 
-**Production CORS:** Admin on `design-bakery.com` proxies callables same-origin via `vercel.json` → `https://www.design-bakery.com/__/firebase-functions/invokeBlogPublishKit` (client uses `httpsCallableFromURL`). Redeploy **Vercel + Functions** after changes. Gen2 callables also set `CALLABLE_CORS` for direct `cloudfunctions.net` hits.
+**Production deploy (required once):**
+
+```bash
+firebase login
+cd functions && npm run deploy
+firebase functions:secrets:set OPENROUTER_API_KEY --project auth-system-be464
+# paste key from repo root .env when prompted
+```
+
+Gen2 callables use `CALLABLE_CORS` for `https://www.design-bakery.com`. A 404 from `cloudfunctions.net` means deploy did not run yet (browser may show CORS instead of 404).
 
 Functions: `OPENROUTER_API_KEY` in repo root `.env` (same file as `VITE_*`; no `VITE_` prefix on secrets). Optional `OPENROUTER_IMAGE_MODEL`, `PUBLISH_KIT_VISUAL_MODE=hybrid|template|ai`.
 

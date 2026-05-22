@@ -1,6 +1,7 @@
 import { CALLABLE_CORS } from './callableCors.js';
 import { loadProjectEnv } from './loadEnv.js';
 import { ensureFirebaseAdminApp } from './firebaseApp.js';
+import { openRouterApiKey } from './secrets.js';
 
 loadProjectEnv();
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
@@ -20,13 +21,27 @@ import { handlePublishKit } from './blog/publishKit/handler.js';
 ensureFirebaseAdminApp();
 
 function resolveApiKey(): string {
+  try {
+    const fromSecret = openRouterApiKey.value()?.trim();
+    if (fromSecret?.startsWith('sk-')) return fromSecret;
+  } catch {
+    /* emulator / local: secret optional */
+  }
   const fromEnv = process.env.OPENROUTER_API_KEY?.trim();
   if (fromEnv?.startsWith('sk-')) return fromEnv;
   throw new HttpsError(
     'failed-precondition',
-    'OPENROUTER_API_KEY is missing or empty in the repo root .env. Save the file (⌘S), then restart: pnpm run dev'
+    isFunctionsEmulator()
+      ? 'OPENROUTER_API_KEY is missing in root .env. Save the file, then restart pnpm run dev.'
+      : 'OPENROUTER_API_KEY is not configured in production. Run: firebase functions:secrets:set OPENROUTER_API_KEY',
   );
 }
+
+const callableOptions = {
+  region: 'us-central1' as const,
+  cors: CALLABLE_CORS,
+  secrets: [openRouterApiKey],
+};
 
 function assertAdminEmail(email: string | undefined) {
   const allowlist = (process.env.ALLOWED_ADMIN_EMAILS ?? '')
@@ -63,8 +78,7 @@ async function writeAudit(entry: Record<string, unknown>) {
 
 export const invokeBlogAgent = onCall(
   {
-    region: 'us-central1',
-    cors: CALLABLE_CORS,
+    ...callableOptions,
     timeoutSeconds: 120,
     memory: '512MiB',
   },
@@ -173,8 +187,7 @@ export const invokeBlogAgent = onCall(
 
 export const invokeBlogPublishKit = onCall(
   {
-    region: 'us-central1',
-    cors: CALLABLE_CORS,
+    ...callableOptions,
     timeoutSeconds: 120,
     memory: '1GiB',
   },

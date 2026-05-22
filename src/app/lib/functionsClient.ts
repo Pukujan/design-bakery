@@ -43,14 +43,24 @@ export function isFunctionsEmulatorEnabled(): boolean {
   );
 }
 
-/** Human-readable hint when callable HTTP fails (404 = proxy/emulator; not Storage). */
+/** Human-readable hint when callable HTTP fails (404 = not deployed or emulator down). */
 export function formatCallableHttpError(message: string, status?: number): string {
   if (status === 404 || /404|not found/i.test(message)) {
-    const port = typeof window !== 'undefined' ? window.location.port || '5300' : '5300';
+    const isLocal =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1');
+    if (isLocal) {
+      const port = window.location.port || '5300';
+      return (
+        `Blog Functions returned 404. Use http://localhost:${port}, restart pnpm run dev, ` +
+        `and confirm the terminal shows [functions] ready — invokeBlogPublishKit.`
+      );
+    }
     return (
-      `Blog Functions returned 404. Use http://localhost:${port} (same tab as Vite), restart pnpm run dev, ` +
-      `and confirm the terminal shows [functions] ready — invokeBlogPublishKit. ` +
-      `Do not use an old tab on a different port (e.g. 5300 vs 5301).`
+      'Blog callables are not deployed (404). On your machine run: cd functions && npm run deploy. ' +
+      'Then: firebase functions:secrets:set OPENROUTER_API_KEY (paste key from root .env). ' +
+      'Redeploy if needed. CORS for design-bakery.com is configured on the functions.'
     );
   }
   return message;
