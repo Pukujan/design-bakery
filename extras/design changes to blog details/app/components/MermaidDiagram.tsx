@@ -33,20 +33,22 @@ function getSvg(container: HTMLElement | null): SVGSVGElement | null {
   return container?.querySelector('svg') ?? null;
 }
 
-function chartNeedsScroll(viewport: HTMLElement, svg: SVGSVGElement, zoom: number): boolean {
-  if (zoom > 1) return true;
-  const rect = svg.getBoundingClientRect();
-  const tall = rect.height > TALL_THRESHOLD_PX;
-  const wide = svg.scrollWidth > viewport.clientWidth + WIDTH_SLOP_PX;
-  return tall || wide;
+function measureSvgSize(svg: SVGSVGElement): ChartSize {
+  return {
+    width: svg.scrollWidth || 1,
+    height: svg.scrollHeight || 1,
+  };
 }
 
-function measureSvgSize(svg: SVGSVGElement): ChartSize {
-  const rect = svg.getBoundingClientRect();
-  return {
-    width: svg.scrollWidth || rect.width || 1,
-    height: svg.scrollHeight || rect.height || 1,
-  };
+function chartNeedsScroll(
+  viewport: HTMLElement,
+  baseSize: ChartSize,
+  zoom: number,
+): boolean {
+  if (zoom > 1) return true;
+  const tall = baseSize.height > TALL_THRESHOLD_PX;
+  const wide = baseSize.width > viewport.clientWidth + WIDTH_SLOP_PX;
+  return tall || wide;
 }
 
 export function MermaidDiagram({ chart }: { chart: string }) {
@@ -58,6 +60,10 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   const [isScrollable, setIsScrollable] = useState(false);
   const [zoom, setZoom] = useState(1);
 
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
+
+  /** Layout measurement only — must not be a dependency of the mermaid render effect. */
   const measureChart = useCallback(() => {
     const viewport = viewportRef.current;
     const svg = getSvg(containerRef.current);
@@ -66,8 +72,8 @@ export function MermaidDiagram({ chart }: { chart: string }) {
     }
     const size = measureSvgSize(svg);
     setChartSize(size);
-    setIsScrollable(chartNeedsScroll(viewport, svg, zoom));
-  }, [zoom]);
+    setIsScrollable(chartNeedsScroll(viewport, size, zoomRef.current));
+  }, []);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -105,6 +111,10 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   }, [chart, measureChart]);
 
   useEffect(() => {
+    measureChart();
+  }, [zoom, measureChart]);
+
+  useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
 
@@ -112,10 +122,6 @@ export function MermaidDiagram({ chart }: { chart: string }) {
     observer.observe(viewport);
     return () => observer.disconnect();
   }, [measureChart]);
-
-  useEffect(() => {
-    measureChart();
-  }, [zoom, measureChart]);
 
   const setZoomClamped = (next: number) => {
     setZoom(clamp(Math.round(next / ZOOM_STEP_SLIDER) * ZOOM_STEP_SLIDER, ZOOM_MIN, ZOOM_MAX));
