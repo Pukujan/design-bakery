@@ -1,5 +1,9 @@
 {
   "rewrites": [
+    {
+      "source": "/__/firebase-functions/:path*",
+      "destination": "https://us-central1-auth-system-be464.cloudfunctions.net/:path*"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

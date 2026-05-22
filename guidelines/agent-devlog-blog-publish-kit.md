@@ -34,6 +34,8 @@ VITE_USE_FUNCTIONS_EMULATOR=true
 
 On Vercel: leave flags unset (enabled in prod) or set `VITE_ENABLE_BLOG_PUBLISH_KIT=false` to hide. Do **not** set `VITE_USE_FUNCTIONS_EMULATOR=true` in production.
 
+**Production CORS:** Admin on `design-bakery.com` proxies callables same-origin via `vercel.json` → `https://www.design-bakery.com/__/firebase-functions/invokeBlogPublishKit` (client uses `httpsCallableFromURL`). Redeploy **Vercel + Functions** after changes. Gen2 callables also set `CALLABLE_CORS` for direct `cloudfunctions.net` hits.
+
 Functions: `OPENROUTER_API_KEY` in repo root `.env` (same file as `VITE_*`; no `VITE_` prefix on secrets). Optional `OPENROUTER_IMAGE_MODEL`, `PUBLISH_KIT_VISUAL_MODE=hybrid|template|ai`.
 
 **Dev:** `pnpm run dev` — frees port **5300**, starts Vite + Functions. Open the URL Vite prints (must be **5300** — not an old tab). Terminal must show `[functions] ready — invokeBlogPublishKit`. `pnpm run dev:verbose` for full logs. `pnpm run dev:web` — Vite only (no callables).

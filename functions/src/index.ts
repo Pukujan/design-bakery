@@ -1,3 +1,4 @@
+import { CALLABLE_CORS } from './callableCors.js';
 import { loadProjectEnv } from './loadEnv.js';
 import { ensureFirebaseAdminApp } from './firebaseApp.js';
 
@@ -63,7 +64,7 @@ async function writeAudit(entry: Record<string, unknown>) {
 export const invokeBlogAgent = onCall(
   {
     region: 'us-central1',
-    cors: true,
+    cors: CALLABLE_CORS,
     timeoutSeconds: 120,
     memory: '512MiB',
   },
@@ -173,7 +174,7 @@ export const invokeBlogAgent = onCall(
 export const invokeBlogPublishKit = onCall(
   {
     region: 'us-central1',
-    cors: true,
+    cors: CALLABLE_CORS,
     timeoutSeconds: 120,
     memory: '1GiB',
   },

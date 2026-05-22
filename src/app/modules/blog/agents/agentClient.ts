@@ -1,5 +1,5 @@
 import { FirebaseError } from 'firebase/app';
-import { httpsCallable } from 'firebase/functions';
+import { createBlogCallable } from '@/lib/blogCallables';
 import { formatCallableHttpError, getFirebaseFunctions } from '@/lib/functionsClient';
 import { AGENT_API_VERSION } from './config';
 import type { AgentInvokeRequest, AgentInvokeResponse } from './contracts';
@@ -76,10 +76,8 @@ export async function invokeBlogAgent(params: InvokeParams): Promise<AgentInvoke
     };
   }
 
-  const callable = httpsCallable<AgentInvokeRequest, AgentInvokeResponse>(
-    fnInstance,
+  const callable = createBlogCallable<AgentInvokeRequest, AgentInvokeResponse>(
     'invokeBlogAgent',
-    { timeout: 180_000 }
   );
 
   try {
