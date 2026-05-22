@@ -422,8 +422,8 @@ body::before {
   overscroll-behavior: contain;
 }
 
-/* Phones: one-finger scroll inside frame; two-finger pinch handled in JS */
-.blog-mermaid-viewport--touch.blog-mermaid-viewport--scroll {
+/* One-finger scroll inside frame; two-finger pinch handled in JS */
+.blog-mermaid-viewport--gesture.blog-mermaid-viewport--scroll {
   touch-action: pan-x pan-y;
 }
 
