@@ -80,16 +80,17 @@ Deploy logs should show: `[api] design-bakery-api http://0.0.0.0:...`
 ### Create / configure the project
 
 1. [Vercel](https://vercel.com) → **Add New Project** → import the **same** GitHub repo.
-2. **Root Directory:** `frontend`  
-   Vercel must **not** use `backend/` — that folder is only for Railway.
-3. **Framework Preset:** Vite (auto-detected).
-4. **Build & Development Settings:**
+2. **Root Directory:** leave **empty** (repo root).  
+   The repo root `vercel.json` runs `pnpm --dir frontend run build` and outputs `frontend/dist`.  
+   (Alternatively: Root Directory = `frontend` only if you drop the root `vercel.json` and set Output = `dist` there.)
+3. **Framework Preset:** Vite (or Other — root `vercel.json` overrides build/output).
+4. **Build & Development Settings** (optional if using root `vercel.json`):
 
    | Setting | Value |
    |---------|--------|
    | Install Command | `pnpm install` |
-   | Build Command | `pnpm run build` |
-   | Output Directory | `dist` |
+   | Build Command | `pnpm --dir frontend run build` |
+   | Output Directory | `frontend/dist` |
    | Node.js Version | 20.x or 22.x |
 
 5. **Environment Variables** — add every `VITE_*` from `frontend/.env.example` (**Production** scope). Minimum for blog admin:
@@ -187,7 +188,7 @@ Full reference: [env.md](./env.md).
 
 ### Vercel
 
-- [ ] Root Directory = `frontend` (not `backend/`)
+- [ ] Output Directory = `frontend/dist` (or repo root + root `vercel.json`)
 - [ ] `VITE_BLOG_API_URL` = Railway HTTPS URL
 - [ ] All `VITE_FIREBASE_*` set for Production
 - [ ] `VITE_USE_FUNCTIONS_EMULATOR` **not** set in Production
