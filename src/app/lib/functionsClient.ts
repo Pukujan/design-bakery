@@ -1,6 +1,8 @@
 import { connectFunctionsEmulator, getFunctions, type Functions } from 'firebase/functions';
 import { assertFirebaseConfigured, firebaseApp } from './firebase';
 
+export { isPublishKitEnabled, BLOG_AGENTS_ENABLED } from './blogFeatureFlags';
+
 let functionsInstance: Functions | null = null;
 let emulatorConnected = false;
 
@@ -33,14 +35,11 @@ export function getFirebaseFunctions(): Functions {
   return functionsInstance;
 }
 
+/** True only when callables should hit the local emulator (not production). */
 export function isFunctionsEmulatorEnabled(): boolean {
   return (
     import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === 'true' ||
-    import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === '1' ||
-    import.meta.env.VITE_ENABLE_BLOG_AGENTS === 'true' ||
-    import.meta.env.VITE_ENABLE_BLOG_AGENTS === '1' ||
-    import.meta.env.VITE_ENABLE_BLOG_PUBLISH_KIT === 'true' ||
-    import.meta.env.VITE_ENABLE_BLOG_PUBLISH_KIT === '1'
+    import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === '1'
   );
 }
 
@@ -57,13 +56,3 @@ export function formatCallableHttpError(message: string, status?: number): strin
   return message;
 }
 
-export function isPublishKitEnabled(): boolean {
-  const publishKit = import.meta.env.VITE_ENABLE_BLOG_PUBLISH_KIT;
-  const blogAgents = import.meta.env.VITE_ENABLE_BLOG_AGENTS;
-  return (
-    publishKit === 'true' ||
-    publishKit === '1' ||
-    blogAgents === 'true' ||
-    blogAgents === '1'
-  );
-}

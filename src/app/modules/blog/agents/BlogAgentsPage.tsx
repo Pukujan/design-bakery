@@ -34,11 +34,11 @@ export function BlogAgentsPage() {
           <div className="rounded-lg border-2 border-dashed border-gray-400 bg-gray-50 px-4 py-4 text-sm text-gray-700 dark:bg-gray-900/50 dark:text-gray-300">
             <p className="font-bold mb-1">Promo agent is off</p>
             <p className="leading-relaxed">
-              To enable: set <code className="text-xs">VITE_ENABLE_BLOG_AGENTS=true</code> in{' '}
-              <code className="text-xs">.env</code>, add <code className="text-xs">OPENROUTER_API_KEY</code>{' '}
-              to root <code className="text-xs">.env</code>, run{' '}
-              <code className="text-xs">pnpm run functions:serve</code>, then restart{' '}
-              <code className="text-xs">npm run dev</code>.
+              Local dev: set <code className="text-xs">VITE_ENABLE_BLOG_AGENTS=true</code> in root{' '}
+              <code className="text-xs">.env</code> and restart Vite. Production builds enable this by
+              default unless you set the flag to <code className="text-xs">false</code> on Vercel. Deploy{' '}
+              <code className="text-xs">invokeBlogAgent</code> and set{' '}
+              <code className="text-xs">OPENROUTER_API_KEY</code> in Firebase Functions config.
             </p>
           </div>
         )}

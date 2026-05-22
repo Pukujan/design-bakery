@@ -26,10 +26,13 @@ Admin **Publish kit** in Blog Posts edit dialog: LLM SEO meta + OG/cover PNGs (*
 ## Enable locally
 
 ```env
+# Local dev — explicit true (production builds default ON when unset)
 VITE_ENABLE_BLOG_PUBLISH_KIT=true
-# or VITE_ENABLE_BLOG_AGENTS=true
+VITE_ENABLE_BLOG_AGENTS=true
 VITE_USE_FUNCTIONS_EMULATOR=true
 ```
+
+On Vercel: leave flags unset (enabled in prod) or set `VITE_ENABLE_BLOG_PUBLISH_KIT=false` to hide. Do **not** set `VITE_USE_FUNCTIONS_EMULATOR=true` in production.
 
 Functions: `OPENROUTER_API_KEY` in repo root `.env` (same file as `VITE_*`; no `VITE_` prefix on secrets). Optional `OPENROUTER_IMAGE_MODEL`, `PUBLISH_KIT_VISUAL_MODE=hybrid|template|ai`.
 
