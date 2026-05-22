@@ -25,24 +25,9 @@ const ZOOM_STEP_SLIDER = 0.05;
 const TRACKPAD_ZOOM_STEP = 0.08;
 const WHEEL_SNAP_MS = 150;
 const SCROLL_EDGE_TOLERANCE_PX = 2;
-const EDGE_ESCAPE_DELAY_MS = 1000;
-const EDGE_ESCAPE_GAP_MS = 400;
 
 type ChartSize = { width: number; height: number };
 type PointerPoint = { x: number; y: number };
-type ScrollDirection = 'up' | 'down' | 'left' | 'right';
-
-type EdgeEscapeState = {
-  direction: ScrollDirection | null;
-  startedAt: number;
-  lastWheelAt: number;
-};
-
-const EMPTY_EDGE_ESCAPE: EdgeEscapeState = {
-  direction: null,
-  startedAt: 0,
-  lastWheelAt: 0,
-};
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -71,29 +56,6 @@ function isAtScrollEdge(viewport: HTMLElement) {
     atLeft: viewport.scrollLeft <= t,
     atRight: viewport.scrollLeft + viewport.clientWidth >= viewport.scrollWidth - t,
   };
-}
-
-function getWheelDirection(deltaY: number, deltaX: number): ScrollDirection | null {
-  if (Math.abs(deltaY) >= Math.abs(deltaX)) {
-    if (deltaY > 0) return 'down';
-    if (deltaY < 0) return 'up';
-  } else {
-    if (deltaX > 0) return 'right';
-    if (deltaX < 0) return 'left';
-  }
-  return null;
-}
-
-function isEdgeScrollAttempt(
-  edges: ReturnType<typeof isAtScrollEdge>,
-  direction: ScrollDirection,
-): boolean {
-  return (
-    (direction === 'down' && edges.atBottom) ||
-    (direction === 'up' && edges.atTop) ||
-    (direction === 'right' && edges.atRight) ||
-    (direction === 'left' && edges.atLeft)
-  );
 }
 
 function chartNeedsScroll(
@@ -125,7 +87,6 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   const pinchStartRef = useRef<{ distance: number; zoom: number } | null>(null);
   const wheelSnapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const useScrollFrameRef = useRef(false);
-  const edgeEscapeRef = useRef<EdgeEscapeState>(EMPTY_EDGE_ESCAPE);
 
   const applyZoom = useCallback((next: number, snapToSliderStep: boolean) => {
     const clamped = clamp(next, ZOOM_MIN, ZOOM_MAX);
@@ -198,7 +159,7 @@ export function MermaidDiagram({ chart }: { chart: string }) {
     return () => observer.disconnect();
   }, [measureChart]);
 
-  /** Ctrl/Cmd+scroll = zoom; at scroll edge ~1s of repeated wheel hands off to the page. */
+  /** Ctrl/Cmd+scroll = zoom; at scroll edge, extra wheel moves the page. */
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
@@ -207,7 +168,6 @@ export function MermaidDiagram({ chart }: { chart: string }) {
       if (errorRef.current) return;
 
       if (event.ctrlKey || event.metaKey) {
-        edgeEscapeRef.current = EMPTY_EDGE_ESCAPE;
         event.preventDefault();
         const delta = event.deltaY > 0 ? -TRACKPAD_ZOOM_STEP : TRACKPAD_ZOOM_STEP;
         applyZoomRef.current(zoomRef.current + delta, false);
@@ -222,46 +182,25 @@ export function MermaidDiagram({ chart }: { chart: string }) {
 
       if (!useScrollFrameRef.current) return;
 
-      const edges = isAtScrollEdge(viewport);
+      const { atTop, atBottom, atLeft, atRight } = isAtScrollEdge(viewport);
       const { deltaY, deltaX } = event;
-      const direction = getWheelDirection(deltaY, deltaX);
 
-      if (!direction || !isEdgeScrollAttempt(edges, direction)) {
-        edgeEscapeRef.current = EMPTY_EDGE_ESCAPE;
-        return;
-      }
+      const chainToPage =
+        (deltaY > 0 && atBottom) ||
+        (deltaY < 0 && atTop) ||
+        (deltaX > 0 && atRight) ||
+        (deltaX < 0 && atLeft);
 
-      const now = Date.now();
-      const escape = edgeEscapeRef.current;
-      const sameBurst =
-        escape.direction === direction && now - escape.lastWheelAt <= EDGE_ESCAPE_GAP_MS;
-
-      if (!sameBurst) {
-        edgeEscapeRef.current = {
-          direction,
-          startedAt: now,
-          lastWheelAt: now,
-        };
-        event.preventDefault();
-        return;
-      }
-
-      edgeEscapeRef.current = { ...escape, lastWheelAt: now };
-
-      if (now - escape.startedAt >= EDGE_ESCAPE_DELAY_MS) {
+      if (chainToPage) {
         event.preventDefault();
         window.scrollBy({ top: deltaY, left: deltaX, behavior: 'auto' });
-        return;
       }
-
-      event.preventDefault();
     };
 
     viewport.addEventListener('wheel', onWheel, { passive: false });
     return () => {
       viewport.removeEventListener('wheel', onWheel);
       if (wheelSnapTimerRef.current) clearTimeout(wheelSnapTimerRef.current);
-      edgeEscapeRef.current = EMPTY_EDGE_ESCAPE;
     };
   }, []);
 
@@ -327,7 +266,7 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   const scaledHeight = chartSize.height * zoom;
 
   const hintText = useScrollFrame
-    ? 'Pinch or Ctrl/⌘+scroll to zoom · scroll inside the frame · at the edge, keep scrolling ~1s to move the page'
+    ? 'Pinch or Ctrl/⌘+scroll to zoom · scroll inside the frame · at the edge, keep scrolling to move the page'
     : 'Pinch or Ctrl/⌘+scroll to zoom · or use +/− and the slider';
 
   return (
