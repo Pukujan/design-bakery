@@ -42,19 +42,15 @@ These have all caused “broken” or blank Mermaid on blog detail in this proje
 
 ---
 
-## Interactive zoom (safe)
+## Large diagrams — scroll viewport
 
-Large diagrams use **overlay interaction** — not post-render styling of the live SVG.
+Charts taller than **280px** or wider than the column get `.blog-mermaid-viewport--scroll`:
 
-| Mode | When | Behavior |
-|------|------|----------|
-| **Desktop loupe** | `(hover: hover) and (pointer: fine)` + chart exceeds viewport/tall threshold | Circular lens follows cursor (`position: fixed` so it is not clipped by article `overflow-hidden`); **cloned** SVG; cursor mapped via `viewBox` / intrinsic SVG size |
-| **Touch pan/zoom** | Coarse pointer + same threshold | Pinch scale (1–4×) + drag pan on `.blog-mermaid-transform` wrapper |
-| **Default** | Small charts | Horizontal scroll on `.blog-mermaid-viewport--scroll` only |
+- `max-height: min(70vh, 520px)`
+- `overflow: auto` (horizontal + vertical)
+- Hint: “Scroll inside the frame to explore”
 
-**Allowed:** `svg.cloneNode(true)` for loupe; `transform` on clone or wrapper; pointer listeners on viewport.
-
-**Still forbidden:** changing `fill` / `stroke` / `transform` on nodes in the **primary** rendered SVG after `mermaid.render()`.
+Small charts render at natural size with no scroll frame. **No magnifier or pinch-zoom** — scroll is the only enhanced interaction (keeps rendering stable).
 
 **Test:** http://localhost:5300/endtoend-engineer/blogs/7
 
@@ -106,7 +102,7 @@ For **new long-form posts**, default to **`flowchart TD`** or **`sequenceDiagram
 
 ## Related files
 
-- `extras/design changes to blog details/app/components/MermaidDiagram.tsx` — render, loupe, touch pan/zoom
+- `extras/design changes to blog details/app/components/MermaidDiagram.tsx` — render + scroll viewport
 - `extras/design changes to blog details/app/components/BlogDetailPage.tsx` — markdown `code` for `language-mermaid`
 - `src/app/modules/engineering/BlogDetailPage/BlogDetailPage.tsx` — re-export only
 - `src/styles/globals.css` — `.blog-mermaid-chart` rules
