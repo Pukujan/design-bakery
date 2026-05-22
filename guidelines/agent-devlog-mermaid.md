@@ -51,7 +51,7 @@ Every diagram has a **toolbar**: zoom out / zoom in buttons, **% label**, and a 
 - **Pinch** (touchscreen or trackpad that reports two pointers): updates zoom, synced with slider.
 - **Laptop trackpad:** **Ctrl+scroll** (Windows/Linux) or **⌘+scroll** (Mac) on the viewport zooms the chart.
 - **Pan:** scroll / swipe inside the frame (native `overflow: auto`); one-finger on touch, wheel or drag scroll on laptop.
-- **Scroll limits + escape:** Chart scrolls inside the frame until top/bottom/edge; further wheel/trackpad scroll **forwards to the page** (`overscroll-behavior: auto` + `window.scrollBy` at edge in `MermaidDiagram.tsx`).
+- **Scroll limits + escape:** Chart scrolls inside the frame until top/bottom/edge; **~1 second** of repeated wheel at the same edge (with &lt;400ms gaps) then **forwards to the page** via `window.scrollBy`.
 - **Do not** mutate SVG node styles after render — only wrapper transform.
 
 **Test:** http://localhost:5300/endtoend-engineer/blogs/7
