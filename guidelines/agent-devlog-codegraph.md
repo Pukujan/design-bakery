@@ -50,9 +50,12 @@ npm run codegraph:query -- BlogPageDecor
 
 - **Languages:** TypeScript / JavaScript (see `.codegraph/config.json`)
 - **Excluded:** `node_modules`, `dist`, large presentation extras under `extras/Create Presentation Case Study/`
-- **Included:** `src/`, `extras/design changes to blog details/` (blog detail v2 alias target)
+- **Included:** `src/` (blog detail lives in `src/app/modules/engineering/BlogDetailPage/`)
+- **Excluded (reference only):** `archive/` (legacy Figma exports)
 
-Re-run `codegraph sync` after moving modules between `src` and `extras`.
+Re-run `codegraph sync` after moving modules between `src`, `extras`, and `archive`.
+
+**2026-05-21 index:** ~274 files, ~2,719 nodes — after blog detail + `MermaidDiagram` under `src/app/modules/engineering/BlogDetailPage/`.
 
 ---
 
