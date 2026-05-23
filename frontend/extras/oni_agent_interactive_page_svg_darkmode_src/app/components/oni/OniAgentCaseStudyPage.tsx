@@ -30,6 +30,13 @@ import decorSystem from "../../assets/pukujan-decor-system.svg";
 import { BrandMark } from "./BrandMark";
 import { MappingScrollSection } from "./MappingScrollSection";
 import { mappingRows } from "./mappingData";
+import { ProjectLinkButtons } from "./ProjectLinkButtons";
+import {
+  PROJECT_GITHUB_URL,
+  PROJECT_NPM_NAME,
+  PROJECT_NPM_URL,
+  PROJECT_STUDY_BLOG_URL,
+} from "./projectLinks";
 
 
 const navItems = [
@@ -133,6 +140,21 @@ const failureRows = [
 ];
 
 const sources = [
+  {
+    label: PROJECT_NPM_NAME,
+    detail: "npm package for scaffolding agent-first modular monolith repos with dev logs, audit trails, and bounded module boundaries.",
+    url: PROJECT_NPM_URL,
+  },
+  {
+    label: "create-modular-monolith on GitHub",
+    detail: "Source repository for the package, templates, and architecture contracts referenced in this case study.",
+    url: PROJECT_GITHUB_URL,
+  },
+  {
+    label: "Technical study blog (Design Bakery)",
+    detail: "Long-form engineering log for the modular monolith and agent-first workflow work behind this page.",
+    url: PROJECT_STUDY_BLOG_URL,
+  },
   {
     label: "Astronaut SVG assets used on this page",
     detail: "Uploaded SVG assets were renamed and used as Pukujan visual accents. The files did not include embedded creator metadata, so add the original creator/source here once confirmed.",
@@ -277,73 +299,86 @@ export function OniAgentCaseStudyPage() {
         <img src={decorSystem} alt="" className="absolute -left-28 bottom-12 h-[38rem] w-[28rem] object-contain blur-[1px]" />
       </div>
       <header className="oni-header fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
-          <a href="#top" className="oni-text flex items-center gap-3 font-black tracking-tight">
-            <BrandMark
-              src={astronautLogo}
-              alt="Pukujan"
-              preset="icon"
-              frameClassName="oni-surface oni-border oni-shadow-lg border shadow-lg"
-            />
-            <span className="flex flex-col leading-none">
-              <span className="text-base font-black">Pukujan</span>
-              <span className="oni-text-subtle hidden text-xs font-bold uppercase tracking-[0.22em] sm:inline">Agent-First Architecture</span>
-            </span>
-          </a>
-          <nav className="hidden items-center gap-1 xl:flex">
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
+          <div className="flex items-center justify-between gap-3 py-3">
+            <a href="#top" className="oni-text flex shrink-0 items-center gap-3 font-black tracking-tight">
+              <BrandMark
+                src={astronautLogo}
+                alt="Pukujan"
+                preset="icon"
+                frameClassName="oni-surface oni-border oni-shadow-lg border shadow-lg"
+              />
+              <span className="flex flex-col leading-none">
+                <span className="text-base font-black">Pukujan</span>
+                <span className="oni-text-subtle hidden text-xs font-bold uppercase tracking-[0.22em] sm:inline">Agent-First Architecture</span>
+              </span>
+            </a>
+            <nav className="scrollbar-hide hidden min-w-0 flex-1 items-center justify-center gap-1 overflow-x-auto px-1 xl:flex">
+              {navItems.map((item) => (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  className={`shrink-0 whitespace-nowrap rounded-full px-3 py-2 text-xs font-bold transition ${active === item.id ? "oni-nav-active" : "oni-nav-idle"}`}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </nav>
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setTheme(isDark ? "light" : "dark")}
+                className="oni-btn inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold shadow-sm ring-1"
+              >
+                {isDark ? "Light mode" : "Dark mode"}
+              </button>
+              <a
+                href="https://www.klei.com/games/oxygen-not-included"
+                target="_blank"
+                rel="noreferrer"
+                className="oni-btn hidden shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold shadow-sm ring-1 lg:inline-flex"
+              >
+                ONI source <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </div>
+          <div className="oni-header-scroll-row scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0 md:pb-3">
+            <ProjectLinkButtons labelMode="short" nowrap showExternalIcon={false} />
+          </div>
+          <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-3 xl:hidden">
             {navItems.map((item) => (
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                className={`rounded-full px-3 py-2 text-xs font-bold transition ${active === item.id ? "oni-nav-active" : "oni-nav-idle"}`}
+                className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-bold ${active === item.id ? "oni-nav-active" : "oni-nav-mobile-idle"}`}
               >
                 {item.label}
               </a>
             ))}
-          </nav>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setTheme(isDark ? "light" : "dark")}
-              className="oni-btn inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold shadow-sm ring-1"
-            >
-              {isDark ? "Light mode" : "Dark mode"}
-            </button>
-            <a
-              href="https://www.klei.com/games/oxygen-not-included"
-              target="_blank"
-              rel="noreferrer"
-              className="oni-btn hidden items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold shadow-sm ring-1 sm:inline-flex"
-            >
-              ONI source <ExternalLink className="h-3.5 w-3.5" />
-            </a>
           </div>
-        </div>
-        <div className="scrollbar-hide flex gap-2 overflow-x-auto px-4 pb-3 xl:hidden">
-          {navItems.map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold ${active === item.id ? "oni-nav-active" : "oni-nav-mobile-idle"}`}
-            >
-              {item.label}
-            </a>
-          ))}
         </div>
       </header>
 
-      <main id="top" className="mx-auto max-w-7xl px-4 pb-24 pt-32 md:px-6">
+      <main id="top" className="mx-auto max-w-7xl px-4 pb-24 pt-36 md:px-6 md:pt-40">
         <section className="grid gap-10 py-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:py-20">
           <div>
-            <div className="oni-accent-pill mb-5 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.25em]">
-              <Gamepad2 className="h-4 w-4" /> pukujan@create-modular-monolith case study
-            </div>
+            <a
+              href={PROJECT_NPM_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="oni-accent-pill mb-5 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.25em] transition hover:opacity-90"
+            >
+              <Gamepad2 className="h-4 w-4" aria-hidden />
+              {PROJECT_NPM_NAME} case study
+              <ExternalLink className="h-3.5 w-3.5 opacity-70" aria-hidden />
+            </a>
             <h1 className="oni-text max-w-5xl text-5xl font-black leading-[0.95] tracking-[-0.06em] md:text-7xl">
               Oxygen Not Included taught me why AI agent systems break.
             </h1>
             <p className="oni-text-muted mt-6 max-w-3xl text-xl leading-8">
               ONI feels like pipes, pressure, heat, survival, and failure loops. Agent-first coding feels the same: prompts, files, evals, audit trails, and specialized agents all depend on each other. One weak connection can break the whole loop. The astronaut visuals give the page a lightweight exploration theme that fits the system-building story.
             </p>
+            <ProjectLinkButtons size="md" className="mt-8" />
             <div className="mt-8 flex flex-wrap gap-3">
               <span className="oni-chip oni-border oni-shadow inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-black shadow-sm">
                 <BrandMark src={astronautLogo} alt="Pukujan astronaut" preset="chip" /> Pukujan
@@ -790,21 +825,34 @@ export function OniAgentCaseStudyPage() {
       </main>
 
       <footer className="oni-footer border-t">
-        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 md:grid-cols-[auto_1fr_auto] md:items-center md:px-6">
-          <div className="flex items-center gap-4">
-            <BrandMark
-              src={astronautLogo}
-              alt="Pukujan footer logo"
-              preset="footer"
-              frameClassName="oni-surface oni-border oni-shadow border shadow-sm"
-            />
-            <div>
-              <p className="oni-text text-2xl font-black tracking-tight">Pukujan</p>
-              <p className="oni-text-subtle text-sm font-bold uppercase tracking-[0.2em]">Agent-first architecture case study</p>
+        <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 md:px-6">
+          <div className="grid gap-6 md:grid-cols-[auto_1fr] md:items-start">
+            <div className="flex items-center gap-4">
+              <BrandMark
+                src={astronautLogo}
+                alt="Pukujan footer logo"
+                preset="footer"
+                frameClassName="oni-surface oni-border oni-shadow border shadow-sm"
+              />
+              <div>
+                <p className="oni-text text-2xl font-black tracking-tight">Pukujan</p>
+                <p className="oni-text-subtle text-sm font-bold uppercase tracking-[0.2em]">Agent-first architecture case study</p>
+              </div>
             </div>
+            <p className="oni-text-muted max-w-2xl text-sm leading-6">
+              Astronaut visual system connected to exploration, engineering loops, and sustainable systems. Case study theme: why Oxygen Not Included feels like building a 500-specialized-agent pipeline. Built around the{" "}
+              <a href={PROJECT_NPM_URL} target="_blank" rel="noreferrer" className="oni-accent-link font-bold">
+                {PROJECT_NPM_NAME}
+              </a>{" "}
+              package.
+            </p>
           </div>
-          <p className="oni-text-muted max-w-2xl text-sm leading-6">Astronaut visual system connected to exploration, engineering loops, and sustainable systems. Case study theme: why Oxygen Not Included feels like building a 500-specialized-agent pipeline.</p>
-          <a href="#top" className="oni-nav-active inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-black shadow-sm hover:opacity-90">Back to top</a>
+          <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <ProjectLinkButtons size="md" />
+            <a href="#top" className="oni-nav-active inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-black shadow-sm hover:opacity-90 sm:shrink-0">
+              Back to top
+            </a>
+          </div>
         </div>
       </footer>
     </div>

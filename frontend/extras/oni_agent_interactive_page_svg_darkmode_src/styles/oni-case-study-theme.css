@@ -325,3 +325,8 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+.oni-header-scroll-row {
+  -webkit-overflow-scrolling: touch;
+  scroll-padding-inline: 1rem;
+}
