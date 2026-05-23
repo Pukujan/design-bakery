@@ -25,10 +25,11 @@ import astronautPlanet from "../../assets/pukujan-astronaut-planet.svg";
 import astronautFloat from "../../assets/pukujan-astronaut-float.svg";
 import astronautSystem from "../../assets/pukujan-astronaut-system.svg";
 import astronautLab from "../../assets/pukujan-astronaut-lab.svg";
-import astronautTool from "../../assets/pukujan-astronaut-tool.svg";
 import decorOrbit from "../../assets/pukujan-decor-orbit.svg";
 import decorSystem from "../../assets/pukujan-decor-system.svg";
 import { BrandMark } from "./BrandMark";
+import { MappingScrollSection } from "./MappingScrollSection";
+import { mappingRows } from "./mappingData";
 
 
 const navItems = [
@@ -63,19 +64,6 @@ const imageRefs = [
     source: "https://www.klei.com/games/oxygen-not-included",
     note: "Useful for showing how a living base becomes a network of systems, work, and stress.",
   },
-];
-
-const comparisonRows = [
-  ["Oxygen pipes", "Document and data pipelines", "A blocked pipe starves a colony. A blocked input stage starves downstream agents."],
-  ["Liquid and gas flow", "Input and output routing", "Everything depends on correct routing, not just a working machine."],
-  ["Heat transfer", "Bad assumptions spreading downstream", "A small hidden issue can spread until the whole workflow becomes unstable."],
-  ["Power grid", "API cost, rate limits, compute, model usage", "The system needs enough power, but it also needs safe load distribution."],
-  ["Automation sensors", "Evals, confidence gates, validation triggers", "Sensors decide when to stop, route, retry, or escalate."],
-  ["Blueprints", "Reusable architecture contracts", "You do not rebuild every loop from scratch once the pattern works."],
-  ["Colony reports", "Versioned dev logs and audit trails", "Memory makes future debugging possible."],
-  ["Duplicants", "Specialized prompt-agents", "Workers need bounded jobs, clear inputs, and safe outputs."],
-  ["Waste loops", "Rejected outputs, schema drift, bad data", "Waste does not vanish. It needs containment, cleanup, or rejection."],
-  ["DLC and patches", "Model, tool, prompt, and framework changes", "The environment keeps changing, so the architecture has to adapt."],
 ];
 
 const architectureCards = [
@@ -278,7 +266,6 @@ function MiniDiagram({ title, left, middle, right }: { title: string; left: stri
 export function OniAgentCaseStudyPage() {
   const ids = useMemo(() => navItems.map((item) => item.id), []);
   const active = useActiveSection(ids);
-  const [selectedMap, setSelectedMap] = useState(0);
   const [pipelineMode, setPipelineMode] = useState("oni");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const isDark = theme === "dark";
@@ -527,66 +514,28 @@ export function OniAgentCaseStudyPage() {
         </SectionShell>
 
         <SectionShell id="mapping" eyebrow="04 / mapping" title="The analogy becomes useful when each game system maps to an AI engineering failure mode.">
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <div className="scrollbar-hide -mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-4">
-              {comparisonRows.map(([oni, ai, why], index) => (
-                <article key={oni} className="oni-surface oni-border oni-shadow min-w-[82%] snap-center rounded-[2rem] border p-6 shadow-sm">
+              {mappingRows.map((row, index) => (
+                <article key={row.oni} className="oni-surface oni-border oni-shadow min-w-[82%] snap-center rounded-[2rem] border p-6 shadow-sm">
                   <p className="oni-eyebrow text-xs font-black uppercase tracking-[0.28em]">Selected analogy {String(index + 1).padStart(2, "0")}</p>
                   <div className="mt-5 grid gap-4">
                     <div className="oni-surface-muted rounded-3xl p-5">
                       <p className="oni-text-subtle text-sm font-bold">ONI</p>
-                      <p className="oni-text mt-2 text-2xl font-black">{oni}</p>
+                      <p className="oni-text mt-2 text-2xl font-black">{row.oni}</p>
                     </div>
                     <div className="oni-accent-highlight rounded-3xl p-5">
                       <p className="oni-accent-highlight-label text-sm font-bold">AI agents</p>
-                      <p className="mt-2 text-2xl font-black">{ai}</p>
+                      <p className="mt-2 text-2xl font-black">{row.ai}</p>
                     </div>
-                    <p className="oni-text-muted leading-7">{why}</p>
+                    <p className="oni-text-muted leading-7">{row.detail}</p>
                   </div>
                 </article>
               ))}
             </div>
           </div>
 
-          <div className="hidden gap-8 md:grid lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="oni-surface oni-border oni-shadow max-h-[42rem] overflow-y-auto rounded-[2rem] border p-6 pr-4 shadow-sm">
-              <p className="oni-text-subtle mb-4 text-sm font-bold uppercase tracking-[0.2em]">Interactive mapping</p>
-              <div className="grid gap-2">
-                {comparisonRows.map(([oni, ai], index) => (
-                  <button
-                    key={oni}
-                    onClick={() => setSelectedMap(index)}
-                    className={`rounded-2xl border p-4 text-left transition ${selectedMap === index ? "oni-map-selected oni-shadow border" : "oni-map-idle border"}`}
-                  >
-                    <p className="oni-text font-black">{oni}</p>
-                    <p className="oni-text-muted mt-1 text-sm">{ai}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="sticky top-28 h-fit overflow-hidden rounded-[2rem] bg-slate-950 p-8 text-white shadow-xl">
-              <img src={decorOrbit} alt="" className="pointer-events-none absolute -right-24 -top-32 h-96 w-72 opacity-20" />
-              <BrandMark
-                src={astronautTool}
-                alt="Astronaut tool accent"
-                preset="accent"
-                frameClassName="absolute right-5 top-5 bg-white/10 p-2"
-              />
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300">Selected analogy</p>
-              <div className="relative mt-8 grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
-                <div className="rounded-3xl bg-white/10 p-6">
-                  <p className="text-sm font-bold text-slate-400">ONI</p>
-                  <p className="mt-2 text-2xl font-black">{comparisonRows[selectedMap][0]}</p>
-                </div>
-                <ArrowDown className="mx-auto h-6 w-6 text-cyan-300 md:rotate-[-90deg]" />
-                <div className="oni-accent-highlight rounded-3xl p-6">
-                  <p className="oni-accent-highlight-label text-sm font-bold">AI agents</p>
-                  <p className="mt-2 text-2xl font-black">{comparisonRows[selectedMap][1]}</p>
-                </div>
-              </div>
-              <p className="relative mt-8 text-xl font-bold leading-8 text-slate-200">{comparisonRows[selectedMap][2]}</p>
-            </div>
-          </div>
+          <MappingScrollSection />
         </SectionShell>
 
         <SectionShell id="failure" eyebrow="05 / failure cascade" title="The scary part is not the first failure. The scary part is silent propagation.">
