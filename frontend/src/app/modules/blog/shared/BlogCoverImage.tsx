@@ -59,12 +59,12 @@ export function BlogCoverImage({ blog, variant, className = '' }: Props) {
   const shellClass =
     variant === 'card'
       ? `blog-cover-shell blog-cover-shell--card mb-4 overflow-hidden rounded-lg border-2 border-black ${className}`
-      : `blog-cover-shell blog-cover-shell--hero mb-4 sm:mb-5 md:mb-6 ml-11 sm:ml-12 md:ml-0 ${className}`;
+      : `blog-cover-shell blog-cover-shell--hero mb-4 sm:mb-5 md:mb-6 ml-11 sm:ml-12 md:ml-0 overflow-hidden rounded-lg md:rounded-xl border-2 sm:border-2 md:border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${className}`;
 
   const imgClass =
     variant === 'card'
       ? 'aspect-square w-full object-cover'
-      : 'blog-cover-img--hero block w-full h-auto max-w-full rounded-lg md:rounded-xl border-2 sm:border-2 md:border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]';
+      : 'blog-cover-img--hero block w-full h-full object-cover object-top';
 
   return (
     <div

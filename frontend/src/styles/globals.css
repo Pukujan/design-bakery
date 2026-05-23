@@ -535,13 +535,17 @@ body::before {
   aspect-ratio: 1 / 1;
 }
 
-.blog-cover-shell--hero.blog-cover-shell--loading {
-  min-height: min(200px, 30vh);
+.blog-cover-shell--hero {
+  height: min(420px, 50vh);
 }
 
-/* Detail page: show full cover art (no object-cover crop). */
+.blog-cover-shell--hero.blog-cover-shell--loading {
+  min-height: min(420px, 50vh);
+}
+
+/* Detail page: cap height; keep top of art, crop overflow at the bottom. */
 .blog-cover-img--hero {
-  object-fit: contain;
+  object-position: top;
 }
 
 .blog-cover-shell--card.blog-cover-shell--loading {
