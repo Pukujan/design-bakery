@@ -8,8 +8,7 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "noImplicitReturns": true,
-    "composite": true
+    "noImplicitReturns": true
   },
   "include": ["src"],
   "exclude": ["lib", "node_modules"]

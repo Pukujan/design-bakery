@@ -16,6 +16,7 @@
     "preview": "pnpm --dir frontend run preview",
     "migrate:firestore-to-supabase": "pnpm --dir backend/services run build && pnpm dlx tsx scripts/migrations/migrate-firestore-to-supabase.ts",
     "export:deploy-env": "node scripts/export-deploy-env.mjs",
+    "test:railway-build": "node scripts/test-railway-build.mjs",
     "codegraph:init": "codegraph init -i",
     "codegraph:sync": "codegraph sync",
     "codegraph:status": "codegraph status",
