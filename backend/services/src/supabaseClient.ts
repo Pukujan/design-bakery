@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import ws from 'ws';
 
 let adminClient: SupabaseClient | null = null;
 
@@ -48,7 +49,11 @@ export function supabaseAdmin(): SupabaseClient {
     );
   }
   if (!adminClient) {
-    adminClient = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+    adminClient = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      // Node 20 on Railway has no native WebSocket; required when RealtimeClient initializes.
+      realtime: { transport: ws as unknown as typeof WebSocket },
+    });
   }
   return adminClient;
 }

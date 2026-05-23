@@ -37,12 +37,16 @@ export function resolveOpenRouterKey(): string {
   throw err;
 }
 
+function normalizeOrigin(origin: string): string {
+  return origin.trim().replace(/\/+$/, '');
+}
+
 export function parseAllowedOrigins(): string[] {
   const raw = process.env.ALLOWED_ORIGINS?.trim();
   if (raw) {
     return raw
       .split(',')
-      .map((o) => o.trim())
+      .map(normalizeOrigin)
       .filter(Boolean);
   }
   return [
