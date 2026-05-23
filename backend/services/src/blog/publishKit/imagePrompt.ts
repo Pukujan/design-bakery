@@ -6,7 +6,7 @@ import type { VisualStylePreset } from './types.js';
 /**
  * Bump on every hero art-direction change (tagged in prompts + imagePrompt.history.md).
  */
-export const HERO_IMAGE_PROMPT_VERSION = '0.3';
+export const HERO_IMAGE_PROMPT_VERSION = '0.4';
 
 const FAMILY_SCENE: Record<TemplateFamily, string> = {
   editorial:
@@ -73,6 +73,8 @@ export function buildHeroImagePrompt(params: {
     'Square 1:1 composition: subject centered with safe margins so the same art can crop to wide cover and OG formats.',
     'Clear negative space in the bottom third for title text overlay on every crop.',
     'No text, no letters, no words, no logos, no watermarks, no UI screenshots.',
+    'Do not render any typography, glyphs, numerals, signage, labels, captions, or pseudo-text textures.',
+    'Treat topic/category/theme words as semantic guidance only; never draw those words in the image.',
     'Not photorealistic, not stock photography, not scary or uncanny, not hyper-3D.',
   ]
     .filter(Boolean)
