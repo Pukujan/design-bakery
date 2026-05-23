@@ -92,11 +92,10 @@ function estimateLoadingMinHeight(chart: string): number {
 }
 
 export function MermaidDiagram({ chart }: { chart: string }) {
-  const shellRef = useRef<HTMLDivElement>(null);
+  const { ref: shellRef, inView: shouldRender } = useInView();
   const viewportRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const chartSourceRef = useRef(chart);
-  const shouldRender = useInView(shellRef);
 
   const [error, setError] = useState<string | null>(null);
   const [chartSize, setChartSize] = useState<ChartSize>({ width: 0, height: 0 });

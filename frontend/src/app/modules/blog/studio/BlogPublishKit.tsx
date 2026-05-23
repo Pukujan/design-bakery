@@ -17,6 +17,7 @@ import type {
   MetaTonePreset,
   PublishKitAction,
   PublishKitEditorDraft,
+  PublishKitPreferences,
   PublishKitSnapshot,
   VisualMode,
   VisualStylePreset,
@@ -53,7 +54,24 @@ function toSnapshot(post: BlogPost, categoryLabel?: string): PublishKitSnapshot 
     author: post.author,
     color: post.color || '#6366f1',
     numericId: post.numericId,
+    metaTitle: post.seo?.metaTitle,
+    metaDescription: post.seo?.metaDescription,
   };
+}
+
+const LAYOUT_VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'] as const;
+
+function layoutForOffset(numericId: number, offset: number): string {
+  const seed = Math.abs(Math.floor(numericId));
+  return LAYOUT_VARIANTS[(seed + offset) % LAYOUT_VARIANTS.length];
+}
+
+function randomTemplateSalt(): number {
+  return Math.floor(Math.random() * 2_147_483_647);
+}
+
+function shuffleVariationJump(): number {
+  return 1 + Math.floor(Math.random() * 15);
 }
 
 const WORKFLOW_STEPS = [
@@ -99,6 +117,7 @@ export function BlogPublishKit({
     lastTemplate,
     lastMetaNote,
     lastTagsNote,
+    templateIconPool,
   } = kitDraft;
 
   const textReadiness = useMemo(
@@ -110,11 +129,27 @@ export function BlogPublishKit({
     [post],
   );
 
-  async function run(action: PublishKitAction) {
+  async function run(action: PublishKitAction, prefOverrides?: Partial<PublishKitPreferences>) {
     const readiness = getPublishKitReadiness(post, action);
     if (!readiness.ready || readiness.blogId == null) {
       setError(readiness.hint ? `${readiness.message} ${readiness.hint}` : readiness.message);
       return;
+    }
+
+    const isVisualRun = action === 'visual' || action === 'visual_and_meta';
+    const runOffset = prefOverrides?.variationOffset ?? variationOffset;
+
+    const prefs: PublishKitPreferences = {
+      visualStyle,
+      visualMode,
+      metaTone,
+      sameImageForCoverAndOg: mirrorCoverToOg,
+      variationOffset: runOffset,
+      ...(templateIconPool && templateIconPool.length >= 2 ? { templateIconPool } : {}),
+      ...prefOverrides,
+    };
+    if (prefOverrides?.variationOffset !== undefined) {
+      onKitDraftChange({ variationOffset: prefOverrides.variationOffset });
     }
 
     setError(null);
@@ -125,13 +160,7 @@ export function BlogPublishKit({
         blogId: readiness.blogId,
         blogSnapshot: toSnapshot(post, categoryLabel),
         publicUrl,
-        preferences: {
-          visualStyle,
-          visualMode,
-          metaTone,
-          sameImageForCoverAndOg: mirrorCoverToOg,
-          variationOffset,
-        },
+        preferences: prefs,
       });
       if (res.meta || res.tags) {
         onApplySeo({ meta: res.meta, tags: res.tags });
@@ -153,10 +182,18 @@ export function BlogPublishKit({
         const art = res.visual.usedAiArt
           ? `AI hero${res.visual.imageModel ? ` (${res.visual.imageModel})` : ''} + overlay`
           : 'template SVG';
+        const iconNote =
+          res.visual.templateIconPool && res.visual.templateIconPool.length > 0
+            ? ` · icons: ${res.visual.templateIconPool.join(', ')}${res.visual.templateIconRationale ? ` (${res.visual.templateIconRationale})` : ''}`
+            : '';
         onKitDraftChange({
           stagedVisual: { ogPreviewDataUrl: og, coverPreviewDataUrl: cover },
           appliedToForm: false,
-          lastTemplate: `${art} · ${res.visual.templateFamily} · layout ${res.visual.layoutVariant}`,
+          lastTemplate: `${art} · ${res.visual.templateFamily} · layout ${res.visual.layoutVariant}${iconNote}`,
+          ...(res.visual.templateIconPool?.length
+            ? { templateIconPool: res.visual.templateIconPool }
+            : { templateIconPool: null }),
+          ...(isVisualRun ? { variationOffset: runOffset + 1 } : {}),
         });
       }
     } catch (e) {
@@ -175,6 +212,9 @@ export function BlogPublishKit({
     });
     onKitDraftChange({ appliedToForm: true });
   }
+
+  const layoutBlogId = visualReadiness.blogId ?? post.numericId ?? 0;
+  const nextLayoutLetter = layoutForOffset(layoutBlogId, variationOffset);
 
   const statusChip =
     textReadiness.status === 'ready'
@@ -225,8 +265,8 @@ export function BlogPublishKit({
             value={visualMode}
             onChange={(e) => onKitDraftChange({ visualMode: e.target.value as VisualMode })}
           >
+            <option value="template">Template only (fast, default)</option>
             <option value="hybrid">Hybrid (AI hero + text)</option>
-            <option value="template">Template only (fast)</option>
             <option value="ai">AI only (no text)</option>
           </select>
         </div>
@@ -303,10 +343,35 @@ export function BlogPublishKit({
             size="sm"
             disabled={!!busy || !visualReadiness.ready}
             title={visualReadiness.ready ? undefined : visualReadiness.message}
-            onClick={() => run('visual')}
+            onClick={() =>
+              run('visual', {
+                templateSalt: randomTemplateSalt(),
+              })
+            }
           >
-            {busy === 'visual' ? 'Rendering…' : 'Generate images'}
+            {busy === 'visual'
+              ? 'Rendering…'
+              : visualMode === 'template'
+                ? `Generate images (layout ${nextLayoutLetter})`
+                : 'Generate images'}
           </Button>
+          {visualMode === 'template' && (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={!!busy || !visualReadiness.ready}
+              title="AI picks 4–6 contextual sticker icons from title/tags (uses tokens)"
+              onClick={() =>
+                run('visual', {
+                  refreshTemplateIcons: true,
+                  templateSalt: randomTemplateSalt(),
+                })
+              }
+            >
+              {busy === 'visual' ? 'Picking icons…' : 'Pick icons (AI)'}
+            </Button>
+          )}
           {stagedVisual && (
             <Button
               type="button"
@@ -323,16 +388,37 @@ export function BlogPublishKit({
             type="button"
             size="sm"
             variant="outline"
-            disabled={!!busy}
-            onClick={() => onKitDraftChange({ variationOffset: variationOffset + 1 })}
-            title="Next layout variant on next image run"
+            disabled={!!busy || !visualReadiness.ready}
+            title={
+              visualReadiness.ready
+                ? 'Random layout, colors, and decor — free, no AI tokens'
+                : visualReadiness.message
+            }
+            onClick={() => {
+              const jump = shuffleVariationJump();
+              void run('visual', {
+                variationOffset: variationOffset + jump,
+                templateSalt: randomTemplateSalt(),
+                templateIconPool: templateIconPool ?? undefined,
+              });
+            }}
           >
-            Shuffle layout (+{variationOffset})
+            {busy === 'visual' ? 'Shuffling…' : 'Shuffle random layout'}
           </Button>
         </div>
         <p className="text-xs text-gray-600 dark:text-gray-400">
-          One hero is cropped to cover (3:2) and social (wide). After Apply, click <strong>Save post</strong>{' '}
-          to upload HTTPS URLs.
+          {visualMode === 'template' ? (
+            <>
+              <strong>Generate images</strong> and <strong>Shuffle random layout</strong> remix colors,
+              gradients, text placement, and decor for free. Use <strong>Pick icons (AI)</strong> only when
+              you want new contextual stickers (uses tokens).
+            </>
+          ) : (
+            <>
+              One hero is cropped to cover (3:2) and social (wide). Each generate advances the layout variant.
+            </>
+          )}{' '}
+          After Apply, click <strong>Save post</strong> to upload HTTPS URLs.
         </p>
       </div>
 

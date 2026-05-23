@@ -18,6 +18,8 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 import { firestore } from './firebase';
+import { isSupabaseContentEnabled } from './contentApi';
+import * as contentApi from './contentApi';
 import type { PortfolioId } from '../portfolios/registry';
 import { DEFAULT_PORTFOLIO_ID } from '../portfolios/registry';
 import { resolveCollection } from '../portfolios/collections';
@@ -113,11 +115,23 @@ function unwrapArrayFromFirestore<T>(data: DocumentData, fallback: T[]): T[] {
 
 /** Replace an entire array-valued document (stored at collection/data). */
 export async function setArrayDoc(collectionName: string, items: unknown[]) {
+  if (isSupabaseContentEnabled()) {
+    await contentApi.saveContentArray(collectionName, items);
+    return;
+  }
   await setDoc(doc(db(), collectionName, 'data'), { items }, { merge: false });
 }
 
-/** Read an entire array-valued document. Falls back when Firestore is off, missing, empty, or errors. */
+/** Read an entire array-valued document. Falls back when CMS is off, missing, empty, or errors. */
 export async function getArrayDoc<T>(collectionName: string, fallback: T[] = []): Promise<T[]> {
+  if (isSupabaseContentEnabled()) {
+    try {
+      const items = await contentApi.fetchContentArray<T>(collectionName);
+      return items.length > 0 ? items : fallback;
+    } catch {
+      return fallback;
+    }
+  }
   if (!firestore) return fallback;
 
   try {
@@ -132,11 +146,23 @@ export async function getArrayDoc<T>(collectionName: string, fallback: T[] = [])
 
 /** Replace a singleton object document (stored at collection/data). */
 export async function setObjectDoc(collectionName: string, item: unknown) {
+  if (isSupabaseContentEnabled()) {
+    await contentApi.saveContentObject(collectionName, item);
+    return;
+  }
   await setDoc(doc(db(), collectionName, 'data'), { item }, { merge: false });
 }
 
-/** Read a singleton object document. Falls back when Firestore is off, missing, or errors. */
+/** Read a singleton object document. Falls back when CMS is off, missing, or errors. */
 export async function getObjectDoc<T>(collectionName: string, fallback: T): Promise<T> {
+  if (isSupabaseContentEnabled()) {
+    try {
+      const item = await contentApi.fetchContentObject<T>(collectionName);
+      return hasMeaningfulValue(item) ? item : fallback;
+    } catch {
+      return fallback;
+    }
+  }
   if (!firestore) return fallback;
 
   try {
@@ -204,15 +230,24 @@ function normalizeBlogPostForSave(post: BlogPost): Omit<BlogPost, 'id'> {
 }
 
 export async function getBlogs(): Promise<BlogPost[]> {
-  const q = query(collection(db(), 'blog_posts'), orderBy('numericId', 'desc'));
-  const snap = await getDocs(q);
-
-  const firestoreBlogs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as BlogPost));
   const fallbackBlogs = (_blogsJson as unknown as BlogPost[]).map((p, i) => ({
     ...p,
     numericId: p.numericId ?? (p as { id?: number }).id ?? i + 1,
   }));
 
+  if (isSupabaseContentEnabled()) {
+    try {
+      const remote = (await contentApi.fetchAdminBlogs()) as BlogPost[];
+      return mergeBlogPostsWithFallback(fallbackBlogs, remote);
+    } catch {
+      return fallbackBlogs;
+    }
+  }
+
+  const q = query(collection(db(), 'blog_posts'), orderBy('numericId', 'desc'));
+  const snap = await getDocs(q);
+
+  const firestoreBlogs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as BlogPost));
   return mergeBlogPostsWithFallback(fallbackBlogs, firestoreBlogs);
 }
 
@@ -222,6 +257,25 @@ export async function syncBlogPostsFromSeed(): Promise<number> {
 }
 
 async function seedMissingFallbackBlogs(): Promise<number> {
+  if (isSupabaseContentEnabled()) {
+    const existing = await getBlogs();
+    const existingKeys = new Set(existing.map((p) => blogPostMergeKey(p)));
+    const fallback = (_blogsJson as unknown as BlogPost[]).map((p, i) => ({
+      ...p,
+      numericId: p.numericId ?? (p as { id?: number }).id ?? i + 1,
+    }));
+    const missing = fallback.filter((post) => !existingKeys.has(blogPostMergeKey(post)));
+    if (missing.length === 0) return 0;
+    await Promise.all(
+      missing.map(async (post) => {
+        const { id, ...data } = post;
+        const seedId = typeof id === 'string' && id.length > 0 ? `seed-${id}` : `seed-${data.numericId}`;
+        await contentApi.saveAdminBlog({ ...data, id: seedId });
+      }),
+    );
+    return missing.length;
+  }
+
   const q = query(collection(db(), 'blog_posts'), orderBy('numericId', 'asc'));
   const snap = await getDocs(q);
 
@@ -274,6 +328,13 @@ export async function saveBlog(post: BlogPost): Promise<string> {
   await seedMissingFallbackBlogs();
   invalidateBlogCache();
 
+  if (isSupabaseContentEnabled()) {
+    const data = normalizeBlogPostForSave(post);
+    await ensureUniqueNumericId(data, post.id);
+    const payload = post.id ? { ...data, id: post.id } : data;
+    return contentApi.saveAdminBlog(payload);
+  }
+
   if (post.id) {
     const { id } = post;
     const data = normalizeBlogPostForSave(post);
@@ -289,6 +350,11 @@ export async function saveBlog(post: BlogPost): Promise<string> {
 }
 
 export async function deleteBlog(id: string) {
+  if (isSupabaseContentEnabled()) {
+    await contentApi.deleteAdminBlog(id);
+    invalidateBlogCache();
+    return;
+  }
   await deleteDoc(doc(db(), 'blog_posts', id));
   invalidateBlogCache();
 }

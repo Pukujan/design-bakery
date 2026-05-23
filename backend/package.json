@@ -6,18 +6,21 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "pnpm --dir functions run build && tsc",
-    "start": "node lib/index.js",
-    "dev": "tsx watch src/index.ts",
+    "build": "pnpm --dir services run build && tsc",
+    "start": "node lib/server.js",
+    "dev": "pnpm --dir services run build && tsx watch src/server.ts",
     "env:split": "node ../scripts/split-env.mjs"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^4.21.2",
-    "firebase-admin": "^13.6.0"
+    "firebase-admin": "^13.6.0",
+    "jose": "^6.2.3"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "tsx": "^4.19.4",

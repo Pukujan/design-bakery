@@ -62,13 +62,10 @@ export default defineConfig(async ({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, './src/app'),
         '@ekagajpatra-case-study': path.resolve(
-          repoRoot,
+          __dirname,
           'extras/Create Presentation Case Study/src',
         ),
-        '@invest-ai-case-study': path.resolve(
-          repoRoot,
-          'extras/invest-ai-case-study/src',
-        ),
+        '@invest-ai-case-study': path.resolve(__dirname, 'extras/invest-ai-case-study/src'),
       },
     },
   }

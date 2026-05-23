@@ -1,9 +1,9 @@
 /**
  * Backend env: `backend/.env` + `backend/.env.local`.
- * Legacy: `server/.env`, non-VITE keys from repo root `.env`, `functions/.env`.
+ * Legacy fallbacks: repo root `.env`, `backend/services/.env`.
  */
 import { resolve } from 'node:path';
-import { applyEnvFile, backendDir, functionsDir, repoRoot } from './env-utils.mjs';
+import { applyEnvFile, backendDir, servicesDir, repoRoot } from './env-utils.mjs';
 
 export const backendEnvPaths = {
   env: resolve(backendDir, '.env'),
@@ -13,7 +13,6 @@ export const backendEnvPaths = {
 export function loadBackendEnv() {
   applyEnvFile(backendEnvPaths.env);
   applyEnvFile(backendEnvPaths.local, { override: true });
-  applyEnvFile(resolve(repoRoot, 'server', '.env'), { override: false });
   applyEnvFile(resolve(repoRoot, '.env'), {
     override: false,
     filterKey: (key) => !key.startsWith('VITE_'),
@@ -22,5 +21,5 @@ export function loadBackendEnv() {
     override: false,
     filterKey: (key) => !key.startsWith('VITE_'),
   });
-  applyEnvFile(resolve(functionsDir, '.env'), { override: false });
+  applyEnvFile(resolve(servicesDir, '.env'), { override: false });
 }

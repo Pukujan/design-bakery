@@ -89,7 +89,7 @@ export function BlogEditor() {
   const [newCategoryColor, setNewCategoryColor] = useState('#6366f1');
   const [tagInput, setTagInput] = useState('');
   const [seedSyncNote, setSeedSyncNote] = useState<string | null>(null);
-  const [mirrorCoverToOg, setMirrorCoverToOg] = useState(false);
+  const [mirrorCoverToOg, setMirrorCoverToOg] = useState(true);
   const [saveWarning, setSaveWarning] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [editorExpanded, setEditorExpanded] = useState(true);

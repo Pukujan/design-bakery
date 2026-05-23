@@ -1,3 +1,4 @@
+import { isBlogApiEnabled } from '@/lib/blogApi';
 import { invokeBlogPublishKit } from './publishKitClient';
 import type { BlogPost } from '@/lib/adminContentService';
 import { resolveBlogNumericId } from '@/modules/blog/data/blogData';
@@ -32,23 +33,87 @@ export type CommitVisualUploadResult = {
   ogImageThumbUrl: string;
 };
 
+function isLocalDevHost(): boolean {
+  if (typeof window === 'undefined') return false;
+  const h = window.location.hostname;
+  return h === 'localhost' || h === '127.0.0.1';
+}
+
+function productionUploadHelp(): string {
+  if (isBlogApiEnabled()) {
+    return (
+      'Server upload failed. On Railway set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_STORAGE_BUCKET ' +
+      '(or legacy FIREBASE_STORAGE_BUCKET + GOOGLE_APPLICATION_CREDENTIALS_JSON), then redeploy the API.'
+    );
+  }
+  return (
+    'Set VITE_BLOG_API_URL on Vercel to your Railway API URL (see doc/deploy-vercel-railway.md), redeploy, ' +
+    'and configure Supabase Storage env vars on Railway. Production uploads go through the API, not the browser.'
+  );
+}
+
 /** Block Firestore writes that still carry huge preview data URLs. */
 export function assertImagesReadyForFirestore(og: string, cover: string): void {
   if (!isStorableImageUrl(og) || !isStorableImageUrl(cover)) {
     throw new Error(
-      'Images could not be uploaded to Storage. Sign in to admin, restart pnpm run dev, and try Save again. ' +
-        'Or paste public https:// image URLs manually.',
+      'Images were not converted to https:// Storage URLs. Use Save post after Generate + Apply; ' +
+        productionUploadHelp(),
     );
   }
   if (isOversizedDataImageUrl(og) || isOversizedDataImageUrl(cover)) {
     throw new Error(
       'Image URLs are too large for Firestore (over ~100k characters). ' +
-        'Use https:// Storage URLs after upload, not embedded data: previews.',
+        'Save must upload to Storage first — do not keep data: previews in the post.',
     );
   }
 }
 
-async function uploadViaClient(params: {
+/** Server-side upload (Express API or Firebase callable) — no browser Storage CORS. */
+async function uploadViaServer(params: {
+  blogId: number;
+  post: BlogPost;
+  ogDataUrl: string;
+  coverDataUrl: string;
+  mirrorCoverToOg: boolean;
+}): Promise<CommitVisualUploadResult> {
+  const res = await invokeBlogPublishKit({
+    action: 'commit_visual',
+    blogId: params.blogId,
+    blogSnapshot: {
+      title: params.post.title,
+      excerpt: params.post.excerpt,
+      content: params.post.content,
+      category: params.post.category,
+      author: params.post.author,
+      color: params.post.color || '#6366f1',
+      numericId: params.post.numericId,
+      tags: params.post.tags,
+    },
+    visualCommit: {
+      ogPreviewDataUrl: params.ogDataUrl,
+      coverPreviewDataUrl: params.coverDataUrl,
+      sameImageForCoverAndOg: params.mirrorCoverToOg,
+    },
+  });
+  const v = res.visual;
+  if (
+    !v?.ogImageUrl ||
+    !v.coverImageUrl ||
+    !isStorableImageUrl(v.ogImageUrl) ||
+    !isStorableImageUrl(v.coverImageUrl)
+  ) {
+    throw new Error(productionUploadHelp());
+  }
+  return {
+    ogImageUrl: v.ogImageUrl,
+    coverImageUrl: v.coverImageUrl,
+    thumbnailImageUrl: v.thumbnailImageUrl ?? v.coverImageUrl,
+    ogImageThumbUrl: v.ogImageThumbUrl ?? v.ogImageUrl,
+  };
+}
+
+/** Browser → Firebase Storage (localhost only; needs bucket CORS). */
+async function uploadViaBrowser(params: {
   blogId: number;
   ogDataUrl: string;
   coverDataUrl: string;
@@ -82,7 +147,10 @@ async function uploadViaClient(params: {
   return { ogImageUrl, coverImageUrl, thumbnailImageUrl, ogImageThumbUrl };
 }
 
-/** Upload staged data: URLs to Storage when saving a post (not at generate time). */
+/**
+ * On Save: turn publish-kit data: previews into public https:// Storage URLs in Firestore.
+ * Production always uses server upload (Railway/callable). Browser upload is localhost-only fallback.
+ */
 export async function commitPublishKitImagesForSave(params: {
   post: BlogPost;
   mirrorCoverToOg: boolean;
@@ -94,65 +162,38 @@ export async function commitPublishKitImagesForSave(params: {
   const cover = (params.mirrorCoverToOg ? og : params.post.coverImageUrl?.trim()) || og;
   if (!isDataImageUrl(og) && !isDataImageUrl(cover)) return null;
 
-  let result: CommitVisualUploadResult | null = null;
+  const uploadParams = {
+    blogId,
+    post: params.post,
+    ogDataUrl: og,
+    coverDataUrl: cover,
+    mirrorCoverToOg: params.mirrorCoverToOg,
+  };
 
   try {
-    result = await uploadViaClient({ blogId, ogDataUrl: og, coverDataUrl: cover });
-  } catch (clientErr) {
-    const hint = clientErr instanceof Error ? clientErr.message : 'Client upload failed';
-    try {
-      const res = await invokeBlogPublishKit({
-        action: 'commit_visual',
-        blogId,
-        blogSnapshot: {
-          title: params.post.title,
-          excerpt: params.post.excerpt,
-          content: params.post.content,
-          category: params.post.category,
-          author: params.post.author,
-          color: params.post.color || '#6366f1',
-          numericId: params.post.numericId,
-          tags: params.post.tags,
-        },
-        visualCommit: {
-          ogPreviewDataUrl: og,
-          coverPreviewDataUrl: cover,
-          sameImageForCoverAndOg: params.mirrorCoverToOg,
-        },
-      });
-      const v = res.visual;
-      if (
-        v?.ogImageUrl &&
-        v.coverImageUrl &&
-        isStorableImageUrl(v.ogImageUrl) &&
-        isStorableImageUrl(v.coverImageUrl)
-      ) {
-        result = {
-          ogImageUrl: v.ogImageUrl,
-          coverImageUrl: v.coverImageUrl,
-          thumbnailImageUrl: v.thumbnailImageUrl ?? v.coverImageUrl,
-          ogImageThumbUrl: v.ogImageThumbUrl ?? v.ogImageUrl,
-        };
-      } else if (v?.ogImageUrl?.startsWith('data:')) {
-        throw new Error(
-          'Functions could not upload images (missing GCP credentials in the emulator). ' +
-            'Stay signed in to admin so the browser can upload directly, then Save again.',
-        );
-      }
-    } catch (fnErr) {
-      const fnMsg = fnErr instanceof Error ? fnErr.message : String(fnErr);
+    return await uploadViaServer(uploadParams);
+  } catch (serverErr) {
+    const serverMsg = serverErr instanceof Error ? serverErr.message : 'Server upload failed';
+
+    // With VITE_BLOG_API_URL, always upload via Express — never fall back to browser (Storage CORS).
+    if (isBlogApiEnabled()) {
       throw new Error(
-        `${hint} ${fnMsg} — Sign in to admin, keep pnpm run dev running, then Save again.`,
+        `${serverMsg} — Backend upload only. Confirm pnpm run dev:stack, ` +
+          'http://localhost:8787/health, GOOGLE_APPLICATION_CREDENTIALS_PATH in backend/.env, then Save again.',
+      );
+    }
+
+    if (!isLocalDevHost()) {
+      throw new Error(`${serverMsg} ${productionUploadHelp()}`);
+    }
+
+    try {
+      return await uploadViaBrowser({ blogId, ogDataUrl: og, coverDataUrl: cover });
+    } catch (browserErr) {
+      const browserMsg = browserErr instanceof Error ? browserErr.message : 'Browser upload failed';
+      throw new Error(
+        `${serverMsg} ${browserMsg} — Prefer VITE_BLOG_API_URL + dev:stack, or run pnpm run storage:cors for browser uploads.`,
       );
     }
   }
-
-  if (!result) {
-    throw new Error(
-      'Could not upload images. Sign in to admin, click Apply to post after Generate, then Save again.',
-    );
-  }
-
-  assertImagesReadyForFirestore(result.ogImageUrl, result.coverImageUrl);
-  return result;
 }

@@ -1,6 +1,7 @@
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { assertFirebaseConfigured, auth, firebaseApp } from '@/lib/firebase';
+import { assertFirebaseConfigured, firebaseApp } from '@/lib/firebase';
 import { getStorage } from 'firebase/storage';
+import { getAdminAccessToken } from '@/lib/adminToken';
 
 function storage() {
   assertFirebaseConfigured();
@@ -8,10 +9,8 @@ function storage() {
 }
 
 function assertAdminSignedInForStorage() {
-  if (!auth?.currentUser) {
-    throw new Error(
-      'Sign in to admin before uploading images. Firebase Storage rules require an authenticated session.',
-    );
+  if (!getAdminAccessToken()) {
+    throw new Error('Sign in to admin before uploading images.');
   }
 }
 
@@ -28,6 +27,11 @@ function mapStorageError(err: unknown): Error {
   }
   if (code === 'storage/unauthenticated') {
     return new Error('Storage upload requires admin sign-in. Log in and try Save again.');
+  }
+  if (/cors|access control|ERR_FAILED|ok status/i.test(message)) {
+    return new Error(
+      'Browser blocked Storage upload (CORS). Run: pnpm run storage:cors — or Save with pnpm run dev:stack and GOOGLE_APPLICATION_CREDENTIALS_JSON in backend/.env so the API uploads server-side.',
+    );
   }
   return err instanceof Error ? err : new Error(message);
 }

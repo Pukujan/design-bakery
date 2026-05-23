@@ -135,7 +135,7 @@
     "**/docs/_build/**",
     "**/site/**",
     "**/archive/**",
-    "extras/design changes to blog details/**"
+    "**/frontend/extras/**"
   ],
   "languages": [],
   "frameworks": [],

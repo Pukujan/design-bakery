@@ -1,3 +1,5 @@
+.DS_Store
+**/.DS_Store
 node_modules
 dist
 frontend/dist
@@ -9,9 +11,13 @@ frontend/.env
 frontend/.env.local
 backend/.env
 backend/.env.local
-server/.env
-server/.env.local
+# Firebase service account keys — never commit
+*-firebase-adminsdk-*.json
+backend/secrets/*.json
 temp/
+deploy/*.env
+deploy/railway.env
+deploy/vercel.env
 
 # CodeGraph — commit .codegraph/config.json only; index is local
 .codegraph/codegraph.db

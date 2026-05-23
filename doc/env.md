@@ -13,9 +13,13 @@ cp backend/.env.example backend/.env
 ```
 
 - **Frontend** — `VITE_*` only (Firebase web config, feature flags, `VITE_BLOG_API_URL`)
-- **Backend** — secrets (`OPENROUTER_API_KEY`, `FIREBASE_STORAGE_BUCKET`, service account JSON)
+- **Backend** — secrets (`OPENROUTER_API_KEY`, Supabase Storage, optional legacy Firebase Admin)
 
-Firebase callable source lives in `backend/functions/` (optional deploy; Express on Railway is the default prod path).
+**Blog images (recommended):** Supabase Storage via `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET` in `backend/.env`. No GCP billing required.
+
+**Legacy:** Firebase Storage still works if `IMAGE_STORAGE=firebase` and Firebase Admin creds are set.
+
+Firebase callable source lives in `backend/services/` (optional deploy; Express on Railway is the default prod path).
 
 ## Local dev
 

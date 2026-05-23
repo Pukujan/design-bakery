@@ -1,0 +1,23 @@
+---
+description: Supabase migration — read before auth, CMS, or storage changes
+globs:
+  - frontend/src/app/lib/adminContentService.ts
+  - frontend/src/app/lib/adminAuth.tsx
+  - frontend/src/app/lib/firebase.ts
+  - frontend/src/app/modules/blog/data/blogData.ts
+  - frontend/src/app/modules/blog/lib/uploadBlogImageClient.ts
+  - frontend/src/app/modules/blog/studio/publishKitImages.ts
+  - backend/services/src/blog/publishKit/storage.ts
+  - backend/services/src/supabaseClient.ts
+  - backend/src/middleware/auth.ts
+  - supabase/**
+---
+
+# Supabase migration
+
+Read **[guidelines/agent-devlog-supabase-migration.md](../../guidelines/agent-devlog-supabase-migration.md)** before editing auth, Firestore CMS, or image upload code.
+
+- **Supabase database = PostgreSQL** (SQL + JSONB), not Firestore.
+- **Phase 1:** Storage via `SUPABASE_*` in `backend/.env` (`IMAGE_STORAGE=supabase`).
+- **Do not** expose `SUPABASE_SERVICE_ROLE_KEY` in frontend env.
+- Firebase exit reason: Storage/billing blocked Save; see devlog “Why we are leaving Firebase”.

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Split a combined env file into frontend/.env and backend/.env.
- * Usage: pnpm run env:split  (from repo root, functions/, or backend/)
+ * Usage: pnpm run env:split  (from repo root, services/, or backend/)
  */
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';

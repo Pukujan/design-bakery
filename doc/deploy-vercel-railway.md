@@ -26,15 +26,17 @@ Firebase (Auth, Firestore, Storage) stays on the **Spark** plan. You do **not** 
 
 1. [Railway](https://railway.app) → **New Project** → **Deploy from GitHub repo** → select `design-bakery`.
 2. Open the new service → **Settings**:
-   - **Root Directory:** `backend`  
-     (Build still reaches `../functions` and the repo root `pnpm-lock.yaml`.)
-   - **Watch Paths** (optional): `backend/**`, `functions/**`, `pnpm-lock.yaml`
-3. **Build** — either leave Railway to read `backend/railway.toml`, or set manually:
+   - **Root Directory:** leave **empty** (repository root).  
+     Do **not** set `backend` — the build needs root `pnpm-lock.yaml` and `pnpm-workspace.yaml`.
+   - **Config file path:** `railway.toml` (repo root, not `backend/railway.toml`)
+   - **Watch Paths** (optional): `backend/**`, `pnpm-lock.yaml`, `railway.toml`
+3. **Build / Start** — use repo-root `railway.toml` (or set manually):
    - **Build command:**
      ```bash
-     corepack enable pnpm && cd .. && pnpm install --frozen-lockfile && pnpm --dir backend/functions run build && pnpm --dir backend run build
+     corepack enable pnpm && pnpm install --frozen-lockfile && pnpm --dir backend/services run build && pnpm --dir backend run build
      ```
-   - **Start command:** `node lib/index.js`
+   - **Start command:** `node backend/lib/server.js`
+   - Node **20+** (`.node-version` + `nixpacks.toml` at repo root)
 4. **Networking** → **Generate Domain** (or attach a custom domain). Copy the HTTPS URL, e.g. `https://design-bakery-api-production.up.railway.app` (no trailing slash).
 
 ### Environment variables (Railway)
@@ -113,6 +115,19 @@ Deploy logs should show: `[api] design-bakery-api http://0.0.0.0:...`
    - `GOOGLE_APPLICATION_CREDENTIALS_JSON`
 
 6. **Deploy**. After the first deploy, open the production URL → sign in to admin → test **Publish kit** / **Blog agents**.
+
+### Publish kit images (Save post)
+
+Preview images in the editor are temporary `data:` URLs. **Save post** uploads them server-side and stores public **`https://storage.googleapis.com/...`** (or Firebase download) links in Firestore — the browser does **not** upload to Storage in production (avoids bucket CORS).
+
+**Required for Save with generated images:**
+
+- `VITE_BLOG_API_URL` → Railway URL (above)
+- Railway: `GOOGLE_APPLICATION_CREDENTIALS_JSON` + `FIREBASE_STORAGE_BUCKET`
+
+If Save still hits `firebasestorage.googleapis.com` from the browser, the production build is missing `VITE_BLOG_API_URL` — redeploy Vercel after adding it.
+
+**Optional (localhost browser upload only):** `pnpm run storage:cors` applies `firebase/storage.cors.json` to the bucket.
 
 ### Custom domain (optional)
 

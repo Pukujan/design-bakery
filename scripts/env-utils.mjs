@@ -6,10 +6,7 @@ const scriptsDir = resolve(dirname(fileURLToPath(import.meta.url)));
 export const repoRoot = resolve(scriptsDir, '..');
 export const frontendDir = resolve(repoRoot, 'frontend');
 export const backendDir = resolve(repoRoot, 'backend');
-export const functionsDir = resolve(repoRoot, 'backend/functions');
-
-/** @deprecated Use backendDir */
-export const serverDir = backendDir;
+export const servicesDir = resolve(repoRoot, 'backend/services');
 
 /**
  * @param {string} path

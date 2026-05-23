@@ -16,19 +16,14 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/app/*"],
-      "@ekagajpatra-case-study/*": ["../extras/Create Presentation Case Study/src/*"],
-      "@invest-ai-case-study/*": ["../extras/invest-ai-case-study/src/*"]
+      "@ekagajpatra-case-study/*": ["extras/Create Presentation Case Study/src/*"],
+      "@invest-ai-case-study/*": ["extras/invest-ai-case-study/src/*"]
     }
   },
   "include": [
     "src",
-    "../extras/invest-ai-case-study/src",
-    "../extras/Create Presentation Case Study/src"
+    "extras/invest-ai-case-study/src",
+    "extras/Create Presentation Case Study/src"
   ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "../archive",
-    "../extras/design changes to blog details/**"
-  ]
+  "exclude": ["node_modules", "dist"]
 }

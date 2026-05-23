@@ -13,10 +13,10 @@
       "icon": "Shield",
       "color": "#4169E1",
       "accentColor": "#8EA7FF",
-      "collapsedSummary": "Work on high-volume litigation operations while developing AI workflow research around docketing, court filing signals, judge/part rules, procedural risk, and privacy-safe legal automation.",
-      "expandedSummary": "Work on high-volume litigation operations while developing AI workflow research around docketing, court filing signals, judge/part rules, procedural risk, and privacy-safe legal automation.",
+      "collapsedSummary": "Work on high-volume litigation operations while developing AI workflow research around docketing, NYSCEF filing signals, judge/part rules, procedural risk, and privacy-safe legal automation.",
+      "expandedSummary": "Work on high-volume litigation operations while developing AI workflow research around docketing, NYSCEF filing signals, judge/part rules, procedural risk, and privacy-safe legal automation.",
       "highlights": [],
-      "tags": ["Legal Ops", "AI Workflow", "NYSCEF", "TrialWorks", "Docketing"]
+      "tags": ["Legal Ops", "NYSCEF", "TrialWorks", "Docketing", "AI Workflow"]
     },
     {
       "id": 2,
@@ -30,7 +30,7 @@
       "collapsedSummary": "Worked on AI orchestration, RAG pipelines, OCR workflows, document classification, validation systems, and governance-sensitive datasets across legal, healthcare, OCR, and geospatial domains.",
       "expandedSummary": "Worked on AI orchestration, RAG pipelines, OCR workflows, document classification, validation systems, and governance-sensitive datasets across legal, healthcare, OCR, and geospatial domains.",
       "highlights": [],
-      "tags": ["RAG", "OCR", "AI Orchestration", "Data Validation", "Governance"]
+      "tags": ["RAG", "OCR", "Document Classification", "AI Orchestration", "Governance"]
     },
     {
       "id": 3,
@@ -39,12 +39,12 @@
       "period": "Feb 2023 - Apr 2024 · 1 yr 3 mos",
       "location": "Nepal",
       "icon": "Rocket",
-      "color": "#A8CC00",
-      "accentColor": "#C5E866",
+      "color": "#0D9488",
+      "accentColor": "#14B8A6",
       "collapsedSummary": "Led product design and development for a civic-tech platform serving 35,000+ users, turning complex government and legal-documentation processes into guided digital workflows.",
       "expandedSummary": "Led product design and development for a civic-tech platform serving 35,000+ users, turning complex government and legal-documentation processes into guided digital workflows.",
       "highlights": [],
-      "tags": ["Product Design", "Full-Stack", "Civic Tech", "UX", "0→1 Product"]
+      "tags": ["Civic Tech", "Legal Documentation", "Workflow UX", "Full-Stack", "Product Design"]
     },
     {
       "id": 4,
@@ -53,8 +53,8 @@
       "period": "May 2023 - Apr 2025 · 2 yrs",
       "location": "Nepal",
       "icon": "Code",
-      "color": "#FF6B9D",
-      "accentColor": "#FF9BB8",
+      "color": "#6366F1",
+      "accentColor": "#A78BFA",
       "collapsedSummary": "Built frontend projects using Figma, React, Next.js, Tailwind, Redux, APIs, animations, and QA workflows for client-facing websites and product interfaces.",
       "expandedSummary": "Built frontend projects using Figma, React, Next.js, Tailwind, Redux, APIs, animations, and QA workflows for client-facing websites and product interfaces.",
       "highlights": [],
@@ -67,12 +67,12 @@
       "period": "Jun 2016 - Dec 2018 · 2 yrs 7 mos",
       "location": "Nepal",
       "icon": "Lightbulb",
-      "color": "#0D9488",
-      "accentColor": "#14B8A6",
+      "color": "#FF6B9D",
+      "accentColor": "#FF9BB8",
       "collapsedSummary": "Built 0→1 SaaS solutions, dashboards, workflow prototypes, and client-specific tools for legal, financial, and business operations clients.",
       "expandedSummary": "Built 0→1 SaaS solutions, dashboards, workflow prototypes, and client-specific tools for legal, financial, and business operations clients.",
       "highlights": [],
-      "tags": ["Solutions Engineering", "SaaS", "React", "Node.js", "Dashboards"]
+      "tags": ["Legal Clients", "SaaS", "Dashboards", "React", "Node.js"]
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 
 type Props = {
@@ -11,6 +11,31 @@ type Props = {
 export function PublishImagePreview({ url, label, size = 'compact' }: Props) {
   const trimmed = url.trim();
   const [failed, setFailed] = useState(false);
+  const [hint, setHint] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFailed(false);
+    setHint(null);
+    if (!trimmed || trimmed.startsWith('data:')) return;
+
+    let cancelled = false;
+    void fetch(trimmed, { method: 'HEAD' })
+      .then(async (res) => {
+        if (cancelled || res.ok) return;
+        if (res.url.includes('.supabase.co/storage/')) {
+          setHint(
+            'Supabase Storage returned an error — open Supabase → Storage → design-bakery → enable Public bucket, then Save again.',
+          );
+        }
+      })
+      .catch(() => {
+        /* img onError handles display */
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [trimmed]);
 
   if (!trimmed) return null;
 
@@ -35,7 +60,7 @@ export function PublishImagePreview({ url, label, size = 'compact' }: Props) {
       </div>
       {failed ? (
         <p className="text-xs text-amber-700 dark:text-amber-400">
-          Preview could not load. Check the URL field or Storage permissions.
+          {hint ?? 'Preview could not load. Check the URL field or Storage permissions.'}
           {isData ? ' (Local data URL — save post after generate.)' : ''}
         </p>
       ) : (

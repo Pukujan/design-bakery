@@ -1,3 +1,4 @@
+import { getBlogApiBaseUrl, isBlogApiEnabled } from '@/lib/blogApi';
 import { createBlogCallable } from '@/lib/blogCallables';
 import { formatCallableHttpError } from '@/lib/functionsClient';
 import {
@@ -34,12 +35,23 @@ export async function invokeBlogPublishKit(params: {
   } catch (e) {
     const err = e as { code?: string; message?: string; status?: number };
     const msg = err?.message ?? (e instanceof Error ? e.message : String(e));
-    if (/cors|failed to fetch|network/i.test(msg)) {
+    if (/cors|failed to fetch|network|reach blog API/i.test(msg)) {
+      if (isBlogApiEnabled()) {
+        throw new Error(msg);
+      }
       throw new Error(
-        `${msg} — Local: restart pnpm run dev and confirm [functions] ready. Production: redeploy Vercel (callable proxy) and Functions; disable ad blockers.`,
+        `${msg} — Set VITE_BLOG_API_URL=http://localhost:8787 and run pnpm run dev:stack, ` +
+          'or enable VITE_USE_FUNCTIONS_EMULATOR with pnpm run dev and [functions] ready.',
       );
     }
     if (err?.code === 'functions/not-found' || /404|not found/i.test(msg)) {
+      if (isBlogApiEnabled()) {
+        throw new Error(
+          `Blog API returned 404 at ${getBlogApiBaseUrl()}/api/publish-kit. ` +
+            'Stop other processes on port 8787, run pnpm run dev:stack, use the URL Vite prints (5300 or 5301), ' +
+            'then open http://localhost:8787/health.',
+        );
+      }
       throw new Error(formatCallableHttpError(msg, err?.status ?? 404));
     }
     throw e;

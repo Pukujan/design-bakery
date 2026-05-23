@@ -12,6 +12,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase';
+import { isSupabaseContentEnabled, fetchPublic } from '@/lib/contentApi';
 import { normalizeBlogSeo, type BlogSeo } from '@/modules/blog/seo/blogMeta';
 
 export type { BlogSeo };
@@ -177,8 +178,54 @@ export async function getBlogDataLive(): Promise<Blog[]> {
   return cache.full;
 }
 
+function mapRemoteBlog(row: {
+  numericId?: number;
+  id?: number | string;
+  title: string;
+  excerpt: string;
+  date: string;
+  readTime: string;
+  tags?: string[];
+  category: string;
+  color: string;
+  author: string;
+  content?: string;
+  coverImageUrl?: string;
+  thumbnailImageUrl?: string;
+  seo?: BlogSeo;
+}): Blog {
+  const numericId = typeof row.numericId === 'number' ? row.numericId : Number(row.id) || 0;
+  return {
+    id: numericId,
+    title: row.title,
+    excerpt: row.excerpt,
+    date: row.date,
+    readTime: row.readTime,
+    tags: row.tags ?? [],
+    category: row.category,
+    color: row.color,
+    author: row.author,
+    content: row.content ?? '',
+    coverImageUrl: row.coverImageUrl?.trim() || undefined,
+    thumbnailImageUrl: row.thumbnailImageUrl?.trim() || undefined,
+    seo: normalizeBlogSeo(row.seo),
+  };
+}
+
 async function fetchAllBlogsUncached(): Promise<Blog[]> {
   const fallback = sortBlogsByDateDesc(fallbackBlogsFromJson());
+
+  if (isSupabaseContentEnabled()) {
+    try {
+      const data = await fetchPublic<{ blogs: Parameters<typeof mapRemoteBlog>[0][] }>('/api/public/blogs');
+      const remote = (data.blogs ?? []).map(mapRemoteBlog).map((b) => ({ ...b, numericId: b.id }));
+      if (remote.length === 0) return fallback;
+      return mergeBlogPostsWithFallback(fallback, remote);
+    } catch {
+      return fallback;
+    }
+  }
+
   if (!firestore) return fallback;
 
   try {
@@ -224,6 +271,20 @@ function findFallbackBlog(numericId: number): Blog | undefined {
 /** Detail page — one Firestore doc by numericId (not the full collection). */
 export async function getBlogByNumericIdLive(numericId: number): Promise<Blog | undefined> {
   const fallback = findFallbackBlog(numericId);
+
+  if (isSupabaseContentEnabled()) {
+    try {
+      const data = await fetchPublic<{ blog: Parameters<typeof mapRemoteBlog>[0] }>(
+        `/api/public/blogs/${numericId}`,
+      );
+      const remote = mapRemoteBlog(data.blog);
+      if (!fallback) return remote;
+      return mergeBlogPostsWithFallback([fallback], [{ ...remote, numericId: remote.id }])[0];
+    } catch {
+      return fallback;
+    }
+  }
+
   if (!firestore) return fallback;
 
   try {
@@ -246,6 +307,16 @@ export async function getBlogByNumericIdLive(numericId: number): Promise<Blog | 
 
 export async function getBlogCategoriesLive(): Promise<BlogCategory[]> {
   const fallback = categoriesJson as BlogCategory[];
+
+  if (isSupabaseContentEnabled()) {
+    try {
+      const data = await fetchPublic<{ items: BlogCategory[] }>('/api/public/blog-categories');
+      return data.items?.length ? data.items : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
   if (!firestore) return fallback;
 
   try {
@@ -281,7 +352,7 @@ export type UseBlogDataResult = {
 
 /** Blog list, insights, nav — summaries only; shared in-memory cache. */
 export function useBlogData(): UseBlogDataResult {
-  const hasLiveSource = Boolean(firestore);
+  const hasLiveSource = isSupabaseContentEnabled() || Boolean(firestore);
   const [liveBlogs, setLiveBlogs] = useState<BlogSummary[]>(blogData.map(toBlogSummary));
   const [isLoading, setIsLoading] = useState(hasLiveSource);
 
@@ -314,7 +385,7 @@ export type UseBlogPostResult = {
 
 /** Blog detail — single post fetch; uses JSON fallback until Firestore returns. */
 export function useBlogPost(numericId: number | undefined): UseBlogPostResult {
-  const hasLiveSource = Boolean(firestore);
+  const hasLiveSource = isSupabaseContentEnabled() || Boolean(firestore);
   const validId =
     typeof numericId === 'number' && !Number.isNaN(numericId) && numericId > 0
       ? numericId

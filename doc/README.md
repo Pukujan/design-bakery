@@ -22,3 +22,4 @@ Copy `frontend/.env.example` → `frontend/.env` and `backend/.env.example` → 
 | [deploy-vercel-railway.md](./deploy-vercel-railway.md) | **Production** — same repo: Vercel (frontend) + Railway (Express API) |
 | [routes.md](./routes.md) | **All routes** — public URLs, admin paths, section anchors, navbar |
 | [project-guide.md](./project-guide.md) | Architecture, portfolios, content/data, how to extend |
+| [useful-prompts/study-blog-creator-prompt-v1.md](./useful-prompts/study-blog-creator-prompt-v1.md) | **Prompt** — study / learning-in-public blog draft template (v1) |

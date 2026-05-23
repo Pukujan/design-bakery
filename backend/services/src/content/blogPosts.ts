@@ -1,0 +1,146 @@
+import { supabaseAdmin } from '../supabaseClient.js';
+
+export type BlogPostRow = {
+  id: string;
+  legacy_doc_id: string | null;
+  numeric_id: number;
+  title: string;
+  excerpt: string;
+  content: string;
+  tags: string[] | unknown;
+  category: string;
+  author: string;
+  color: string | null;
+  date: string | null;
+  read_time: string | null;
+  cover_image_url: string | null;
+  thumbnail_image_url: string | null;
+  seo: Record<string, unknown> | null;
+};
+
+export type BlogPostDto = {
+  id?: string;
+  numericId?: number;
+  title: string;
+  excerpt: string;
+  date: string;
+  readTime: string;
+  tags: string[];
+  category: string;
+  color: string;
+  author: string;
+  content: string;
+  coverImageUrl?: string;
+  thumbnailImageUrl?: string;
+  seo?: Record<string, unknown>;
+};
+
+function rowToDto(row: BlogPostRow): BlogPostDto {
+  return {
+    id: row.legacy_doc_id ?? row.id,
+    numericId: row.numeric_id,
+    title: row.title,
+    excerpt: row.excerpt,
+    date: row.date ?? '',
+    readTime: row.read_time ?? '',
+    tags: Array.isArray(row.tags) ? (row.tags as string[]) : [],
+    category: row.category,
+    color: row.color ?? '',
+    author: row.author,
+    content: row.content,
+    coverImageUrl: row.cover_image_url ?? undefined,
+    thumbnailImageUrl: row.thumbnail_image_url ?? undefined,
+    seo: row.seo ?? undefined,
+  };
+}
+
+function dtoToRow(data: Omit<BlogPostDto, 'id'>, legacyDocId?: string): Omit<BlogPostRow, 'id'> {
+  return {
+    legacy_doc_id: legacyDocId ?? null,
+    numeric_id: data.numericId ?? 0,
+    title: data.title,
+    excerpt: data.excerpt,
+    content: data.content,
+    tags: data.tags ?? [],
+    category: data.category,
+    author: data.author,
+    color: data.color || null,
+    date: data.date || null,
+    read_time: data.readTime || null,
+    cover_image_url: data.coverImageUrl?.trim() || null,
+    thumbnail_image_url: data.thumbnailImageUrl?.trim() || null,
+    seo: data.seo ?? null,
+  };
+}
+
+export async function listBlogPosts(): Promise<BlogPostDto[]> {
+  const { data, error } = await supabaseAdmin()
+    .from('blog_posts')
+    .select('*')
+    .order('numeric_id', { ascending: false });
+
+  if (error) throw new Error(`Blog list failed: ${error.message}`);
+  return (data as BlogPostRow[]).map(rowToDto);
+}
+
+export async function getBlogByNumericId(numericId: number): Promise<{ docId: string; blog: BlogPostDto }> {
+  const { data, error } = await supabaseAdmin()
+    .from('blog_posts')
+    .select('*')
+    .eq('numeric_id', numericId)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error(`Blog read failed: ${error.message}`);
+  if (!data) throw new Error(`Blog ${numericId} not found`);
+
+  const row = data as BlogPostRow;
+  return { docId: row.legacy_doc_id ?? row.id, blog: rowToDto(row) };
+}
+
+export async function upsertBlogPost(post: BlogPostDto): Promise<string> {
+  const legacyId = post.id?.trim();
+  const row = dtoToRow(post, legacyId);
+
+  if (legacyId) {
+    const { data: existing } = await supabaseAdmin()
+      .from('blog_posts')
+      .select('id')
+      .eq('legacy_doc_id', legacyId)
+      .maybeSingle();
+
+    if (existing?.id) {
+      const { error } = await supabaseAdmin()
+        .from('blog_posts')
+        .update({ ...row, updated_at: new Date().toISOString() })
+        .eq('id', existing.id);
+      if (error) throw new Error(`Blog update failed: ${error.message}`);
+      return legacyId;
+    }
+  }
+
+  const { data, error } = await supabaseAdmin()
+    .from('blog_posts')
+    .insert({
+      ...row,
+      legacy_doc_id: legacyId ?? `seed-${row.numeric_id}`,
+      updated_at: new Date().toISOString(),
+    })
+    .select('legacy_doc_id, id')
+    .single();
+
+  if (error) throw new Error(`Blog insert failed: ${error.message}`);
+  const inserted = data as { legacy_doc_id: string | null; id: string };
+  return inserted.legacy_doc_id ?? inserted.id;
+}
+
+export async function deleteBlogPost(docId: string): Promise<void> {
+  let query = supabaseAdmin().from('blog_posts').delete().eq('legacy_doc_id', docId);
+  let { error } = await query;
+  if (error) throw new Error(`Blog delete failed: ${error.message}`);
+
+  if (/^[0-9a-f-]{36}$/i.test(docId)) {
+    ({ error } = await supabaseAdmin().from('blog_posts').delete().eq('id', docId));
+    if (error) throw new Error(`Blog delete failed: ${error.message}`);
+  }
+}

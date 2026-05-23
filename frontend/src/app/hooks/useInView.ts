@@ -1,29 +1,38 @@
-import { useEffect, useState, type RefObject } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 /** Fire once when the element enters (or nears) the viewport. */
-export function useInView(
-  ref: RefObject<HTMLElement | null>,
-  rootMargin = '240px',
-): boolean {
+export function useInView(rootMargin = '240px'): {
+  ref: (node: HTMLElement | null) => void;
+  inView: boolean;
+} {
   const [inView, setInView] = useState(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || inView) return;
+  const ref = useCallback(
+    (node: HTMLElement | null) => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin },
-    );
+      if (!node || inView) return;
 
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [ref, inView, rootMargin]);
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setInView(true);
+            observer.disconnect();
+            observerRef.current = null;
+          }
+        },
+        { rootMargin },
+      );
 
-  return inView;
+      observer.observe(node);
+      observerRef.current = observer;
+    },
+    [inView, rootMargin],
+  );
+
+  return { ref, inView };
 }

@@ -39,7 +39,7 @@ const free = spawnSync('node', ['scripts/free-emulator-port.mjs'], {
 if (free.status !== 0) process.exit(free.status ?? 1);
 
 if (verbose) log('building…');
-const build = spawnSync('pnpm', ['--dir', 'backend/functions', 'run', 'build'], {
+const build = spawnSync('pnpm', ['--dir', 'backend/services', 'run', 'build'], {
   cwd: root,
   stdio: verbose ? 'inherit' : 'pipe',
   encoding: 'utf8',
@@ -55,6 +55,8 @@ const emuArgs = [
   'exec',
   'firebase',
   'emulators:start',
+  '--config',
+  'firebase/firebase.json',
   '--only',
   'functions',
   '--log-verbosity',

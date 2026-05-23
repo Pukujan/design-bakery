@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useInView } from '@/hooks/useInView';
 import {
   resolveBlogCoverUrl,
@@ -13,12 +13,12 @@ type Props = {
 };
 
 export function BlogCoverImage({ blog, variant, className = '' }: Props) {
-  const shellRef = useRef<HTMLDivElement>(null);
+  const { ref: shellRef, inView } = useInView(variant === 'hero' ? '400px' : '240px');
   const url =
     variant === 'card' ? resolveBlogThumbnailUrl(blog) : resolveBlogCoverUrl(blog);
   const urlKey = url ?? '';
 
-  const shouldLoad = useInView(shellRef, variant === 'hero' ? '400px' : '240px');
+  const shouldLoad = variant === 'hero' || inView;
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
 

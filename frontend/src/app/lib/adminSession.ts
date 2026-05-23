@@ -1,4 +1,4 @@
-/** Inactivity limit for Firebase admin sessions (client-side). */
+/** Inactivity limit for admin sessions (client-side). */
 export const ADMIN_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
 
 export const ADMIN_SESSION_EXPIRED_KEY = 'admin_session_expired';

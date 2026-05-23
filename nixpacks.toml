@@ -1,0 +1,3 @@
+# Railway/Nixpacks — backend requires Node 20+ (see backend/package.json engines)
+[phases.setup]
+nixPkgs = ["nodejs_20", "pnpm-10_x"]

@@ -2,6 +2,7 @@
 
 Blog AI: **publish kit** + **promo agent**. Reuses `functions/` handlers.
 
+**Layout:** [doc/architecture.md](../doc/architecture.md) (MVC-style layers under `src/`)  
 **Deploy:** [doc/deploy-vercel-railway.md](../doc/deploy-vercel-railway.md)  
 **Env:** `backend/.env` — see [doc/env.md](../doc/env.md) and `backend/.env.example`
 
@@ -23,10 +24,11 @@ VITE_BLOG_API_URL=http://localhost:8787
 
 ## Railway
 
+Deploy from **repo root** (see `railway.toml` at root). Do not set Railway Root Directory to `backend` only.
+
 | Setting | Value |
 |---------|--------|
-| Root Directory | `backend` |
-| Start | `node lib/index.js` |
+| Start | `node backend/lib/server.js` |
 | Health | `/health` |
 
 Variables: see `backend/.env.example` (set in Railway dashboard, not Vercel).

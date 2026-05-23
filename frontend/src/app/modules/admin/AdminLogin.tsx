@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAdminAuth } from '../../lib/adminAuth';
+import { isBackendAdminAuthEnabled, useAdminAuth } from '../../lib/adminAuth';
 import { consumeAdminSessionExpired } from '../../lib/adminSession';
-import { isFirebaseConfigured } from '../../lib/firebase';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -10,24 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 
 function formatAuthError(err: unknown): string {
   if (!(err instanceof Error)) return 'Sign in failed. Please try again.';
-
-  const code = (err as Error & { code?: string }).code;
-  switch (code) {
-    case 'auth/invalid-email':
-      return 'That email address is not valid.';
-    case 'auth/user-disabled':
-      return 'This account has been disabled.';
-    case 'auth/user-not-found':
-    case 'auth/wrong-password':
-    case 'auth/invalid-credential':
-      return 'Incorrect email or password.';
-    case 'auth/too-many-requests':
-      return 'Too many attempts. Wait a moment and try again.';
-    case 'auth/network-request-failed':
-      return 'Network error. Check your connection and try again.';
-    default:
-      return err.message || 'Sign in failed. Please try again.';
-  }
+  return err.message || 'Sign in failed. Please try again.';
 }
 
 export function AdminLogin() {
@@ -38,6 +20,7 @@ export function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [sessionExpiredNote, setSessionExpiredNote] = useState(false);
+  const backendAuth = isBackendAdminAuthEnabled();
 
   useEffect(() => {
     if (consumeAdminSessionExpired()) {
@@ -55,9 +38,9 @@ export function AdminLogin() {
     e.preventDefault();
     setError('');
 
-    if (!isFirebaseConfigured) {
+    if (!backendAuth) {
       setError(
-        'Firebase is not configured. Copy frontend/.env.example to frontend/.env, and restart Vite.'
+        'Backend auth is not configured. Set VITE_BLOG_API_URL in frontend/.env and ADMIN_* in backend/.env, then restart pnpm run dev:stack.',
       );
       return;
     }
@@ -88,15 +71,15 @@ export function AdminLogin() {
           <CardTitle className="text-xl">Admin Login</CardTitle>
         </CardHeader>
         <CardContent>
-          {!isFirebaseConfigured && (
+          {!backendAuth && (
             <div
               className="mb-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100"
               role="alert"
             >
-              Firebase env vars are missing. Copy <code className="font-mono">frontend/.env.example</code>{' '}
-              to <code className="font-mono">frontend/.env</code> and restart{' '}
-              <code className="font-mono">npm run dev</code>. On Vercel, add the same{' '}
-              <code className="font-mono">VITE_FIREBASE_*</code> variables in project settings.
+              Set <code className="font-mono">VITE_BLOG_API_URL=http://localhost:8787</code> in{' '}
+              <code className="font-mono">frontend/.env</code> and admin credentials in{' '}
+              <code className="font-mono">backend/.env</code>, then restart{' '}
+              <code className="font-mono">pnpm run dev:stack</code>.
             </div>
           )}
 
@@ -119,7 +102,7 @@ export function AdminLogin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={!isFirebaseConfigured}
+                disabled={!backendAuth}
               />
             </div>
             <div className="space-y-1">
@@ -131,7 +114,7 @@ export function AdminLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={!isFirebaseConfigured}
+                disabled={!backendAuth}
               />
             </div>
             {error && (
@@ -139,7 +122,7 @@ export function AdminLogin() {
                 {error}
               </p>
             )}
-            <Button type="submit" className="w-full" disabled={loading || !isFirebaseConfigured}>
+            <Button type="submit" className="w-full" disabled={loading || !backendAuth}>
               {loading ? 'Signing in…' : 'Sign in'}
             </Button>
           </form>
