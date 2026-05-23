@@ -342,8 +342,10 @@ export function OniAgentCaseStudyPage() {
               </a>
             </div>
           </div>
-          <div className="oni-header-scroll-row scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0 md:pb-3">
-            <ProjectLinkButtons labelMode="short" nowrap showExternalIcon={false} />
+          <div className="pb-2 md:pb-3">
+            <div className="oni-header-scroll-row scrollbar-hide">
+              <ProjectLinkButtons labelMode="short" nowrap elevated={false} showExternalIcon={false} />
+            </div>
           </div>
           <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-3 xl:hidden">
             {navItems.map((item) => (

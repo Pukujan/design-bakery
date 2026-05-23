@@ -257,6 +257,7 @@
 .oni-header {
   background-color: var(--oni-header-bg);
   border-color: var(--oni-border);
+  overflow: visible;
 }
 
 .oni-footer {
@@ -326,7 +327,23 @@
   scrollbar-width: none;
 }
 
+/* Outer wrapper stays overflow-visible; inner scroll clips horizontally only. */
 .oni-header-scroll-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-inline: -1rem;
+  padding-block: 0.5rem;
+  padding-inline: 1rem;
+  overflow-x: auto;
+  overflow-y: visible;
   -webkit-overflow-scrolling: touch;
   scroll-padding-inline: 1rem;
+}
+
+@media (min-width: 768px) {
+  .oni-header-scroll-row {
+    margin-inline: 0;
+    padding-inline: 0;
+  }
 }

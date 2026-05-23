@@ -10,11 +10,14 @@ type ProjectLinkButtonsProps = {
   labelMode?: "full" | "short";
   /** Keep pills on one line for horizontal scroll regions (navbar). */
   nowrap?: boolean;
+  /** Drop shadow/ring — use in overflow scroll rows so pills are not clipped. */
+  elevated?: boolean;
 };
 
-function linkClassName(size: "sm" | "md", variant: "default" | "accent") {
+function linkClassName(size: "sm" | "md", variant: "default" | "accent", elevated: boolean) {
   const padding = size === "md" ? "px-4 py-2.5 text-sm" : "px-3 py-2 text-xs";
-  const base = `inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border font-bold shadow-sm ring-1 transition hover:opacity-90 ${padding}`;
+  const elevation = elevated ? "shadow-sm ring-1" : "";
+  const base = `inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border font-bold transition hover:opacity-90 ${padding} ${elevation}`;
   if (variant === "accent") {
     return `${base} oni-nav-active border-transparent`;
   }
@@ -28,6 +31,7 @@ export function ProjectLinkButtons({
   showExternalIcon = true,
   labelMode = "full",
   nowrap = false,
+  elevated = true,
 }: ProjectLinkButtonsProps) {
   return (
     <div className={`flex items-center gap-2 ${nowrap ? "flex-nowrap" : "flex-wrap"} ${className}`}>
@@ -39,6 +43,7 @@ export function ProjectLinkButtons({
           variant={variant}
           showExternalIcon={showExternalIcon}
           labelMode={labelMode}
+          elevated={elevated}
         />
       ))}
     </div>
@@ -51,12 +56,14 @@ function ProjectLinkButton({
   variant,
   showExternalIcon,
   labelMode,
+  elevated,
 }: {
   link: ProjectLink;
   size: "sm" | "md";
   variant: "default" | "accent";
   showExternalIcon: boolean;
   labelMode: "full" | "short";
+  elevated: boolean;
 }) {
   const Icon = link.icon;
   const label = labelMode === "short" ? link.shortLabel : link.label;
@@ -65,7 +72,7 @@ function ProjectLinkButton({
       href={link.href}
       target="_blank"
       rel="noreferrer"
-      className={linkClassName(size, variant)}
+      className={linkClassName(size, variant, elevated)}
       title={link.label}
     >
       <Icon className={size === "md" ? "h-4 w-4" : "h-3.5 w-3.5"} aria-hidden />
