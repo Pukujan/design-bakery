@@ -47,7 +47,7 @@ const TINY_PNG_BASE64 =
 
 async function readFirebaseProjectId() {
   try {
-    const rc = JSON.parse(readFileSync(resolve(root, 'firebase/.firebaserc'), 'utf8'));
+    const rc = JSON.parse(readFileSync(resolve(root, 'archive/firebase/.firebaserc'), 'utf8'));
     return rc.projects?.default ?? 'auth-system-be464';
   } catch {
     return 'auth-system-be464';

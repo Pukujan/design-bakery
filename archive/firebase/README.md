@@ -1,9 +1,9 @@
-# Archived Firebase helpers
+# Archived Firebase (removed from active stack)
 
-Firebase was removed from the active stack (2026-05-22). Supabase + Express API is the only supported path.
+Supabase + Express API is the only supported path (2026-05-22).
 
 | File | Purpose |
 |------|---------|
-| `firebaseApp.ts` | One-time `pnpm run migrate:firestore-to-supabase` (requires `pnpm add -D firebase-admin` at repo root) |
-
-Active Firebase CLI config (if any) remains under `firebase/` for historical reference only — not used by dev or deploy.
+| `firebaseApp.ts` | One-time `pnpm run migrate:firestore-to-supabase` (install `firebase-admin` temporarily) |
+| `firebase.json`, `.firebaserc`, `storage.rules`, `storage.cors.json` | Legacy Firebase CLI / GCS config — not used by dev or Railway deploy |
+| `CLI-README.md` | Former `firebase/README.md` |

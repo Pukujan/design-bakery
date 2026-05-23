@@ -123,8 +123,6 @@ Preview images in the editor are temporary `data:` URLs. **Save post** uploads t
 
 If Save still hits `firebasestorage.googleapis.com` from the browser, the production build is missing `VITE_BLOG_API_URL` — redeploy Vercel after adding it.
 
-**Optional (localhost browser upload only):** `pnpm run storage:cors` applies `firebase/storage.cors.json` to the bucket.
-
 ### Custom domain (optional)
 
 Vercel → Project → **Domains** → add `www.design-bakery.com` and `design-bakery.com`.  

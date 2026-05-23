@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const corsFile = resolve(root, 'firebase/storage.cors.json');
+const corsFile = resolve(root, 'archive/firebase/storage.cors.json');
 
 function readBucketFromEnvFile(path) {
   if (!existsSync(path)) return '';
@@ -57,7 +57,7 @@ for (const [cmd, args] of attempts) {
 if (!ok) {
   console.error(
     '[storage:cors] Failed. Install Google Cloud SDK, run: gcloud auth login\n' +
-      `Then: gcloud storage buckets update ${gsUrl} --cors-file=firebase/storage.cors.json`,
+      `Then: gcloud storage buckets update ${gsUrl} --cors-file=archive/firebase/storage.cors.json`,
   );
   process.exit(1);
 }
