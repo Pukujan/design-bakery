@@ -62,7 +62,11 @@ export const narrativeCards: NarrativeCard[] = [
     sourceLabel: "Source: Reddit community media",
     sourceHref: "https://i.redd.it/culryrrblgsb1.gif",
     mediaFit: "contain",
-    body: "Chaos becomes useful only when it is controlled. A volcano in ONI can melt your base into an unlivable disaster, but with the right routing, cooling, automation, and control layer, that same chaos becomes heat, power, minerals, clean water, and leverage. AI agents are the same: high-risk workflows are dangerous when uncontrolled, but with the right architecture, evals, audit trails, review gates, and routing, chaotic data becomes controlled system intelligence.",
+    body: "",
+    bodyParagraphs: [
+      "Chaos becomes useful only when it is controlled. A **volcano** in ONI can melt your base into an unlivable disaster, but with the right routing, cooling, automation, and control layer, that same chaos becomes heat, power, minerals, clean water, and leverage.",
+      "**AI agents** are the same: high-risk workflows are dangerous when uncontrolled, but with the right architecture, evals, audit trails, review gates, and routing, chaotic data becomes controlled system intelligence.",
+    ],
     oniCaption: "ONI analogy: a controlled loop turns a volcano from a threat into a resource engine.",
     aiCaption:
       "AI analogy: controlled multi-agent architecture turns chaotic unstructured data into usable, reviewable workflow intelligence.",

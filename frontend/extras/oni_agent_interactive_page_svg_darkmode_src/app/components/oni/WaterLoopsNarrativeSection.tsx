@@ -14,6 +14,23 @@ import {
   specializedAgentRoles,
 } from "./waterLoopsData";
 
+function NarrativeParagraph({ text }: { text: string }) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <p>
+      {parts.map((part, index) =>
+        part.startsWith("**") && part.endsWith("**") ? (
+          <strong key={index} className="oni-text font-bold">
+            {part.slice(2, -2)}
+          </strong>
+        ) : (
+          part
+        ),
+      )}
+    </p>
+  );
+}
+
 function NarrativeMediaCard({
   card,
   index,
@@ -67,7 +84,7 @@ function NarrativeMediaCard({
           <h3 className="oni-text mt-3 text-2xl font-black tracking-tight md:text-3xl">{card.title}</h3>
           <div className="oni-text-muted mt-4 space-y-4 leading-7">
             {bodyParagraphs.map((paragraph, pIndex) => (
-              <p key={`${card.id}-p-${pIndex}`}>{paragraph}</p>
+              <NarrativeParagraph key={`${card.id}-p-${pIndex}`} text={paragraph} />
             ))}
           </div>
           <div className="mt-6 grid gap-3">
