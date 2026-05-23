@@ -110,7 +110,6 @@ Options:
   }
 
   const { supabaseStorageBucket } = await import('../lib/supabaseClient.js');
-  const { interFontFaceDefs } = await import('../lib/blog/publishKit/fonts.js');
   const { handlePublishKit } = await import('../lib/blog/publishKit/handler.js');
   const { commitVisualImages } = await import('../lib/blog/publishKit/commitVisual.js');
   const { uploadBlogImage } = await import('../lib/blog/publishKit/storage.js');
@@ -128,9 +127,14 @@ Options:
 
   r.step('Inter fonts');
   try {
+    const { interFontFaceDefs, ensurePublishKitFontconfig } = await import('../lib/blog/publishKit/fonts.js');
+    ensurePublishKitFontconfig();
     const defs = interFontFaceDefs();
     if (!defs.includes('base64') || defs.length < 1000) throw new Error('missing embedded WOFF');
-    r.ok('Inter WOFF embedded for sharp/SVG renders');
+    if (!process.env.FONTCONFIG_PATH?.includes('inter-fonts')) {
+      throw new Error('fontconfig not registered for Inter');
+    }
+    r.ok('Inter WOFF embedded + fontconfig registered for sharp/SVG renders');
   } catch (err) {
     r.fail('fonts', err);
   }

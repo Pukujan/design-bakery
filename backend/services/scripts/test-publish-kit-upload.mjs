@@ -102,12 +102,16 @@ async function main() {
 
   step('Inter fonts (publishKit/fonts.ts)');
   try {
-    const { interFontFaceDefs } = await import('../lib/blog/publishKit/fonts.js');
+    const { interFontFaceDefs, ensurePublishKitFontconfig } = await import('../lib/blog/publishKit/fonts.js');
+    ensurePublishKitFontconfig();
     const defs = interFontFaceDefs();
     if (!defs.includes('base64') || defs.length < 1000) {
       throw new Error('font face defs missing embedded WOFF data');
     }
-    ok('woff resolved via @fontsource/inter package');
+    if (!process.env.FONTCONFIG_PATH?.includes('inter-fonts')) {
+      throw new Error('fontconfig not registered for Inter');
+    }
+    ok('Inter WOFF + fontconfig registered for sharp/SVG renders');
     passed++;
   } catch (err) {
     fail(err instanceof Error ? err.message : String(err));

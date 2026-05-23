@@ -1,4 +1,4 @@
-import sharp from 'sharp';
+import sharp from './sharpWithFonts.js';
 import { OG_THUMB_SIZE, THUMBNAIL_SIZE } from './visualFormats.js';
 
 export { THUMBNAIL_SIZE, OG_THUMB_SIZE } from './visualFormats.js';

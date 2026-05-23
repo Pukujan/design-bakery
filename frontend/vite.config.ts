@@ -52,6 +52,10 @@ export default defineConfig(async () => {
           'extras/Create Presentation Case Study/src',
         ),
         '@invest-ai-case-study': path.resolve(__dirname, 'extras/invest-ai-case-study/src'),
+        '@oni-agent-case-study-v3': path.resolve(
+          __dirname,
+          'extras/oni_agent_interactive_page_svg_darkmode_src',
+        ),
       },
     },
   }

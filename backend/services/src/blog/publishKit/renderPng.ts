@@ -1,4 +1,4 @@
-import sharp from 'sharp';
+import sharp from './sharpWithFonts.js';
 import { renderBlogCardSvg, type RenderCardInput } from './renderSvg.js';
 
 export async function renderCardPng(input: RenderCardInput): Promise<Buffer> {

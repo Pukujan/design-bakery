@@ -3,6 +3,9 @@ import { EngineeringHome } from './modules/engineering/EngineeringHome/Engineeri
 import { PortfolioHub } from './portfolios/PortfolioHub';
 import { EkagajpatraCaseStudyPage } from './modules/case-studies/ekagajpatra/EkagajpatraCaseStudyPage';
 import { InvestAiCaseStudyPage } from './modules/case-studies/invest-ai/InvestAiCaseStudyPage';
+import { Navigate } from 'react-router-dom';
+import { AiAgentsCaseStudyV3Page } from './modules/case-studies/ai-agents/AiAgentsCaseStudyV3Page';
+import { AI_AGENTS_CASE_STUDY_PATH, AI_AGENTS_CASE_STUDY_V1_PATH } from './lib/caseStudyRoutes';
 import { DesignPortfolio } from './modules/design/DesignPortfolio/DesignPortfolio';
 import { BlogListPage } from './modules/blog/public/list/BlogListPage';
 import { BlogDetailPage } from './modules/blog/public/detail/BlogDetailPage';
@@ -77,6 +80,9 @@ export default function App() {
           <Route path="/" element={<PortfolioHub />} />
           <Route path="/case-studies/ekagajpatra" element={<EkagajpatraCaseStudyPage />} />
           <Route path="/case-studies/invest-ai" element={<InvestAiCaseStudyPage />} />
+          <Route path="/case-studies/ai-agents/v3" element={<AiAgentsCaseStudyV3Page />} />
+          <Route path="/case-studies/ai-agents/v2" element={<Navigate to={AI_AGENTS_CASE_STUDY_PATH} replace />} />
+          <Route path={AI_AGENTS_CASE_STUDY_V1_PATH} element={<Navigate to={AI_AGENTS_CASE_STUDY_PATH} replace />} />
           <Route path="/nav/design" element={<DesignPortfolio />} />
           <Route path="/design" element={<DesignPortfolio />} />
 

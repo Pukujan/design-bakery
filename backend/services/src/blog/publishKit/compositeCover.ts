@@ -1,4 +1,4 @@
-import sharp from 'sharp';
+import sharp from './sharpWithFonts.js';
 import { renderBlogCardSvg, type RenderCardInput } from './renderSvg.js';
 import { renderCoverOverlaySvg, type OverlayInput } from './renderOverlay.js';
 

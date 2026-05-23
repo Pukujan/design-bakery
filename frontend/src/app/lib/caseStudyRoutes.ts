@@ -4,6 +4,15 @@ export const EKAGAJPATRA_CASE_STUDY_PATH = '/case-studies/ekagajpatra';
 /** In-app InvestAI case study (from extras/invest-ai-case-study/). */
 export const INVEST_AI_CASE_STUDY_PATH = '/case-studies/invest-ai';
 
+/** Interactive AI agents case study v3 (SVG + dark mode — extras/oni_agent_interactive_page_svg_darkmode_src/). */
+export const AI_AGENTS_CASE_STUDY_PATH = '/case-studies/ai-agents/v3';
+
+/** Legacy v1 path — resolves to v3 for CMS/Firestore links. */
+export const AI_AGENTS_CASE_STUDY_V1_PATH = '/case-studies/ai-agents';
+
+/** Legacy v2 path — resolves to v3. */
+export const AI_AGENTS_CASE_STUDY_V2_PATH = '/case-studies/ai-agents/v2';
+
 /** Legacy Figma exports — rewrite to in-app routes when loaded from Firestore. */
 const LEGACY_EKAGAJPATRA_CASE_STUDY_URLS = [
   'follow-smog-96608767.figma.site',
@@ -41,6 +50,22 @@ export function resolveCaseStudyUrl(title: string, label: string, url: string): 
     ) {
       return INVEST_AI_CASE_STUDY_PATH;
     }
+  }
+  if (
+    title === 'ONI vs My Agent Ready Architecture' ||
+    title === 'AI Workflow System' ||
+    title === 'AI Workflow Agents' ||
+    title === 'Legal Agent Projects'
+  ) {
+    if (isCaseStudyLabel(label)) {
+      return AI_AGENTS_CASE_STUDY_PATH;
+    }
+  }
+  if (url === AI_AGENTS_CASE_STUDY_V1_PATH || url.startsWith(`${AI_AGENTS_CASE_STUDY_V1_PATH}/`)) {
+    return AI_AGENTS_CASE_STUDY_PATH;
+  }
+  if (url === AI_AGENTS_CASE_STUDY_V2_PATH || url.startsWith(`${AI_AGENTS_CASE_STUDY_V2_PATH}/`)) {
+    return AI_AGENTS_CASE_STUDY_PATH;
   }
   return url;
 }

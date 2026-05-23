@@ -44,20 +44,21 @@
   },
   {
     "id": 3,
-    "title": "Legal Agent Projects",
-    "tagline": "AI Workflow Agents",
-    "description": "AI agent prototypes for docketing support, document review, court filing signals, procedural rules, and legal workflow automation.",
-    "tech": ["Legal AI", "AI Agents", "Docketing", "Document Intelligence", "Workflow Automation", "Prompt Systems"],
-    "color": "#0D9488",
-    "accentColor": "#14B8A6",
+    "title": "ONI vs My Agent Ready Architecture",
+    "tagline": "@pukujan/create-modular-monolith",
+    "description": "Software architecture has not caught up with agent-first coding yet. I built an npm package so repos keep agent speed without losing planning time, audit trails, or architecture shape — modular boundaries, contracts, versioned dev logs, agent-readable JSON audits, prompt versioning, evals, and patch/rollback context stronger than git alone. Inspired by Oxygen Not Included systems thinking; tested with multi-agent pipelines up to 500 agents.",
+    "tech": ["AI Agents", "Modular Monolith", "Audit Logs", "Prompt Versioning", "Evals", "Microservices"],
+    "color": "#0891B2",
+    "accentColor": "#22D3EE",
     "stats": [
-      { "label": "Human Review First", "icon": "Users" },
-      { "label": "Structured Outputs", "icon": "TrendingUp" },
-      { "label": "Workflow Intelligence", "icon": "Award" }
+      { "label": "500+ Agents Tested", "icon": "Sparkles" },
+      { "label": "Audit + Rollback", "icon": "TrendingUp" },
+      { "label": "npm Package Release", "icon": "Award" }
     ],
     "links": [
-      { "label": "View Projects", "url": "#" },
-      { "label": "Architecture Notes", "url": "#" }
+      { "label": "Case Study", "url": "/case-studies/ai-agents/v3" },
+      { "label": "npm Package", "url": "https://www.npmjs.com/package/@pukujan/create-modular-monolith" },
+      { "label": "Read More", "url": "https://lnkd.in/eXgZgm6N" }
     ]
   },
   {

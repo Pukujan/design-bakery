@@ -1,0 +1,327 @@
+/* Scoped theme for ONI agent case study page — toggled via data-theme on root */
+
+[data-theme="light"] {
+  --oni-bg: #f7f3ea;
+  --oni-surface: #ffffff;
+  --oni-surface-muted: #f8fafc;
+  --oni-surface-warm: #fbfaf6;
+  --oni-surface-inverse: #020617;
+  --oni-text: #020617;
+  --oni-text-muted: #475569;
+  --oni-text-subtle: #64748b;
+  --oni-text-inverse: #f8fafc;
+  --oni-border: rgba(15, 23, 42, 0.1);
+  --oni-border-strong: #e2e8f0;
+  --oni-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --oni-shadow-lg: 0 24px 80px rgba(15, 23, 42, 0.12);
+  --oni-accent: #0891b2;
+  --oni-accent-soft: #ecfeff;
+  --oni-accent-soft-border: #a5f3fc;
+  --oni-accent-highlight: #67e8f9;
+  --oni-accent-text: #155e75;
+  --oni-accent-text-strong: #164e63;
+  --oni-accent-icon: #0e7490;
+  --oni-accent-link: #0e7490;
+  --oni-accent-link-hover: #164e63;
+  --oni-callout-bg: #fffbeb;
+  --oni-callout-text: #451a03;
+  --oni-callout-border: #fde68a;
+  --oni-nav-active-bg: #020617;
+  --oni-nav-active-text: #ffffff;
+  --oni-nav-idle-text: #475569;
+  --oni-nav-idle-hover-bg: #ffffff;
+  --oni-nav-idle-hover-text: #020617;
+  --oni-header-bg: rgba(247, 243, 234, 0.9);
+  --oni-chip-bg: #ffffff;
+  --oni-tab-idle-bg: #f1f5f9;
+  --oni-tab-idle-text: #334155;
+  --oni-selection-bg: #67e8f9;
+  --oni-selection-text: #020617;
+}
+
+[data-theme="dark"] {
+  --oni-bg: #020617;
+  --oni-surface: rgba(15, 23, 42, 0.88);
+  --oni-surface-muted: rgba(30, 41, 59, 0.72);
+  --oni-surface-warm: rgba(30, 41, 59, 0.72);
+  --oni-surface-inverse: #020617;
+  --oni-text: #f8fafc;
+  --oni-text-muted: #cbd5e1;
+  --oni-text-subtle: #94a3b8;
+  --oni-text-inverse: #f8fafc;
+  --oni-border: rgba(148, 163, 184, 0.25);
+  --oni-border-strong: rgba(148, 163, 184, 0.25);
+  --oni-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+  --oni-shadow-lg: 0 24px 80px rgba(0, 0, 0, 0.35);
+  --oni-accent: #22d3ee;
+  --oni-accent-soft: rgba(34, 211, 238, 0.12);
+  --oni-accent-soft-border: rgba(34, 211, 238, 0.35);
+  --oni-accent-highlight: #22d3ee;
+  --oni-accent-text: #a5f3fc;
+  --oni-accent-text-strong: #ecfeff;
+  --oni-accent-icon: #22d3ee;
+  --oni-accent-link: #67e8f9;
+  --oni-accent-link-hover: #ecfeff;
+  --oni-callout-bg: rgba(245, 158, 11, 0.12);
+  --oni-callout-text: #fde68a;
+  --oni-callout-border: rgba(245, 158, 11, 0.35);
+  --oni-nav-active-bg: #22d3ee;
+  --oni-nav-active-text: #020617;
+  --oni-nav-idle-text: #94a3b8;
+  --oni-nav-idle-hover-bg: rgba(15, 23, 42, 0.88);
+  --oni-nav-idle-hover-text: #f8fafc;
+  --oni-header-bg: rgba(2, 6, 23, 0.88);
+  --oni-chip-bg: rgba(15, 23, 42, 0.88);
+  --oni-tab-idle-bg: rgba(30, 41, 59, 0.72);
+  --oni-tab-idle-text: #cbd5e1;
+  --oni-selection-bg: #22d3ee;
+  --oni-selection-text: #020617;
+}
+
+.oni-page {
+  min-height: 100vh;
+  background-color: var(--oni-bg);
+  color: var(--oni-text);
+}
+
+[data-theme="dark"].oni-page {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(34, 211, 238, 0.22), transparent 28%),
+    radial-gradient(circle at 80% 0%, rgba(59, 130, 246, 0.18), transparent 25%),
+    var(--oni-bg);
+}
+
+.oni-page ::selection {
+  background-color: var(--oni-selection-bg);
+  color: var(--oni-selection-text);
+}
+
+/* Surfaces */
+.oni-surface {
+  background-color: var(--oni-surface);
+  border-color: var(--oni-border-strong);
+  color: var(--oni-text);
+}
+
+.oni-surface-muted {
+  background-color: var(--oni-surface-muted);
+  color: var(--oni-text);
+}
+
+.oni-surface-warm {
+  background-color: var(--oni-surface-warm);
+  color: var(--oni-text);
+}
+
+.oni-border {
+  border-color: var(--oni-border-strong);
+}
+
+.oni-border-t {
+  border-top-color: var(--oni-border);
+}
+
+.oni-shadow {
+  box-shadow: var(--oni-shadow);
+}
+
+.oni-shadow-lg {
+  box-shadow: var(--oni-shadow-lg);
+}
+
+/* Typography */
+.oni-text {
+  color: var(--oni-text);
+}
+
+.oni-text-muted {
+  color: var(--oni-text-muted);
+}
+
+.oni-text-subtle {
+  color: var(--oni-text-subtle);
+}
+
+.oni-eyebrow {
+  color: var(--oni-accent-text);
+}
+
+.oni-accent-icon {
+  color: var(--oni-accent-icon);
+}
+
+.oni-accent-link {
+  color: var(--oni-accent-link);
+}
+
+.oni-accent-link:hover {
+  color: var(--oni-accent-link-hover);
+}
+
+.oni-accent-text {
+  color: var(--oni-accent-text-strong);
+}
+
+.oni-accent-response {
+  color: var(--oni-accent-text);
+}
+
+/* Accent pill / badge */
+.oni-accent-pill {
+  background-color: var(--oni-accent-soft);
+  border-color: var(--oni-accent-soft-border);
+  color: var(--oni-accent-text);
+}
+
+/* Flow steps */
+.oni-flow-active {
+  background-color: var(--oni-accent-soft);
+  border-color: var(--oni-accent-soft-border);
+  color: var(--oni-accent-text-strong);
+}
+
+.oni-flow-muted {
+  background-color: var(--oni-surface);
+  border-color: var(--oni-border-strong);
+  color: var(--oni-text-muted);
+}
+
+/* Callout (amber warning blocks) */
+.oni-callout {
+  background-color: var(--oni-callout-bg);
+  border-color: var(--oni-callout-border);
+  color: var(--oni-callout-text);
+}
+
+/* Accent highlight card (mapping AI side) */
+.oni-accent-highlight {
+  background-color: var(--oni-accent-highlight);
+  color: var(--oni-text);
+}
+
+[data-theme="light"] .oni-accent-highlight {
+  color: #020617;
+}
+
+[data-theme="dark"] .oni-accent-highlight {
+  color: #020617;
+}
+
+.oni-accent-highlight-label {
+  color: var(--oni-accent-text);
+}
+
+[data-theme="light"] .oni-accent-highlight-label {
+  color: rgba(21, 94, 117, 0.7);
+}
+
+[data-theme="dark"] .oni-accent-highlight-label {
+  color: rgba(2, 6, 23, 0.65);
+}
+
+/* Solve cards */
+.oni-solve-card {
+  background-color: var(--oni-accent-soft);
+  border-color: var(--oni-accent-soft-border);
+}
+
+.oni-solve-card-title {
+  color: var(--oni-accent-text-strong);
+}
+
+.oni-solve-card-text {
+  color: var(--oni-accent-text);
+}
+
+/* Nav */
+.oni-nav-active {
+  background-color: var(--oni-nav-active-bg);
+  color: var(--oni-nav-active-text);
+}
+
+.oni-nav-idle {
+  color: var(--oni-nav-idle-text);
+}
+
+.oni-nav-idle:hover {
+  background-color: var(--oni-nav-idle-hover-bg);
+  color: var(--oni-nav-idle-hover-text);
+}
+
+.oni-nav-mobile-idle {
+  background-color: var(--oni-chip-bg);
+  color: var(--oni-nav-idle-text);
+}
+
+/* Header / footer */
+.oni-header {
+  background-color: var(--oni-header-bg);
+  border-color: var(--oni-border);
+}
+
+.oni-footer {
+  background-color: color-mix(in srgb, var(--oni-surface) 70%, transparent);
+  border-color: var(--oni-border);
+}
+
+/* Buttons */
+.oni-btn {
+  background-color: var(--oni-chip-bg);
+  border-color: var(--oni-border-strong);
+  color: var(--oni-text);
+}
+
+.oni-btn:hover {
+  background-color: var(--oni-accent-soft);
+}
+
+.oni-chip {
+  background-color: var(--oni-chip-bg);
+  border-color: var(--oni-border-strong);
+  color: var(--oni-text);
+}
+
+/* Tabs (pipeline mode) */
+.oni-tab-active {
+  background-color: var(--oni-nav-active-bg);
+  color: var(--oni-nav-active-text);
+}
+
+.oni-tab-idle {
+  background-color: var(--oni-tab-idle-bg);
+  color: var(--oni-tab-idle-text);
+}
+
+.oni-tab-idle:hover {
+  background-color: var(--oni-accent-soft);
+}
+
+/* Mapping list selection */
+.oni-map-selected {
+  background-color: var(--oni-accent-soft);
+  border-color: var(--oni-accent-soft-border);
+}
+
+.oni-map-idle {
+  background-color: var(--oni-surface);
+  border-color: var(--oni-border-strong);
+}
+
+.oni-map-idle:hover {
+  background-color: var(--oni-surface-muted);
+}
+
+/* Hero explorer cards inside gradient panel */
+.oni-explorer-card {
+  background-color: color-mix(in srgb, var(--oni-surface) 90%, transparent);
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

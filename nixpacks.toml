@@ -1,6 +1,6 @@
 # Railway/Nixpacks — Express API from monorepo root (see railway.toml)
 [phases.setup]
-nixPkgs = ["nodejs_20", "pnpm-10_x"]
+nixPkgs = ["nodejs_20", "pnpm-10_x", "fontconfig"]
 
 # Production default skips devDependencies; backend build needs typescript (tsc).
 [phases.install]

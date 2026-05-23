@@ -6,7 +6,7 @@ import type { RenderCardInput } from './renderSvg.js';
 import type { OverlayInput } from './renderOverlay.js';
 import type { VisualStylePreset } from './types.js';
 import { COVER_SIZE, OG_SIZE } from './visualFormats.js';
-import sharp from 'sharp';
+import sharp from './sharpWithFonts.js';
 import { resolveVisualMode, type VisualMode } from './visualRender.js';
 
 export type PublishVisualVariants = {

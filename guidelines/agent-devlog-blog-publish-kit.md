@@ -4,7 +4,7 @@
 |-------|-------|
 | **Document date** | 2026-05-22 |
 | **Created** | 2026-05-22 |
-| **Last updated** | 2026-05-22 (Express API / Railway) |
+| **Last updated** | 2026-05-23 (Inter fontconfig for sharp) |
 
 **Branch:** `test/blog-publish-kit` (not on `main` until reviewed).
 
@@ -18,7 +18,7 @@
 | 2026-05-22 | **Unified hero v0.3** — one 1:1 AI image → cover 1200×800 + OG 1200×630 + square thumbs; scaled overlay text |
 | 2026-05-22 | **meta_and_tags apply** — single `applyPublishKitSeoToPost` (tags no longer overwrite meta); excerpt backfill when blank |
 | 2026-05-22 | **`generateMeta` excerpt** — LLM returns `excerpt` (~200 chars) + meta fields; applied with SEO text + tags |
-| 2026-05-22 | **Express API** (`backend/`) — optional Railway backend; frontend uses `VITE_BLOG_API_URL` instead of Firebase callables |
+| 2026-05-23 | **Inter fontconfig** — bundled Inter WOFF + `FONTCONFIG_PATH` for sharp/librsvg (embedded SVG `@font-face` ignored on Linux/Railway) |
 
 ## Purpose
 
@@ -60,7 +60,7 @@ Deploy callable: `cd functions && npm run deploy` (includes `invokeBlogPublishKi
 ## API
 
 - Callable: **`invokeBlogPublishKit`** (`functions/src/blog/publishKit/`) — or **POST `/api/publish-kit`** on Express when `VITE_BLOG_API_URL` is set
-- Fonts: `publishKit/fonts.ts` resolves WOFF via `require.resolve('@fontsource/inter/...')` (not relative to `lib/` — avoids ENOENT after `blog/publishKit/` move)
+- Fonts: `publishKit/fonts.ts` resolves WOFF via `require.resolve('@fontsource/inter/...')`; **`fontconfigSetup.ts`** copies Inter into `.inter-fonts/` and sets `FONTCONFIG_PATH` before sharp loads (librsvg ignores embedded SVG `@font-face` — required on Railway/Linux)
 - Version: `PUBLISH_KIT_API_VERSION = 1`
 - Actions: `meta` | `visual` | `visual_and_meta` | **`tags`** | **`meta_and_tags`** | **`commit_visual`**
 - Request: `blogId`, `blogSnapshot`, `preferences`, optional `publicUrl`, optional `visualCommit` (for `commit_visual`)
