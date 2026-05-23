@@ -22,14 +22,13 @@
 
 ## Purpose
 
-Admin **Publish kit** in Blog Posts edit dialog: LLM SEO meta + OG/cover PNGs (**hybrid AI hero** by default, template fallback). Separate from legacy `invokeBlogAgent` (promo only).
+Admin **Publish kit** in Blog Posts edit dialog: LLM SEO meta + OG/cover PNGs (**hybrid AI hero** by default, template fallback). Legacy blog agents (promo / `/admin/blog-agents`) were removed — use publish kit only.
 
 ## Enable locally
 
 ```env
 # Local dev — explicit true (production builds default ON when unset)
 VITE_ENABLE_BLOG_PUBLISH_KIT=true
-VITE_ENABLE_BLOG_AGENTS=true
 VITE_USE_FUNCTIONS_EMULATOR=true
 ```
 
@@ -46,7 +45,7 @@ firebase functions:secrets:set OPENROUTER_API_KEY --project auth-system-be464
 
 Gen2 callables use `CALLABLE_CORS` for `https://www.design-bakery.com`. A 404 from `cloudfunctions.net` means deploy did not run yet (browser may show CORS instead of 404). **Blaze** billing is required for Gen2 deploy.
 
-**Alternative (no Blaze):** Express API in `backend/` on **Railway** — full steps: [`doc/deploy-vercel-railway.md`](../doc/deploy-vercel-railway.md). Set `VITE_BLOG_API_URL` on Vercel and in `frontend/.env` locally; client routes via `src/app/lib/blogCallables.ts` → `postBlogApi` (`/api/publish-kit`, `/api/blog-agent`). Railway needs `OPENROUTER_API_KEY`, `FIREBASE_STORAGE_BUCKET`, `GOOGLE_APPLICATION_CREDENTIALS_JSON`, `ALLOWED_ORIGINS`.
+**Alternative (no Blaze):** Express API in `backend/` on **Railway** — full steps: [`doc/deploy-vercel-railway.md`](../doc/deploy-vercel-railway.md). Set `VITE_BLOG_API_URL` on Vercel and in `frontend/.env` locally; client routes via `src/app/lib/blogCallables.ts` → `postBlogApi` (`/api/publish-kit`). Railway needs `OPENROUTER_API_KEY`, `SUPABASE_*`, `ADMIN_*`, `ALLOWED_ORIGINS` (no Google service account when `IMAGE_STORAGE=supabase`).
 
 Functions / Express: `OPENROUTER_API_KEY` in **`backend/.env`** (see `doc/env.md`). Frontend flags in **`frontend/.env`** (`VITE_*` only).
 

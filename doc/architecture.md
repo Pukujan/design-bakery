@@ -26,7 +26,7 @@ backend/
       httpErrors.ts        # Map domain errors → JSON responses
     api/
       publishKit.ts        # POST /api/publish-kit
-      blogAgent.ts         # POST /api/blog-agent
+      blogAgent.ts         # (removed) — use publish-kit only
   services/src/           # Models + services (not HTTP-specific)
     blog/                  # Publish kit, Firestore, agents
     firebaseApp.ts         # Admin SDK singleton

@@ -1,0 +1,3 @@
+# Used when Railway Root Directory = backend (repo-root nixpacks.toml is ignored)
+[phases.setup]
+nixPkgs = ["nodejs_20", "pnpm-10_x"]

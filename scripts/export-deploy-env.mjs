@@ -32,15 +32,6 @@ function lines(obj) {
 const b = parseEnv(readFileSync(resolve(root, 'backend/.env'), 'utf8'));
 const f = parseEnv(readFileSync(resolve(root, 'frontend/.env'), 'utf8'));
 
-let gcpJson = 'PASTE_MINIFIED_FIREBASE_SERVICE_ACCOUNT_JSON_HERE';
-try {
-  gcpJson = JSON.stringify(
-    JSON.parse(readFileSync(resolve(root, 'backend/secrets/firebase-service-account.json'), 'utf8')),
-  );
-} catch {
-  /* optional */
-}
-
 const railwayHeader = `# Railway — Variables → Raw Editor (paste all)
 # After deploy: confirm GET https://YOUR-RAILWAY-URL/health
 # Replace YOUR-RAILWAY-URL in deploy/vercel.env too
@@ -62,8 +53,6 @@ const railwayVars = {
   ALLOWED_ORIGINS: 'https://www.design-bakery.com,https://design-bakery.com',
   ALLOWED_ADMIN_EMAILS: b.ALLOWED_ADMIN_EMAILS,
   PUBLISH_KIT_VISUAL_MODE: b.PUBLISH_KIT_VISUAL_MODE || 'template',
-  FIREBASE_STORAGE_BUCKET: b.FIREBASE_STORAGE_BUCKET,
-  GOOGLE_APPLICATION_CREDENTIALS_JSON: gcpJson,
 };
 
 const vercelHeader = `# Vercel — Settings → Environment Variables → Import .env (Production)
@@ -72,17 +61,6 @@ const vercelHeader = `# Vercel — Settings → Environment Variables → Import
 `;
 
 const vercelVars = {
-  VITE_FIREBASE_API_KEY: f.VITE_FIREBASE_API_KEY,
-  VITE_FIREBASE_AUTH_DOMAIN: f.VITE_FIREBASE_AUTH_DOMAIN,
-  VITE_FIREBASE_DATABASE_URL: f.VITE_FIREBASE_DATABASE_URL,
-  VITE_FIREBASE_PROJECT_ID: f.VITE_FIREBASE_PROJECT_ID,
-  VITE_FIREBASE_STORAGE_BUCKET: f.VITE_FIREBASE_STORAGE_BUCKET,
-  VITE_FIREBASE_MESSAGING_SENDER_ID: f.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  VITE_FIREBASE_APP_ID: f.VITE_FIREBASE_APP_ID,
-  VITE_FIREBASE_MEASUREMENT_ID: f.VITE_FIREBASE_MEASUREMENT_ID,
-  VITE_FIREBASE_DB_ROOT: f.VITE_FIREBASE_DB_ROOT,
-  VITE_FIREBASE_ENABLE_CONTENT_SYNC: 'false',
-  VITE_ENABLE_BLOG_AGENTS: 'true',
   VITE_ENABLE_BLOG_PUBLISH_KIT: 'true',
   VITE_BLOG_API_URL: 'https://YOUR-RAILWAY-URL.up.railway.app',
   VITE_CONTENT_BACKEND: 'supabase',

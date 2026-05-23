@@ -82,14 +82,14 @@ function onLine(line) {
   if (isQuietNoise(t)) {
     if (!announcedReady && /All emulators ready/i.test(t)) {
       announcedReady = true;
-      log('ready — invokeBlogAgent, invokeBlogPublishKit');
+      log('ready — invokeBlogPublishKit');
     }
     return;
   }
 
   if (!announcedReady && /Loaded functions definitions/i.test(t)) {
     announcedReady = true;
-    log('ready — invokeBlogAgent, invokeBlogPublishKit');
+    log('ready — invokeBlogPublishKit');
     return;
   }
 

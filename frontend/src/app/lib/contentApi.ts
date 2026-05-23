@@ -1,9 +1,6 @@
 import { getAuthApiBaseUrl } from './adminToken';
 
 export function isSupabaseContentEnabled(): boolean {
-  const explicit = import.meta.env.VITE_CONTENT_BACKEND?.trim().toLowerCase();
-  if (explicit === 'supabase') return Boolean(getAuthApiBaseUrl());
-  if (explicit === 'firebase') return false;
   return Boolean(getAuthApiBaseUrl());
 }
 

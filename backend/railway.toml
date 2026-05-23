@@ -1,0 +1,11 @@
+# Railway when Settings → Root Directory = backend
+# (If Root Directory is empty, use repo-root railway.toml instead.)
+
+[build]
+builder = "NIXPACKS"
+buildCommand = "cd .. && corepack enable pnpm && pnpm install --frozen-lockfile && pnpm --dir backend/services run build && pnpm --dir backend run build"
+
+[deploy]
+startCommand = "node lib/server.js"
+healthcheckPath = "/health"
+healthcheckTimeout = 120

@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useEffect } from 'react';
 import { EngineeringHome } from './modules/engineering/EngineeringHome/EngineeringHome';
 import { PortfolioHub } from './portfolios/PortfolioHub';
 import { EkagajpatraCaseStudyPage } from './modules/case-studies/ekagajpatra/EkagajpatraCaseStudyPage';
@@ -7,7 +6,6 @@ import { InvestAiCaseStudyPage } from './modules/case-studies/invest-ai/InvestAi
 import { DesignPortfolio } from './modules/design/DesignPortfolio/DesignPortfolio';
 import { BlogListPage } from './modules/blog/public/list/BlogListPage';
 import { BlogDetailPage } from './modules/blog/public/detail/BlogDetailPage';
-import { syncContentToFirebase } from './lib/firebaseContentSync';
 import { AdminAuthProvider } from './lib/adminAuth';
 import { AdminLogin } from './modules/admin/AdminLogin';
 import { PortfolioPublicLayout } from './portfolios/PortfolioPublicLayout';
@@ -15,16 +13,6 @@ import { AdminLayoutShell } from './modules/admin/AdminLayoutShell';
 import { buildAdminChildRoutes } from './modules/admin/adminRoutes';
 
 export default function App() {
-  useEffect(() => {
-    if (import.meta.env.VITE_FIREBASE_ENABLE_CONTENT_SYNC !== 'true') {
-      return;
-    }
-
-    void syncContentToFirebase().catch((error) => {
-      console.error('Firebase content sync failed:', error);
-    });
-  }, []);
-
   return (
     <AdminAuthProvider>
       <Router>

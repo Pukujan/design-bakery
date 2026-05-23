@@ -1,17 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import blogDataJson from './blog-data.json';
 import categoriesJson from './blog-categories.json';
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  where,
-} from 'firebase/firestore';
-import { firestore } from '@/lib/firebase';
 import { isSupabaseContentEnabled, fetchPublic } from '@/lib/contentApi';
 import { normalizeBlogSeo, type BlogSeo } from '@/modules/blog/seo/blogMeta';
 
@@ -67,7 +56,7 @@ function parseBlogDate(date: string): number {
 
 type BlogSortable = { date: string; id?: number; numericId?: number };
 
-/** Canonical numeric id for routes and merge (ignores Firestore string doc ids). */
+/** Canonical numeric id for routes and merge. */
 export function resolveBlogNumericId(post: {
   numericId?: number;
   id?: number | string;
@@ -77,7 +66,7 @@ export function resolveBlogNumericId(post: {
   return 0;
 }
 
-/** Stable key for merging JSON seed rows with Firestore docs (admin + public site). */
+/** Stable key for merging JSON seed rows with CMS docs (admin + public site). */
 export function blogPostMergeKey(post: {
   numericId?: number;
   id?: number | string;
@@ -86,7 +75,7 @@ export function blogPostMergeKey(post: {
   return `n:${resolveBlogNumericId(post)}`;
 }
 
-/** Next unused numeric id (JSON seeds + merged Firestore rows). */
+/** Next unused numeric id (JSON seeds + merged CMS rows). */
 export function nextBlogNumericId(posts: { numericId?: number; id?: number | string }[]): number {
   const used = new Set(posts.map(resolveBlogNumericId).filter((n) => n > 0));
   const jsonMax = (blogDataJson as { id?: number }[]).reduce(
@@ -111,16 +100,16 @@ export function toBlogSummary(post: Blog): BlogSummary {
   return summary;
 }
 
-/** JSON fallback first; Firestore wins on the same numericId (title changes must not fork rows). */
+/** JSON fallback first; CMS wins on the same numericId. */
 export function mergeBlogPostsWithFallback<T extends BlogSortable & { title: string }>(
   fallbackPosts: T[],
-  firestorePosts: T[],
+  remotePosts: T[],
 ): T[] {
   const byKey = new Map<string, T>();
   for (const post of fallbackPosts) {
     byKey.set(blogPostMergeKey(post), post);
   }
-  for (const post of firestorePosts) {
+  for (const post of remotePosts) {
     byKey.set(blogPostMergeKey(post), post);
   }
   return sortBlogsByDateDesc([...byKey.values()]);
@@ -147,36 +136,6 @@ export function sortBlogsByDateDesc<T extends BlogSortable>(blogs: T[]): T[] {
 
 export const blogData = sortBlogsByDateDesc(blogDataJson as Blog[]);
 export const categories = categoriesJson as BlogCategory[];
-
-type FirestoreBlog = Omit<Blog, 'id'> & { numericId?: number; seo?: BlogSeo };
-
-function mapFirestoreDoc(d: { data: () => unknown; id: string }, idx: number): Blog {
-  const row = d.data() as FirestoreBlog;
-  return {
-    id: row.numericId ?? idx + 1,
-    title: row.title,
-    excerpt: row.excerpt,
-    date: row.date,
-    readTime: row.readTime,
-    tags: row.tags ?? [],
-    category: row.category,
-    color: row.color,
-    author: row.author,
-    content: row.content ?? '',
-    coverImageUrl: row.coverImageUrl?.trim() || undefined,
-    thumbnailImageUrl: row.thumbnailImageUrl?.trim() || undefined,
-    seo: normalizeBlogSeo(row.seo),
-  };
-}
-
-function mapFirestoreBlogs(snap: Awaited<ReturnType<typeof getDocs>>): Blog[] {
-  return snap.docs.map((d, idx) => mapFirestoreDoc(d, idx));
-}
-
-export async function getBlogDataLive(): Promise<Blog[]> {
-  const cache = await loadBlogCache();
-  return cache.full;
-}
 
 function mapRemoteBlog(row: {
   numericId?: number;
@@ -212,29 +171,21 @@ function mapRemoteBlog(row: {
   };
 }
 
+export async function getBlogDataLive(): Promise<Blog[]> {
+  const cache = await loadBlogCache();
+  return cache.full;
+}
+
 async function fetchAllBlogsUncached(): Promise<Blog[]> {
   const fallback = sortBlogsByDateDesc(fallbackBlogsFromJson());
 
-  if (isSupabaseContentEnabled()) {
-    try {
-      const data = await fetchPublic<{ blogs: Parameters<typeof mapRemoteBlog>[0][] }>('/api/public/blogs');
-      const remote = (data.blogs ?? []).map(mapRemoteBlog).map((b) => ({ ...b, numericId: b.id }));
-      if (remote.length === 0) return fallback;
-      return mergeBlogPostsWithFallback(fallback, remote);
-    } catch {
-      return fallback;
-    }
-  }
-
-  if (!firestore) return fallback;
+  if (!isSupabaseContentEnabled()) return fallback;
 
   try {
-    const q = query(collection(firestore, 'blog_posts'), orderBy('numericId', 'desc'));
-    const snap = await getDocs(q);
-    const firestoreBlogs = mapFirestoreBlogs(snap).map((b) => ({ ...b, numericId: b.id }));
-    if (snap.empty) return fallback;
-
-    return mergeBlogPostsWithFallback(fallback, firestoreBlogs);
+    const data = await fetchPublic<{ blogs: Parameters<typeof mapRemoteBlog>[0][] }>('/api/public/blogs');
+    const remote = (data.blogs ?? []).map(mapRemoteBlog).map((b) => ({ ...b, numericId: b.id }));
+    if (remote.length === 0) return fallback;
+    return mergeBlogPostsWithFallback(fallback, remote);
   } catch {
     return fallback;
   }
@@ -268,38 +219,18 @@ function findFallbackBlog(numericId: number): Blog | undefined {
   return fallbackBlogsFromJson().find((b) => b.id === numericId);
 }
 
-/** Detail page — one Firestore doc by numericId (not the full collection). */
 export async function getBlogByNumericIdLive(numericId: number): Promise<Blog | undefined> {
   const fallback = findFallbackBlog(numericId);
 
-  if (isSupabaseContentEnabled()) {
-    try {
-      const data = await fetchPublic<{ blog: Parameters<typeof mapRemoteBlog>[0] }>(
-        `/api/public/blogs/${numericId}`,
-      );
-      const remote = mapRemoteBlog(data.blog);
-      if (!fallback) return remote;
-      return mergeBlogPostsWithFallback([fallback], [{ ...remote, numericId: remote.id }])[0];
-    } catch {
-      return fallback;
-    }
-  }
-
-  if (!firestore) return fallback;
+  if (!isSupabaseContentEnabled()) return fallback;
 
   try {
-    const q = query(
-      collection(firestore, 'blog_posts'),
-      where('numericId', '==', numericId),
-      limit(1),
+    const data = await fetchPublic<{ blog: Parameters<typeof mapRemoteBlog>[0] }>(
+      `/api/public/blogs/${numericId}`,
     );
-    const snap = await getDocs(q);
-    if (snap.empty) return fallback;
-
-    const firestoreBlog = mapFirestoreDoc(snap.docs[0], 0);
-    if (!fallback) return firestoreBlog;
-
-    return mergeBlogPostsWithFallback([fallback], [{ ...firestoreBlog, numericId: firestoreBlog.id }])[0];
+    const remote = mapRemoteBlog(data.blog);
+    if (!fallback) return remote;
+    return mergeBlogPostsWithFallback([fallback], [{ ...remote, numericId: remote.id }])[0];
   } catch {
     return fallback;
   }
@@ -308,22 +239,11 @@ export async function getBlogByNumericIdLive(numericId: number): Promise<Blog | 
 export async function getBlogCategoriesLive(): Promise<BlogCategory[]> {
   const fallback = categoriesJson as BlogCategory[];
 
-  if (isSupabaseContentEnabled()) {
-    try {
-      const data = await fetchPublic<{ items: BlogCategory[] }>('/api/public/blog-categories');
-      return data.items?.length ? data.items : fallback;
-    } catch {
-      return fallback;
-    }
-  }
-
-  if (!firestore) return fallback;
+  if (!isSupabaseContentEnabled()) return fallback;
 
   try {
-    const snap = await getDoc(doc(firestore, 'blog_categories', 'data'));
-    if (!snap.exists()) return fallback;
-    const data = snap.data() as { items?: BlogCategory[] };
-    return data.items && data.items.length > 0 ? data.items : fallback;
+    const data = await fetchPublic<{ items: BlogCategory[] }>('/api/public/blog-categories');
+    return data.items?.length ? data.items : fallback;
   } catch {
     return fallback;
   }
@@ -352,7 +272,7 @@ export type UseBlogDataResult = {
 
 /** Blog list, insights, nav — summaries only; shared in-memory cache. */
 export function useBlogData(): UseBlogDataResult {
-  const hasLiveSource = isSupabaseContentEnabled() || Boolean(firestore);
+  const hasLiveSource = isSupabaseContentEnabled();
   const [liveBlogs, setLiveBlogs] = useState<BlogSummary[]>(blogData.map(toBlogSummary));
   const [isLoading, setIsLoading] = useState(hasLiveSource);
 
@@ -383,9 +303,9 @@ export type UseBlogPostResult = {
   isLoading: boolean;
 };
 
-/** Blog detail — single post fetch; uses JSON fallback until Firestore returns. */
+/** Blog detail — single post fetch; uses JSON fallback until CMS returns. */
 export function useBlogPost(numericId: number | undefined): UseBlogPostResult {
-  const hasLiveSource = isSupabaseContentEnabled() || Boolean(firestore);
+  const hasLiveSource = isSupabaseContentEnabled();
   const validId =
     typeof numericId === 'number' && !Number.isNaN(numericId) && numericId > 0
       ? numericId

@@ -1,5 +1,5 @@
-import { HttpsError } from 'firebase-functions/v2/https';
-import { resolveBlogForPromo, type FirestoreBlog } from '../firestore.js';
+import { ApiError } from '../../apiError.js';
+import { resolveBlogForPublishKit, type ResolvedBlogPost } from '../resolveBlogPost.js';
 import { resolveCategoryLabel } from './categoryLabels.js';
 import { pickReadablePanelMode } from './contrast.js';
 import { commitVisualImages } from './commitVisual.js';
@@ -31,7 +31,7 @@ const VALID_ACTIONS = [
   'commit_visual',
 ] as const;
 
-function snapshotFromBlog(blog: FirestoreBlog): PublishKitSnapshot {
+function snapshotFromBlog(blog: ResolvedBlogPost): PublishKitSnapshot {
   return {
     title: blog.title,
     excerpt: blog.excerpt,
@@ -52,7 +52,7 @@ export async function handlePublishKit(params: {
   const { body, apiKey, model } = params;
 
   if (body.version !== PUBLISH_KIT_API_VERSION) {
-    throw new HttpsError('invalid-argument', `Unsupported publish kit version ${body.version}.`, {
+    throw new ApiError('invalid-argument', `Unsupported publish kit version ${body.version}.`, {
       code: 'VALIDATION',
     });
   }
@@ -63,13 +63,13 @@ export async function handlePublishKit(params: {
         ? Number(body.blogId)
         : NaN;
   if (!body.action || !Number.isFinite(blogId)) {
-    throw new HttpsError('invalid-argument', 'action and blogId are required.', {
+    throw new ApiError('invalid-argument', 'action and blogId are required.', {
       code: 'VALIDATION',
     });
   }
   body.blogId = blogId;
   if (!VALID_ACTIONS.includes(body.action)) {
-    throw new HttpsError('invalid-argument', `Unknown action ${body.action as string}.`, {
+    throw new ApiError('invalid-argument', `Unknown action ${body.action as string}.`, {
       code: 'VALIDATION',
     });
   }
@@ -77,7 +77,7 @@ export async function handlePublishKit(params: {
   if (body.action === 'commit_visual') {
     const commit = body.visualCommit;
     if (!commit?.ogPreviewDataUrl?.trim()) {
-      throw new HttpsError('invalid-argument', 'visualCommit.ogPreviewDataUrl is required.', {
+      throw new ApiError('invalid-argument', 'visualCommit.ogPreviewDataUrl is required.', {
         code: 'VALIDATION',
       });
     }
@@ -105,7 +105,7 @@ export async function handlePublishKit(params: {
     };
   }
 
-  const blog = await resolveBlogForPromo(body.blogId, body.blogSnapshot);
+  const blog = await resolveBlogForPublishKit(body.blogId, body.blogSnapshot);
   const snapshot: PublishKitSnapshot = body.blogSnapshot
     ? {
         ...body.blogSnapshot,

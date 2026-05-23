@@ -1,4 +1,4 @@
-import { HttpsError } from 'firebase-functions/v2/https';
+import { ApiError } from '../../apiError.js';
 import { dataUrlToBuffer, isDataImageUrl } from './dataUrl.js';
 import { resizeCoverThumbnail, resizeOgThumbnail } from './imageDerivatives.js';
 import { uploadBlogImage } from './storage.js';
@@ -18,7 +18,7 @@ export async function commitVisualImages(params: {
 }): Promise<CommitVisualUrls> {
   const ogUrl = params.ogPreviewDataUrl.trim();
   if (!isDataImageUrl(ogUrl)) {
-    throw new HttpsError('invalid-argument', 'ogPreviewDataUrl must be a data:image URL.', {
+    throw new ApiError('invalid-argument', 'ogPreviewDataUrl must be a data:image URL.', {
       code: 'VALIDATION',
     });
   }
@@ -26,7 +26,7 @@ export async function commitVisualImages(params: {
   const same = params.sameImageForCoverAndOg !== false;
   const coverUrl = (same ? ogUrl : params.coverPreviewDataUrl?.trim()) || ogUrl;
   if (!same && !isDataImageUrl(coverUrl)) {
-    throw new HttpsError('invalid-argument', 'coverPreviewDataUrl must be a data:image URL.', {
+    throw new ApiError('invalid-argument', 'coverPreviewDataUrl must be a data:image URL.', {
       code: 'VALIDATION',
     });
   }
@@ -46,16 +46,16 @@ export async function commitVisualImages(params: {
   ]);
 
   if (!ogUpload?.url) {
-    throw new HttpsError(
+    throw new ApiError(
       'failed-precondition',
-      'Could not upload OG image to Storage. Check GOOGLE_APPLICATION_CREDENTIALS_JSON and FIREBASE_STORAGE_BUCKET on the API.',
+      'Could not upload OG image to Storage. Set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_STORAGE_BUCKET on the API.',
       { code: 'STORAGE' },
     );
   }
   const ogHttps = ogUpload.url;
   const coverHttps = same ? ogHttps : (coverUpload?.url ?? null);
   if (!coverHttps) {
-    throw new HttpsError('failed-precondition', 'Could not upload cover image to Storage.', {
+    throw new ApiError('failed-precondition', 'Could not upload cover image to Storage.', {
       code: 'STORAGE',
     });
   }

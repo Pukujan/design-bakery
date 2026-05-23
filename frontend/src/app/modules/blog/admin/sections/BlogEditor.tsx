@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ChevronDown, ChevronUp, Plus, Pencil, Trash2, X } from 'lucide-react';
 import type { BlogSeo } from '@/lib/adminContentService';
-import { isPublishKitEnabled } from '@/lib/functionsClient';
+import { isPublishKitEnabled } from '@/lib/blogFeatureFlags';
 import {
   MAX_BLOG_TAGS,
   mergeTags,
@@ -286,7 +286,7 @@ export function BlogEditor() {
         setSaveWarning('Uploading image previews to Firebase Storage…');
         if (!isPublishKitEnabled()) {
           throw new Error(
-            'Posts with generated preview images require the publish kit. Enable VITE_ENABLE_BLOG_PUBLISH_KIT or VITE_ENABLE_BLOG_AGENTS, or paste public https:// image URLs.',
+            'Posts with generated preview images require the publish kit. Enable VITE_ENABLE_BLOG_PUBLISH_KIT, or paste public https:// image URLs.',
           );
         }
         const blogId = resolveBlogNumericId(working);

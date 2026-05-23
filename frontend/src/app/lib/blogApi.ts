@@ -1,6 +1,6 @@
 import { getAdminAccessToken } from '@/lib/adminToken';
 
-/** Express API on Railway (or local `pnpm run dev:api`). When set, skips Firebase callables. */
+/** Express API on Railway (or local `pnpm run dev:api`). */
 export function getBlogApiBaseUrl(): string | null {
   const url = import.meta.env.VITE_BLOG_API_URL?.trim();
   if (!url) return null;

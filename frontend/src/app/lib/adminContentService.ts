@@ -1,23 +1,9 @@
 /**
- * Firestore CRUD service for the admin panel.
- * Each content type maps to a top-level Firestore collection.
- * Array-based content (e.g. skills, advocacy images) is stored as a
- * single document doc("data") inside each collection so the whole list
- * can be fetched / replaced atomically.
+ * CMS CRUD for the admin panel via Express API (Supabase backend).
+ * Array-based content is stored as a single document per collection key.
+ * When the API is unavailable, reads fall back to repo JSON.
  */
 
-import {
-  collection,
-  doc,
-  getDocs,
-  setDoc,
-  addDoc,
-  deleteDoc,
-  query,
-  orderBy,
-  type DocumentData,
-} from 'firebase/firestore';
-import { firestore } from './firebase';
 import { isSupabaseContentEnabled } from './contentApi';
 import * as contentApi from './contentApi';
 import type { PortfolioId } from '../portfolios/registry';
@@ -60,9 +46,12 @@ import _prideCommunityJson from '../modules/design/DesignPortfolio/gallery-pride
 import _prideMonthJson from '../modules/design/DesignPortfolio/gallery-pride-month.json';
 import _blogsJson from '@/modules/blog/data/blog-data.json';
 
-function db() {
-  if (!firestore) throw new Error('Firestore is not configured.');
-  return firestore;
+type DocumentData = Record<string, unknown>;
+
+function requireCmsApi(): void {
+  if (!isSupabaseContentEnabled()) {
+    throw new Error('CMS API is not configured. Set VITE_BLOG_API_URL in frontend/.env and run pnpm run dev:stack.');
+  }
 }
 
 function col(portfolioId: PortfolioId, baseName: string): string {
@@ -115,30 +104,16 @@ function unwrapArrayFromFirestore<T>(data: DocumentData, fallback: T[]): T[] {
 
 /** Replace an entire array-valued document (stored at collection/data). */
 export async function setArrayDoc(collectionName: string, items: unknown[]) {
-  if (isSupabaseContentEnabled()) {
-    await contentApi.saveContentArray(collectionName, items);
-    return;
-  }
-  await setDoc(doc(db(), collectionName, 'data'), { items }, { merge: false });
+  requireCmsApi();
+  await contentApi.saveContentArray(collectionName, items);
 }
 
 /** Read an entire array-valued document. Falls back when CMS is off, missing, empty, or errors. */
 export async function getArrayDoc<T>(collectionName: string, fallback: T[] = []): Promise<T[]> {
-  if (isSupabaseContentEnabled()) {
-    try {
-      const items = await contentApi.fetchContentArray<T>(collectionName);
-      return items.length > 0 ? items : fallback;
-    } catch {
-      return fallback;
-    }
-  }
-  if (!firestore) return fallback;
-
+  if (!isSupabaseContentEnabled()) return fallback;
   try {
-    const { getDoc } = await import('firebase/firestore');
-    const snap = await getDoc(doc(firestore, collectionName, 'data'));
-    if (!snap.exists()) return fallback;
-    return unwrapArrayFromFirestore<T>(snap.data(), fallback);
+    const items = await contentApi.fetchContentArray<T>(collectionName);
+    return items.length > 0 ? items : fallback;
   } catch {
     return fallback;
   }
@@ -146,30 +121,16 @@ export async function getArrayDoc<T>(collectionName: string, fallback: T[] = [])
 
 /** Replace a singleton object document (stored at collection/data). */
 export async function setObjectDoc(collectionName: string, item: unknown) {
-  if (isSupabaseContentEnabled()) {
-    await contentApi.saveContentObject(collectionName, item);
-    return;
-  }
-  await setDoc(doc(db(), collectionName, 'data'), { item }, { merge: false });
+  requireCmsApi();
+  await contentApi.saveContentObject(collectionName, item);
 }
 
 /** Read a singleton object document. Falls back when CMS is off, missing, or errors. */
 export async function getObjectDoc<T>(collectionName: string, fallback: T): Promise<T> {
-  if (isSupabaseContentEnabled()) {
-    try {
-      const item = await contentApi.fetchContentObject<T>(collectionName);
-      return hasMeaningfulValue(item) ? item : fallback;
-    } catch {
-      return fallback;
-    }
-  }
-  if (!firestore) return fallback;
-
+  if (!isSupabaseContentEnabled()) return fallback;
   try {
-    const { getDoc } = await import('firebase/firestore');
-    const snap = await getDoc(doc(firestore, collectionName, 'data'));
-    if (!snap.exists()) return fallback;
-    return unwrapObjectFromFirestore<T>(snap.data(), fallback);
+    const item = await contentApi.fetchContentObject<T>(collectionName);
+    return hasMeaningfulValue(item) ? item : fallback;
   } catch {
     return fallback;
   }
@@ -235,20 +196,14 @@ export async function getBlogs(): Promise<BlogPost[]> {
     numericId: p.numericId ?? (p as { id?: number }).id ?? i + 1,
   }));
 
-  if (isSupabaseContentEnabled()) {
-    try {
-      const remote = (await contentApi.fetchAdminBlogs()) as BlogPost[];
-      return mergeBlogPostsWithFallback(fallbackBlogs, remote);
-    } catch {
-      return fallbackBlogs;
-    }
+  if (!isSupabaseContentEnabled()) return fallbackBlogs;
+
+  try {
+    const remote = (await contentApi.fetchAdminBlogs()) as BlogPost[];
+    return mergeBlogPostsWithFallback(fallbackBlogs, remote);
+  } catch {
+    return fallbackBlogs;
   }
-
-  const q = query(collection(db(), 'blog_posts'), orderBy('numericId', 'desc'));
-  const snap = await getDocs(q);
-
-  const firestoreBlogs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as BlogPost));
-  return mergeBlogPostsWithFallback(fallbackBlogs, firestoreBlogs);
 }
 
 /** Write any blog-data.json rows missing from Firestore (doc id `seed-<numericId>`). */
@@ -257,49 +212,22 @@ export async function syncBlogPostsFromSeed(): Promise<number> {
 }
 
 async function seedMissingFallbackBlogs(): Promise<number> {
-  if (isSupabaseContentEnabled()) {
-    const existing = await getBlogs();
-    const existingKeys = new Set(existing.map((p) => blogPostMergeKey(p)));
-    const fallback = (_blogsJson as unknown as BlogPost[]).map((p, i) => ({
-      ...p,
-      numericId: p.numericId ?? (p as { id?: number }).id ?? i + 1,
-    }));
-    const missing = fallback.filter((post) => !existingKeys.has(blogPostMergeKey(post)));
-    if (missing.length === 0) return 0;
-    await Promise.all(
-      missing.map(async (post) => {
-        const { id, ...data } = post;
-        const seedId = typeof id === 'string' && id.length > 0 ? `seed-${id}` : `seed-${data.numericId}`;
-        await contentApi.saveAdminBlog({ ...data, id: seedId });
-      }),
-    );
-    return missing.length;
-  }
+  if (!isSupabaseContentEnabled()) return 0;
 
-  const q = query(collection(db(), 'blog_posts'), orderBy('numericId', 'asc'));
-  const snap = await getDocs(q);
-
-  const existingKeys = new Set(
-    snap.docs.map((d) => {
-      const p = d.data() as BlogPost;
-      return blogPostMergeKey(p);
-    })
-  );
-
+  const existing = await getBlogs();
+  const existingKeys = new Set(existing.map((p) => blogPostMergeKey(p)));
   const fallback = (_blogsJson as unknown as BlogPost[]).map((p, i) => ({
     ...p,
     numericId: p.numericId ?? (p as { id?: number }).id ?? i + 1,
   }));
-
   const missing = fallback.filter((post) => !existingKeys.has(blogPostMergeKey(post)));
   if (missing.length === 0) return 0;
-
   await Promise.all(
-    missing.map((post) => {
+    missing.map(async (post) => {
       const { id, ...data } = post;
       const seedId = typeof id === 'string' && id.length > 0 ? `seed-${id}` : `seed-${data.numericId}`;
-      return setDoc(doc(db(), 'blog_posts', seedId), data);
-    })
+      await contentApi.saveAdminBlog({ ...data, id: seedId });
+    }),
   );
   return missing.length;
 }
@@ -325,37 +253,19 @@ async function ensureUniqueNumericId(
 }
 
 export async function saveBlog(post: BlogPost): Promise<string> {
+  requireCmsApi();
   await seedMissingFallbackBlogs();
   invalidateBlogCache();
 
-  if (isSupabaseContentEnabled()) {
-    const data = normalizeBlogPostForSave(post);
-    await ensureUniqueNumericId(data, post.id);
-    const payload = post.id ? { ...data, id: post.id } : data;
-    return contentApi.saveAdminBlog(payload);
-  }
-
-  if (post.id) {
-    const { id } = post;
-    const data = normalizeBlogPostForSave(post);
-    await ensureUniqueNumericId(data, id);
-    await setDoc(doc(db(), 'blog_posts', id), data);
-    return id;
-  }
-
   const data = normalizeBlogPostForSave(post);
-  await ensureUniqueNumericId(data);
-  const ref = await addDoc(collection(db(), 'blog_posts'), data);
-  return ref.id;
+  await ensureUniqueNumericId(data, post.id);
+  const payload = post.id ? { ...data, id: post.id } : data;
+  return contentApi.saveAdminBlog(payload);
 }
 
 export async function deleteBlog(id: string) {
-  if (isSupabaseContentEnabled()) {
-    await contentApi.deleteAdminBlog(id);
-    invalidateBlogCache();
-    return;
-  }
-  await deleteDoc(doc(db(), 'blog_posts', id));
+  requireCmsApi();
+  await contentApi.deleteAdminBlog(id);
   invalidateBlogCache();
 }
 
@@ -858,25 +768,16 @@ const SEED_PORTFOLIO_IDS: PortfolioId[] = [
 ];
 
 async function verifyPushedHero(portfolioId: PortfolioId): Promise<void> {
-  const { getDoc } = await import('firebase/firestore');
   const collectionName = col(portfolioId, 'engineering_hero_content');
   const expected = getHeroFallback(portfolioId);
-  const snap = await getDoc(doc(db(), collectionName, 'data'));
-
-  if (!snap.exists()) {
-    throw new Error(`Firestore doc missing after push: ${collectionName}`);
-  }
-
-  const hero = unwrapObjectFromFirestore(snap.data(), expected);
+  const hero = await getObjectDoc(collectionName, expected);
   if (!hero.titleLine1?.trim()) {
-    throw new Error(
-      `Push did not persist hero for "${portfolioId}". Check Firestore rules for ${collectionName}.`
-    );
+    throw new Error(`Push did not persist hero for "${portfolioId}". Check CMS API and Supabase.`);
   }
 }
 
-/** Overwrite engineering CMS docs in Firestore with repo JSON fallbacks for one portfolio. */
-export async function pushPortfolioDefaultsToFirestore(portfolioId: PortfolioId): Promise<void> {
+/** Overwrite engineering CMS docs with repo JSON fallbacks for one portfolio. */
+export async function pushPortfolioDefaultsToCms(portfolioId: PortfolioId): Promise<void> {
   await Promise.all([
     setEngineeringHeroContent(portfolioId, getHeroFallback(portfolioId)),
     setEngineeringAboutContent(portfolioId, getAboutFallback(portfolioId)),
@@ -901,10 +802,15 @@ export function notifyPortfolioContentPushed() {
   }
 }
 
-/** Push repo defaults for every portfolio route (same scope as `pnpm run seed:firestore`). */
-export async function pushAllPortfolioDefaultsToFirestore(): Promise<PortfolioId[]> {
+/** Push repo defaults for every portfolio route. */
+export async function pushAllPortfolioDefaultsToCms(): Promise<PortfolioId[]> {
   for (const portfolioId of SEED_PORTFOLIO_IDS) {
-    await pushPortfolioDefaultsToFirestore(portfolioId);
+    await pushPortfolioDefaultsToCms(portfolioId);
   }
   return SEED_PORTFOLIO_IDS;
 }
+
+/** @deprecated Use pushPortfolioDefaultsToCms */
+export const pushPortfolioDefaultsToFirestore = pushPortfolioDefaultsToCms;
+/** @deprecated Use pushAllPortfolioDefaultsToCms */
+export const pushAllPortfolioDefaultsToFirestore = pushAllPortfolioDefaultsToCms;

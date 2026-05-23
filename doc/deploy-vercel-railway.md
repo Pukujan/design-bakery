@@ -26,16 +26,16 @@ Firebase (Auth, Firestore, Storage) stays on the **Spark** plan. You do **not** 
 
 1. [Railway](https://railway.app) → **New Project** → **Deploy from GitHub repo** → select `design-bakery`.
 2. Open the new service → **Settings**:
-   - **Root Directory:** leave **empty** (repository root).  
-     Do **not** set `backend` — the build needs root `pnpm-lock.yaml` and `pnpm-workspace.yaml`.
-   - **Config file path:** `railway.toml` (repo root, not `backend/railway.toml`)
+   - **Root Directory:** either:
+     - **Empty** (repo root) — **Config file:** `railway.toml` (recommended), or
+     - **`backend`** — **Config file:** `railway.toml` (uses `backend/railway.toml` in this repo)
    - **Watch Paths** (optional): `backend/**`, `pnpm-lock.yaml`, `railway.toml`
-3. **Build / Start** — use repo-root `railway.toml` (or set manually):
+3. **Build / Start** — set automatically from the chosen `railway.toml`, or manually:
    - **Build command:**
      ```bash
      corepack enable pnpm && pnpm install --frozen-lockfile && pnpm --dir backend/services run build && pnpm --dir backend run build
      ```
-   - **Start command:** `node backend/lib/server.js`
+   - **Start command:** `node backend/lib/server.js` (repo root) or `node lib/server.js` (root = `backend`)
    - Node **20+** (`.node-version` + `nixpacks.toml` at repo root)
 4. **Networking** → **Generate Domain** (or attach a custom domain). Copy the HTTPS URL, e.g. `https://design-bakery-api-production.up.railway.app` (no trailing slash).
 

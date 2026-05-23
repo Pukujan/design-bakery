@@ -1,13 +1,12 @@
 /**
- * Engineering blog module — public reader, admin, publish kit, agents.
+ * Engineering blog module — public reader, admin, publish kit.
  *
  * Submodules:
- * - `data/` — types, Firestore hooks, JSON seeds
+ * - `data/` — types, CMS hooks, JSON seeds
  * - `seo/` — meta tags, cover/OG URL resolvers
  * - `public/` — list + detail pages
  * - `render/` — Mermaid
  * - `studio/` — publish kit (callable client + admin UI)
- * - `agents/` — SEO rules + LinkedIn promo
  * - `admin/` — editor + categories
  * - `shared/` — cover, motion, contact FAB
  * - `lib/` — tags parsing, client image upload
@@ -50,4 +49,3 @@ export { BlogContactFab } from './shared/BlogContactFab';
 
 export { BlogEditor } from './admin/sections/BlogEditor';
 export { BlogCategoriesEditor } from './admin/sections/BlogCategoriesEditor';
-export { BlogAgentsPage } from './agents/BlogAgentsPage';

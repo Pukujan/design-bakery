@@ -1,12 +1,7 @@
-import { isBlogApiEnabled } from '@/lib/blogApi';
 import { invokeBlogPublishKit } from './publishKitClient';
 import type { BlogPost } from '@/lib/adminContentService';
 import { resolveBlogNumericId } from '@/modules/blog/data/blogData';
 import { isOversizedDataImageUrl } from '@/modules/blog/lib/parseBlogTags';
-import {
-  uploadBlogImageDataUrl,
-  uploadBlogImageDerivative,
-} from '@/modules/blog/lib/uploadBlogImageClient';
 
 export function isDataImageUrl(url: string | undefined): boolean {
   return Boolean(url?.trim().startsWith('data:image/'));
@@ -17,13 +12,10 @@ export function isPublicImageUrl(url: string | undefined): boolean {
   return u.startsWith('https://') || u.startsWith('http://');
 }
 
-/** HTTPS, or Storage emulator media URLs from commit_visual. */
 export function isStorableImageUrl(url: string | undefined): boolean {
   const u = url?.trim() ?? '';
   if (!u || isDataImageUrl(u)) return false;
-  if (u.startsWith('https://')) return true;
-  if (/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?\/v0\/b\//i.test(u)) return true;
-  return u.startsWith('http://') && !isDataImageUrl(u);
+  return u.startsWith('https://') || (u.startsWith('http://') && !isDataImageUrl(u));
 }
 
 export type CommitVisualUploadResult = {
@@ -33,27 +25,15 @@ export type CommitVisualUploadResult = {
   ogImageThumbUrl: string;
 };
 
-function isLocalDevHost(): boolean {
-  if (typeof window === 'undefined') return false;
-  const h = window.location.hostname;
-  return h === 'localhost' || h === '127.0.0.1';
-}
-
 function productionUploadHelp(): string {
-  if (isBlogApiEnabled()) {
-    return (
-      'Server upload failed. On Railway set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_STORAGE_BUCKET ' +
-      '(or legacy FIREBASE_STORAGE_BUCKET + GOOGLE_APPLICATION_CREDENTIALS_JSON), then redeploy the API.'
-    );
-  }
   return (
-    'Set VITE_BLOG_API_URL on Vercel to your Railway API URL (see doc/deploy-vercel-railway.md), redeploy, ' +
-    'and configure Supabase Storage env vars on Railway. Production uploads go through the API, not the browser.'
+    'Server upload failed. On Railway set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_STORAGE_BUCKET, ' +
+    'then redeploy the API. Local: pnpm run dev:stack and confirm http://localhost:8787/health.'
   );
 }
 
-/** Block Firestore writes that still carry huge preview data URLs. */
-export function assertImagesReadyForFirestore(og: string, cover: string): void {
+/** Block CMS writes that still carry huge preview data URLs. */
+export function assertImagesReadyForSave(og: string, cover: string): void {
   if (!isStorableImageUrl(og) || !isStorableImageUrl(cover)) {
     throw new Error(
       'Images were not converted to https:// Storage URLs. Use Save post after Generate + Apply; ' +
@@ -62,13 +42,11 @@ export function assertImagesReadyForFirestore(og: string, cover: string): void {
   }
   if (isOversizedDataImageUrl(og) || isOversizedDataImageUrl(cover)) {
     throw new Error(
-      'Image URLs are too large for Firestore (over ~100k characters). ' +
-        'Save must upload to Storage first — do not keep data: previews in the post.',
+      'Image URLs are too large for CMS (over ~100k characters). Save must upload to Storage first.',
     );
   }
 }
 
-/** Server-side upload (Express API or Firebase callable) — no browser Storage CORS. */
 async function uploadViaServer(params: {
   blogId: number;
   post: BlogPost;
@@ -112,45 +90,7 @@ async function uploadViaServer(params: {
   };
 }
 
-/** Browser → Firebase Storage (localhost only; needs bucket CORS). */
-async function uploadViaBrowser(params: {
-  blogId: number;
-  ogDataUrl: string;
-  coverDataUrl: string;
-}): Promise<CommitVisualUploadResult> {
-  const [ogImageUrl, coverImageUrl] = await Promise.all([
-    uploadBlogImageDataUrl({ numericId: params.blogId, kind: 'og', dataUrl: params.ogDataUrl }),
-    uploadBlogImageDataUrl({
-      numericId: params.blogId,
-      kind: 'cover',
-      dataUrl: params.coverDataUrl,
-    }),
-  ]);
-
-  const [thumbnailImageUrl, ogImageThumbUrl] = await Promise.all([
-    uploadBlogImageDerivative({
-      numericId: params.blogId,
-      kind: 'thumbnail',
-      sourceDataUrl: params.coverDataUrl,
-      width: 640,
-      height: 640,
-    }),
-    uploadBlogImageDerivative({
-      numericId: params.blogId,
-      kind: 'og_thumb',
-      sourceDataUrl: params.ogDataUrl,
-      width: 800,
-      height: 800,
-    }),
-  ]);
-
-  return { ogImageUrl, coverImageUrl, thumbnailImageUrl, ogImageThumbUrl };
-}
-
-/**
- * On Save: turn publish-kit data: previews into public https:// Storage URLs in Firestore.
- * Production always uses server upload (Railway/callable). Browser upload is localhost-only fallback.
- */
+/** On Save: turn publish-kit data: previews into public Storage URLs in CMS. */
 export async function commitPublishKitImagesForSave(params: {
   post: BlogPost;
   mirrorCoverToOg: boolean;
@@ -162,38 +102,16 @@ export async function commitPublishKitImagesForSave(params: {
   const cover = (params.mirrorCoverToOg ? og : params.post.coverImageUrl?.trim()) || og;
   if (!isDataImageUrl(og) && !isDataImageUrl(cover)) return null;
 
-  const uploadParams = {
-    blogId,
-    post: params.post,
-    ogDataUrl: og,
-    coverDataUrl: cover,
-    mirrorCoverToOg: params.mirrorCoverToOg,
-  };
-
   try {
-    return await uploadViaServer(uploadParams);
+    return await uploadViaServer({
+      blogId,
+      post: params.post,
+      ogDataUrl: og,
+      coverDataUrl: cover,
+      mirrorCoverToOg: params.mirrorCoverToOg,
+    });
   } catch (serverErr) {
     const serverMsg = serverErr instanceof Error ? serverErr.message : 'Server upload failed';
-
-    // With VITE_BLOG_API_URL, always upload via Express — never fall back to browser (Storage CORS).
-    if (isBlogApiEnabled()) {
-      throw new Error(
-        `${serverMsg} — Backend upload only. Confirm pnpm run dev:stack, ` +
-          'http://localhost:8787/health, GOOGLE_APPLICATION_CREDENTIALS_PATH in backend/.env, then Save again.',
-      );
-    }
-
-    if (!isLocalDevHost()) {
-      throw new Error(`${serverMsg} ${productionUploadHelp()}`);
-    }
-
-    try {
-      return await uploadViaBrowser({ blogId, ogDataUrl: og, coverDataUrl: cover });
-    } catch (browserErr) {
-      const browserMsg = browserErr instanceof Error ? browserErr.message : 'Browser upload failed';
-      throw new Error(
-        `${serverMsg} ${browserMsg} — Prefer VITE_BLOG_API_URL + dev:stack, or run pnpm run storage:cors for browser uploads.`,
-      );
-    }
+    throw new Error(`${serverMsg} — ${productionUploadHelp()}`);
   }
 }

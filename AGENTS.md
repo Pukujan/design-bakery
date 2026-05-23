@@ -29,23 +29,23 @@ If not initialized: `npx @colbymchenry/codegraph` then `codegraph init -i` (see 
 See **[doc/architecture.md](doc/architecture.md)** for MVC mapping and folder roles.
 
 - **`frontend/`** — Vite/React app (`src/`, `vite.config.ts`)
-- **`backend/`** — Express API (`src/server.ts`, `src/api/`, `src/middleware/`) + `services/` (publish kit, agents, CMS)
-- **`firebase/`** — Optional Firebase CLI config, Storage rules, CORS ([firebase/README.md](firebase/README.md))
+- **`backend/`** — Express API (`src/server.ts`, `src/api/`, `src/middleware/`) + `services/` (publish kit, CMS)
 - **`supabase/`** — Postgres migrations ([supabase/README.md](supabase/README.md))
 - **`scripts/`** — Dev orchestration at repo root ([scripts/README.md](scripts/README.md))
 
 ## Dev server
 
 - **Env:** `frontend/.env` (`VITE_*`); `backend/.env` (secrets) — [doc/env.md](doc/env.md).
-- **`pnpm run dev`** — Vite + Functions emulator when `OPENROUTER_API_KEY` is in **`backend/.env`** and **`VITE_BLOG_API_URL` is unset** in `frontend/.env`.
-- **`pnpm run dev:api`** / **`pnpm run dev:stack`** — Express on **8787**; `VITE_BLOG_API_URL=http://localhost:8787` in **`frontend/.env`**.
-- **`pnpm run dev:web`** — Vite only (no AI backend).
-- **Production AI backend:** Railway Express + `VITE_BLOG_API_URL` on Vercel — **[doc/deploy-vercel-railway.md](doc/deploy-vercel-railway.md)**. Optional: Firebase callables — `firebase deploy --config firebase/firebase.json` (Blaze).
-- Dev port: first free from **5300** (`vite.config.ts`). With callables, confirm `[functions] ready — invokeBlogPublishKit` in the terminal.
+- **`pnpm run dev`** — Vite only (static JSON fallbacks when API unset).
+- **`pnpm run dev:stack`** — Vite + Express on **8787**; set `VITE_BLOG_API_URL=http://localhost:8787` in **`frontend/.env`**.
+- **`pnpm run dev:api`** — Express API only.
+- **`pnpm run dev:web`** — Vite only.
+- **Production:** Railway Express + `VITE_BLOG_API_URL` on Vercel — **[doc/deploy-vercel-railway.md](doc/deploy-vercel-railway.md)**.
+- Dev port: first free from **5300** (`vite.config.ts`).
 
-## Blog agents tests
+## Publish kit tests
 
-- **`pnpm run test:blog-workflow`** — offline: fonts, template visual, promo JSON parse, commit (Storage optional).
-- **`pnpm run test:blog-workflow:live`** — OpenRouter meta/tags/promo.
-- **`pnpm run test:blog-workflow:storage`** — requires `gcloud auth application-default login`.
+- **`pnpm run test:blog-workflow`** — offline: fonts, template visual, commit (Storage optional).
+- **`pnpm run test:blog-workflow:live`** — OpenRouter meta/tags.
+- **`pnpm run test:blog-workflow:storage`** — Supabase Storage uploads (needs `SUPABASE_*` in `backend/.env`).
 - Matrix: [guidelines/agent-devlog-blog-publish-kit.md](guidelines/agent-devlog-blog-publish-kit.md) § Automated workflow test.

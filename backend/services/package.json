@@ -1,7 +1,7 @@
 {
   "name": "design-bakery-services",
   "private": true,
-  "main": "lib/index.js",
+  "main": "lib/blog/publishKit/handler.js",
   "type": "module",
   "engines": {
     "node": "24"
@@ -9,24 +9,18 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "serve": "npm run build && npx firebase emulators:start --only functions",
-    "deploy": "npm run build && npx firebase deploy --only functions:invokeBlogAgent,functions:invokeBlogPublishKit",
     "test:publish-kit-upload": "node scripts/test-publish-kit-upload.mjs",
-    "test:publish-kit-upload:emulator": "node scripts/test-publish-kit-upload.mjs --emulator",
     "test:blog-workflow": "node scripts/test-blog-agents-workflow.mjs --offline",
     "test:blog-workflow:live": "node scripts/test-blog-agents-workflow.mjs --live",
     "test:blog-workflow:live:ai": "node scripts/test-blog-agents-workflow.mjs --live --with-ai-images",
     "test:blog-workflow:storage": "node scripts/test-blog-agents-workflow.mjs --offline --storage",
-    "test:blog-workflow:full": "node scripts/test-blog-agents-workflow.mjs --live --storage --emulator",
-    "test:blog-workflow:emulator": "node scripts/test-blog-agents-workflow.mjs --offline --emulator",
+    "test:blog-workflow:full": "node scripts/test-blog-agents-workflow.mjs --live --storage",
     "env:split": "node ../scripts/split-env.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.5",
     "@supabase/supabase-js": "^2.106.1",
     "dotenv": "^17.4.2",
-    "firebase-admin": "^13.6.0",
-    "firebase-functions": "^6.6.0",
     "sharp": "^0.33.5"
   },
   "devDependencies": {

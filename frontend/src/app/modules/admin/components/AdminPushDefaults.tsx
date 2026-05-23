@@ -13,10 +13,10 @@ import {
 } from '../../../components/ui/alert-dialog';
 import {
   notifyPortfolioContentPushed,
-  pushAllPortfolioDefaultsToFirestore,
-  pushPortfolioDefaultsToFirestore,
+  pushAllPortfolioDefaultsToCms,
+  pushPortfolioDefaultsToCms,
 } from '../../../lib/adminContentService';
-import { firestore } from '../../../lib/firebase';
+import { isSupabaseContentEnabled } from '../../../lib/contentApi';
 import { useAdminPortfolio } from '../AdminPortfolioContext';
 import { getPortfolioConfig } from '../../../portfolios/registry';
 
@@ -32,19 +32,19 @@ export function AdminPushDefaults() {
   async function runPush(scope: PushScope) {
     setBusy(true);
     setStatus('');
-    if (!firestore) {
-      setStatus('Firebase not configured. Add frontend/.env (see frontend/.env.example) and restart Vite.');
+    if (!isSupabaseContentEnabled()) {
+      setStatus('CMS API not configured. Set VITE_BLOG_API_URL in frontend/.env and run pnpm run dev:stack.');
       setBusy(false);
       setConfirmScope(null);
       return;
     }
     try {
       if (scope === 'all') {
-        const ids = await pushAllPortfolioDefaultsToFirestore();
+        const ids = await pushAllPortfolioDefaultsToCms();
         notifyPortfolioContentPushed();
         setStatus(`Updated ${ids.length} portfolios from repo JSON.`);
       } else {
-        await pushPortfolioDefaultsToFirestore(portfolioId);
+        await pushPortfolioDefaultsToCms(portfolioId);
         notifyPortfolioContentPushed();
         setStatus(`${portfolioLabel} updated from repo JSON.`);
       }
@@ -65,8 +65,8 @@ export function AdminPushDefaults() {
 
   const confirmDescription =
     confirmScope === 'all'
-      ? 'This overwrites Firestore engineering CMS data for all portfolios with the JSON files in the repo. Unsaved admin edits in those sections will be lost.'
-      : `This overwrites Firestore engineering CMS data for ${portfolioLabel} with the JSON files in the repo. Unsaved admin edits in those sections will be lost.`;
+      ? 'This overwrites Supabase CMS data for all portfolios with the JSON files in the repo. Unsaved admin edits in those sections will be lost.'
+      : `This overwrites Supabase CMS data for ${portfolioLabel} with the JSON files in the repo. Unsaved admin edits in those sections will be lost.`;
 
   return (
     <div className="border-t border-gray-200 px-3 py-3 dark:border-gray-800">
@@ -75,8 +75,8 @@ export function AdminPushDefaults() {
         Sync from repo
       </p>
       <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-        Same as <code className="text-[10px]">pnpm run seed:firestore</code> — hero, about, skills,
-        projects, experience, community, contact, footer, social links.
+        Seed CMS from repo JSON — hero, about, skills, projects, experience, community, contact,
+        footer, social links.
       </p>
       <div className="flex flex-col gap-2">
         <Button
@@ -130,7 +130,7 @@ export function AdminPushDefaults() {
                 if (confirmScope) void runPush(confirmScope);
               }}
             >
-              {busy ? 'Pushing…' : 'Push to Firestore'}
+              {busy ? 'Pushing…' : 'Push to CMS'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

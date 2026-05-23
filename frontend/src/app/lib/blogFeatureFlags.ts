@@ -10,9 +10,5 @@ export function viteFlag(name: string): boolean {
 }
 
 export function isPublishKitEnabled(): boolean {
-  return (
-    viteFlag('VITE_ENABLE_BLOG_PUBLISH_KIT') || viteFlag('VITE_ENABLE_BLOG_AGENTS')
-  );
+  return viteFlag('VITE_ENABLE_BLOG_PUBLISH_KIT');
 }
-
-export const BLOG_AGENTS_ENABLED = viteFlag('VITE_ENABLE_BLOG_AGENTS');

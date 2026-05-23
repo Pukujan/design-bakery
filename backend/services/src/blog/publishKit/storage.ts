@@ -1,27 +1,9 @@
-/** Blog image uploads — Supabase Storage (preferred) or legacy Firebase. See guidelines/agent-devlog-supabase-migration.md */
-import { adminStorage, ensureFirebaseAdminApp, resolveStorageBucket } from '../../firebaseApp.js';
-import { isFunctionsEmulator } from '../../emulator.js';
+/** Blog image uploads — Supabase Storage. See guidelines/agent-devlog-supabase-migration.md */
 import {
   resolveImageStorageBackend,
   supabaseAdmin,
   supabaseStorageBucket,
 } from '../../supabaseClient.js';
-
-function storageEmulatorHost(): string | undefined {
-  return process.env.FIREBASE_STORAGE_EMULATOR_HOST?.trim() || undefined;
-}
-
-function skipProductionStorageUpload(): boolean {
-  const v = (process.env.PUBLISH_KIT_SKIP_PRODUCTION_STORAGE ?? '').trim().toLowerCase();
-  return v === 'true' || v === '1';
-}
-
-/** Media URL for objects saved to the Storage emulator (only if Java + storage emulator are running). */
-export function buildStorageEmulatorMediaUrl(bucketName: string, objectPath: string): string {
-  const host = storageEmulatorHost() ?? '127.0.0.1:9199';
-  const encoded = encodeURIComponent(objectPath);
-  return `http://${host}/v0/b/${bucketName}/o/${encoded}?alt=media`;
-}
 
 function objectPath(params: { numericId: number; kind: string }): string {
   const ts = Date.now();
@@ -71,65 +53,19 @@ async function uploadBlogImageSupabase(params: {
   return { url: data.publicUrl, path };
 }
 
-async function uploadBlogImageFirebase(params: {
-  numericId: number;
-  kind: 'og' | 'cover' | 'thumbnail' | 'og_thumb';
-  png: Buffer;
-}): Promise<{ url: string; path: string }> {
-  ensureFirebaseAdminApp();
-  const bucket = adminStorage().bucket(resolveStorageBucket());
-  const path = objectPath(params);
-  const file = bucket.file(path);
-  await file.save(params.png, {
-    metadata: { contentType: 'image/png', cacheControl: 'public, max-age=31536000' },
-  });
-
-  const inFunctionsEmu = isFunctionsEmulator();
-  const storageEmu = storageEmulatorHost();
-  if (inFunctionsEmu && storageEmu) {
-    return { url: buildStorageEmulatorMediaUrl(bucket.name, path), path };
-  }
-
-  const encoded = encodeURIComponent(path);
-  const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encoded}?alt=media`;
-  try {
-    await file.makePublic();
-  } catch {
-    /* optional — public URL above works when storage.rules allow read */
-  }
-  return { url, path };
-}
-
 export async function uploadBlogImage(params: {
   numericId: number;
   kind: 'og' | 'cover' | 'thumbnail' | 'og_thumb';
   png: Buffer;
 }): Promise<{ url: string; path: string } | null> {
-  const inFunctionsEmu = isFunctionsEmulator();
-  const storageEmu = storageEmulatorHost();
-
-  if (inFunctionsEmu && !storageEmu && skipProductionStorageUpload()) {
-    console.warn(
-      '[publishKit] Storage upload skipped (PUBLISH_KIT_SKIP_PRODUCTION_STORAGE=true). Remove it from backend/.env to upload on save.',
-    );
-    return null;
-  }
-
   try {
-    const backend = resolveImageStorageBackend();
-    if (backend === 'supabase') {
-      return await uploadBlogImageSupabase(params);
+    if (resolveImageStorageBackend() !== 'supabase') {
+      throw new Error('Only Supabase Storage is supported. Set IMAGE_STORAGE=supabase in backend/.env.');
     }
-    return await uploadBlogImageFirebase(params);
+    return await uploadBlogImageSupabase(params);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error('[publishKit] Storage upload failed:', message);
-    if (/bucket does not exist|notFound/i.test(message)) {
-      throw new Error(
-        'Firebase Storage bucket not found. Enable Storage in Firebase Console or switch to Supabase: ' +
-          'set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_STORAGE_BUCKET in backend/.env.',
-      );
-    }
     if (/Supabase Storage/i.test(message)) {
       throw err;
     }

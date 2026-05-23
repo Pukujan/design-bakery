@@ -13,18 +13,21 @@ export function isSupabaseStorageConfigured(): boolean {
 }
 
 export function isSupabaseContentBackend(): boolean {
-  const explicit = process.env.CONTENT_BACKEND?.trim().toLowerCase();
-  if (explicit === 'supabase') return isSupabaseConfigured();
-  if (explicit === 'firebase') return false;
-  return isSupabaseConfigured();
+  if (!isSupabaseConfigured()) {
+    throw new Error(
+      'Supabase CMS is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in backend/.env.',
+    );
+  }
+  return true;
 }
 
-export function resolveImageStorageBackend(): 'supabase' | 'firebase' {
-  const explicit = process.env.IMAGE_STORAGE?.trim().toLowerCase();
-  if (explicit === 'supabase') return 'supabase';
-  if (explicit === 'firebase') return 'firebase';
-  if (isSupabaseStorageConfigured()) return 'supabase';
-  return 'firebase';
+export function resolveImageStorageBackend(): 'supabase' {
+  if (!isSupabaseStorageConfigured()) {
+    throw new Error(
+      'Supabase Storage is not configured. Set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_STORAGE_BUCKET in backend/.env.',
+    );
+  }
+  return 'supabase';
 }
 
 export function supabaseStorageBucket(): string {

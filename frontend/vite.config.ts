@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vite'
 import path from 'path'
 import { fileURLToPath } from 'node:url'
 import type { Plugin } from 'vite'
@@ -22,18 +22,7 @@ function resolveExtrasFromFrontend(): Plugin {
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, '..')
 
-/** Firebase Callable paths look like /{projectId}/{region}/{functionName} */
-function functionsEmulatorProxy() {
-  return {
-    target: 'http://127.0.0.1:5001',
-    changeOrigin: true,
-    secure: false,
-  }
-}
-
-export default defineConfig(async ({ mode }) => {
-  const env = loadEnv(mode, __dirname, '')
-  const projectId = env.VITE_FIREBASE_PROJECT_ID || 'auth-system-be464'
+export default defineConfig(async () => {
   const basePort = readDevPortBase()
   const devPort = await resolveDevPort(basePort)
   if (devPort !== basePort) {
@@ -45,9 +34,6 @@ export default defineConfig(async ({ mode }) => {
     server: {
       port: devPort,
       strictPort: true,
-      proxy: {
-        [`^/${projectId}/`]: functionsEmulatorProxy(),
-      },
     },
     preview: {
       port: 4174,

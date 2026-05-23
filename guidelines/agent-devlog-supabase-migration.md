@@ -13,7 +13,7 @@
 | Date | Notes |
 |------|--------|
 | 2026-05-22 | Decision + phased plan; Supabase Storage backend in publish kit; why Firebase was abandoned |
-| 2026-05-22 | Phase 3: frontend `contentApi.ts`; `adminContentService` + `blogData` branch to Express `/api/content` + `/api/public` |
+| 2026-05-22 | Phase 5: Firebase deps and client/server fallbacks removed; Supabase + Express only |
 
 ---
 
@@ -68,8 +68,8 @@ This app maps cleanly:
 | **1** | **Storage** — `uploadBlogImage` → Supabase when `SUPABASE_*` set | **In code** — `backend/services/src/blog/publishKit/storage.ts`, `supabaseClient.ts` |
 | **2** | **Auth** — backend JWT (`POST /api/auth/login`) + Express `requireAdmin` | **Done** (when `ADMIN_*` set) |
 | **3** | **Postgres CMS** — schema + replace Firestore in `adminContentService.ts`, `blogData.ts` | **In code** — set `CONTENT_BACKEND=supabase` + `VITE_CONTENT_BACKEND=supabase`; run `001_initial.sql` |
-| **4** | **Backend agents** — `getBlogByNumericId`, `agent_usage`, `agent_audit` → Postgres | Planned |
-| **5** | **Decommission Firebase** — remove `firebase` / `firebase-admin`, env vars, emulators | After 1–4 |
+| **4** | **Backend agents** — removed archived promo agent + Firestore `agent_usage` / `agent_audit` | **Done** (removed; publish kit only) |
+| **5** | **Decommission Firebase** — remove `firebase` / `firebase-admin`, env vars, emulators | **Done** (2026-05-22) |
 
 Run **`supabase/migrations/001_initial.sql`** in Supabase SQL editor before Phase 3.
 

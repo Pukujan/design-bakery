@@ -21,7 +21,6 @@ import {
   MessageCircleHeart,
   PanelsTopLeft,
   ArrowLeftRight,
-  Sparkles,
 } from 'lucide-react';
 import { useAdminPortfolio } from './AdminPortfolioContext';
 import { AdminPushDefaults } from './components/AdminPushDefaults';
@@ -36,12 +35,6 @@ type NavItem = { path: string; label: string; icon: typeof BookOpen; title?: str
 const ENGINEERING_NAV: NavItem[] = [
   { path: 'blog', label: 'Blog Posts', icon: BookOpen },
   { path: 'blog-categories', label: 'Blog Categories', icon: Tag },
-  {
-    path: 'blog-agents',
-    label: 'Blog Agents',
-    icon: Sparkles,
-    title: 'SEO checks + LinkedIn promo drafts for blog posts',
-  },
   { path: 'projects', label: 'Projects', icon: Briefcase },
   { path: 'hero', label: 'Hero Banner', icon: LayoutTemplate },
   { path: 'community', label: 'Community & Advisory', icon: Users },

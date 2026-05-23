@@ -1,4 +1,5 @@
 import type { Response } from 'express';
+import { ApiError } from '../../services/lib/apiError.js';
 
 type ErrorLike = {
   code?: string;
@@ -6,7 +7,8 @@ type ErrorLike = {
   details?: { code?: string };
 };
 
-function isHttpsError(error: unknown): error is ErrorLike & { code: string; message: string } {
+function isRouteError(error: unknown): error is ErrorLike & { code: string; message: string } {
+  if (error instanceof ApiError) return true;
   const e = error as ErrorLike;
   return (
     typeof e?.code === 'string' &&
@@ -69,7 +71,7 @@ export function sendRouteError(res: Response, error: unknown): void {
     return;
   }
 
-  if (isHttpsError(error)) {
+  if (isRouteError(error)) {
     const status = statusForFirebaseCode(error.code);
     if (status >= 500) console.error('[api]', error.message, error);
     res.status(status).json({

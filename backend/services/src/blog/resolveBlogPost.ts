@@ -1,10 +1,7 @@
-import { adminFirestore } from '../firebaseApp.js';
-import { isFunctionsEmulator } from '../emulator.js';
 import { getBlogByNumericId as getBlogByNumericIdPg } from '../content/blogPosts.js';
-import { isSupabaseContentBackend } from '../supabaseClient.js';
 import type { AgentBlogSnapshot } from '../types.js';
 
-export type FirestoreBlog = {
+export type ResolvedBlogPost = {
   numericId?: number;
   title: string;
   excerpt: string;
@@ -26,38 +23,17 @@ export type FirestoreBlog = {
 
 export async function getBlogByNumericId(blogId: number): Promise<{
   docId: string;
-  blog: FirestoreBlog;
+  blog: ResolvedBlogPost;
 }> {
-  if (isSupabaseContentBackend()) {
-    const { docId, blog } = await getBlogByNumericIdPg(blogId);
-    return { docId, blog: blog as FirestoreBlog };
-  }
-
-  const db = adminFirestore();
-  const snap = await db
-    .collection('blog_posts')
-    .where('numericId', '==', blogId)
-    .limit(1)
-    .get();
-
-  if (snap.empty) {
-    throw new Error(`Blog ${blogId} not found`);
-  }
-
-  const doc = snap.docs[0];
-  return { docId: doc.id, blog: doc.data() as FirestoreBlog };
+  const { docId, blog } = await getBlogByNumericIdPg(blogId);
+  return { docId, blog: blog as ResolvedBlogPost };
 }
 
-export async function resolveBlogForPromo(
+export async function resolveBlogForPublishKit(
   blogId: number,
-  snapshot?: AgentBlogSnapshot
-): Promise<FirestoreBlog> {
+  snapshot?: AgentBlogSnapshot,
+): Promise<ResolvedBlogPost> {
   if (!snapshot) {
-    if (isFunctionsEmulator()) {
-      throw new Error(
-        `Blog ${blogId}: no editor snapshot. Open the post in Blog Posts and try again.`,
-      );
-    }
     const { blog } = await getBlogByNumericId(blogId);
     return blog;
   }
