@@ -1,3 +1,10 @@
-# Railway/Nixpacks — backend requires Node 20+ (see backend/package.json engines)
+# Railway/Nixpacks — Express API from monorepo root (see railway.toml)
 [phases.setup]
 nixPkgs = ["nodejs_20", "pnpm-10_x"]
+
+# Production default skips devDependencies; backend build needs typescript (tsc).
+[phases.install]
+cmds = [
+  "npm install -g corepack@0.24.1 && corepack enable",
+  "pnpm install --frozen-lockfile --prod=false",
+]
