@@ -2,6 +2,8 @@
 
 Personal portfolio site with multiple engineering “skins” on one codebase.
 
+**Copyright** — Proprietary; © Pukujan (Design Baker). See [`../LICENSE`](../LICENSE). Third-party notices: [`../frontend/src/app/Attributions.md`](../frontend/src/app/Attributions.md).
+
 ## Quick start
 
 ```bash

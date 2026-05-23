@@ -1,6 +1,7 @@
 {
   "name": "design-bakery-services",
   "private": true,
+  "license": "UNLICENSED",
   "main": "lib/blog/publishKit/handler.js",
   "type": "module",
   "engines": {
