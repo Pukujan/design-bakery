@@ -31,6 +31,8 @@ import { BrandMark } from "./BrandMark";
 import { MappingScrollSection } from "./MappingScrollSection";
 import { mappingRows } from "./mappingData";
 import { ProjectLinkButtons } from "./ProjectLinkButtons";
+import { WaterLoopsNarrativeSection } from "./WaterLoopsNarrativeSection";
+import { KLEI_FOOTER_DISCLAIMER } from "./waterLoopsData";
 import {
   PROJECT_GITHUB_URL,
   PROJECT_NPM_NAME,
@@ -42,6 +44,7 @@ import {
 const navItems = [
   { id: "thesis", label: "Thesis" },
   { id: "oni", label: "ONI" },
+  { id: "waterLoops", label: "Water Loops" },
   { id: "learning", label: "Learning Curve" },
   { id: "mapping", label: "Mapping" },
   { id: "failure", label: "Failure" },
@@ -154,6 +157,26 @@ const sources = [
     label: "Technical study blog (Design Bakery)",
     detail: "Long-form engineering log for the modular monolith and agent-first workflow work behind this page.",
     url: PROJECT_STUDY_BLOG_URL,
+  },
+  {
+    label: "Water loop GIF — Steam user content",
+    detail: "Community visual reference for the simple water loop narrative card.",
+    url: "https://images.steamusercontent.com/ugc/2038484798752154306/1A1CE0FA0DBC5DDCECAFD4548B7B3BC9C2D2C92B/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true",
+  },
+  {
+    label: "Broken pipe image — Reddit community media",
+    detail: "Community visual reference for unstable pipe / routing failure analogy.",
+    url: "https://preview.redd.it/my-liquid-pipe-keeps-breaking-v0-ehq4msa6ohve1.png?width=640&crop=smart&auto=webp&s=3aaa9be6398feaeaf492b33e30dca7896db73e98",
+  },
+  {
+    label: "Water injector GIF — Klei forum community media",
+    detail: "Community visual reference for automation-controlled water loop analogy.",
+    url: "https://cdn.forums.klei.com/monthly_2021_06/363972178_waterinjector.gif.2e23e5e605511be626396ac160f6737d.gif",
+  },
+  {
+    label: "Volcano control GIF — Reddit community media",
+    detail: "Community visual reference for scaling a loop into a chaotic system.",
+    url: "https://i.redd.it/culryrrblgsb1.gif",
   },
   {
     label: "Astronaut SVG assets used on this page",
@@ -378,7 +401,7 @@ export function OniAgentCaseStudyPage() {
               Oxygen Not Included taught me why AI agent systems break.
             </h1>
             <p className="oni-text-muted mt-6 max-w-3xl text-xl leading-8">
-              ONI feels like pipes, pressure, heat, survival, and failure loops. Agent-first coding feels the same: prompts, files, evals, audit trails, and specialized agents all depend on each other. One weak connection can break the whole loop. The astronaut visuals give the page a lightweight exploration theme that fits the system-building story.
+              Oxygen Not Included is not hard because one pipe is hard — it is hard because every pipe belongs to a larger survival system. AI agent engineering feels the same: one prompt, one API, or one file processor is not the hard part. The hard part is making many specialized agents, prompts, files, evals, logs, and review steps work together without the system breaking.
             </p>
             <ProjectLinkButtons size="md" className="mt-8" />
             <div className="mt-8 flex flex-wrap gap-3">
@@ -443,7 +466,7 @@ export function OniAgentCaseStudyPage() {
               </div>
               <p className="text-2xl font-black leading-tight">AI agent engineering feels the same.</p>
               <p className="mt-5 leading-7 text-slate-300">
-                One prompt can work once. One API can work once. One file processor can work once. The hard part is making the whole connected loop survive repeated failure points without losing context.
+                One prompt is not the hard part. One API is not the hard part. One file processor is not the hard part. The hard part is making many specialized agents, prompts, files, evals, logs, and review steps work together without the system breaking.
               </p>
               <p className="mt-5 rounded-2xl bg-white/10 p-4 text-sm leading-6 text-slate-200">
                 Personal note: I used to play ONI in an unhealthy, obsessive way, sometimes staying up way too long because one more fix became one more system. I do not want to glamorize that. But it explains why agentic coding feels familiar: it scratches the same systems brain.
@@ -509,7 +532,9 @@ export function OniAgentCaseStudyPage() {
           </div>
         </SectionShell>
 
-        <SectionShell id="learning" eyebrow="03 / learning curve" title="ONI takes a long time to learn because the failure points are layered. Agent engineering feels the same.">
+        <WaterLoopsNarrativeSection />
+
+        <SectionShell id="learning" eyebrow="04 / learning curve" title="ONI takes a long time to learn because the failure points are layered. Agent engineering feels the same.">
           <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
             <div className="oni-surface oni-border oni-shadow rounded-[2rem] border p-8 shadow-sm">
               <h3 className="oni-text text-2xl font-black tracking-tight">The early game lie</h3>
@@ -550,7 +575,7 @@ export function OniAgentCaseStudyPage() {
           </div>
         </SectionShell>
 
-        <SectionShell id="mapping" eyebrow="04 / mapping" title="The analogy becomes useful when each game system maps to an AI engineering failure mode.">
+        <SectionShell id="mapping" eyebrow="05 / mapping" title="The analogy becomes useful when each game system maps to an AI engineering failure mode.">
           <div className="lg:hidden">
             <div className="scrollbar-hide -mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-4">
               {mappingRows.map((row, index) => (
@@ -575,7 +600,7 @@ export function OniAgentCaseStudyPage() {
           <MappingScrollSection />
         </SectionShell>
 
-        <SectionShell id="failure" eyebrow="05 / failure cascade" title="The scary part is not the first failure. The scary part is silent propagation.">
+        <SectionShell id="failure" eyebrow="06 / failure cascade" title="The scary part is not the first failure. The scary part is silent propagation.">
           <div className="grid gap-6 lg:grid-cols-2">
             <MiniDiagram title="ONI cascade" left="Water pipe blocked" middle="Oxygen loop stops" right="Colony labor collapses" />
             <MiniDiagram title="Agent cascade" left="Bad extraction" middle="Wrong JSON trusted" right="Downstream decision breaks" />
@@ -596,14 +621,17 @@ export function OniAgentCaseStudyPage() {
           </div>
         </SectionShell>
 
-        <SectionShell id="pipeline500" eyebrow="06 / 500 specialized agents" title="The 500-agent pipeline is like piping a giant ONI base: every specialized unit needs a job, route, sensor, and fail-safe.">
+        <SectionShell id="pipeline500" eyebrow="07 / 500 specialized agents" title="Piping a 500-agent base: jobs, routes, sensors, and fail-safes for every prompt-agent.">
+          <p className="oni-text-muted -mt-4 mb-8 max-w-3xl leading-7">
+            See the Water Loops section for the full visual narrative. This section breaks down agent families and interactive pipe vs. agent vs. solve views.
+          </p>
           <div className="rounded-[2rem] bg-slate-950 p-6 text-white shadow-xl md:p-8">
             <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300">What 500 means here</p>
                 <h3 className="mt-4 text-4xl font-black tracking-tight">Up to 500 specialized prompt-agents, not 500 random chatbots.</h3>
                 <p className="mt-5 leading-7 text-slate-300">
-                  The architecture was tested around an orchestrated document-processing pipeline where each prompt-agent has a distinct function. That is closer to an ONI base full of machines, pipes, sensors, filters, and storage loops than a swarm of independent agents doing whatever they want.
+                  Not a swarm hype claim — a structured pipeline where each prompt-agent has a distinct job, route, eval signal, and downstream contract.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -686,7 +714,7 @@ export function OniAgentCaseStudyPage() {
           </div>
         </SectionShell>
 
-        <SectionShell id="architecture" eyebrow="07 / architecture" title="My modular monolith package is the base blueprint for agent-first coding.">
+        <SectionShell id="architecture" eyebrow="08 / architecture" title={`${PROJECT_NPM_NAME} — modular blueprint for agent-first coding.`}>
           <div className="oni-surface oni-border oni-shadow rounded-[2rem] border p-6 shadow-sm md:p-8">
             <div className="grid gap-4 md:grid-cols-3">
               {architectureCards.map((card) => (
@@ -731,7 +759,7 @@ export function OniAgentCaseStudyPage() {
           </div>
         </SectionShell>
 
-        <SectionShell id="audit" eyebrow="08 / audit trail" title="Git shows the diff. The audit trail explains the system reason around the diff.">
+        <SectionShell id="audit" eyebrow="09 / audit trail" title="Git shows the diff. The audit trail explains the system reason around the diff.">
           <div className="grid gap-6 lg:grid-cols-3">
             {[
               [ClipboardList, "Human dev log", "A readable story of what changed, why it changed, what failed, what was risky, and what the next human should know."],
@@ -759,7 +787,7 @@ export function OniAgentCaseStudyPage() {
           </div>
         </SectionShell>
 
-        <SectionShell id="microservices" eyebrow="09 / growth path" title="The architecture starts as a modular monolith, but the boundaries prepare it for service extraction later.">
+        <SectionShell id="microservices" eyebrow="10 / growth path" title="The architecture starts as a modular monolith, but the boundaries prepare it for service extraction later.">
           <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
             <div className="oni-surface oni-border oni-shadow rounded-[2rem] border p-8 shadow-sm">
               <Split className="oni-accent-icon mb-5 h-8 w-8" />
@@ -789,7 +817,7 @@ export function OniAgentCaseStudyPage() {
           </div>
         </SectionShell>
 
-        <SectionShell id="sources" eyebrow="10 / sources" title="Reference board for turning this into a sourced interactive blog or thesis-style case study.">
+        <SectionShell id="sources" eyebrow="11 / sources" title="Reference board for sourced media, community visuals, and project links.">
           <div className="grid gap-4 md:grid-cols-2">
             {sources.map((source) => (
               source.url === "#" ? (
@@ -817,12 +845,6 @@ export function OniAgentCaseStudyPage() {
             ))}
           </div>
 
-          <div className="oni-callout mt-10 rounded-[2rem] border p-6 text-sm leading-6">
-            <p className="font-black">Image sourcing note</p>
-            <p className="mt-2">
-              The page uses official Klei-hosted ONI media URLs and links back to Klei as the source. Before publishing publicly, keep the source links visible and confirm usage and attribution expectations for your portfolio or blog context.
-            </p>
-          </div>
         </SectionShell>
       </main>
 
@@ -855,6 +877,9 @@ export function OniAgentCaseStudyPage() {
               Back to top
             </a>
           </div>
+          <p className="oni-text-subtle border-t border-[color:var(--oni-border)] pt-6 text-xs leading-6">
+            {KLEI_FOOTER_DISCLAIMER}
+          </p>
         </div>
       </footer>
     </div>
