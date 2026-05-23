@@ -64,7 +64,7 @@ export function BlogCoverImage({ blog, variant, className = '' }: Props) {
   const imgClass =
     variant === 'card'
       ? 'aspect-square w-full object-cover'
-      : 'w-full max-h-[min(420px,50vh)] object-cover rounded-lg md:rounded-xl border-2 sm:border-2 md:border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]';
+      : 'blog-cover-img--hero block w-full h-auto max-w-full rounded-lg md:rounded-xl border-2 sm:border-2 md:border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]';
 
   return (
     <div

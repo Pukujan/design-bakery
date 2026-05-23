@@ -536,7 +536,12 @@ body::before {
 }
 
 .blog-cover-shell--hero.blog-cover-shell--loading {
-  min-height: min(280px, 40vh);
+  min-height: min(200px, 30vh);
+}
+
+/* Detail page: show full cover art (no object-cover crop). */
+.blog-cover-img--hero {
+  object-fit: contain;
 }
 
 .blog-cover-shell--card.blog-cover-shell--loading {
