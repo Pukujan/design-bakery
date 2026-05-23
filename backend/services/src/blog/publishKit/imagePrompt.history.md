@@ -4,19 +4,13 @@
 |-------|-------|
 | **Document date** | 2026-05-22 |
 | **Created** | 2026-05-22 |
-| **Last updated** | 2026-05-23 |
+| **Last updated** | 2026-05-22 |
 
-Active version: **`HERO_IMAGE_PROMPT_VERSION`** in `imagePrompt.ts` (currently **0.4**).
+Active version: **`HERO_IMAGE_PROMPT_VERSION`** in `imagePrompt.ts` (currently **0.3**).
 
 Bump the constant whenever you change prompt lines in `buildHeroImagePrompt` (auto-tagged in API output as `[hero prompt vX.Y]`).
 
-## v0.4 (current)
-
-- Stronger anti-text constraints for hybrid hero generation:
-  - explicitly ban typography/glyph-like textures
-  - clarify that title/category/theme strings are semantic guidance only, never rendered text
-
-## v0.3
+## v0.3 (current)
 
 - **Single square (1:1) master** hero for all formats — one OpenRouter call, then crop + overlay per size
 - Square composition with safe center crop to cover (3:2) and OG (1.91:1)
