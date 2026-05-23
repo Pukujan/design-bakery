@@ -3,7 +3,7 @@
 
 [build]
 builder = "NIXPACKS"
-buildCommand = "corepack enable pnpm && pnpm install --frozen-lockfile && pnpm --dir backend/services run build && pnpm --dir backend run build"
+buildCommand = "pnpm --dir backend/services run build && pnpm --dir backend run build"
 
 [deploy]
 startCommand = "node backend/lib/server.js"
