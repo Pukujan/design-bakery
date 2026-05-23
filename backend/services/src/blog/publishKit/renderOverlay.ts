@@ -57,6 +57,8 @@ function textAnchorBase(layout: LayoutVariant): {
   showExcerpt: boolean;
 } {
   switch (layout) {
+    case 'a':
+      return { x: 0.5, anchor: 'middle', maxTitleChars: 36, titleSize: 52, lineH: 56, maxLines: 3, showExcerpt: true };
     case 'b':
       return { x: 0.5, anchor: 'middle', maxTitleChars: 32, titleSize: 48, lineH: 56, maxLines: 3, showExcerpt: true };
     case 'c':
@@ -80,7 +82,7 @@ function textAnchorBase(layout: LayoutVariant): {
     case 'l':
       return { x: 0.5, anchor: 'middle', maxTitleChars: 26, titleSize: 38, lineH: 42, maxLines: 4, showExcerpt: true };
     default:
-      return { x: 0.08, anchor: 'start', maxTitleChars: 36, titleSize: 52, lineH: 56, maxLines: 3, showExcerpt: true };
+      return { x: 0.5, anchor: 'middle', maxTitleChars: 36, titleSize: 52, lineH: 56, maxLines: 3, showExcerpt: true };
   }
 }
 

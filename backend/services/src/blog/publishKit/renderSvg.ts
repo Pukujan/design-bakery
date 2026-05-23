@@ -288,6 +288,9 @@ function textAnchor(layout: LayoutVariant, palette: TemplatePalette): TextLayout
 
   let base: Omit<TextLayoutSpec, 'verticalZone' | 'textWidthFrac' | 'scrimMode'>;
   switch (layout) {
+    case 'a':
+      base = { x: 0.5, anchor: 'middle', maxTitleChars: 36, titleSize: 52, lineH: 56, maxLines: 3, showExcerpt: true };
+      break;
     case 'b':
       base = { x: 0.5, anchor: 'middle', maxTitleChars: 32, titleSize: 48, lineH: 56, maxLines: 3, showExcerpt: true };
       break;
@@ -322,7 +325,7 @@ function textAnchor(layout: LayoutVariant, palette: TemplatePalette): TextLayout
       base = { x: 0.5, anchor: 'middle', maxTitleChars: 26, titleSize: 38, lineH: 42, maxLines: 4, showExcerpt: true };
       break;
     default:
-      base = { x: 0.08, anchor: 'start', maxTitleChars: 36, titleSize: 52, lineH: 56, maxLines: 3, showExcerpt: true };
+      base = { x: 0.5, anchor: 'middle', maxTitleChars: 36, titleSize: 52, lineH: 56, maxLines: 3, showExcerpt: true };
   }
 
   const charScale = 0.75 + widthFrac * 0.35;
