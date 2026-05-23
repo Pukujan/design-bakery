@@ -5,7 +5,7 @@ One GitHub repo, two hosts:
 | Host | Deploys | URL example |
 |------|---------|-------------|
 | **Vercel** | Vite/React (`pnpm run build` → `dist/`) | `https://www.design-bakery.com` |
-| **Railway** | Express API (`backend/` + compiled `functions/`) | `https://design-bakery-api.up.railway.app` |
+| **Railway** | Express API (`backend/` + `backend/services/`) | `https://design-bakery-api.up.railway.app` |
 
 Firebase (Auth, Firestore, Storage) stays on the **Spark** plan. You do **not** need Firebase Cloud Functions or Blaze billing for blog AI if Railway is configured.
 
@@ -229,7 +229,7 @@ Full reference: [env.md](./env.md).
 
 | Host | Ignore / do not run |
 |------|---------------------|
-| **Vercel** | `backend/`, `functions/` deploy scripts, Firebase `functions deploy` |
+| **Vercel** | `backend/` API, Firebase deploy scripts |
 | **Railway** | `pnpm run build` for Vite, `dist/`, Vercel rewrites |
 
 Both can stay on the same branch (e.g. `main`); only **Root Directory** and **env vars** differ.

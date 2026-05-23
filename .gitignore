@@ -19,6 +19,11 @@ deploy/*.env
 deploy/railway.env
 deploy/vercel.env
 
+# Legacy duplicates (use backend/ + backend/services/ only)
+server/
+functions/
+backend/functions/
+
 # CodeGraph — commit .codegraph/config.json only; index is local
 .codegraph/codegraph.db
 .codegraph/*.db-journal
