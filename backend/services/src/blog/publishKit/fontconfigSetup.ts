@@ -117,7 +117,7 @@ function ensureSystemDejaVuFontconfig(): void {
   refreshFontCache();
   fontMode = 'system-dejavu';
   initialized = true;
-  console.log(`[publish-kit:fonts] using system ${SYSTEM_FONT} (Railway/nixpacks)`);
+  console.log(`[publish-kit:fonts] using system ${SYSTEM_FONT} (Railway apt fonts-dejavu-core)`);
 }
 
 /**

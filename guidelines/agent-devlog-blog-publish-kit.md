@@ -23,7 +23,7 @@
 | 2026-05-25 | **Social crawlers** — repo-root `middleware.ts` serves OG HTML for blog detail URLs (Facebook/X/LinkedIn); SPA `BlogPostHead` alone is insufficient |
 | 2026-05-25 | **Font diagnostics** — `fontDiagnostics.ts` logs `[publish-kit:fonts]` (fc-match, font files, SVG probe); `pnpm run test:publish-kit-fonts`; Railway `PUBLISH_KIT_FONT_DEBUG=1` |
 | 2026-05-25 | **Admin blog list** — `listBlogPosts({ includeContent: true })` for `/api/content/blogs`; public list stays without body |
-| 2026-05-23 | **Railway fonts** — `nixpacks.toml` adds `dejavu_fonts`; publish kit uses system **DejaVu Sans** when `fc-list` finds it; bundled Inter remains macOS/local fallback |
+| 2026-05-23 | **Railway fonts** — `nixpacks.toml` `aptPkgs = ["fonts-dejavu-core"]` (not nix `dejavu_fonts` — breaks Railway build); system **DejaVu Sans** when `fc-list` finds it; bundled Inter on macOS |
 
 ## Purpose
 
@@ -65,7 +65,7 @@ Deploy callable: `cd functions && npm run deploy` (includes `invokeBlogPublishKi
 ## API
 
 - Callable: **`invokeBlogPublishKit`** (`functions/src/blog/publishKit/`) — or **POST `/api/publish-kit`** on Express when `VITE_BLOG_API_URL` is set
-- Fonts: **`fontconfigSetup.ts`** prefers system **DejaVu Sans** on Railway (`dejavu_fonts` in `nixpacks.toml`); falls back to bundled Inter + `FONTCONFIG_PATH` on macOS dev. `fonts.ts` sets `FONT_FAMILY` accordingly; embedded SVG `@font-face` is skipped in system mode (librsvg uses fontconfig only)
+- Fonts: **`fontconfigSetup.ts`** prefers system **DejaVu Sans** on Railway (`aptPkgs fonts-dejavu-core` in `nixpacks.toml`); falls back to bundled Inter + `FONTCONFIG_PATH` on macOS dev. `fonts.ts` sets `FONT_FAMILY` accordingly; embedded SVG `@font-face` is skipped in system mode (librsvg uses fontconfig only)
 - Version: `PUBLISH_KIT_API_VERSION = 1`
 - Actions: `meta` | `visual` | `visual_and_meta` | **`tags`** | **`meta_and_tags`** | **`commit_visual`**
 - Request: `blogId`, `blogSnapshot`, `preferences`, optional `publicUrl`, optional `visualCommit` (for `commit_visual`)
