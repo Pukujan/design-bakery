@@ -1,3 +1,4 @@
+import { ensureSocialOgImageInSeo } from '../blog/publishKit/ensureSocialOgImage.js';
 import { supabaseAdmin } from '../supabaseClient.js';
 
 export type BlogPostRow = {
@@ -111,7 +112,12 @@ export async function getBlogByNumericId(numericId: number): Promise<{ docId: st
 
 export async function upsertBlogPost(post: BlogPostDto): Promise<string> {
   const legacyId = post.id?.trim();
-  const row = dtoToRow(post, legacyId);
+  const numericId = post.numericId ?? 0;
+  const seo =
+    numericId > 0 && post.seo
+      ? await ensureSocialOgImageInSeo(post.seo as Record<string, unknown>, numericId)
+      : post.seo;
+  const row = dtoToRow({ ...post, seo }, legacyId);
 
   if (legacyId) {
     const { data: existing } = await supabaseAdmin()
