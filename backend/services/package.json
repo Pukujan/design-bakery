@@ -11,6 +11,7 @@
     "build": "tsc && node -e \"import { cpSync, mkdirSync } from 'node:fs'; const d='lib/blog/publishKit/inter-ttf'; mkdirSync(d,{recursive:true}); cpSync('src/blog/publishKit/inter-ttf/Inter-Variable.ttf', d+'/Inter-Variable.ttf');\"",
     "build:watch": "tsc --watch",
     "test:publish-kit-upload": "node scripts/test-publish-kit-upload.mjs",
+    "test:publish-kit-fonts": "node scripts/test-publish-kit-fonts.mjs",
     "test:blog-workflow": "node scripts/test-blog-agents-workflow.mjs --offline",
     "test:blog-workflow:live": "node scripts/test-blog-agents-workflow.mjs --live",
     "test:blog-workflow:live:ai": "node scripts/test-blog-agents-workflow.mjs --live --with-ai-images",

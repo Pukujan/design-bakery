@@ -41,6 +41,9 @@ function normalizeOrigin(origin: string): string {
   return origin.trim().replace(/\/+$/, '');
 }
 
+/** Vercel production + preview deployments (e.g. design-bakery-xxx-team.vercel.app). */
+const VERCEL_ORIGIN_RE = /^https:\/\/[\w-]+(\.[\w-]+)*\.vercel\.app$/;
+
 export function parseAllowedOrigins(): string[] {
   const raw = process.env.ALLOWED_ORIGINS?.trim();
   if (raw) {
@@ -56,4 +59,13 @@ export function parseAllowedOrigins(): string[] {
     'http://localhost:5301',
     'http://127.0.0.1:5300',
   ];
+}
+
+/** CORS: explicit ALLOWED_ORIGINS + Vercel preview hosts + local dev defaults. */
+export function isOriginAllowed(origin: string | undefined): boolean {
+  if (!origin) return true;
+  const normalized = normalizeOrigin(origin);
+  if (parseAllowedOrigins().includes(normalized)) return true;
+  if (VERCEL_ORIGIN_RE.test(normalized)) return true;
+  return false;
 }

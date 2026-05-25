@@ -42,6 +42,13 @@ export function ensurePublishKitFontconfig(): void {
     return;
   }
 
+  if (process.env.FONTCONFIG_PATH?.trim() && !process.env.FONTCONFIG_PATH.includes(INTER_MARK)) {
+    console.warn(
+      '[publish-kit:fonts] FONTCONFIG_PATH was preset without bundled Inter; replacing with publish-kit fonts',
+      { previous: process.env.FONTCONFIG_PATH },
+    );
+  }
+
   mkdirSync(fontDir, { recursive: true });
 
   const bundledTtf = join(moduleDir, BUNDLED_TTF);

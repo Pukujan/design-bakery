@@ -1,9 +1,9 @@
-import sharp from './sharpWithFonts.js';
+import { rasterizePublishKitSvg } from './fontDiagnostics.js';
 import { renderBlogCardSvg, type RenderCardInput } from './renderSvg.js';
 
 export async function renderCardPng(input: RenderCardInput): Promise<Buffer> {
   const svg = renderBlogCardSvg(input);
-  return sharp(Buffer.from(svg)).png().toBuffer();
+  return rasterizePublishKitSvg(svg, `renderCardPng ${input.width}x${input.height}`);
 }
 
 export function bufferToDataUrl(png: Buffer): string {

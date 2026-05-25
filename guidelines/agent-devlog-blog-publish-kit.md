@@ -21,6 +21,7 @@
 | 2026-05-23 | **Inter fontconfig** — bundled Inter WOFF + `FONTCONFIG_PATH` for sharp/librsvg (embedded SVG `@font-face` ignored on Linux/Railway) |
 | 2026-05-25 | **Inter TTF** — `inter-ttf/Inter-Variable.ttf` copied to `lib/` on build; `fc-cache`; fixed init skip when `FONTCONFIG_PATH` was preset without bundled fonts |
 | 2026-05-25 | **Social crawlers** — repo-root `middleware.ts` serves OG HTML for blog detail URLs (Facebook/X/LinkedIn); SPA `BlogPostHead` alone is insufficient |
+| 2026-05-25 | **Font diagnostics** — `fontDiagnostics.ts` logs `[publish-kit:fonts]` (fc-match, font files, SVG probe); `pnpm run test:publish-kit-fonts`; Railway `PUBLISH_KIT_FONT_DEBUG=1` |
 
 ## Purpose
 

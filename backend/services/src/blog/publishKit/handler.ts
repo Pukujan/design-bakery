@@ -14,6 +14,7 @@ import {
   resolveTemplateFamily,
 } from './templateSelection.js';
 import { resolveCardBlurb } from './textUtils.js';
+import { logPublishKitFontsForContext } from './fontDiagnostics.js';
 import { renderUnifiedPublishVisuals } from './unifiedVisual.js';
 import {
   PUBLISH_KIT_API_VERSION,
@@ -190,6 +191,10 @@ export async function handlePublishKit(params: {
         source: 'heuristic',
       };
     }
+
+    await logPublishKitFontsForContext(`visual action=${body.action} blogId=${blogId}`, {
+      runSvgProbe: true,
+    });
 
     const { variants, imageModel, usedAi } = await renderUnifiedPublishVisuals({
       apiKey,

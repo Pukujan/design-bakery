@@ -4,7 +4,7 @@ import { authRouter } from './api/auth.js';
 import { contentRouter } from './api/content.js';
 import { publicContentRouter } from './api/publicContent.js';
 import { publishKitRouter } from './api/publishKit.js';
-import { loadServerEnv, parseAllowedOrigins } from './config/env.js';
+import { isOriginAllowed, loadServerEnv } from './config/env.js';
 import { requireAdmin } from './middleware/auth.js';
 
 loadServerEnv();
@@ -14,7 +14,13 @@ const port = Number(process.env.PORT) || 8787;
 
 app.use(
   cors({
-    origin: parseAllowedOrigins(),
+    origin(origin, callback) {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error(`CORS blocked origin: ${origin ?? '(none)'}`));
+    },
     credentials: true,
   }),
 );

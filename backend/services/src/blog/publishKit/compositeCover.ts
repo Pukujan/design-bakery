@@ -1,4 +1,5 @@
 import sharp from './sharpWithFonts.js';
+import { rasterizePublishKitSvg } from './fontDiagnostics.js';
 import { renderBlogCardSvg, type RenderCardInput } from './renderSvg.js';
 import { renderCoverOverlaySvg, type OverlayInput } from './renderOverlay.js';
 
@@ -13,7 +14,10 @@ export async function compositeHeroCover(
     .toBuffer();
 
   const overlaySvg = renderCoverOverlaySvg(overlay);
-  const overlayPng = await sharp(Buffer.from(overlaySvg)).png().toBuffer();
+  const overlayPng = await rasterizePublishKitSvg(
+    overlaySvg,
+    `cover overlay ${w}x${h} layout=${overlay.layout}`,
+  );
 
   return sharp(bg)
     .composite([{ input: overlayPng, blend: 'over' }])
@@ -23,5 +27,8 @@ export async function compositeHeroCover(
 
 export async function renderTemplateOnlyCover(input: RenderCardInput): Promise<Buffer> {
   const svg = renderBlogCardSvg(input);
-  return sharp(Buffer.from(svg)).png().toBuffer();
+  return rasterizePublishKitSvg(
+    svg,
+    `template card ${input.width}x${input.height} layout=${input.layout}`,
+  );
 }

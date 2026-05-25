@@ -22,6 +22,7 @@
     "codegraph:sync": "codegraph sync",
     "codegraph:status": "codegraph status",
     "test:publish-kit-upload": "pnpm --dir backend/services run test:publish-kit-upload",
+    "test:publish-kit-fonts": "pnpm --dir backend/services run test:publish-kit-fonts",
     "test:blog-workflow": "pnpm --dir backend/services run test:blog-workflow",
     "test:blog-workflow:live": "pnpm --dir backend/services run test:blog-workflow:live",
     "test:blog-workflow:live:ai": "pnpm --dir backend/services run test:blog-workflow:live:ai",

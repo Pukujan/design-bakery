@@ -44,7 +44,7 @@ Set these in the service **Variables** tab (not in git):
 | `OPENROUTER_API_KEY` | Yes | `sk-or-...` — same key you use locally |
 | `FIREBASE_STORAGE_BUCKET` | Yes | `auth-system-be464.firebasestorage.app` |
 | `GOOGLE_APPLICATION_CREDENTIALS_JSON` | Yes | Entire service account JSON **on one line** (see below) |
-| `ALLOWED_ORIGINS` | Yes | `https://www.design-bakery.com,https://design-bakery.com` |
+| `ALLOWED_ORIGINS` | Yes | `https://www.design-bakery.com,https://design-bakery.com` (Vercel preview `*.vercel.app` hosts are auto-allowed after redeploy) |
 | `OPENROUTER_MODEL` | No | `deepseek/deepseek-chat-v3.1` |
 | `OPENROUTER_IMAGE_MODEL` | No | `google/gemini-2.5-flash-image` |
 | `PUBLISH_KIT_VISUAL_MODE` | No | `hybrid` |
@@ -107,6 +107,8 @@ Deploy logs should show: `[api] design-bakery-api http://0.0.0.0:...`
    | **`VITE_SUPABASE_ANON_KEY`** | Supabase **anon public** key (not `service_role`) — browser reads `blog_posts` via RLS |
 
    Public blog list/detail use **direct Supabase** when both `VITE_SUPABASE_*` are set (PostgREST, no Railway cold start). Railway remains required for admin login and publish kit.
+
+   Set `VITE_SUPABASE_*` on **Production and Preview** in Vercel so preview URLs (`*.vercel.app`) load blogs without calling Railway (avoids CORS entirely for public pages).
 
    **Do not set on Vercel (production):**
 
