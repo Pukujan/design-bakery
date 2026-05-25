@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from './sharpWithFonts.js';
-import { ensurePublishKitFontconfig } from './fontconfigSetup.js';
+import { ensurePublishKitFontconfig, getPublishKitFontMode } from './fontconfigSetup.js';
 import { FONT_FAMILY } from './fonts.js';
 
 const LOG_PREFIX = '[publish-kit:fonts]';
@@ -15,6 +15,7 @@ export type PublishKitFontDiagnostics = {
   platform: string;
   node: string;
   sharpVersion: string;
+  fontMode: 'system-dejavu' | 'bundled-inter';
   svgFontFamily: string;
   fontconfigPath: string | null;
   fontconfigFile: string | null;
@@ -48,8 +49,6 @@ function listFontFiles(fontDir: string): PublishKitFontDiagnostics['fontFiles'] 
 }
 
 function runFcMatch(query: string): string | null {
-  const conf = process.env.FONTCONFIG_FILE?.trim();
-  if (!conf || !existsSync(conf)) return null;
   try {
     const env = { ...process.env };
     if (process.env.PUBLISH_KIT_FONT_DEBUG === 'true' || process.env.PUBLISH_KIT_FONT_DEBUG === '1') {
@@ -74,7 +73,7 @@ function runFcMatch(query: string): string | null {
 }
 
 async function probeSvgRasterize(fontDir: string): Promise<PublishKitFontDiagnostics['svgProbe']> {
-  const label = 'Inter overlay probe';
+  const label = `${FONT_FAMILY} overlay probe`;
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="80">
   <rect width="400" height="80" fill="#1e293b"/>
@@ -99,7 +98,8 @@ export function collectPublishKitFontDiagnostics(context: string): PublishKitFon
 
   const moduleDir = dirname(fileURLToPath(import.meta.url));
   const fontDir = process.env.FONTCONFIG_PATH?.trim() || moduleFontDir();
-  const setupSkipped = !listFontFiles(fontDir).some((f) => /inter/i.test(f.name));
+  const fontMode = getPublishKitFontMode();
+  const setupSkipped = fontMode === 'system-dejavu';
 
   const fcCacheAttempted = existsSync(fontDir);
   let fcCacheExit: number | null = null;
@@ -127,6 +127,7 @@ export function collectPublishKitFontDiagnostics(context: string): PublishKitFon
     platform: process.platform,
     node: process.version,
     sharpVersion: sharp.versions.sharp ?? 'unknown',
+    fontMode,
     svgFontFamily: FONT_FAMILY,
     fontconfigPath: process.env.FONTCONFIG_PATH ?? null,
     fontconfigFile: process.env.FONTCONFIG_FILE ?? null,
@@ -140,9 +141,9 @@ export function collectPublishKitFontDiagnostics(context: string): PublishKitFon
       error: fcCacheError,
     },
     fcMatch: {
+      dejaVuSans: runFcMatch("'DejaVu Sans'"),
+      dejaVuBold: runFcMatch("'DejaVu Sans':style=Bold"),
       interRegular: runFcMatch('Inter:style=Regular'),
-      interBold: runFcMatch('Inter:style=Bold'),
-      interQuoted: runFcMatch("'Inter':style=Regular"),
       sansSerif: runFcMatch('sans-serif'),
     },
     svgProbe: null,
@@ -163,6 +164,7 @@ export async function collectPublishKitFontDiagnosticsAsync(
 export function logPublishKitFontDiagnostics(diag: PublishKitFontDiagnostics): void {
   console.log(`${LOG_PREFIX} ── ${diag.context} ──`);
   console.log(`${LOG_PREFIX} platform=${diag.platform} node=${diag.node} sharp=${diag.sharpVersion}`);
+  console.log(`${LOG_PREFIX} fontMode=${diag.fontMode}`);
   console.log(`${LOG_PREFIX} svg font-family=${diag.svgFontFamily}`);
   console.log(`${LOG_PREFIX} FONTCONFIG_PATH=${diag.fontconfigPath ?? '(unset)'}`);
   console.log(`${LOG_PREFIX} FONTCONFIG_FILE=${diag.fontconfigFile ?? '(unset)'}`);
@@ -180,7 +182,11 @@ export function logPublishKitFontDiagnostics(diag: PublishKitFontDiagnostics): v
   );
   for (const [key, value] of Object.entries(diag.fcMatch)) {
     console.log(`${LOG_PREFIX} fc-match ${key} → ${value ?? '(no match)'}`);
-    if (value && !/Inter/i.test(value) && !value.startsWith('fc-match')) {
+    if (!value || value.startsWith('fc-match') || value.includes('not installed')) continue;
+    if (diag.fontMode === 'system-dejavu' && key.startsWith('dejaVu') && !/dejavu/i.test(value)) {
+      console.warn(`${LOG_PREFIX} WARNING: ${key} did not resolve to DejaVu — got: ${value}`);
+    }
+    if (diag.fontMode === 'bundled-inter' && key.startsWith('inter') && !/Inter/i.test(value)) {
       console.warn(`${LOG_PREFIX} WARNING: ${key} did not resolve to Inter — got: ${value}`);
     }
   }

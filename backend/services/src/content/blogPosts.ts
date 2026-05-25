@@ -73,18 +73,25 @@ function dtoToRow(data: Omit<BlogPostDto, 'id'>, legacyDocId?: string): Omit<Blo
   };
 }
 
-/** List columns — omit `content` so public list + cards load faster. */
+/** List columns without markdown body — public index + cards only. */
 const BLOG_LIST_COLUMNS =
   'id, legacy_doc_id, numeric_id, title, excerpt, tags, category, author, color, date, read_time, cover_image_url, thumbnail_image_url, seo';
 
-export async function listBlogPosts(): Promise<BlogPostDto[]> {
-  const { data, error } = await supabaseAdmin()
-    .from('blog_posts')
-    .select(BLOG_LIST_COLUMNS)
-    .order('numeric_id', { ascending: false });
+export type ListBlogPostsOptions = {
+  /** Admin editor needs full markdown; public list omits body for speed. */
+  includeContent?: boolean;
+};
+
+export async function listBlogPosts(options: ListBlogPostsOptions = {}): Promise<BlogPostDto[]> {
+  const includeContent = options.includeContent === true;
+  const base = supabaseAdmin().from('blog_posts');
+  const { data, error } = includeContent
+    ? await base.select('*').order('numeric_id', { ascending: false })
+    : await base.select(BLOG_LIST_COLUMNS).order('numeric_id', { ascending: false });
 
   if (error) throw new Error(`Blog list failed: ${error.message}`);
-  return (data as BlogPostRow[]).map((row) => ({ ...rowToDto({ ...row, content: '' }), content: '' }));
+  const rows = (data ?? []) as BlogPostRow[];
+  return rows.map((row) => rowToDto(includeContent ? row : { ...row, content: '' }));
 }
 
 export async function getBlogByNumericId(numericId: number): Promise<{ docId: string; blog: BlogPostDto }> {

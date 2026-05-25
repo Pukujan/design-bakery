@@ -125,25 +125,37 @@ Options:
     r.ok('supabase storage not configured (use --storage only when SUPABASE_* is set)');
   }
 
-  r.step('Inter fonts');
+  r.step('Publish kit fonts');
   try {
-    const { interFontFaceDefs, ensurePublishKitFontconfig } = await import('../lib/blog/publishKit/fonts.js');
+    const { interFontFaceDefs, ensurePublishKitFontconfig, FONT_FAMILY } = await import(
+      '../lib/blog/publishKit/fonts.js'
+    );
+    const { getPublishKitFontMode } = await import('../lib/blog/publishKit/fontconfigSetup.js');
     ensurePublishKitFontconfig();
-    const defs = interFontFaceDefs();
-    if (!defs.includes('base64') || defs.length < 1000) throw new Error('missing embedded WOFF');
-    if (!process.env.FONTCONFIG_PATH?.includes('.inter-fonts')) {
-      throw new Error('fontconfig not registered for Inter');
+    const mode = getPublishKitFontMode();
+    if (mode === 'system-dejavu') {
+      if (!FONT_FAMILY.includes('DejaVu')) throw new Error('FONT_FAMILY should use DejaVu on system mode');
+      if (process.env.FONTCONFIG_PATH?.includes('.inter-fonts')) {
+        throw new Error('FONTCONFIG_PATH should be unset when using system DejaVu');
+      }
+      r.ok(`system DejaVu Sans (${FONT_FAMILY}) for sharp/SVG renders`);
+    } else {
+      const defs = interFontFaceDefs();
+      if (!defs.includes('base64') || defs.length < 1000) throw new Error('missing embedded WOFF');
+      if (!process.env.FONTCONFIG_PATH?.includes('.inter-fonts')) {
+        throw new Error('fontconfig not registered for bundled Inter');
+      }
+      const { existsSync } = await import('node:fs');
+      const { join, dirname } = await import('node:path');
+      const { createRequire } = await import('node:module');
+      const require = createRequire(import.meta.url);
+      const kitDir = dirname(require.resolve('../lib/blog/publishKit/fonts.js'));
+      const ttfPath = join(kitDir, 'inter-ttf', 'Inter-Variable.ttf');
+      if (!existsSync(ttfPath)) {
+        throw new Error(`bundled Inter TTF missing at ${ttfPath} — run npm run build in backend/services`);
+      }
+      r.ok('bundled Inter WOFF + TTF + fontconfig for sharp/SVG renders (local dev fallback)');
     }
-    const { existsSync } = await import('node:fs');
-    const { join, dirname } = await import('node:path');
-    const { createRequire } = await import('node:module');
-    const require = createRequire(import.meta.url);
-    const kitDir = dirname(require.resolve('../lib/blog/publishKit/fonts.js'));
-    const ttfPath = join(kitDir, 'inter-ttf', 'Inter-Variable.ttf');
-    if (!existsSync(ttfPath)) {
-      throw new Error(`bundled Inter TTF missing at ${ttfPath} — run npm run build in backend/services`);
-    }
-    r.ok('Inter WOFF + TTF + fontconfig registered for sharp/SVG renders');
   } catch (err) {
     r.fail('fonts', err);
   }

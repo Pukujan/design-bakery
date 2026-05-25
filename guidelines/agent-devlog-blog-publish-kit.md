@@ -4,7 +4,7 @@
 |-------|-------|
 | **Document date** | 2026-05-22 |
 | **Created** | 2026-05-22 |
-| **Last updated** | 2026-05-25 (Inter TTF + crawler OG middleware) |
+| **Last updated** | 2026-05-23 (Railway system DejaVu Sans) |
 
 **Branch:** `test/blog-publish-kit` (not on `main` until reviewed).
 
@@ -22,6 +22,8 @@
 | 2026-05-25 | **Inter TTF** — `inter-ttf/Inter-Variable.ttf` copied to `lib/` on build; `fc-cache`; fixed init skip when `FONTCONFIG_PATH` was preset without bundled fonts |
 | 2026-05-25 | **Social crawlers** — repo-root `middleware.ts` serves OG HTML for blog detail URLs (Facebook/X/LinkedIn); SPA `BlogPostHead` alone is insufficient |
 | 2026-05-25 | **Font diagnostics** — `fontDiagnostics.ts` logs `[publish-kit:fonts]` (fc-match, font files, SVG probe); `pnpm run test:publish-kit-fonts`; Railway `PUBLISH_KIT_FONT_DEBUG=1` |
+| 2026-05-25 | **Admin blog list** — `listBlogPosts({ includeContent: true })` for `/api/content/blogs`; public list stays without body |
+| 2026-05-23 | **Railway fonts** — `nixpacks.toml` adds `dejavu_fonts`; publish kit uses system **DejaVu Sans** when `fc-list` finds it; bundled Inter remains macOS/local fallback |
 
 ## Purpose
 
@@ -63,7 +65,7 @@ Deploy callable: `cd functions && npm run deploy` (includes `invokeBlogPublishKi
 ## API
 
 - Callable: **`invokeBlogPublishKit`** (`functions/src/blog/publishKit/`) — or **POST `/api/publish-kit`** on Express when `VITE_BLOG_API_URL` is set
-- Fonts: `publishKit/fonts.ts` resolves WOFF via `require.resolve('@fontsource/inter/...')`; **`fontconfigSetup.ts`** copies Inter into `.inter-fonts/` and sets `FONTCONFIG_PATH` before sharp loads (librsvg ignores embedded SVG `@font-face` — required on Railway/Linux)
+- Fonts: **`fontconfigSetup.ts`** prefers system **DejaVu Sans** on Railway (`dejavu_fonts` in `nixpacks.toml`); falls back to bundled Inter + `FONTCONFIG_PATH` on macOS dev. `fonts.ts` sets `FONT_FAMILY` accordingly; embedded SVG `@font-face` is skipped in system mode (librsvg uses fontconfig only)
 - Version: `PUBLISH_KIT_API_VERSION = 1`
 - Actions: `meta` | `visual` | `visual_and_meta` | **`tags`** | **`meta_and_tags`** | **`commit_visual`**
 - Request: `blogId`, `blogSnapshot`, `preferences`, optional `publicUrl`, optional `visualCommit` (for `commit_visual`)

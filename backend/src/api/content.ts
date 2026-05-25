@@ -12,7 +12,7 @@ export const contentRouter = Router();
 
 contentRouter.get('/blogs', async (_req, res) => {
   try {
-    const blogs = await listBlogPosts();
+    const blogs = await listBlogPosts({ includeContent: true });
     res.json({ ok: true, blogs });
   } catch (error) {
     sendRouteError(res, error);

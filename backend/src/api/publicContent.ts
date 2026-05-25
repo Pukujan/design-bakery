@@ -7,7 +7,7 @@ export const publicContentRouter = Router();
 
 publicContentRouter.get('/blogs', async (_req, res) => {
   try {
-    const blogs = await listBlogPosts();
+    const blogs = await listBlogPosts({ includeContent: false });
     res.json({ ok: true, blogs });
   } catch (error) {
     sendRouteError(res, error);
