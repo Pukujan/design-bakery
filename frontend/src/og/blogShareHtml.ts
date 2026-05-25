@@ -1,10 +1,21 @@
 /** Crawler-facing Open Graph HTML for blog detail URLs (Vercel Edge middleware). */
 
+import {
+  collectBlogSocialMetaTags,
+  escapeHtml,
+  readEdgeSocialEnv,
+  SITE_NAME,
+  socialMetaTagsToHtml,
+  type BlogSocialMetaInput,
+} from './blogSocialMeta.js';
+
 export type BlogSharePayload = {
   id: number;
   title: string;
   excerpt?: string;
   coverImageUrl?: string;
+  author?: string;
+  date?: string;
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
@@ -13,55 +24,42 @@ export type BlogSharePayload = {
   };
 };
 
-const SITE_NAME = 'Design Baker';
+export { escapeHtml, SITE_NAME };
 
-export function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-export function resolveShareMeta(blog: BlogSharePayload, canonicalUrl: string) {
+export function resolveShareMeta(blog: BlogSharePayload, canonicalUrl: string): BlogSocialMetaInput {
   const metaTitle = blog.seo?.metaTitle?.trim();
   const metaDescription = blog.seo?.metaDescription?.trim();
   const ogImage = (blog.seo?.ogImageUrl ?? blog.seo?.ogImage)?.trim() || blog.coverImageUrl?.trim();
   const title = metaTitle || blog.title;
   const description = metaDescription || blog.excerpt?.trim() || blog.title;
   const pageTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
-  return { pageTitle, description, ogImage, canonicalUrl };
+  const env = readEdgeSocialEnv();
+
+  return {
+    pageTitle,
+    description,
+    canonicalUrl,
+    ogImage,
+    imageAlt: title,
+    author: blog.author,
+    publishedTime: blog.date,
+    siteName: SITE_NAME,
+    fbAppId: env.fbAppId,
+    twitterSite: env.twitterSite,
+  };
 }
 
-export function buildBlogShareHtml(meta: {
-  pageTitle: string;
-  description: string;
-  ogImage?: string;
-  canonicalUrl: string;
-}): string {
+export function buildBlogShareHtml(meta: BlogSocialMetaInput): string {
   const title = escapeHtml(meta.pageTitle);
-  const description = escapeHtml(meta.description);
   const url = escapeHtml(meta.canonicalUrl);
-  const image = meta.ogImage?.trim();
-  const imageTag = image
-    ? `\n    <meta property="og:image" content="${escapeHtml(image)}" />\n    <meta name="twitter:image" content="${escapeHtml(image)}" />`
-    : '';
-  const twitterCard = image ? 'summary_large_image' : 'summary';
+  const tagsHtml = socialMetaTagsToHtml(collectBlogSocialMetaTags(meta));
 
   return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>${title}</title>
-    <meta name="description" content="${description}" />
-    <meta property="og:type" content="article" />
-    <meta property="og:site_name" content="${SITE_NAME}" />
-    <meta property="og:title" content="${title}" />
-    <meta property="og:description" content="${description}" />
-    <meta property="og:url" content="${url}" />${imageTag}
-    <meta name="twitter:card" content="${twitterCard}" />
-    <meta name="twitter:title" content="${title}" />
-    <meta name="twitter:description" content="${description}" />
+${tagsHtml}
     <link rel="canonical" href="${url}" />
   </head>
   <body>

@@ -196,24 +196,26 @@ export async function handlePublishKit(params: {
       runSvgProbe: true,
     });
 
-    const { variants, imageModel, usedAi } = await renderUnifiedPublishVisuals({
-      apiKey,
-      title: snapshot.title,
-      excerpt: cardBlurb,
-      category: snapshot.category,
-      categoryLabel,
-      author: snapshot.author,
-      accentColor: snapshot.color,
-      tags,
-      family,
-      layout,
-      panelMode,
-      stylePreset,
-      visualMode: prefs.visualMode,
-      imageModel: prefs.imageModel,
-      designSeed,
-      templateIconPool: iconResult.iconIds,
-    });
+    const { variants, imageModel, usedAi, heroSource, heroCacheId, heroCacheScore } =
+      await renderUnifiedPublishVisuals({
+        apiKey,
+        title: snapshot.title,
+        excerpt: cardBlurb,
+        category: snapshot.category,
+        categoryLabel,
+        author: snapshot.author,
+        accentColor: snapshot.color,
+        tags,
+        family,
+        layout,
+        panelMode,
+        stylePreset,
+        visualMode: prefs.visualMode,
+        imageModel: prefs.imageModel,
+        designSeed,
+        templateIconPool: iconResult.iconIds,
+        preferHeroCache: prefs.preferHeroCache,
+      });
 
     response.visual = {
       ogPreviewDataUrl: bufferToDataUrl(variants.og),
@@ -225,6 +227,9 @@ export async function handlePublishKit(params: {
       usedAiArt: usedAi,
       templateIconPool: iconResult.iconIds,
       templateIconRationale: iconResult.rationale,
+      heroSource,
+      heroCacheId,
+      heroCacheScore,
     };
   }
 

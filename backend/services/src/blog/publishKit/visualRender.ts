@@ -1,10 +1,6 @@
 import type { LayoutVariant, PanelMode, TemplateFamily } from './templateSelection.js';
-import { buildHeroImagePrompt } from './imagePrompt.js';
-import {
-  generateHeroImage,
-  resolveImageModel,
-  type AspectRatio,
-} from './openrouterImage.js';
+import { resolveMasterHeroPng } from './resolveMasterHero.js';
+import type { AspectRatio } from './openrouterImage.js';
 import { compositeHeroCover, renderTemplateOnlyCover } from './compositeCover.js';
 import type { RenderCardInput } from './renderSvg.js';
 import type { OverlayInput } from './renderOverlay.js';
@@ -92,7 +88,15 @@ export async function renderPublishCoverPng(params: {
   visualMode?: VisualMode;
   imageModel?: string;
   designSeed?: number;
-}): Promise<{ png: Buffer; imageModel?: string; usedAi: boolean }> {
+  preferHeroCache?: boolean;
+}): Promise<{
+  png: Buffer;
+  imageModel?: string;
+  usedAi: boolean;
+  heroSource?: 'cache' | 'openrouter';
+  heroCacheId?: string;
+  heroCacheScore?: number;
+}> {
   const mode = resolveVisualMode(params.visualMode);
   const tpl = templateInput(params);
 
@@ -100,10 +104,9 @@ export async function renderPublishCoverPng(params: {
     return { png: await renderTemplateOnlyCover(tpl), usedAi: false };
   }
 
-  const imageModel = params.imageModel?.trim() || resolveImageModel();
-
   try {
-    const prompt = buildHeroImagePrompt({
+    const hero = await resolveMasterHeroPng({
+      apiKey: params.apiKey,
       title: params.title,
       excerpt: params.excerpt,
       category: params.category,
@@ -113,21 +116,23 @@ export async function renderPublishCoverPng(params: {
       family: params.family,
       layout: params.layout,
       stylePreset: params.stylePreset,
-    });
-
-    const { png: aiPng } = await generateHeroImage({
-      apiKey: params.apiKey,
-      model: imageModel,
-      prompt,
-      aspectRatio: params.aspectRatio,
+      imageModel: params.imageModel,
+      preferHeroCache: params.preferHeroCache,
     });
 
     if (mode === 'ai') {
-      return { png: aiPng, imageModel, usedAi: true };
+      return {
+        png: hero.png,
+        imageModel: hero.imageModel,
+        usedAi: true,
+        heroSource: hero.source,
+        heroCacheId: hero.heroCacheId,
+        heroCacheScore: hero.heroCacheScore,
+      };
     }
 
     const png = await compositeHeroCover(
-      aiPng,
+      hero.png,
       overlayInput({
         width: params.width,
         height: params.height,
@@ -139,7 +144,14 @@ export async function renderPublishCoverPng(params: {
         layout: params.layout,
       }),
     );
-    return { png, imageModel, usedAi: true };
+    return {
+      png,
+      imageModel: hero.imageModel,
+      usedAi: true,
+      heroSource: hero.source,
+      heroCacheId: hero.heroCacheId,
+      heroCacheScore: hero.heroCacheScore,
+    };
   } catch (err) {
     console.warn('[publishKit] AI hero failed, using template fallback:', err);
     return { png: await renderTemplateOnlyCover(tpl), usedAi: false };

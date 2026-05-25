@@ -47,6 +47,7 @@ export default defineConfig(async () => {
       ],
       alias: {
         '@': path.resolve(__dirname, './src/app'),
+        '@og': path.resolve(__dirname, './src/og'),
         '@ekagajpatra-case-study': path.resolve(
           __dirname,
           'extras/Create Presentation Case Study/src',

@@ -4,8 +4,9 @@ import { buildBlogShareHtml, resolveShareMeta, type BlogSharePayload } from './f
 const BLOG_DETAIL_RE =
   /^\/(?:endtoend-engineer|legal-workflow-engineer|ai-engineer|forward-deployed-engineer)?\/blogs\/(\d+)\/?$/;
 
+/** Facebook, LinkedIn, Slack, Discord, X, WhatsApp, Telegram, Pinterest, etc. */
 const CRAWLER_UA_RE =
-  /bot|facebookexternalhit|twitterbot|linkedinbot|slackbot|discordbot|whatsapp|telegrambot|pinterest|embedly|quora link preview/i;
+  /bot|facebookexternalhit|Facebot|Twitterbot|LinkedInBot|Slackbot|Slack-ImgProxy|Discordbot|discordbot|whatsapp|telegrambot|pinterest|embedly|quora link preview|Googlebot|bingbot|Applebot/i;
 
 export const config = {
   matcher: [
@@ -22,7 +23,36 @@ function apiBase(): string | undefined {
   return base?.replace(/\/$/, '');
 }
 
-async function fetchBlog(numericId: number): Promise<BlogSharePayload | null> {
+function supabaseConfig(): { url: string; key: string } | null {
+  const url = process.env.VITE_SUPABASE_URL?.trim() || process.env.SUPABASE_URL?.trim();
+  const key =
+    process.env.VITE_SUPABASE_ANON_KEY?.trim() || process.env.SUPABASE_ANON_KEY?.trim();
+  if (!url || !key) return null;
+  return { url: url.replace(/\/$/, ''), key };
+}
+
+function toSharePayload(raw: Record<string, unknown>): BlogSharePayload | null {
+  const id = Number(raw.numericId ?? raw.numeric_id ?? raw.id);
+  const title = typeof raw.title === 'string' ? raw.title : '';
+  if (!Number.isFinite(id) || !title) return null;
+  const seo = raw.seo && typeof raw.seo === 'object' ? (raw.seo as BlogSharePayload['seo']) : undefined;
+  return {
+    id,
+    title,
+    excerpt: typeof raw.excerpt === 'string' ? raw.excerpt : undefined,
+    coverImageUrl:
+      typeof raw.coverImageUrl === 'string'
+        ? raw.coverImageUrl
+        : typeof raw.cover_image_url === 'string'
+          ? raw.cover_image_url
+          : undefined,
+    author: typeof raw.author === 'string' ? raw.author : undefined,
+    date: typeof raw.date === 'string' ? raw.date : undefined,
+    seo,
+  };
+}
+
+async function fetchBlogFromApi(numericId: number): Promise<BlogSharePayload | null> {
   const base = apiBase();
   if (!base) return null;
   try {
@@ -30,11 +60,40 @@ async function fetchBlog(numericId: number): Promise<BlogSharePayload | null> {
       headers: { Accept: 'application/json' },
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { blog?: BlogSharePayload };
-    return data.blog ?? null;
+    const data = (await res.json()) as { blog?: Record<string, unknown> };
+    return data.blog ? toSharePayload(data.blog) : null;
   } catch {
     return null;
   }
+}
+
+async function fetchBlogFromSupabase(numericId: number): Promise<BlogSharePayload | null> {
+  const cfg = supabaseConfig();
+  if (!cfg) return null;
+  try {
+    const params = new URLSearchParams({
+      select: 'numeric_id,title,excerpt,author,date,cover_image_url,seo',
+      numeric_id: `eq.${numericId}`,
+      limit: '1',
+    });
+    const res = await fetch(`${cfg.url}/rest/v1/blog_posts?${params}`, {
+      headers: {
+        Accept: 'application/json',
+        apikey: cfg.key,
+        Authorization: `Bearer ${cfg.key}`,
+      },
+    });
+    if (!res.ok) return null;
+    const rows = (await res.json()) as Record<string, unknown>[];
+    const row = rows[0];
+    return row ? toSharePayload(row) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchBlog(numericId: number): Promise<BlogSharePayload | null> {
+  return (await fetchBlogFromApi(numericId)) ?? (await fetchBlogFromSupabase(numericId));
 }
 
 export default async function middleware(request: Request) {

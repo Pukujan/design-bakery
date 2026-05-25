@@ -43,6 +43,11 @@ export type PublishKitPreferences = {
   templateIconPool?: string[];
   /** When true, call the icon agent (costs tokens). Omit/false on layout shuffle. */
   refreshTemplateIcons?: boolean;
+  /**
+   * When true (default), hybrid tries Supabase hero cache by tag/category slugs before OpenRouter.
+   * Set false to force a fresh image model call.
+   */
+  preferHeroCache?: boolean;
 };
 
 export type PublishKitVisualCommit = {
@@ -94,6 +99,10 @@ export type PublishKitVisualResult = {
   /** Colorful flat sticker ids chosen for this post (template mode). */
   templateIconPool?: string[];
   templateIconRationale?: string;
+  /** Text-free hero source before title overlay (hybrid / ai). */
+  heroSource?: 'cache' | 'openrouter';
+  heroCacheId?: string;
+  heroCacheScore?: number;
 };
 
 export type PublishKitResponse = {

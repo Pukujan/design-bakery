@@ -4,7 +4,7 @@
 |-------|-------|
 | **Document date** | 2026-05-22 |
 | **Created** | 2026-05-22 |
-| **Last updated** | 2026-05-23 (Railway system DejaVu Sans) |
+| **Last updated** | 2026-05-25 (hero image slug cache) |
 
 **Branch:** `test/blog-publish-kit` (not on `main` until reviewed).
 
@@ -24,6 +24,7 @@
 | 2026-05-25 | **Font diagnostics** — `fontDiagnostics.ts` logs `[publish-kit:fonts]` (fc-match, font files, SVG probe); `pnpm run test:publish-kit-fonts`; Railway `PUBLISH_KIT_FONT_DEBUG=1` |
 | 2026-05-25 | **Admin blog list** — `listBlogPosts({ includeContent: true })` for `/api/content/blogs`; public list stays without body |
 | 2026-05-23 | **Railway fonts** — `nixpacks.toml` `aptPkgs = ["fonts-dejavu-core"]` (not nix `dejavu_fonts` — breaks Railway build); system **DejaVu Sans** when `fc-list` finds it; bundled Inter on macOS |
+| 2026-05-25 | **Hero cache** — text-free 1:1 PNG in Supabase + `publish_kit_hero_cache` table; slug match before overlay; skips OpenRouter on hit |
 
 ## Purpose
 
@@ -106,9 +107,23 @@ Documented so agents do not regress behavior.
 
 | Mode | Behavior |
 |------|----------|
-| `hybrid` | OpenRouter image model → hero PNG (no text in prompt) → SVG scrim + title overlay via **sharp** |
+| `hybrid` | **Hero cache** (slug match) → else OpenRouter 1:1 hero (no text) → SVG scrim + title overlay via **sharp** |
 | `template` | SVG gradient hero only (`renderSvg.ts`) — fast, no image API |
-| `ai` | Raw model output only (no typography overlay) |
+| `ai` | Cached or OpenRouter hero → resize only (no typography overlay) |
+
+### Hero cache (hybrid step 0)
+
+Text-free **1:1** PNGs live in Storage (`blog-publish/hero-cache/{uuid}.png`) with metadata in **`publish_kit_hero_cache`** (`supabase/migrations/003_publish_kit_hero_cache.sql`). Slugs come from post **tags** + **category** (normalized lowercase). Lookup runs **before** `compositeHeroCover` / title overlay — cached art never includes post title.
+
+| Env (`backend/.env`) | Default | Meaning |
+|----------------------|---------|---------|
+| `PUBLISH_KIT_HERO_CACHE` | `1` | `0` / `false` disables cache read+write |
+| `PUBLISH_KIT_HERO_CACHE_MIN_SCORE` | `0.55` | Min Jaccard score on slug sets |
+| `PUBLISH_KIT_HERO_CACHE_MIN_TAGS` | `2` | Min overlapping slugs (capped by request slug count) |
+
+Hard filters: `prompt_version` (matches `HERO_IMAGE_PROMPT_VERSION`), `family`, `style_preset`. Response fields: `heroSource`, `heroCacheId`, `heroCacheScore`. Preference `preferHeroCache: false` forces OpenRouter. New AI heroes are stored after generation (async-safe fire-and-forget).
+
+Files: `heroCacheSlugs.ts`, `heroCache.ts`, `resolveMasterHero.ts`.
 
 Default image model: **`google/gemini-2.5-flash-image`**. Alternatives: `black-forest-labs/flux.2-klein-4b`.
 
@@ -150,7 +165,7 @@ Dimensions: OG **1200×630**, cover **1200×800**.
 
 - **Detail:** [`BlogCoverImage.tsx`](../src/app/components/BlogCoverImage.tsx) — `resolveBlogCoverUrl`; shimmer + lazy load (`useInView`) like Mermaid
 - **List:** `variant="card"` uses `resolveBlogThumbnailUrl` (640×360 `thumbnailImageUrl`, else cover)
-- **Social meta:** [`BlogPostHead.tsx`](../frontend/src/app/modules/blog/public/detail/BlogPostHead.tsx) — client `og:*` for browsers; **crawlers** use repo-root [`middleware.ts`](../middleware.ts) + [`blogShareHtml.ts`](../frontend/src/og/blogShareHtml.ts) (requires `VITE_BLOG_API_URL` on Vercel). Regenerate publish-kit images after Railway font fix if covers still show tofu blocks.
+- **Social meta:** [`blogSocialMeta.ts`](../frontend/src/og/blogSocialMeta.ts) — shared **Open Graph + Twitter Card** tags (Facebook, LinkedIn, Slack, **Discord**, X, WhatsApp, Telegram). Discord uses the same `og:*` tags (no separate namespace). [`BlogPostHead.tsx`](../frontend/src/app/modules/blog/public/detail/BlogPostHead.tsx) for browsers; **crawlers** (`Discordbot` UA) use [`middleware.ts`](../middleware.ts) + [`blogShareHtml.ts`](../frontend/src/og/blogShareHtml.ts). Middleware fetches post data via `VITE_BLOG_API_URL` or **`VITE_SUPABASE_*` fallback**. Optional `VITE_FB_APP_ID`, `VITE_TWITTER_SITE` on Vercel. Per-post: `seo.metaTitle`, `metaDescription`, `ogImageUrl` from publish kit.
 - **Admin social preview:** `resolveBlogOgPreviewUrl` → `seo.ogImageThumbUrl` when set (800×420 from `commit_visual`)
 
 ### Unified visuals (v0.3)
