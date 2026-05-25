@@ -89,10 +89,11 @@ export function collectBlogSocialMetaTags(input: BlogSocialMetaInput): SocialMet
   }
 
   if (image) {
+    const imageType = /\.jpe?g($|\?)/i.test(image) ? 'image/jpeg' : 'image/png';
     tags.push(
       { attribute: 'property', key: 'og:image', content: image },
       { attribute: 'property', key: 'og:image:secure_url', content: image },
-      { attribute: 'property', key: 'og:image:type', content: 'image/png' },
+      { attribute: 'property', key: 'og:image:type', content: imageType },
       {
         attribute: 'property',
         key: 'og:image:width',

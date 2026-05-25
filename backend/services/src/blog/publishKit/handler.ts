@@ -99,6 +99,7 @@ export async function handlePublishKit(params: {
         coverImageUrl: urls.coverImageUrl,
         thumbnailImageUrl: urls.thumbnailImageUrl,
         ogImageThumbUrl: urls.ogImageThumbUrl,
+        socialOgImageUrl: urls.socialOgImageUrl,
         templateFamily: '',
         layoutVariant: '',
         panelMode: 'dark',

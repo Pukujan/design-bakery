@@ -5,9 +5,11 @@ import {
   supabaseStorageBucket,
 } from '../../supabaseClient.js';
 
-function objectPath(params: { numericId: number; kind: string }): string {
+export type BlogImageKind = 'og' | 'cover' | 'thumbnail' | 'og_thumb' | 'og_social';
+
+function objectPath(params: { numericId: number; kind: string; ext: string }): string {
   const ts = Date.now();
-  return `blog-publish/${params.numericId}/${params.kind}-${ts}.png`;
+  return `blog-publish/${params.numericId}/${params.kind}-${ts}.${params.ext}`;
 }
 
 async function assertSupabaseBucketIsPublic(): Promise<void> {
@@ -29,17 +31,19 @@ async function assertSupabaseBucketIsPublic(): Promise<void> {
   }
 }
 
-async function uploadBlogImageSupabase(params: {
+async function uploadBlogAssetSupabase(params: {
   numericId: number;
-  kind: 'og' | 'cover' | 'thumbnail' | 'og_thumb';
-  png: Buffer;
+  kind: BlogImageKind;
+  buffer: Buffer;
+  contentType: string;
+  ext: string;
 }): Promise<{ url: string; path: string }> {
   await assertSupabaseBucketIsPublic();
   const path = objectPath(params);
   const bucket = supabaseStorageBucket();
   const supabase = supabaseAdmin();
-  const { error } = await supabase.storage.from(bucket).upload(path, params.png, {
-    contentType: 'image/png',
+  const { error } = await supabase.storage.from(bucket).upload(path, params.buffer, {
+    contentType: params.contentType,
     cacheControl: '31536000',
     upsert: false,
   });
@@ -55,14 +59,30 @@ async function uploadBlogImageSupabase(params: {
 
 export async function uploadBlogImage(params: {
   numericId: number;
-  kind: 'og' | 'cover' | 'thumbnail' | 'og_thumb';
+  kind: Exclude<BlogImageKind, 'og_social'>;
   png: Buffer;
+}): Promise<{ url: string; path: string } | null> {
+  return uploadBlogAsset({
+    numericId: params.numericId,
+    kind: params.kind,
+    buffer: params.png,
+    contentType: 'image/png',
+    ext: 'png',
+  });
+}
+
+export async function uploadBlogAsset(params: {
+  numericId: number;
+  kind: BlogImageKind;
+  buffer: Buffer;
+  contentType: string;
+  ext: string;
 }): Promise<{ url: string; path: string } | null> {
   try {
     if (resolveImageStorageBackend() !== 'supabase') {
       throw new Error('Only Supabase Storage is supported. Set IMAGE_STORAGE=supabase in backend/.env.');
     }
-    return await uploadBlogImageSupabase(params);
+    return await uploadBlogAssetSupabase(params);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error('[publishKit] Storage upload failed:', message);

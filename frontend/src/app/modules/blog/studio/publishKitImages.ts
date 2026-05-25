@@ -23,6 +23,7 @@ export type CommitVisualUploadResult = {
   coverImageUrl: string;
   thumbnailImageUrl: string;
   ogImageThumbUrl: string;
+  socialOgImageUrl: string;
 };
 
 function productionUploadHelp(): string {
@@ -87,6 +88,7 @@ async function uploadViaServer(params: {
     coverImageUrl: v.coverImageUrl,
     thumbnailImageUrl: v.thumbnailImageUrl ?? v.coverImageUrl,
     ogImageThumbUrl: v.ogImageThumbUrl ?? v.ogImageUrl,
+    socialOgImageUrl: v.socialOgImageUrl ?? v.ogImageUrl,
   };
 }
 

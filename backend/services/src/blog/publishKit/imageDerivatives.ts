@@ -1,5 +1,5 @@
 import sharp from './sharpWithFonts.js';
-import { OG_THUMB_SIZE, THUMBNAIL_SIZE } from './visualFormats.js';
+import { OG_SIZE, OG_THUMB_SIZE, THUMBNAIL_SIZE } from './visualFormats.js';
 
 export { THUMBNAIL_SIZE, OG_THUMB_SIZE } from './visualFormats.js';
 
@@ -16,5 +16,13 @@ export async function resizeOgThumbnail(png: Buffer): Promise<Buffer> {
   return sharp(png)
     .resize(OG_THUMB_SIZE.width, OG_THUMB_SIZE.height, { fit: 'cover', position: 'centre' })
     .png({ compressionLevel: 9 })
+    .toBuffer();
+}
+
+/** Slack/Discord/LinkedIn unfurl — JPEG keeps previews under ~500KB. */
+export async function resizeOgSocialJpeg(png: Buffer): Promise<Buffer> {
+  return sharp(png)
+    .resize(OG_SIZE.width, OG_SIZE.height, { fit: 'cover', position: 'centre' })
+    .jpeg({ quality: 82, mozjpeg: true })
     .toBuffer();
 }

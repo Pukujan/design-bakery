@@ -5,8 +5,10 @@ export interface BlogSeo {
   metaDescription?: string;
   /** Social / Open Graph image URL (full size for og:image) */
   ogImageUrl?: string;
-  /** Smaller OG variant (admin preview; not used in og:image meta) */
+  /** Smaller OG variant (admin preview). */
   ogImageThumbUrl?: string;
+  /** JPEG ~1200×630 for Slack/Discord/LinkedIn link previews. */
+  socialOgImageUrl?: string;
   /** Legacy field name from early agent SEO slice */
   ogImage?: string;
 }
@@ -17,13 +19,36 @@ export function normalizeBlogSeo(seo?: BlogSeo | null): BlogSeo | undefined {
   const metaDescription = seo.metaDescription?.trim();
   const ogImageUrl = (seo.ogImageUrl ?? seo.ogImage)?.trim();
   const ogImageThumbUrl = seo.ogImageThumbUrl?.trim();
-  if (!metaTitle && !metaDescription && !ogImageUrl && !ogImageThumbUrl) return undefined;
+  const socialOgImageUrl = seo.socialOgImageUrl?.trim();
+  if (!metaTitle && !metaDescription && !ogImageUrl && !ogImageThumbUrl && !socialOgImageUrl) {
+    return undefined;
+  }
   return {
     ...(metaTitle ? { metaTitle } : {}),
     ...(metaDescription ? { metaDescription } : {}),
     ...(ogImageUrl ? { ogImageUrl } : {}),
     ...(ogImageThumbUrl ? { ogImageThumbUrl } : {}),
+    ...(socialOgImageUrl ? { socialOgImageUrl } : {}),
   };
+}
+
+/** Best image for link previews (prefer small JPEG for Slack). */
+export function resolveBlogSocialImageUrl(
+  blog: Pick<Blog, 'coverImageUrl' | 'thumbnailImageUrl' | 'seo'>,
+): string | undefined {
+  const seo = normalizeBlogSeo(blog.seo);
+  const chain = [
+    seo?.socialOgImageUrl,
+    seo?.ogImageThumbUrl,
+    blog.thumbnailImageUrl,
+    seo?.ogImageUrl,
+    blog.coverImageUrl,
+  ];
+  for (const u of chain) {
+    const t = u?.trim();
+    if (t?.startsWith('http')) return t;
+  }
+  return undefined;
 }
 
 export function resolveBlogCoverUrl(
@@ -65,7 +90,7 @@ export function resolveBlogMeta(blog: Blog, siteName = 'Design Baker') {
   const seo = normalizeBlogSeo(blog.seo);
   const title = seo?.metaTitle || blog.title;
   const description = seo?.metaDescription || blog.excerpt || blog.title;
-  const imageUrl = toAbsoluteImageUrl(seo?.ogImageUrl || blog.coverImageUrl?.trim());
+  const imageUrl = toAbsoluteImageUrl(resolveBlogSocialImageUrl(blog));
   return {
     title: title.includes(siteName) ? title : `${title} | ${siteName}`,
     description,

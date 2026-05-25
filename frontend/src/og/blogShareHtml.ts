@@ -14,6 +14,7 @@ export type BlogSharePayload = {
   title: string;
   excerpt?: string;
   coverImageUrl?: string;
+  thumbnailImageUrl?: string;
   author?: string;
   date?: string;
   seo?: {
@@ -21,15 +22,22 @@ export type BlogSharePayload = {
     metaDescription?: string;
     ogImageUrl?: string;
     ogImage?: string;
+    ogImageThumbUrl?: string;
+    /** JPEG unfurl asset (Slack/Discord) — from publish kit commit. */
+    socialOgImageUrl?: string;
   };
 };
 
 export { escapeHtml, SITE_NAME };
 
-export function resolveShareMeta(blog: BlogSharePayload, canonicalUrl: string): BlogSocialMetaInput {
+export async function resolveShareMeta(
+  blog: BlogSharePayload,
+  canonicalUrl: string,
+): Promise<BlogSocialMetaInput> {
+  const { resolveSocialPreviewImage } = await import('./resolveSocialPreviewImage.js');
   const metaTitle = blog.seo?.metaTitle?.trim();
   const metaDescription = blog.seo?.metaDescription?.trim();
-  const ogImage = (blog.seo?.ogImageUrl ?? blog.seo?.ogImage)?.trim() || blog.coverImageUrl?.trim();
+  const ogImage = await resolveSocialPreviewImage(blog);
   const title = metaTitle || blog.title;
   const description = metaDescription || blog.excerpt?.trim() || blog.title;
   const pageTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;

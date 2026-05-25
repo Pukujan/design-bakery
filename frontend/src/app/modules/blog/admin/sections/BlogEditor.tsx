@@ -314,6 +314,7 @@ export function BlogEditor() {
             ...working.seo,
             ogImageUrl: uploaded.ogImageUrl,
             ogImageThumbUrl: uploaded.ogImageThumbUrl,
+            socialOgImageUrl: uploaded.socialOgImageUrl,
           },
         };
       }

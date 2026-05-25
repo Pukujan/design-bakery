@@ -96,6 +96,8 @@ export type PublishKitVisualResult = {
   thumbnailImageUrl?: string;
   /** 800×420 admin / preview variant (full OG stays in ogImageUrl for meta tags) */
   ogImageThumbUrl?: string;
+  /** JPEG unfurl for Slack/Discord/LinkedIn (from commit_visual). */
+  socialOgImageUrl?: string;
   /** Colorful flat sticker ids chosen for this post (template mode). */
   templateIconPool?: string[];
   templateIconRationale?: string;

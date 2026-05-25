@@ -105,6 +105,7 @@ export type PublishKitResponse = {
     coverImageUrl?: string;
     thumbnailImageUrl?: string;
     ogImageThumbUrl?: string;
+    socialOgImageUrl?: string;
     templateIconPool?: string[];
     templateIconRationale?: string;
   };

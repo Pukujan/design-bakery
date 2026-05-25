@@ -46,6 +46,12 @@ function toSharePayload(raw: Record<string, unknown>): BlogSharePayload | null {
         : typeof raw.cover_image_url === 'string'
           ? raw.cover_image_url
           : undefined,
+    thumbnailImageUrl:
+      typeof raw.thumbnailImageUrl === 'string'
+        ? raw.thumbnailImageUrl
+        : typeof raw.thumbnail_image_url === 'string'
+          ? raw.thumbnail_image_url
+          : undefined,
     author: typeof raw.author === 'string' ? raw.author : undefined,
     date: typeof raw.date === 'string' ? raw.date : undefined,
     seo,
@@ -72,7 +78,7 @@ async function fetchBlogFromSupabase(numericId: number): Promise<BlogSharePayloa
   if (!cfg) return null;
   try {
     const params = new URLSearchParams({
-      select: 'numeric_id,title,excerpt,author,date,cover_image_url,seo',
+      select: 'numeric_id,title,excerpt,author,date,cover_image_url,thumbnail_image_url,seo',
       numeric_id: `eq.${numericId}`,
       limit: '1',
     });
@@ -111,7 +117,7 @@ export default async function middleware(request: Request) {
   if (!blog) return;
 
   const canonicalUrl = url.origin + url.pathname;
-  const meta = resolveShareMeta(blog, canonicalUrl);
+  const meta = await resolveShareMeta(blog, canonicalUrl);
   const html = buildBlogShareHtml(meta);
 
   return new Response(html, {
