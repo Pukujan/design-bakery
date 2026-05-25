@@ -1,12 +1,9 @@
 import { buildBlogShareHtml, resolveShareMeta, type BlogSharePayload } from './frontend/src/og/blogShareHtml';
+import { isLinkPreviewCrawler } from './frontend/src/og/linkPreviewCrawlers';
 
 /** Blog detail paths across portfolio prefixes (SPA routes). */
 const BLOG_DETAIL_RE =
   /^\/(?:endtoend-engineer|legal-workflow-engineer|ai-engineer|forward-deployed-engineer)?\/blogs\/(\d+)\/?$/;
-
-/** Facebook, LinkedIn, Slack, Discord, X, WhatsApp, Telegram, Pinterest, etc. */
-const CRAWLER_UA_RE =
-  /bot|facebookexternalhit|Facebot|Twitterbot|LinkedInBot|Slackbot|Slack-ImgProxy|Discordbot|discordbot|whatsapp|telegrambot|pinterest|embedly|quora link preview|Googlebot|bingbot|Applebot/i;
 
 export const config = {
   matcher: [
@@ -104,7 +101,7 @@ async function fetchBlog(numericId: number): Promise<BlogSharePayload | null> {
 
 export default async function middleware(request: Request) {
   const ua = request.headers.get('user-agent') ?? '';
-  if (!CRAWLER_UA_RE.test(ua)) return;
+  if (!isLinkPreviewCrawler(ua)) return;
 
   const url = new URL(request.url);
   const match = url.pathname.match(BLOG_DETAIL_RE);

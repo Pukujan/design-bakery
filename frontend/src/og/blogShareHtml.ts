@@ -61,13 +61,16 @@ export function buildBlogShareHtml(meta: BlogSocialMetaInput): string {
   const title = escapeHtml(meta.pageTitle);
   const url = escapeHtml(meta.canonicalUrl);
   const tagsHtml = socialMetaTagsToHtml(collectBlogSocialMetaTags(meta));
+  const imageSrcLink = meta.ogImage
+    ? `\n    <link rel="image_src" href="${escapeHtml(meta.ogImage)}" />`
+    : '';
 
   return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>${title}</title>
-${tagsHtml}
+${tagsHtml}${imageSrcLink}
     <link rel="canonical" href="${url}" />
   </head>
   <body>

@@ -23,6 +23,6 @@ export async function resizeOgThumbnail(png: Buffer): Promise<Buffer> {
 export async function resizeOgSocialJpeg(png: Buffer): Promise<Buffer> {
   return sharp(png)
     .resize(OG_SIZE.width, OG_SIZE.height, { fit: 'cover', position: 'centre' })
-    .jpeg({ quality: 82, mozjpeg: true })
+    .jpeg({ quality: 78, mozjpeg: true })
     .toBuffer();
 }

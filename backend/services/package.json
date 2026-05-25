@@ -17,7 +17,8 @@
     "test:blog-workflow:live:ai": "node scripts/test-blog-agents-workflow.mjs --live --with-ai-images",
     "test:blog-workflow:storage": "node scripts/test-blog-agents-workflow.mjs --offline --storage",
     "test:blog-workflow:full": "node scripts/test-blog-agents-workflow.mjs --live --storage",
-    "env:split": "node ../scripts/split-env.mjs"
+    "env:split": "node ../scripts/split-env.mjs",
+    "backfill:social-og-jpeg": "npm run build && node scripts/backfill-social-og-jpeg.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.5",

@@ -165,7 +165,7 @@ Dimensions: OG **1200×630**, cover **1200×800**.
 
 - **Detail:** [`BlogCoverImage.tsx`](../src/app/components/BlogCoverImage.tsx) — `resolveBlogCoverUrl`; shimmer + lazy load (`useInView`) like Mermaid
 - **List:** `variant="card"` uses `resolveBlogThumbnailUrl` (640×360 `thumbnailImageUrl`, else cover)
-- **Social meta:** [`blogSocialMeta.ts`](../frontend/src/og/blogSocialMeta.ts) — shared **Open Graph + Twitter Card** tags (Facebook, LinkedIn, Slack, **Discord**, X, WhatsApp, Telegram). Discord uses the same `og:*` tags (no separate namespace). [`BlogPostHead.tsx`](../frontend/src/app/modules/blog/public/detail/BlogPostHead.tsx) for browsers; **crawlers** (`Discordbot` UA) use [`middleware.ts`](../middleware.ts) + [`blogShareHtml.ts`](../frontend/src/og/blogShareHtml.ts). Middleware fetches post data via `VITE_BLOG_API_URL` or **`VITE_SUPABASE_*` fallback**. Optional `VITE_FB_APP_ID`, `VITE_TWITTER_SITE` on Vercel. Per-post: `seo.metaTitle`, `metaDescription`, `ogImageUrl` from publish kit.
+- **Social meta:** [`blogSocialMeta.ts`](../frontend/src/og/blogSocialMeta.ts) — OG + Twitter for Facebook, LinkedIn, Slack, **Discord**, **Telegram**, WhatsApp, X, Mastodon, iMessage, etc. Crawlers: [`linkPreviewCrawlers.ts`](../frontend/src/og/linkPreviewCrawlers.ts) + [`middleware.ts`](../middleware.ts). **`seo.socialOgImageUrl`** — JPEG ~58KB from `commit_visual` / [`backfill-social-og-jpeg.mjs`](../backend/services/scripts/backfill-social-og-jpeg.mjs) (large PNGs break Slack). [`resolveSocialPreviewImage.ts`](../frontend/src/og/resolveSocialPreviewImage.ts) picks social JPEG first.
 - **Admin social preview:** `resolveBlogOgPreviewUrl` → `seo.ogImageThumbUrl` when set (800×420 from `commit_visual`)
 
 ### Unified visuals (v0.3)
