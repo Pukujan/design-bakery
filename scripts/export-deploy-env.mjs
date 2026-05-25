@@ -57,6 +57,7 @@ const railwayVars = {
 
 const vercelHeader = `# Vercel — Settings → Environment Variables → Import .env (Production)
 # Set VITE_BLOG_API_URL after Railway gives you a domain
+# VITE_SUPABASE_* = fast public blog reads (anon key from Supabase Dashboard → API)
 
 `;
 

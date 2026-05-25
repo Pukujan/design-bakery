@@ -73,14 +73,18 @@ function dtoToRow(data: Omit<BlogPostDto, 'id'>, legacyDocId?: string): Omit<Blo
   };
 }
 
+/** List columns — omit `content` so public list + cards load faster. */
+const BLOG_LIST_COLUMNS =
+  'id, legacy_doc_id, numeric_id, title, excerpt, tags, category, author, color, date, read_time, cover_image_url, thumbnail_image_url, seo';
+
 export async function listBlogPosts(): Promise<BlogPostDto[]> {
   const { data, error } = await supabaseAdmin()
     .from('blog_posts')
-    .select('*')
+    .select(BLOG_LIST_COLUMNS)
     .order('numeric_id', { ascending: false });
 
   if (error) throw new Error(`Blog list failed: ${error.message}`);
-  return (data as BlogPostRow[]).map(rowToDto);
+  return (data as BlogPostRow[]).map((row) => ({ ...rowToDto({ ...row, content: '' }), content: '' }));
 }
 
 export async function getBlogByNumericId(numericId: number): Promise<{ docId: string; blog: BlogPostDto }> {

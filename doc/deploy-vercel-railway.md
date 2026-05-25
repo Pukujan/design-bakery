@@ -102,7 +102,11 @@ Deploy logs should show: `[api] design-bakery-api http://0.0.0.0:...`
    | `VITE_FIREBASE_APP_ID` | Web app ID |
    | `VITE_ENABLE_BLOG_AGENTS` | `true` (or leave unset — prod defaults on) |
    | `VITE_ENABLE_BLOG_PUBLISH_KIT` | `true` (or leave unset) |
-   | **`VITE_BLOG_API_URL`** | **`https://YOUR-RAILWAY-URL.up.railway.app`** (no trailing slash) |
+   | **`VITE_BLOG_API_URL`** | **`https://YOUR-RAILWAY-URL.up.railway.app`** (no trailing slash) — admin, publish kit, social `middleware.ts` |
+   | **`VITE_SUPABASE_URL`** | Supabase **Project URL** (Settings → API) |
+   | **`VITE_SUPABASE_ANON_KEY`** | Supabase **anon public** key (not `service_role`) — browser reads `blog_posts` via RLS |
+
+   Public blog list/detail use **direct Supabase** when both `VITE_SUPABASE_*` are set (PostgREST, no Railway cold start). Railway remains required for admin login and publish kit.
 
    **Do not set on Vercel (production):**
 

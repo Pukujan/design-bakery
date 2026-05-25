@@ -3,6 +3,7 @@
 @source './extras/Create Presentation Case Study/src/**/*.{js,ts,jsx,tsx}';
 @source './extras/invest-ai-case-study/src/**/*.{js,ts,jsx,tsx}';
 @source './extras/oni_agent_interactive_page_svg_darkmode_src/**/*.{js,ts,jsx,tsx}';
+@source './extras/oni_agent_interactive_page_svg_darkmode_v4_src/**/*.{js,ts,jsx,tsx}';
 @import 'tw-animate-css';
 @import './default_theme.css';
 @import './globals.css';

@@ -4,7 +4,7 @@
 |-------|-------|
 | **Document date** | 2026-05-22 |
 | **Created** | 2026-05-22 |
-| **Last updated** | 2026-05-23 (Inter fontconfig for sharp) |
+| **Last updated** | 2026-05-25 (Inter TTF + crawler OG middleware) |
 
 **Branch:** `test/blog-publish-kit` (not on `main` until reviewed).
 
@@ -19,6 +19,8 @@
 | 2026-05-22 | **meta_and_tags apply** — single `applyPublishKitSeoToPost` (tags no longer overwrite meta); excerpt backfill when blank |
 | 2026-05-22 | **`generateMeta` excerpt** — LLM returns `excerpt` (~200 chars) + meta fields; applied with SEO text + tags |
 | 2026-05-23 | **Inter fontconfig** — bundled Inter WOFF + `FONTCONFIG_PATH` for sharp/librsvg (embedded SVG `@font-face` ignored on Linux/Railway) |
+| 2026-05-25 | **Inter TTF** — `inter-ttf/Inter-Variable.ttf` copied to `lib/` on build; `fc-cache`; fixed init skip when `FONTCONFIG_PATH` was preset without bundled fonts |
+| 2026-05-25 | **Social crawlers** — repo-root `middleware.ts` serves OG HTML for blog detail URLs (Facebook/X/LinkedIn); SPA `BlogPostHead` alone is insufficient |
 
 ## Purpose
 
@@ -145,7 +147,7 @@ Dimensions: OG **1200×630**, cover **1200×800**.
 
 - **Detail:** [`BlogCoverImage.tsx`](../src/app/components/BlogCoverImage.tsx) — `resolveBlogCoverUrl`; shimmer + lazy load (`useInView`) like Mermaid
 - **List:** `variant="card"` uses `resolveBlogThumbnailUrl` (640×360 `thumbnailImageUrl`, else cover)
-- **Social meta:** [`BlogPostHead.tsx`](../src/app/modules/blog/public/detail/BlogPostHead.tsx) — full `seo.ogImageUrl` for `og:image` (HTTPS only in production)
+- **Social meta:** [`BlogPostHead.tsx`](../frontend/src/app/modules/blog/public/detail/BlogPostHead.tsx) — client `og:*` for browsers; **crawlers** use repo-root [`middleware.ts`](../middleware.ts) + [`blogShareHtml.ts`](../frontend/src/og/blogShareHtml.ts) (requires `VITE_BLOG_API_URL` on Vercel). Regenerate publish-kit images after Railway font fix if covers still show tofu blocks.
 - **Admin social preview:** `resolveBlogOgPreviewUrl` → `seo.ogImageThumbUrl` when set (800×420 from `commit_visual`)
 
 ### Unified visuals (v0.3)

@@ -30,6 +30,7 @@ import decorSystem from "../../assets/pukujan-decor-system.svg";
 import { BrandMark } from "./BrandMark";
 import { MappingScrollSection } from "./MappingScrollSection";
 import { mappingRows } from "./mappingData";
+import { OniCaseStudyHeader } from "./OniCaseStudyHeader";
 import { ProjectLinkButtons } from "./ProjectLinkButtons";
 import { WaterLoopsNarrativeSection } from "./WaterLoopsNarrativeSection";
 import { KLEI_FOOTER_DISCLAIMER } from "./waterLoopsData";
@@ -42,17 +43,17 @@ import {
 
 
 const navItems = [
-  { id: "thesis", label: "Thesis" },
-  { id: "oni", label: "ONI" },
-  { id: "waterLoops", label: "Water Loops" },
-  { id: "learning", label: "Learning Curve" },
-  { id: "mapping", label: "Mapping" },
-  { id: "failure", label: "Failure" },
-  { id: "pipeline500", label: "500 Agents" },
-  { id: "architecture", label: "Architecture" },
-  { id: "audit", label: "Audit Trail" },
-  { id: "microservices", label: "Microservices" },
-  { id: "sources", label: "Sources" },
+  { id: "thesis", label: "Thesis", shortLabel: "Thesis" },
+  { id: "oni", label: "ONI systems", shortLabel: "ONI" },
+  { id: "waterLoops", label: "Water loops", shortLabel: "Water" },
+  { id: "learning", label: "Learning curve", shortLabel: "Learning" },
+  { id: "mapping", label: "Mapping", shortLabel: "Mapping" },
+  { id: "failure", label: "Failure cascade", shortLabel: "Failure" },
+  { id: "pipeline500", label: "500 agents", shortLabel: "500" },
+  { id: "architecture", label: "Architecture", shortLabel: "Arch" },
+  { id: "audit", label: "Audit trail", shortLabel: "Audit" },
+  { id: "microservices", label: "Growth path", shortLabel: "Growth" },
+  { id: "sources", label: "Sources", shortLabel: "Sources" },
 ];
 
 const imageRefs = [
@@ -321,70 +322,14 @@ export function OniAgentCaseStudyPage() {
         <img src={decorOrbit} alt="" className="absolute -right-24 top-28 h-[34rem] w-[24rem] object-contain blur-[1px]" />
         <img src={decorSystem} alt="" className="absolute -left-28 bottom-12 h-[38rem] w-[28rem] object-contain blur-[1px]" />
       </div>
-      <header className="oni-header fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="flex items-center justify-between gap-3 py-3">
-            <a href="#top" className="oni-text flex shrink-0 items-center gap-3 font-black tracking-tight">
-              <BrandMark
-                src={astronautLogo}
-                alt="Pukujan"
-                preset="icon"
-                frameClassName="oni-surface oni-border oni-shadow-lg border shadow-lg"
-              />
-              <span className="flex flex-col leading-none">
-                <span className="text-base font-black">Pukujan</span>
-                <span className="oni-text-subtle hidden text-xs font-bold uppercase tracking-[0.22em] sm:inline">Agent-First Architecture</span>
-              </span>
-            </a>
-            <nav className="scrollbar-hide hidden min-w-0 flex-1 items-center justify-center gap-1 overflow-x-auto px-1 xl:flex">
-              {navItems.map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  className={`shrink-0 whitespace-nowrap rounded-full px-3 py-2 text-xs font-bold transition ${active === item.id ? "oni-nav-active" : "oni-nav-idle"}`}
-                >
-                  {item.label}
-                </a>
-              ))}
-            </nav>
-            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setTheme(isDark ? "light" : "dark")}
-                className="oni-btn inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold shadow-sm ring-1"
-              >
-                {isDark ? "Light mode" : "Dark mode"}
-              </button>
-              <a
-                href="https://www.klei.com/games/oxygen-not-included"
-                target="_blank"
-                rel="noreferrer"
-                className="oni-btn hidden shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold shadow-sm ring-1 lg:inline-flex"
-              >
-                ONI source <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            </div>
-          </div>
-          <div className="pb-2 md:pb-3">
-            <div className="oni-header-scroll-row scrollbar-hide">
-              <ProjectLinkButtons labelMode="short" nowrap elevated={false} showExternalIcon={false} />
-            </div>
-          </div>
-          <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-3 xl:hidden">
-            {navItems.map((item) => (
-              <a
-                key={item.id}
-                href={`#${item.id}`}
-                className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-bold ${active === item.id ? "oni-nav-active" : "oni-nav-mobile-idle"}`}
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
-        </div>
-      </header>
+      <OniCaseStudyHeader
+        navItems={navItems}
+        activeId={active}
+        theme={theme}
+        onThemeToggle={() => setTheme(isDark ? "light" : "dark")}
+      />
 
-      <main id="top" className="mx-auto max-w-7xl px-4 pb-24 pt-36 md:px-6 md:pt-40">
+      <main id="top" className="mx-auto max-w-7xl px-4 pb-24 pt-44 md:px-6 md:pt-48 lg:pt-52">
         <section className="grid gap-10 py-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:py-20">
           <div>
             <a

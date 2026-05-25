@@ -18,14 +18,16 @@
       "@/*": ["src/app/*"],
       "@ekagajpatra-case-study/*": ["extras/Create Presentation Case Study/src/*"],
       "@invest-ai-case-study/*": ["extras/invest-ai-case-study/src/*"],
-      "@oni-agent-case-study-v3/*": ["extras/oni_agent_interactive_page_svg_darkmode_src/*"]
+      "@oni-agent-case-study-v3/*": ["extras/oni_agent_interactive_page_svg_darkmode_src/*"],
+      "@oni-agent-case-study-v4/*": ["extras/oni_agent_interactive_page_svg_darkmode_v4_src/*"]
     }
   },
   "include": [
     "src",
     "extras/invest-ai-case-study/src",
     "extras/Create Presentation Case Study/src",
-    "extras/oni_agent_interactive_page_svg_darkmode_src"
+    "extras/oni_agent_interactive_page_svg_darkmode_src",
+    "extras/oni_agent_interactive_page_svg_darkmode_v4_src"
   ],
   "exclude": ["node_modules", "dist"]
 }

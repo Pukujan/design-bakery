@@ -56,6 +56,10 @@ export default defineConfig(async () => {
           __dirname,
           'extras/oni_agent_interactive_page_svg_darkmode_src',
         ),
+        '@oni-agent-case-study-v4': path.resolve(
+          __dirname,
+          'extras/oni_agent_interactive_page_svg_darkmode_v4_src',
+        ),
       },
     },
   }

@@ -234,7 +234,7 @@ export function BlogDetailPage() {
   const navigate = useNavigate();
   const { pathTo } = usePortfolio();
   const routeId = Number(blogId);
-  const { blog, isLoading } = useBlogPost(routeId);
+  const { blog, isLoading, isContentLoading } = useBlogPost(routeId);
   const { blogs: blogSummaries } = useBlogData();
   const categories = useBlogCategories();
   const blogsPath = pathTo('/blogs');
@@ -259,7 +259,9 @@ export function BlogDetailPage() {
     .filter((b) => b.category === blog.category && b.id !== blog.id)
     .slice(0, 3);
 
-  const contentToRender = blog.content || 'No content available';
+  const contentToRender = isContentLoading
+    ? ''
+    : blog.content?.trim() || 'No content available';
 
   return (
     <section className="min-h-screen pt-28 sm:pt-32 md:pt-36 pb-12 sm:pb-14 md:pb-16 px-4 sm:px-5 md:px-6 bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 relative overflow-hidden">
@@ -338,15 +340,25 @@ export function BlogDetailPage() {
             <MotionSection className="w-full">
               <motion.div whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 300, damping: 22 }}>
               <Card className="p-4 sm:p-5 md:p-6 lg:p-8 border-3 md:border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900 overflow-hidden">
-                <div className="blog-article-prose prose prose-sm sm:prose-sm md:prose-base max-w-none dark:prose-invert leading-relaxed break-words">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                    components={MarkdownComponents}
-                  >
-                    {contentToRender}
-                  </ReactMarkdown>
-                </div>
+                {isContentLoading ? (
+                  <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Loading article">
+                    <div className="h-4 rounded bg-gray-200 dark:bg-gray-700 w-full" />
+                    <div className="h-4 rounded bg-gray-200 dark:bg-gray-700 w-11/12" />
+                    <div className="h-4 rounded bg-gray-200 dark:bg-gray-700 w-10/12" />
+                    <div className="h-4 rounded bg-gray-200 dark:bg-gray-700 w-full" />
+                    <div className="h-4 rounded bg-gray-200 dark:bg-gray-700 w-9/12" />
+                  </div>
+                ) : (
+                  <div className="blog-article-prose prose prose-sm sm:prose-sm md:prose-base max-w-none dark:prose-invert leading-relaxed break-words">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                      components={MarkdownComponents}
+                    >
+                      {contentToRender}
+                    </ReactMarkdown>
+                  </div>
+                )}
               </Card>
               </motion.div>
             </MotionSection>

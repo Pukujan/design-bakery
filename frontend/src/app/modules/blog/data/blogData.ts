@@ -1,8 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
 import blogDataJson from './blog-data.json';
 import categoriesJson from './blog-categories.json';
-import { isSupabaseContentEnabled, fetchPublic } from '@/lib/contentApi';
+import { fetchPublic } from '@/lib/contentApi';
+import { getAuthApiBaseUrl } from '@/lib/adminToken';
+import { isPublicBlogSourceEnabled, isSupabaseDirectReadEnabled } from '@/lib/blogSource';
+import {
+  fetchBlogCategoriesFromSupabase,
+  fetchBlogListFromSupabase,
+  fetchBlogPostFromSupabase,
+  type RemoteBlogDto,
+} from './blogSupabase.js';
 import { normalizeBlogSeo, type BlogSeo } from '@/modules/blog/seo/blogMeta';
+import {
+  clearPersistedBlogCache,
+  findPersistedSummary,
+  readPersistedCategories,
+  readPersistedPost,
+  readPersistedSummaries,
+  summaryToBlogShell,
+  writePersistedCategories,
+  writePersistedPost,
+  writePersistedSummaries,
+} from './blogLocalCache.js';
 
 export type { BlogSeo };
 
@@ -44,9 +63,10 @@ type BlogCache = {
 let blogCache: BlogCache | null = null;
 let blogCachePromise: Promise<BlogCache> | null = null;
 
-export function invalidateBlogCache() {
+export function invalidateBlogCache(): void {
   blogCache = null;
   blogCachePromise = null;
+  clearPersistedBlogCache();
 }
 
 function parseBlogDate(date: string): number {
@@ -137,22 +157,7 @@ export function sortBlogsByDateDesc<T extends BlogSortable>(blogs: T[]): T[] {
 export const blogData = sortBlogsByDateDesc(blogDataJson as Blog[]);
 export const categories = categoriesJson as BlogCategory[];
 
-function mapRemoteBlog(row: {
-  numericId?: number;
-  id?: number | string;
-  title: string;
-  excerpt: string;
-  date: string;
-  readTime: string;
-  tags?: string[];
-  category: string;
-  color: string;
-  author: string;
-  content?: string;
-  coverImageUrl?: string;
-  thumbnailImageUrl?: string;
-  seo?: BlogSeo;
-}): Blog {
+function mapRemoteBlog(row: RemoteBlogDto): Blog {
   const numericId = typeof row.numericId === 'number' ? row.numericId : Number(row.id) || 0;
   return {
     id: numericId,
@@ -167,8 +172,50 @@ function mapRemoteBlog(row: {
     content: row.content ?? '',
     coverImageUrl: row.coverImageUrl?.trim() || undefined,
     thumbnailImageUrl: row.thumbnailImageUrl?.trim() || undefined,
-    seo: normalizeBlogSeo(row.seo),
+    seo: normalizeBlogSeo(row.seo as BlogSeo | undefined),
   };
+}
+
+function persistBlogCacheEntry(entry: BlogCache): void {
+  writePersistedSummaries(entry.summaries);
+  for (const post of entry.full) {
+    if (post.content?.trim()) writePersistedPost(post);
+  }
+}
+
+function blogFromMemoryCache(numericId: number): Blog | undefined {
+  const cached = blogCache?.full;
+  if (!cached) return undefined;
+  return findBlogByNumericId(cached, numericId);
+}
+
+function initialListState(hasLiveSource: boolean): { blogs: BlogSummary[]; isLoading: boolean } {
+  if (!hasLiveSource) {
+    return { blogs: blogData.map(toBlogSummary), isLoading: false };
+  }
+  const persisted = readPersistedSummaries();
+  const memory = blogCache?.summaries;
+  const blogs = memory ?? persisted?.summaries ?? [];
+  return { blogs, isLoading: blogs.length === 0 };
+}
+
+function initialPostState(
+  hasLiveSource: boolean,
+  numericId: number | undefined,
+): { blog: Blog | undefined; isLoading: boolean } {
+  if (!numericId) return { blog: undefined, isLoading: false };
+  if (!hasLiveSource) {
+    return { blog: findFallbackBlog(numericId), isLoading: false };
+  }
+  const full =
+    readPersistedPost(numericId) ??
+    blogFromMemoryCache(numericId) ??
+    (() => {
+      const summary = findPersistedSummary(numericId);
+      return summary ? summaryToBlogShell(summary) : undefined;
+    })();
+  const needsFetch = !full?.content?.trim();
+  return { blog: full, isLoading: needsFetch };
 }
 
 export async function getBlogDataLive(): Promise<Blog[]> {
@@ -176,17 +223,42 @@ export async function getBlogDataLive(): Promise<Blog[]> {
   return cache.full;
 }
 
+async function fetchRemoteBlogList(): Promise<RemoteBlogDto[]> {
+  if (isSupabaseDirectReadEnabled()) {
+    try {
+      const rows = await fetchBlogListFromSupabase();
+      if (rows.length) return rows;
+    } catch {
+      // fall through to Railway API
+    }
+  }
+  if (getAuthApiBaseUrl()) {
+    const data = await fetchPublic<{ blogs: RemoteBlogDto[] }>('/api/public/blogs');
+    return data.blogs ?? [];
+  }
+  return [];
+}
+
 async function fetchAllBlogsUncached(): Promise<Blog[]> {
   const fallback = sortBlogsByDateDesc(fallbackBlogsFromJson());
 
-  if (!isSupabaseContentEnabled()) return fallback;
+  if (!isPublicBlogSourceEnabled()) return fallback;
 
   try {
-    const data = await fetchPublic<{ blogs: Parameters<typeof mapRemoteBlog>[0][] }>('/api/public/blogs');
-    const remote = (data.blogs ?? []).map(mapRemoteBlog).map((b) => ({ ...b, numericId: b.id }));
-    if (remote.length === 0) return fallback;
+    const remote = (await fetchRemoteBlogList()).map(mapRemoteBlog).map((b) => ({ ...b, numericId: b.id }));
+    if (remote.length === 0) {
+      const persisted = readPersistedSummaries();
+      if (persisted?.summaries.length) {
+        return persisted.summaries.map((s) => summaryToBlogShell(s));
+      }
+      return fallback;
+    }
     return mergeBlogPostsWithFallback(fallback, remote);
   } catch {
+    const persisted = readPersistedSummaries();
+    if (persisted?.summaries.length) {
+      return persisted.summaries.map((s) => summaryToBlogShell(s));
+    }
     return fallback;
   }
 }
@@ -204,10 +276,17 @@ async function loadBlogCache(): Promise<BlogCache> {
       };
       blogCache = entry;
       blogCachePromise = null;
+      if (isPublicBlogSourceEnabled()) persistBlogCacheEntry(entry);
       return entry;
     });
   }
   return blogCachePromise;
+}
+
+/** Warm list cache on app load when CMS API is configured. */
+export function primeBlogCache(): void {
+  if (!isPublicBlogSourceEnabled() || typeof window === 'undefined') return;
+  void loadBlogCache();
 }
 
 export async function getBlogSummariesLive(): Promise<BlogSummary[]> {
@@ -222,16 +301,36 @@ function findFallbackBlog(numericId: number): Blog | undefined {
 export async function getBlogByNumericIdLive(numericId: number): Promise<Blog | undefined> {
   const fallback = findFallbackBlog(numericId);
 
-  if (!isSupabaseContentEnabled()) return fallback;
+  if (!isPublicBlogSourceEnabled()) return fallback;
+
+  const memoryHit = blogFromMemoryCache(numericId);
+  if (memoryHit?.content?.trim()) return memoryHit;
+
+  const persisted = readPersistedPost(numericId);
+  if (persisted?.content?.trim()) return persisted;
 
   try {
-    const data = await fetchPublic<{ blog: Parameters<typeof mapRemoteBlog>[0] }>(
-      `/api/public/blogs/${numericId}`,
-    );
-    const remote = mapRemoteBlog(data.blog);
+    let dto: RemoteBlogDto | null = null;
+    if (isSupabaseDirectReadEnabled()) {
+      try {
+        dto = await fetchBlogPostFromSupabase(numericId);
+      } catch {
+        // fall through to Railway API
+      }
+    }
+    if (!dto && getAuthApiBaseUrl()) {
+      const data = await fetchPublic<{ blog: RemoteBlogDto }>(`/api/public/blogs/${numericId}`);
+      dto = data.blog;
+    }
+    if (!dto) throw new Error('Blog not found');
+    const remote = mapRemoteBlog(dto);
+    writePersistedPost(remote);
     if (!fallback) return remote;
     return mergeBlogPostsWithFallback([fallback], [{ ...remote, numericId: remote.id }])[0];
   } catch {
+    if (persisted) return persisted;
+    const summary = findPersistedSummary(numericId);
+    if (summary) return summaryToBlogShell(summary);
     return fallback;
   }
 }
@@ -239,20 +338,39 @@ export async function getBlogByNumericIdLive(numericId: number): Promise<Blog | 
 export async function getBlogCategoriesLive(): Promise<BlogCategory[]> {
   const fallback = categoriesJson as BlogCategory[];
 
-  if (!isSupabaseContentEnabled()) return fallback;
+  if (!isPublicBlogSourceEnabled()) return fallback;
 
   try {
-    const data = await fetchPublic<{ items: BlogCategory[] }>('/api/public/blog-categories');
-    return data.items?.length ? data.items : fallback;
+    let items: BlogCategory[] | undefined;
+    if (isSupabaseDirectReadEnabled()) {
+      try {
+        const direct = await fetchBlogCategoriesFromSupabase();
+        if (direct.length) items = direct;
+      } catch {
+        // fall through
+      }
+    }
+    if (!items?.length && getAuthApiBaseUrl()) {
+      const data = await fetchPublic<{ items: BlogCategory[] }>('/api/public/blog-categories');
+      items = data.items?.length ? data.items : undefined;
+    }
+    const resolved = items?.length ? items : fallback;
+    writePersistedCategories(resolved);
+    return resolved;
   } catch {
-    return fallback;
+    return readPersistedCategories()?.items ?? fallback;
   }
 }
 
 export function useBlogCategories() {
-  const [liveCategories, setLiveCategories] = useState<BlogCategory[]>(categories);
+  const hasLiveSource = isPublicBlogSourceEnabled();
+  const persisted = hasLiveSource ? readPersistedCategories()?.items : undefined;
+  const [liveCategories, setLiveCategories] = useState<BlogCategory[]>(
+    persisted ?? categories,
+  );
 
   useEffect(() => {
+    if (!hasLiveSource) return;
     let active = true;
     void getBlogCategoriesLive().then((items) => {
       if (active) setLiveCategories(items);
@@ -260,7 +378,7 @@ export function useBlogCategories() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [hasLiveSource]);
 
   return liveCategories;
 }
@@ -268,26 +386,29 @@ export function useBlogCategories() {
 export type UseBlogDataResult = {
   blogs: BlogSummary[];
   isLoading: boolean;
+  isRefreshing: boolean;
 };
 
-/** Blog list, insights, nav — summaries only; shared in-memory cache. */
+/** Blog list, insights, nav — summaries only; stale-while-revalidate from localStorage. */
 export function useBlogData(): UseBlogDataResult {
-  const hasLiveSource = isSupabaseContentEnabled();
-  const [liveBlogs, setLiveBlogs] = useState<BlogSummary[]>(blogData.map(toBlogSummary));
-  const [isLoading, setIsLoading] = useState(hasLiveSource);
+  const hasLiveSource = isPublicBlogSourceEnabled();
+  const initial = initialListState(hasLiveSource);
+  const [liveBlogs, setLiveBlogs] = useState<BlogSummary[]>(initial.blogs);
+  const [isLoading, setIsLoading] = useState(initial.isLoading);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    if (!hasLiveSource) {
-      setIsLoading(false);
-      return;
-    }
+    if (!hasLiveSource) return;
 
     let active = true;
+    const hadData = liveBlogs.length > 0;
+    if (hadData) setIsRefreshing(true);
+
     void getBlogSummariesLive().then((items) => {
-      if (active) {
-        setLiveBlogs(items);
-        setIsLoading(false);
-      }
+      if (!active) return;
+      setLiveBlogs(items);
+      setIsLoading(false);
+      setIsRefreshing(false);
     });
 
     return () => {
@@ -295,56 +416,66 @@ export function useBlogData(): UseBlogDataResult {
     };
   }, [hasLiveSource]);
 
-  return { blogs: liveBlogs, isLoading };
+  return { blogs: liveBlogs, isLoading, isRefreshing };
 }
 
 export type UseBlogPostResult = {
   blog: Blog | undefined;
   isLoading: boolean;
+  isContentLoading: boolean;
 };
 
-/** Blog detail — single post fetch; uses JSON fallback until CMS returns. */
+/** Blog detail — persisted/CMS data only when API enabled (no JSON flash). */
 export function useBlogPost(numericId: number | undefined): UseBlogPostResult {
-  const hasLiveSource = isSupabaseContentEnabled();
+  const hasLiveSource = isPublicBlogSourceEnabled();
   const validId =
     typeof numericId === 'number' && !Number.isNaN(numericId) && numericId > 0
       ? numericId
       : undefined;
 
-  const jsonFallback = useMemo(
-    () => (validId ? findFallbackBlog(validId) : undefined),
-    [validId],
+  const initial = initialPostState(hasLiveSource, validId);
+  const [blog, setBlog] = useState<Blog | undefined>(initial.blog);
+  const [isLoading, setIsLoading] = useState(initial.isLoading);
+  const [isContentLoading, setIsContentLoading] = useState(
+    Boolean(initial.blog && !initial.blog.content?.trim() && hasLiveSource),
   );
 
-  const [blog, setBlog] = useState<Blog | undefined>(jsonFallback);
-  const [isLoading, setIsLoading] = useState(hasLiveSource && Boolean(validId));
-
   useEffect(() => {
-    setBlog(jsonFallback);
-
     if (!validId) {
+      setBlog(undefined);
       setIsLoading(false);
+      setIsContentLoading(false);
       return;
     }
 
     if (!hasLiveSource) {
+      setBlog(findFallbackBlog(validId));
       setIsLoading(false);
+      setIsContentLoading(false);
       return;
     }
 
+    const nextInitial = initialPostState(true, validId);
+    setBlog(nextInitial.blog);
+    setIsLoading(nextInitial.isLoading);
+    setIsContentLoading(Boolean(nextInitial.blog && !nextInitial.blog.content?.trim()));
+
     let active = true;
-    setIsLoading(true);
     void getBlogByNumericIdLive(validId).then((item) => {
-      if (active) {
-        setBlog(item);
-        setIsLoading(false);
-      }
+      if (!active) return;
+      setBlog(item);
+      setIsLoading(false);
+      setIsContentLoading(false);
     });
 
     return () => {
       active = false;
     };
-  }, [validId, hasLiveSource, jsonFallback]);
+  }, [validId, hasLiveSource]);
 
-  return { blog, isLoading };
+  return { blog, isLoading, isContentLoading };
+}
+
+if (typeof window !== 'undefined') {
+  primeBlogCache();
 }

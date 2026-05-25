@@ -131,10 +131,19 @@ Options:
     ensurePublishKitFontconfig();
     const defs = interFontFaceDefs();
     if (!defs.includes('base64') || defs.length < 1000) throw new Error('missing embedded WOFF');
-    if (!process.env.FONTCONFIG_PATH?.includes('inter-fonts')) {
+    if (!process.env.FONTCONFIG_PATH?.includes('.inter-fonts')) {
       throw new Error('fontconfig not registered for Inter');
     }
-    r.ok('Inter WOFF embedded + fontconfig registered for sharp/SVG renders');
+    const { existsSync } = await import('node:fs');
+    const { join, dirname } = await import('node:path');
+    const { createRequire } = await import('node:module');
+    const require = createRequire(import.meta.url);
+    const kitDir = dirname(require.resolve('../lib/blog/publishKit/fonts.js'));
+    const ttfPath = join(kitDir, 'inter-ttf', 'Inter-Variable.ttf');
+    if (!existsSync(ttfPath)) {
+      throw new Error(`bundled Inter TTF missing at ${ttfPath} — run npm run build in backend/services`);
+    }
+    r.ok('Inter WOFF + TTF + fontconfig registered for sharp/SVG renders');
   } catch (err) {
     r.fail('fonts', err);
   }

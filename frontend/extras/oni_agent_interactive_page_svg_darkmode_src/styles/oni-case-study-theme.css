@@ -260,6 +260,36 @@
   overflow: visible;
 }
 
+.oni-header-divider {
+  background-color: var(--oni-border-strong);
+}
+
+.oni-jump-select {
+  background-color: var(--oni-surface);
+  border-color: var(--oni-border-strong);
+  color: var(--oni-text);
+}
+
+.oni-nav-scroll-mask {
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 0.75rem,
+    #000 calc(100% - 0.75rem),
+    transparent
+  );
+}
+
+.oni-nav-idle:focus-visible {
+  outline: 2px solid var(--oni-accent-soft-border);
+  outline-offset: 2px;
+}
+
+.oni-nav-active:focus-visible {
+  outline: 2px solid var(--oni-accent-text);
+  outline-offset: 2px;
+}
+
 .oni-footer {
   background-color: color-mix(in srgb, var(--oni-surface) 70%, transparent);
   border-color: var(--oni-border);
