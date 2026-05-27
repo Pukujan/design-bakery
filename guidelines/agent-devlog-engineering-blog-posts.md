@@ -77,8 +77,8 @@ Do not convert diagrams to `graph LR` when editing this post.
 
 ## Firestore
 
-- **List / insights / nav:** `useBlogData()` → `getBlogSummariesLive()` — metadata only in React state; **5 min in-memory cache** shared across hooks (still one Firestore read for all docs; network size unchanged until a `blog_posts_index` doc exists).
-- **Detail:** `useBlogPost(id)` → `getBlogByNumericIdLive()` — **single** `where('numericId', '==', id)` query (not the full collection).
+- **List / insights / nav:** `useBlogData()` → `getBlogSummariesLive()` — metadata only; **5 min** in-memory + localStorage (`blogLocalCache.ts` v2 keys).
+- **Detail:** `useBlogPost(id)` → `getBlogByNumericIdLive()` — **always revalidates** from API/Supabase on visit (shows cached body first, then replaces). localStorage TTL **5 min** (not 24h). Compare `updatedAt` from list vs full post to drop stale bodies (#23).
 - **Public merge:** JSON + Firestore by **`numericId` only** (Firestore wins on collision).
 - **Admin:** `saveBlog()` / `deleteBlog()` call `invalidateBlogCache()`.
 - **Public meta:** `BlogPostHead` on detail — reads `blog.seo` + fallbacks to title/excerpt.

@@ -41,6 +41,8 @@ export interface Blog {
   /** 640×360 list card image (from publish kit commit) */
   thumbnailImageUrl?: string;
   seo?: BlogSeo;
+  /** CMS revision time — used to invalidate stale localStorage (#23). */
+  updatedAt?: string;
 }
 
 /** List / nav / similar-articles — no markdown body (smaller React trees). */
@@ -173,7 +175,25 @@ function mapRemoteBlog(row: RemoteBlogDto): Blog {
     coverImageUrl: row.coverImageUrl?.trim() || undefined,
     thumbnailImageUrl: row.thumbnailImageUrl?.trim() || undefined,
     seo: normalizeBlogSeo(row.seo as BlogSeo | undefined),
+    updatedAt: row.updatedAt,
   };
+}
+
+async function fetchBlogPostRemote(numericId: number): Promise<Blog | null> {
+  let dto: RemoteBlogDto | null = null;
+  if (isSupabaseDirectReadEnabled()) {
+    try {
+      dto = await fetchBlogPostFromSupabase(numericId);
+    } catch {
+      // fall through to Railway API
+    }
+  }
+  if (!dto && getAuthApiBaseUrl()) {
+    const data = await fetchPublic<{ blog: RemoteBlogDto }>(`/api/public/blogs/${numericId}`);
+    dto = data.blog;
+  }
+  if (!dto) return null;
+  return mapRemoteBlog(dto);
 }
 
 function persistBlogCacheEntry(entry: BlogCache): void {
@@ -303,32 +323,20 @@ export async function getBlogByNumericIdLive(numericId: number): Promise<Blog | 
 
   if (!isPublicBlogSourceEnabled()) return fallback;
 
-  const memoryHit = blogFromMemoryCache(numericId);
-  if (memoryHit?.content?.trim()) return memoryHit;
-
   const persisted = readPersistedPost(numericId);
-  if (persisted?.content?.trim()) return persisted;
+  const memoryHit = blogFromMemoryCache(numericId);
+  const memoryFresh =
+    Boolean(blogCache && Date.now() - blogCache.fetchedAt < BLOG_CACHE_MS);
 
   try {
-    let dto: RemoteBlogDto | null = null;
-    if (isSupabaseDirectReadEnabled()) {
-      try {
-        dto = await fetchBlogPostFromSupabase(numericId);
-      } catch {
-        // fall through to Railway API
-      }
-    }
-    if (!dto && getAuthApiBaseUrl()) {
-      const data = await fetchPublic<{ blog: RemoteBlogDto }>(`/api/public/blogs/${numericId}`);
-      dto = data.blog;
-    }
-    if (!dto) throw new Error('Blog not found');
-    const remote = mapRemoteBlog(dto);
+    const remote = await fetchBlogPostRemote(numericId);
+    if (!remote) throw new Error('Blog not found');
     writePersistedPost(remote);
     if (!fallback) return remote;
     return mergeBlogPostsWithFallback([fallback], [{ ...remote, numericId: remote.id }])[0];
   } catch {
-    if (persisted) return persisted;
+    if (memoryHit?.content?.trim() && memoryFresh) return memoryHit;
+    if (persisted?.content?.trim()) return persisted;
     const summary = findPersistedSummary(numericId);
     if (summary) return summaryToBlogShell(summary);
     return fallback;
@@ -423,6 +431,7 @@ export type UseBlogPostResult = {
   blog: Blog | undefined;
   isLoading: boolean;
   isContentLoading: boolean;
+  isRefreshing: boolean;
 };
 
 /** Blog detail — persisted/CMS data only when API enabled (no JSON flash). */
@@ -439,12 +448,16 @@ export function useBlogPost(numericId: number | undefined): UseBlogPostResult {
   const [isContentLoading, setIsContentLoading] = useState(
     Boolean(initial.blog && !initial.blog.content?.trim() && hasLiveSource),
   );
+  const [isRefreshing, setIsRefreshing] = useState(
+    Boolean(initial.blog?.content?.trim() && hasLiveSource),
+  );
 
   useEffect(() => {
     if (!validId) {
       setBlog(undefined);
       setIsLoading(false);
       setIsContentLoading(false);
+      setIsRefreshing(false);
       return;
     }
 
@@ -452,6 +465,7 @@ export function useBlogPost(numericId: number | undefined): UseBlogPostResult {
       setBlog(findFallbackBlog(validId));
       setIsLoading(false);
       setIsContentLoading(false);
+      setIsRefreshing(false);
       return;
     }
 
@@ -459,6 +473,7 @@ export function useBlogPost(numericId: number | undefined): UseBlogPostResult {
     setBlog(nextInitial.blog);
     setIsLoading(nextInitial.isLoading);
     setIsContentLoading(Boolean(nextInitial.blog && !nextInitial.blog.content?.trim()));
+    setIsRefreshing(Boolean(nextInitial.blog?.content?.trim()));
 
     let active = true;
     void getBlogByNumericIdLive(validId).then((item) => {
@@ -466,6 +481,7 @@ export function useBlogPost(numericId: number | undefined): UseBlogPostResult {
       setBlog(item);
       setIsLoading(false);
       setIsContentLoading(false);
+      setIsRefreshing(false);
     });
 
     return () => {
@@ -473,7 +489,7 @@ export function useBlogPost(numericId: number | undefined): UseBlogPostResult {
     };
   }, [validId, hasLiveSource]);
 
-  return { blog, isLoading, isContentLoading };
+  return { blog, isLoading, isContentLoading, isRefreshing };
 }
 
 if (typeof window !== 'undefined') {

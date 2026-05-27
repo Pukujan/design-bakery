@@ -17,6 +17,7 @@ export type BlogPostRow = {
   cover_image_url: string | null;
   thumbnail_image_url: string | null;
   seo: Record<string, unknown> | null;
+  updated_at?: string;
 };
 
 export type BlogPostDto = {
@@ -34,6 +35,7 @@ export type BlogPostDto = {
   coverImageUrl?: string;
   thumbnailImageUrl?: string;
   seo?: Record<string, unknown>;
+  updatedAt?: string;
 };
 
 function rowToDto(row: BlogPostRow): BlogPostDto {
@@ -52,6 +54,7 @@ function rowToDto(row: BlogPostRow): BlogPostDto {
     coverImageUrl: row.cover_image_url ?? undefined,
     thumbnailImageUrl: row.thumbnail_image_url ?? undefined,
     seo: row.seo ?? undefined,
+    updatedAt: row.updated_at ?? undefined,
   };
 }
 
@@ -76,7 +79,7 @@ function dtoToRow(data: Omit<BlogPostDto, 'id'>, legacyDocId?: string): Omit<Blo
 
 /** List columns without markdown body — public index + cards only. */
 const BLOG_LIST_COLUMNS =
-  'id, legacy_doc_id, numeric_id, title, excerpt, tags, category, author, color, date, read_time, cover_image_url, thumbnail_image_url, seo';
+  'id, legacy_doc_id, numeric_id, title, excerpt, tags, category, author, color, date, read_time, cover_image_url, thumbnail_image_url, seo, updated_at';
 
 export type ListBlogPostsOptions = {
   /** Admin editor needs full markdown; public list omits body for speed. */

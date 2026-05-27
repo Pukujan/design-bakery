@@ -3,7 +3,7 @@ import type { BlogCategory } from './blogData';
 
 /** List columns — omit markdown body for faster cards. */
 const BLOG_LIST_COLUMNS =
-  'numeric_id, legacy_doc_id, title, excerpt, tags, category, author, color, date, read_time, cover_image_url, thumbnail_image_url, seo';
+  'numeric_id, legacy_doc_id, title, excerpt, tags, category, author, color, date, read_time, cover_image_url, thumbnail_image_url, seo, updated_at';
 
 export type RemoteBlogDto = {
   numericId?: number;
@@ -20,6 +20,7 @@ export type RemoteBlogDto = {
   coverImageUrl?: string;
   thumbnailImageUrl?: string;
   seo?: Record<string, unknown>;
+  updatedAt?: string;
 };
 
 type BlogPostRow = {
@@ -37,6 +38,7 @@ type BlogPostRow = {
   cover_image_url: string | null;
   thumbnail_image_url: string | null;
   seo: Record<string, unknown> | null;
+  updated_at?: string;
 };
 
 function rowToDto(row: BlogPostRow): RemoteBlogDto {
@@ -55,6 +57,7 @@ function rowToDto(row: BlogPostRow): RemoteBlogDto {
     coverImageUrl: row.cover_image_url ?? undefined,
     thumbnailImageUrl: row.thumbnail_image_url ?? undefined,
     seo: row.seo ?? undefined,
+    updatedAt: row.updated_at ?? undefined,
   };
 }
 
