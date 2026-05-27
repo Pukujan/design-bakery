@@ -10,6 +10,7 @@ import { AI_AGENTS_CASE_STUDY_PATH, AI_AGENTS_CASE_STUDY_V1_PATH } from './lib/c
 import { DesignPortfolio } from './modules/design/DesignPortfolio/DesignPortfolio';
 import { BlogListPage } from './modules/blog/public/list/BlogListPage';
 import { BlogDetailPage } from './modules/blog/public/detail/BlogDetailPage';
+import { PhotoGalleryPage } from './modules/photo-gallery';
 import { AdminAuthProvider } from './lib/adminAuth';
 import { AdminLogin } from './modules/admin/AdminLogin';
 import { PortfolioPublicLayout } from './portfolios/PortfolioPublicLayout';
@@ -100,6 +101,13 @@ export default function App() {
             <Route path="/endtoend-engineer" element={<EngineeringHome />} />
             <Route path="/endtoend-engineer/blogs" element={<BlogListPage />} />
             <Route path="/endtoend-engineer/blogs/:blogId" element={<BlogDetailPage />} />
+            <Route path="/endtoend-engineer/gallery" element={<PhotoGalleryPage />} />
+            <Route
+              path="/endtoend-engineer/gallery/image/:category/:imageId"
+              element={<PhotoGalleryPage />}
+            />
+            <Route path="/gallery" element={<PhotoGalleryPage />} />
+            <Route path="/gallery/image/:category/:imageId" element={<PhotoGalleryPage />} />
             <Route path="/ai-engineer" element={<EngineeringHome />} />
             <Route path="/ai-engineer/blogs" element={<BlogListPage />} />
             <Route path="/ai-engineer/blogs/:blogId" element={<BlogDetailPage />} />

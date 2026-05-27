@@ -45,6 +45,8 @@ export async function renderUnifiedPublishVisuals(params: {
   preferHeroCache?: boolean;
 }): Promise<{
   variants: PublishVisualVariants;
+  /** Raw hero art before any overlay text (for gallery auto-save). */
+  rawHeroPng?: Buffer;
   imageModel?: string;
   usedAi: boolean;
   heroSource?: 'cache' | 'openrouter';
@@ -105,6 +107,7 @@ export async function renderUnifiedPublishVisuals(params: {
       const og = await resizePng(hero.png, OG_SIZE.width, OG_SIZE.height);
       return {
         variants: { cover, og },
+        rawHeroPng: hero.png,
         imageModel: hero.imageModel,
         usedAi: true,
         heroSource: hero.source,
@@ -123,6 +126,7 @@ export async function renderUnifiedPublishVisuals(params: {
 
     return {
       variants: { cover, og },
+      rawHeroPng: hero.png,
       imageModel: hero.imageModel,
       usedAi: true,
       heroSource: hero.source,

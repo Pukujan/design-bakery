@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getBlogByNumericId, listBlogPosts } from '../../services/lib/content/blogPosts.js';
+import { listMediaAssets } from '../../services/lib/media/mediaLibrary.js';
 import { getCmsArray } from '../../services/lib/content/cmsDocuments.js';
 import { sendRouteError } from '../middleware/httpErrors.js';
 
@@ -32,6 +33,15 @@ publicContentRouter.get('/blog-categories', async (_req, res) => {
   try {
     const items = await getCmsArray('blog_categories', []);
     res.json({ ok: true, items });
+  } catch (error) {
+    sendRouteError(res, error);
+  }
+});
+
+publicContentRouter.get('/media', async (_req, res) => {
+  try {
+    const assets = await listMediaAssets();
+    res.json({ ok: true, assets });
   } catch (error) {
     sendRouteError(res, error);
   }

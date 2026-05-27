@@ -16,6 +16,7 @@ import {
 import { resolveCardBlurb } from './textUtils.js';
 import { logPublishKitFontsForContext } from './fontDiagnostics.js';
 import { renderUnifiedPublishVisuals } from './unifiedVisual.js';
+import { uploadMediaAssets } from '../../media/mediaLibrary.js';
 import {
   PUBLISH_KIT_API_VERSION,
   type PublishKitRequest,
@@ -31,6 +32,37 @@ const VALID_ACTIONS = [
   'meta_and_tags',
   'commit_visual',
 ] as const;
+
+function slugifyForGallery(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+}
+
+function galleryTagsFromSnapshot(snapshot: PublishKitSnapshot): string[] {
+  const tags = new Set<string>();
+  tags.add('blog hero image');
+  tags.add('seo visual asset');
+  tags.add('ai generated artwork');
+  tags.add('content marketing graphic');
+  if (snapshot.category?.trim()) tags.add(slugifyForGallery(snapshot.category));
+  for (const t of snapshot.tags ?? []) {
+    const clean = slugifyForGallery(t);
+    if (clean) {
+      tags.add(clean);
+      tags.add(`${clean} topic`);
+    }
+  }
+  const titleTokens = snapshot.title.toLowerCase().split(/[^a-z0-9]+/g).filter((t) => t.length >= 4);
+  if (titleTokens.length >= 2) {
+    tags.add(`${titleTokens.slice(0, 2).join(' ')} concept`);
+    tags.add(`${titleTokens.slice(0, 2).join(' ')} blog graphic`);
+  }
+  return [...tags].slice(0, 20);
+}
 
 function snapshotFromBlog(blog: ResolvedBlogPost): PublishKitSnapshot {
   return {
@@ -197,7 +229,7 @@ export async function handlePublishKit(params: {
       runSvgProbe: true,
     });
 
-    const { variants, imageModel, usedAi, heroSource, heroCacheId, heroCacheScore } =
+    const { variants, rawHeroPng, imageModel, usedAi, heroSource, heroCacheId, heroCacheScore } =
       await renderUnifiedPublishVisuals({
         apiKey,
         title: snapshot.title,
@@ -232,6 +264,33 @@ export async function handlePublishKit(params: {
       heroCacheId,
       heroCacheScore,
     };
+
+    // Mirror every AI/hybrid-generated blog visual into media library (best effort).
+    if (response.visual.usedAiArt) {
+      const baseSlug = slugifyForGallery(snapshot.title) || `blog-${snapshot.numericId ?? blogId}`;
+      const ts = Date.now();
+      const galleryTags = galleryTagsFromSnapshot(snapshot);
+      const notes = `Auto-saved from publish-kit ${body.action} (mode=${prefs.visualMode ?? 'hybrid'}) blog=${snapshot.numericId ?? blogId}`;
+      const uploads = [
+        {
+          filename: `${baseSlug}-hero-raw-${ts}.png`,
+          slug: `${baseSlug}-hero-raw-${ts}`,
+          dataUrl: rawHeroPng ? bufferToDataUrl(rawHeroPng) : response.visual.ogPreviewDataUrl,
+          tags: [...galleryTags, 'hero', 'raw'],
+          altText: `${snapshot.title} raw hero visual`,
+          notes: `${notes}; saved-before-overlay=true`,
+        },
+      ];
+
+      try {
+        await uploadMediaAssets(uploads);
+      } catch (err) {
+        console.warn(
+          '[publishKit] media mirror failed:',
+          err instanceof Error ? err.message : err,
+        );
+      }
+    }
   }
 
   return response;

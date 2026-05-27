@@ -17,6 +17,7 @@ import { EngineeringSkillsMetaEditor } from './sections/EngineeringSkillsMetaEdi
 import { ContactSectionEditor } from './sections/ContactSectionEditor';
 import { FooterEditor } from './sections/FooterEditor';
 import { RelevantExperienceEditor } from './sections/RelevantExperienceEditor';
+import { MediaLibraryEditor } from './sections/MediaLibraryEditor';
 import type { PortfolioId } from '../../portfolios/registry';
 
 const ENGINEERING_ROUTES: RouteObject[] = [
@@ -32,6 +33,7 @@ const ENGINEERING_ROUTES: RouteObject[] = [
   { path: 'footer', element: <FooterEditor /> },
   { path: 'relevant-experience', element: <RelevantExperienceEditor /> },
   { path: 'engineering-skills', element: <EngineeringSkillsEditor /> },
+  { path: 'media-library', element: <MediaLibraryEditor /> },
 ];
 
 const DESIGN_ROUTES: RouteObject[] = [

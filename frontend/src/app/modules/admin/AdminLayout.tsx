@@ -24,6 +24,7 @@ import {
   PanelsTopLeft,
   ArrowLeftRight,
   Menu,
+  Images,
 } from 'lucide-react';
 import { useAdminPortfolio } from './AdminPortfolioContext';
 import { AdminPushDefaults } from './components/AdminPushDefaults';
@@ -47,6 +48,7 @@ const ENGINEERING_NAV: NavItem[] = [
   { path: 'relevant-experience', label: 'Relevant Experience', icon: Briefcase },
   { path: 'footer', label: 'Footer', icon: PanelsTopLeft },
   { path: 'engineering-skills', label: 'Eng. Skills Data', icon: Wrench },
+  { path: 'media-library', label: 'Media Library', icon: Images },
 ];
 
 const DESIGN_NAV: NavItem[] = [
