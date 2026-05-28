@@ -64,19 +64,18 @@ export type NewBlogPostDraft = {
 };
 
 export function createNewBlogPostDraft(category: string): NewBlogPostDraft {
-  const now = new Date();
   return {
     numericId: 0,
     title: '',
     excerpt: '',
-    date: formatBlogDisplayDate(now),
+    date: '',
     readTime: '',
     tags: [],
     category,
     color: '#6366f1',
-    author: DEFAULT_BLOG_AUTHOR,
+    author: '',
     content: '',
-    publishedAt: now.toISOString(),
+    publishedAt: '',
   };
 }
 

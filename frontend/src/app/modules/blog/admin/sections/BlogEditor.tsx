@@ -53,6 +53,7 @@ import { resolveBlogNumericId } from '@/modules/blog/data/blogData';
 import {
   createNewBlogPostDraft,
   DEFAULT_BLOG_AUTHOR,
+  formatBlogDisplayDate,
   prepareBlogPostForSave,
 } from '@/modules/blog/lib/blogPostDefaults';
 import { resolveBlogOgPreviewUrl } from '@/modules/blog/seo/blogMeta';
@@ -68,11 +69,6 @@ const FIELD_OVERFLOW =
 
 const TEXTAREA_OVERFLOW =
   'min-w-0 max-w-full field-sizing-fixed overflow-x-auto overflow-y-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere]';
-
-const EMPTY_POST: Omit<BlogPost, 'id'> = {
-  ...createNewBlogPostDraft(''),
-  category: '',
-};
 
 export function BlogEditor() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -210,7 +206,7 @@ export function BlogEditor() {
     }
     newPostSlotRef.current = `new-${Date.now()}`;
     const defaultCategory = categories.find((c) => c.id !== 'all')?.id ?? '';
-    beginEditSession({ ...createNewBlogPostDraft(defaultCategory) });
+    beginEditSession(createNewBlogPostDraft(defaultCategory) as BlogPost);
   }
 
   function openEdit(post: BlogPost) {
@@ -671,13 +667,15 @@ export function BlogEditor() {
                 <Label>Date (display)</Label>
                 <Input
                   className={FIELD_OVERFLOW}
-                  placeholder="may - 27 - 2026"
+                  placeholder={formatBlogDisplayDate()}
                   value={editPost.date}
                   onChange={(e) => setEditPost({ ...editPost, date: e.target.value })}
                 />
-                <p className="text-xs text-gray-500">
-                  Shown on the blog. Sort order uses a hidden timestamp set when the post is first saved.
-                </p>
+                {!editPost.id && (
+                  <p className="text-xs text-gray-500">
+                    Defaults to today ({formatBlogDisplayDate()}). Sort order uses a hidden timestamp on first save.
+                  </p>
+                )}
               </div>
               <div className="min-w-0 space-y-1">
                 <Label>Read Time</Label>
