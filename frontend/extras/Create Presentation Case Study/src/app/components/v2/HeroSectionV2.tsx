@@ -50,7 +50,10 @@ export function HeroSectionV2() {
             <div className="flex items-start gap-3">
               <div className="text-secondary font-semibold shrink-0">Role:</div>
               <div className="text-primary-foreground/90">
-                Lead Product Designer (research · branding · UX/UI · front-end)
+                Lead Product Designer & Frontend Engineer, Fullstack Product Ownership
+                <span className="block mt-1 text-primary-foreground/80">
+                  (research · branding · UX/UI · frontend · backend integration · PDF generation)
+                </span>
               </div>
             </div>
             <div className="flex items-start gap-3">
