@@ -9,13 +9,24 @@ import type { Blog } from '@/modules/blog/data/blogData';
 type Props = {
   blog: Pick<Blog, 'title' | 'coverImageUrl' | 'thumbnailImageUrl' | 'seo'>;
   variant: 'hero' | 'card';
+  /** `full` = entire artwork visible; `cover` = fill frame and clip to outline; `square` / `compact` = fixed frame. */
+  coverFit?: 'square' | 'compact' | 'full' | 'cover';
   className?: string;
 };
 
-export function BlogCoverImage({ blog, variant, className = '' }: Props) {
+export function BlogCoverImage({
+  blog,
+  variant,
+  coverFit = 'square',
+  className = '',
+}: Props) {
   const { ref: shellRef, inView } = useInView(variant === 'hero' ? '400px' : '240px');
   const url =
-    variant === 'card' ? resolveBlogThumbnailUrl(blog) : resolveBlogCoverUrl(blog);
+    variant === 'card'
+      ? coverFit === 'full' || coverFit === 'cover'
+        ? resolveBlogCoverUrl(blog) ?? resolveBlogThumbnailUrl(blog)
+        : resolveBlogThumbnailUrl(blog)
+      : resolveBlogCoverUrl(blog);
   const urlKey = url ?? '';
 
   const shouldLoad = variant === 'hero' || inView;
@@ -33,7 +44,15 @@ export function BlogCoverImage({ blog, variant, className = '' }: Props) {
     if (variant === 'card') {
       return (
         <div
-          className={`mb-4 aspect-square w-full rounded-lg border-2 border-dashed border-gray-300 bg-gray-100/80 dark:border-gray-600 dark:bg-gray-800/50 ${className}`}
+          className={`mb-4 w-full rounded-lg border-2 border-dashed border-gray-300 bg-gray-100/80 dark:border-gray-600 dark:bg-gray-800/50 ${
+            coverFit === 'full'
+              ? 'blog-cover-shell--card-full'
+              : coverFit === 'cover'
+                ? 'blog-cover-shell--card-cover'
+                : coverFit === 'compact'
+                  ? 'blog-cover-shell--card-compact'
+                  : 'aspect-square'
+          } ${className}`}
           aria-hidden
         />
       );
@@ -56,15 +75,30 @@ export function BlogCoverImage({ blog, variant, className = '' }: Props) {
     );
   }
 
+  const cardShellMod =
+    coverFit === 'full'
+      ? 'blog-cover-shell--card-full'
+      : coverFit === 'cover'
+        ? 'blog-cover-shell--card-cover'
+        : coverFit === 'compact'
+          ? 'blog-cover-shell--card-compact'
+          : 'blog-cover-shell--card';
+
   const shellClass =
     variant === 'card'
-      ? `blog-cover-shell blog-cover-shell--card mb-4 overflow-hidden rounded-lg border-2 border-black ${className}`
+      ? `blog-cover-shell ${cardShellMod} mb-4 overflow-hidden rounded-lg border-2 border-black ${
+          coverFit === 'full' ? '!overflow-visible' : ''
+        } ${className}`
       : `blog-cover-shell blog-cover-shell--hero mb-4 sm:mb-5 md:mb-6 ml-11 sm:ml-12 md:ml-0 overflow-hidden rounded-lg md:rounded-xl border-2 sm:border-2 md:border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${className}`;
 
   const imgClass =
     variant === 'card'
-      ? 'aspect-square w-full object-cover'
-      : 'blog-cover-img--hero block w-full h-full object-cover object-top';
+      ? coverFit === 'full'
+        ? 'blog-cover-img--card-full'
+        : coverFit === 'cover'
+          ? 'blog-cover-img--card-cover'
+          : 'blog-cover-img--card block h-full w-full object-contain'
+      : 'blog-cover-img--hero block w-full h-auto max-h-[min(720px,85vh)] object-contain';
 
   return (
     <div

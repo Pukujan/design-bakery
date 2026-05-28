@@ -1,5 +1,5 @@
 /** Blog motion: guidelines/agent-devlog-blog-motion.md | Mermaid: guidelines/agent-devlog-mermaid.md */
-import { Children, createContext, isValidElement, useContext, useRef, useState, type ReactNode } from 'react';
+import { Children, createContext, isValidElement, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Clock, Tag, Calendar, User } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -10,7 +10,6 @@ import { Squiggle } from '@/components/GraphicElements';
 import {
   BlogPageDecor,
   MotionSection,
-  blogButtonMotion,
   blogCardMotion,
 } from '@/modules/blog/shared/BlogPageMotion';
 import { BlogContactFab } from '@/modules/blog/shared/BlogContactFab';
@@ -24,10 +23,15 @@ import { BlogPostHead } from './BlogPostHead';
 import { BlogDetailPageSkeleton } from './BlogDetailPageSkeleton';
 import { useStickySidebar } from './useStickySidebar';
 import { usePortfolio } from '@/portfolios/PortfolioContext';
+import { extractTableOfContents } from '@/modules/blog/lib/parseBlogTableOfContents';
+import { resolveBlogCategoryId } from '@/modules/blog/lib/blogCategoryNav';
+import { BlogCategoryNav } from '@/modules/blog/shared/BlogCategoryNav';
+import { BlogDetailQuickActions } from '@/modules/blog/shared/BlogDetailQuickActions';
+import { BlogTableOfContents } from './BlogTableOfContents';
 
 const HEADING_SCROLL_MARGIN = 'scroll-mt-32';
 
-/** Distinguish manual TOC `<ol>` from bullet `<ul>` — custom `li` must not add ▸ to ordered lists. */
+/** Bullet lists only — TOC is rendered via `BlogTableOfContents`, not markdown `li`. */
 const MarkdownListParentContext = createContext<'ul' | 'ol'>('ul');
 
 function flattenMarkdownText(node: ReactNode): string {
@@ -204,7 +208,10 @@ const MarkdownComponents = {
   ol({ children, ...props }: any) {
     return (
       <MarkdownListParentContext.Provider value="ol">
-        <ol className="my-2.5 sm:my-3 md:my-4" {...props}>
+        <ol
+          className="my-2.5 sm:my-3 md:my-4 list-decimal space-y-1 pl-5 sm:pl-6 md:pl-7 marker:font-bold"
+          {...props}
+        >
           {children}
         </ol>
       </MarkdownListParentContext.Provider>
@@ -223,7 +230,11 @@ const MarkdownComponents = {
     const listParent = useContext(MarkdownListParentContext);
 
     if (listParent === 'ol') {
-      return <li {...props}>{children}</li>;
+      return (
+        <li className="text-sm sm:text-sm md:text-base pl-1" {...props}>
+          {children}
+        </li>
+      );
     }
 
     return (
@@ -277,13 +288,31 @@ export function BlogDetailPage() {
     );
   }
 
+  const activeCategoryId = resolveBlogCategoryId(blog.category, categories);
+
   const similarBlogs = blogSummaries
-    .filter((b) => b.category === blog.category && b.id !== blog.id)
+    .filter((b) => resolveBlogCategoryId(b.category, categories) === activeCategoryId && b.id !== blog.id)
     .slice(0, 3);
 
   const contentToRender = isContentLoading
     ? ''
     : blog.content?.trim() || 'No content available';
+
+  const articleParts = useMemo(
+    () => extractTableOfContents(contentToRender),
+    [contentToRender],
+  );
+
+  const renderMarkdown = (markdown: string) =>
+    markdown.trim() ? (
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
+        components={MarkdownComponents}
+      >
+        {markdown}
+      </ReactMarkdown>
+    ) : null;
 
   return (
     <section className="min-h-screen pt-28 sm:pt-32 md:pt-36 pb-12 sm:pb-14 md:pb-16 px-4 sm:px-5 md:px-6 bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 relative overflow-hidden">
@@ -372,13 +401,12 @@ export function BlogDetailPage() {
                   </div>
                 ) : (
                   <div className="blog-article-prose prose prose-sm sm:prose-sm md:prose-base max-w-none dark:prose-invert leading-relaxed break-words">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[rehypeRaw]}
-                      components={MarkdownComponents}
-                    >
-                      {contentToRender}
-                    </ReactMarkdown>
+                    {renderMarkdown(articleParts.prefix)}
+                    <BlogTableOfContents
+                      entries={articleParts.toc}
+                      onNavigate={scrollToHashTarget}
+                    />
+                    {renderMarkdown(articleParts.suffix)}
                   </div>
                 )}
               </Card>
@@ -433,74 +461,19 @@ export function BlogDetailPage() {
           {/* Sidebar — hidden below 1020px (categories live in navbar menu) */}
           <aside ref={columnRef} className="hidden min-[1020px]:block relative min-h-full">
             <div ref={sidebarRef} style={sidebarStyle} className="w-[260px]">
-              {/* Category Navigation */}
-              <Card className="p-3 lg:p-4 border-3 lg:border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] lg:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900 mb-3 lg:mb-4">
+              <BlogDetailQuickActions blogsPath={blogsPath} className="mb-3 lg:mb-4" />
+
+              <Card className="overflow-visible p-3 lg:p-4 border-3 lg:border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] lg:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900">
                 <h3 className="text-base lg:text-lg font-black mb-3 lg:mb-4 text-gray-900 dark:text-gray-100">
                   Categories
                 </h3>
-                <div className="space-y-3">
-                  {categories.filter((cat) => cat.id !== 'all').map((category) => {
-                    const categoryCount = blogSummaries.filter((b) => b.category === category.id).length;
-                    const isActive = category.id === blog.category;
-
-                    return (
-                      <motion.div key={category.id} {...blogButtonMotion}>
-                      <Button
-                        onClick={() => navigate(blogsPath)}
-                        className={`
-                          w-full justify-between px-4 py-3 border-4 border-black
-                          shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                          hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]
-                          transition-all font-black text-sm
-                          ${
-                            isActive
-                              ? 'bg-black text-white'
-                              : 'bg-white dark:bg-gray-900 text-black dark:text-white'
-                          }
-                        `}
-                        style={{
-                          borderLeftColor: isActive ? category.color : undefined,
-                          borderLeftWidth: isActive ? '8px' : undefined,
-                        }}
-                      >
-                        <span>{category.label}</span>
-                        <Badge
-                          variant="outline"
-                          className={`border-2 ${isActive ? 'border-white text-white' : 'border-black'}`}
-                        >
-                          {categoryCount}
-                        </Badge>
-                      </Button>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </Card>
-
-              {/* Quick Actions */}
-              <Card className="p-3 lg:p-4 border-3 lg:border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] lg:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900">
-                <h3 className="text-base lg:text-lg font-black mb-3 lg:mb-4 text-gray-900 dark:text-gray-100">
-                  Quick Actions
-                </h3>
-                <div className="space-y-3">
-                  <motion.div {...blogButtonMotion}>
-                  <Button
-                    onClick={() => navigate(blogsPath)}
-                    className="w-full justify-start px-4 py-3 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-blue-500 hover:bg-blue-600 text-white font-black text-sm"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    All Blogs
-                  </Button>
-                  </motion.div>
-                  <motion.div {...blogButtonMotion}>
-                  <Button
-                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                    className="w-full justify-start px-4 py-3 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-gray-900 text-black dark:text-white font-black text-sm"
-                  >
-                    ↑ Back to Top
-                  </Button>
-                  </motion.div>
-                </div>
+                <BlogCategoryNav
+                  layout="sidebar"
+                  categories={categories}
+                  blogs={blogSummaries}
+                  blogsPath={blogsPath}
+                  activeCategoryId={activeCategoryId}
+                />
               </Card>
             </div>
           </aside>

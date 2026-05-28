@@ -3,10 +3,13 @@ import { OG_SIZE, OG_THUMB_SIZE, THUMBNAIL_SIZE } from './visualFormats.js';
 
 export { THUMBNAIL_SIZE, OG_THUMB_SIZE } from './visualFormats.js';
 
-/** List card — square crop from cover composite. */
+/** List card — fit full cover inside frame (letterbox); avoids cropping title art on the sides. */
 export async function resizeCoverThumbnail(png: Buffer): Promise<Buffer> {
   return sharp(png)
-    .resize(THUMBNAIL_SIZE.width, THUMBNAIL_SIZE.height, { fit: 'cover', position: 'centre' })
+    .resize(THUMBNAIL_SIZE.width, THUMBNAIL_SIZE.height, {
+      fit: 'contain',
+      background: { r: 248, g: 250, b: 252, alpha: 1 },
+    })
     .png({ compressionLevel: 9 })
     .toBuffer();
 }

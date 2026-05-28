@@ -1,12 +1,13 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { motion } from "motion/react";
 import { ThemeSwitcher } from "./ThemeSwitcher";
-import { Menu, X, BookOpen, Tag } from "lucide-react";
+import { Menu, X, BookOpen, ArrowLeft } from "lucide-react";
 import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
 import { useState } from "react";
 import { usePortfolio } from "../portfolios/PortfolioContext";
-import { useBlogCategories, useBlogData } from "@/modules/blog/data/blogData";
+import { useBlogCategories, useBlogData, useBlogPost } from "@/modules/blog/data/blogData";
+import { resolveBlogCategoryId } from "@/modules/blog/lib/blogCategoryNav";
+import { BlogCategoryNav } from "@/modules/blog/shared/BlogCategoryNav";
 
 export function Navigation() {
   const location = useLocation();
@@ -23,6 +24,14 @@ export function Navigation() {
   const isBlogDetail = /\/blogs\/\d+$/.test(location.pathname);
   const { blogs } = useBlogData();
   const categories = useBlogCategories();
+  const { blogId } = useParams<{ blogId?: string }>();
+  const detailRouteId = isBlogDetail ? Number(blogId) : NaN;
+  const { blog: detailBlog } = useBlogPost(
+    Number.isFinite(detailRouteId) && detailRouteId > 0 ? detailRouteId : undefined,
+  );
+  const detailActiveCategoryId = detailBlog
+    ? resolveBlogCategoryId(detailBlog.category, categories)
+    : undefined;
 
   const desktopNavClass = isBlogDetail
     ? "hidden min-[1020px]:flex items-center gap-6"
@@ -169,42 +178,44 @@ export function Navigation() {
             </Button>
 
             {isBlogDetail && (
-              <div className="border-t-2 border-black my-3 pt-3">
-                <p className="px-2 mb-2 text-xs font-black text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                  Categories
-                </p>
-                {categories
-                  .filter((cat) => cat.id !== "all")
-                  .map((category) => {
-                    const categoryCount = blogs.filter(
-                      (b) => b.category === category.id
-                    ).length;
-
-                    return (
-                      <Button
-                        key={category.id}
-                        type="button"
-                        variant="ghost"
-                        onClick={() => {
-                          navigate(blogsPath);
-                          setMobileMenuOpen(false);
-                        }}
-                        className="w-full justify-between px-3 py-2 text-sm"
-                      >
-                        <span className="flex items-center gap-2">
-                          <Tag className="w-3 h-3" style={{ color: category.color }} />
-                          {category.label}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className="border-2 border-black text-xs"
-                        >
-                          {categoryCount}
-                        </Badge>
-                      </Button>
-                    );
-                  })}
-              </div>
+              <>
+                <div className="border-t-2 border-black my-3 pt-3 space-y-2">
+                  <p className="px-2 text-xs font-black text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                    Quick Actions
+                  </p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full justify-start gap-2 font-bold"
+                    onClick={() => {
+                      navigate(blogsPath);
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    All Blogs
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full justify-start font-bold"
+                    onClick={() => {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    ↑ Back to Top
+                  </Button>
+                </div>
+                <BlogCategoryNav
+                  layout="menu"
+                  categories={categories}
+                  blogs={blogs}
+                  blogsPath={blogsPath}
+                  activeCategoryId={detailActiveCategoryId}
+                  onNavigate={() => setMobileMenuOpen(false)}
+                />
+              </>
             )}
 
             <ThemeSwitcher />

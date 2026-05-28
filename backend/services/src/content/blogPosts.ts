@@ -144,7 +144,7 @@ export async function upsertBlogPost(post: BlogPostDto): Promise<string> {
 
     if (existing?.id) {
       const updateRow = { ...row, updated_at: new Date().toISOString() };
-      if (!data.publishedAt) {
+      if (!post.publishedAt) {
         delete (updateRow as { published_at?: string | null }).published_at;
       }
       const { error } = await supabaseAdmin()

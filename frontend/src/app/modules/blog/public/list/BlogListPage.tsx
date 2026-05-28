@@ -1,38 +1,61 @@
 /** Blog motion: guidelines/agent-devlog-blog-motion.md — decor via BlogPageMotion */
-import { useState, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, Clock, Tag } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Search, X } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Squiggle } from '@/components/GraphicElements';
 import {
   BlogPageDecor,
   PlayfulBlogTitle,
   blogButtonMotion,
-  blogCardMotion,
 } from '@/modules/blog/shared/BlogPageMotion';
-import { BlogCoverImage } from '@/modules/blog/shared/BlogCoverImage';
 import { useBlogCategories, useBlogData } from '@/modules/blog/data/blogData';
+import { filterBlogsBySearch } from '@/modules/blog/lib/blogListFilters';
+import {
+  buildBlogsPathWithCategory,
+  resolveCategoryFromSearchParam,
+  resolveBlogCategoryId,
+} from '@/modules/blog/lib/blogCategoryNav';
 import { usePortfolio } from '@/portfolios/PortfolioContext';
+import { BlogListCarousel } from './BlogListCarousel';
+import { BlogScrollToTopFab } from '@/modules/blog/shared/BlogScrollToTopFab';
 
 export function BlogListPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { pathTo } = usePortfolio();
   const categories = useBlogCategories();
   const { blogs, isLoading } = useBlogData();
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const blogsPath = pathTo('/blogs');
+  const selectedCategory = useMemo(
+    () => resolveCategoryFromSearchParam(searchParams.get('category'), categories),
+    [searchParams, categories],
+  );
+  const [searchQuery, setSearchQuery] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const dragStartRef = useRef(false);
 
-  const filteredBlogs =
-    selectedCategory === 'all'
-      ? blogs
-      : blogs.filter((blog) => blog.category === selectedCategory);
+  const categoryFilteredBlogs = useMemo(
+    () =>
+      selectedCategory === 'all'
+        ? blogs
+        : blogs.filter(
+            (blog) => resolveBlogCategoryId(blog.category, categories) === selectedCategory,
+          ),
+    [blogs, selectedCategory, categories],
+  );
+
+  const filteredBlogs = useMemo(
+    () => filterBlogsBySearch(categoryFilteredBlogs, searchQuery),
+    [categoryFilteredBlogs, searchQuery],
+  );
+
+  const carouselKey = `${selectedCategory}:${searchQuery.trim()}:${filteredBlogs.length}`;
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
@@ -65,7 +88,7 @@ export function BlogListPage() {
   };
 
   return (
-    <section className="py-24 px-6 bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 relative overflow-hidden min-h-screen">
+    <section className="relative min-h-screen overflow-x-clip bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 py-24 px-6 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 md:overflow-x-visible">
       <BlogPageDecor variant="list" seed={`blogs-${selectedCategory}`} />
 
       <div className="max-w-7xl mx-auto relative z-10">
@@ -87,6 +110,43 @@ export function BlogListPage() {
             decision-making
           </p>
           <Squiggle color="#4169E1" className="mx-auto" />
+        </motion.div>
+
+        {/* Search */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.45 }}
+          className="mb-8 max-w-xl mx-auto"
+        >
+          <label htmlFor="blog-search" className="sr-only">
+            Search blog posts
+          </label>
+          <div className="relative">
+            <Search
+              className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500 dark:text-gray-400"
+              aria-hidden
+            />
+            <Input
+              id="blog-search"
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search by title, topic, or tag…"
+              className="h-12 rounded-full border-4 border-black bg-white pl-12 pr-12 text-base font-medium shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus-visible:ring-purple-400 dark:border-gray-600 dark:bg-gray-900 dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.15)]"
+            />
+            {searchQuery ? (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : null}
+          </div>
         </motion.div>
 
         {/* Swipable Category Filter */}
@@ -114,7 +174,7 @@ export function BlogListPage() {
                         e.preventDefault();
                         return;
                       }
-                      setSelectedCategory(category.id);
+                      navigate(buildBlogsPathWithCategory(blogsPath, category.id));
                     }}
                     className={`
                       px-6 py-3 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
@@ -141,77 +201,18 @@ export function BlogListPage() {
           </div>
         </motion.div>
 
-        {/* Blogs Grid */}
-        <div className="grid md:grid-cols-3 gap-8">
-          {isLoading && filteredBlogs.length === 0
-            ? Array.from({ length: 6 }, (_, idx) => (
-                <div
-                  key={`blog-skeleton-${idx}`}
-                  className="h-full min-h-[320px] rounded-xl border-6 border-black bg-white/80 dark:bg-gray-900/80 animate-pulse shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
-                  aria-hidden
-                />
-              ))
-            : null}
-          {filteredBlogs.map((blog, idx) => (
-            <motion.div
-              key={blog.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: Math.min(idx * 0.05, 0.25) }}
-              {...blogCardMotion}
-            >
-              <Card
-                onClick={() => navigate(pathTo(`/blogs/${blog.id}`))}
-                className="h-full p-6 border-6 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all bg-white dark:bg-gray-900 group cursor-pointer overflow-hidden"
-              >
-                <BlogCoverImage blog={blog} variant="card" />
-                <div
-                  className="w-full h-3 rounded-full mb-6 border-2 border-black"
-                  style={{ backgroundColor: blog.color }}
-                />
-
-                <div className="flex items-center gap-4 mb-4 text-sm text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{blog.readTime}</span>
-                  </div>
-                  <span>•</span>
-                  <span>{blog.date}</span>
-                </div>
-
-                <h3 className="text-2xl font-black mb-4 text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                  {blog.title}
-                </h3>
-
-                <p className="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
-                  {blog.excerpt}
-                </p>
-
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {blog.tags.map((tag, tIdx) => (
-                    <Badge
-                      key={tIdx}
-                      variant="outline"
-                      className="border-2 border-black font-bold text-xs"
-                    >
-                      <Tag className="w-3 h-3 mr-1" />
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-
-                <Button
-                  variant="ghost"
-                  className="group/btn p-0 h-auto font-bold text-blue-600 dark:text-blue-400 hover:bg-transparent w-full justify-start"
-                >
-                  Read Full Article
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                </Button>
-              </Card>
-            </motion.div>
-          ))}
+        <div className="scroll-mt-24">
+          <BlogListCarousel
+            blogs={filteredBlogs}
+            isLoading={isLoading}
+            searchQuery={searchQuery}
+            carouselKey={carouselKey}
+            onClearSearch={() => setSearchQuery('')}
+          />
         </div>
       </div>
+
+      <BlogScrollToTopFab />
     </section>
   );
 }
