@@ -1,6 +1,8 @@
 import type { LayoutVariant } from './templateSelection.js';
 import { FONT_FAMILY, interFontFaceDefs } from './fonts.js';
 
+export type OverlayLayoutHint = 'square' | 'portrait' | 'landscape' | 'banner' | 'story';
+
 export type OverlayInput = {
   width: number;
   height: number;
@@ -10,6 +12,10 @@ export type OverlayInput = {
   author: string;
   accentColor: string;
   layout: LayoutVariant;
+  /** Cover Studio: hide category pill and author line on exports. */
+  hideBranding?: boolean;
+  /** Wide formats: side scrim keeps faces on the left visible (LinkedIn, banners). */
+  layoutHint?: OverlayLayoutHint;
 };
 
 function escapeXml(text: string): string {
@@ -116,8 +122,66 @@ function categoryPill(
     <text x="${x + padX}" y="${y}" font-family="${FONT_FAMILY}" font-size="${fontSize}" font-weight="700" letter-spacing="0.12em" fill="#ffffff">${text}</text>`;
 }
 
+/** Right-side scrim + text — avoids covering centered portrait/hero subjects on wide crops. */
+function renderSideOverlaySvg(input: OverlayInput, placement: 'landscape' | 'banner'): string {
+  const { width: w, height: h } = input;
+  const pad = Math.round(w * 0.05);
+  const scrimW = Math.round(w * (placement === 'banner' ? 0.44 : 0.5));
+  const textLayout = textAnchor('e', w, h);
+  const scale = Math.min(w / REF_WIDTH, h / REF_HEIGHT);
+  const excerptSize = Math.max(12, Math.round(16 * scale));
+  const textX = w - pad;
+  const anchorAttr = 'end' as const;
+
+  const maxLines = placement === 'banner' ? 2 : Math.min(textLayout.maxLines, 3);
+  const titleLines = wrapTitle(input.title, textLayout.maxTitleChars, maxLines);
+  const excerptLine = truncate(input.excerpt, placement === 'banner' ? 72 : 90);
+  const showExcerpt =
+    placement !== 'banner' && textLayout.showExcerpt && excerptLine.length > 0;
+
+  const excerptBlock = Math.round(44 * scale);
+  const titleBlockH = titleLines.length * textLayout.lineH;
+  const blockHeight = titleBlockH + (showExcerpt ? excerptBlock : 0);
+  const titleStartY =
+    placement === 'banner'
+      ? Math.round((h - blockHeight) / 2) + Math.round(textLayout.titleSize * 0.35)
+      : h - pad - blockHeight;
+
+  const titleSvg = titleLines
+    .map(
+      (line, i) =>
+        `<tspan x="${textX}" dy="${i === 0 ? 0 : textLayout.lineH}" font-size="${textLayout.titleSize}" font-weight="700" fill="#ffffff">${escapeXml(line)}</tspan>`,
+    )
+    .join('');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+  <defs>
+    ${interFontFaceDefs()}
+    <linearGradient id="scrimSideRight" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%" stop-color="#0f172a" stop-opacity="0.88"/>
+      <stop offset="55%" stop-color="#0f172a" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="titleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000000" flood-opacity="0.7"/>
+    </filter>
+  </defs>
+  <rect x="${w - scrimW}" y="0" width="${scrimW}" height="${h}" fill="url(#scrimSideRight)"/>
+  <text x="${textX}" y="${titleStartY}" font-family="${FONT_FAMILY}" text-anchor="${anchorAttr}" filter="url(#titleShadow)">${titleSvg}</text>
+  ${
+    showExcerpt
+      ? `<text x="${textX}" y="${titleStartY + titleBlockH + Math.round(18 * scale)}" font-family="${FONT_FAMILY}" font-size="${excerptSize}" fill="#e2e8f0" text-anchor="${anchorAttr}" filter="url(#titleShadow)">${escapeXml(excerptLine)}</text>`
+      : ''
+  }
+</svg>`;
+}
+
 /** Transparent PNG overlay: scrim + typography for compositing on AI hero art. */
 export function renderCoverOverlaySvg(input: OverlayInput): string {
+  if (input.layoutHint === 'landscape' || input.layoutHint === 'banner') {
+    return renderSideOverlaySvg(input, input.layoutHint);
+  }
   const { width: w, height: h, accentColor: accent } = input;
   const pad = Math.round(w * 0.07);
   const isWide = w / h > 1.45;
@@ -145,7 +209,10 @@ export function renderCoverOverlaySvg(input: OverlayInput): string {
   const titleGap = Math.round(36 * scale);
   const catGap = Math.round(36 * scale);
   const titleStartY =
-    blockBottom - (showExcerpt ? excerptBlock : titleGap) - titleLines.length * textLayout.lineH;
+    blockBottom -
+    (showExcerpt ? excerptBlock : titleGap) -
+    titleLines.length * textLayout.lineH +
+    (input.hideBranding ? catGap : 0);
   const catY = titleStartY - catGap;
 
   const titleSvg = titleLines
@@ -169,13 +236,21 @@ export function renderCoverOverlaySvg(input: OverlayInput): string {
     </filter>
   </defs>
   <rect x="0" y="${scrimY}" width="${w}" height="${scrimH}" fill="url(#scrim)"/>
-  ${categoryPill(input.categoryLabel, textX, catY, accent, textLayout.anchor, pillFontSize)}
+  ${
+    input.hideBranding
+      ? ''
+      : categoryPill(input.categoryLabel, textX, catY, accent, textLayout.anchor, pillFontSize)
+  }
   <text x="${textX}" y="${titleStartY}" font-family="${FONT_FAMILY}" text-anchor="${anchorAttr}" filter="url(#titleShadow)">${titleSvg}</text>
   ${
     showExcerpt
       ? `<text x="${textX}" y="${blockBottom - Math.round(38 * scale)}" font-family="${FONT_FAMILY}" font-size="${excerptSize}" fill="#e2e8f0" text-anchor="${anchorAttr}" filter="url(#titleShadow)">${escapeXml(excerptLine)}</text>`
       : ''
   }
-  <text x="${textX}" y="${blockBottom - Math.round(8 * scale)}" font-family="${FONT_FAMILY}" font-size="${authorSize}" font-weight="600" fill="#cbd5e1" text-anchor="${anchorAttr}">${escapeXml(input.author)}</text>
+  ${
+    input.hideBranding
+      ? ''
+      : `<text x="${textX}" y="${blockBottom - Math.round(8 * scale)}" font-family="${FONT_FAMILY}" font-size="${authorSize}" font-weight="600" fill="#cbd5e1" text-anchor="${anchorAttr}">${escapeXml(input.author)}</text>`
+  }
 </svg>`;
 }

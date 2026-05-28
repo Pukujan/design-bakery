@@ -82,6 +82,9 @@ importers:
 
   frontend:
     dependencies:
+      '@design-bakery/cover-studio-kit':
+        specifier: workspace:*
+        version: link:../packages/cover-studio-kit
       '@emotion/react':
         specifier: 11.14.0
         version: 11.14.0(@types/react@19.2.14)(react@18.3.1)
@@ -290,6 +293,18 @@ importers:
       vite:
         specifier: 6.3.5
         version: 6.3.5(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.30.1)(tsx@4.22.3)(yaml@2.9.0)
+
+  packages/cover-studio-kit:
+    dependencies:
+      express:
+        specifier: ^4.0.0 || ^5.0.0
+        version: 4.22.2
+      react:
+        specifier: ^18.0.0 || ^19.0.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.0.0 || ^19.0.0
+        version: 18.3.1(react@18.3.1)
 
 packages:
 

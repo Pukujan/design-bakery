@@ -1,5 +1,6 @@
 @import 'tailwindcss' source(none);
 @source '../app/**/*.{js,ts,jsx,tsx}';
+@source '../../packages/cover-studio-kit/src/**/*.{js,ts,jsx,tsx}';
 @source './extras/Create Presentation Case Study/src/**/*.{js,ts,jsx,tsx}';
 @source './extras/invest-ai-case-study/src/**/*.{js,ts,jsx,tsx}';
 @source './extras/oni_agent_interactive_page_svg_darkmode_src/**/*.{js,ts,jsx,tsx}';

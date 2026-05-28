@@ -61,6 +61,10 @@ export default defineConfig(async () => {
           __dirname,
           'extras/oni_agent_interactive_page_svg_darkmode_v4_src',
         ),
+        '@design-bakery/cover-studio-kit': path.resolve(
+          repoRoot,
+          'packages/cover-studio-kit/src',
+        ),
       },
     },
   }

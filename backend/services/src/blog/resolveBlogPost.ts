@@ -1,5 +1,17 @@
+import { COVER_STUDIO_BLOG_ID, COVER_STUDIO_CATEGORY } from '../coverStudio/constants.js';
 import { getBlogByNumericId as getBlogByNumericIdPg } from '../content/blogPosts.js';
 import type { AgentBlogSnapshot } from '../types.js';
+
+type SnapshotWithCoverStudio = AgentBlogSnapshot & {
+  coverStudioMode?: boolean;
+  color?: string;
+  numericId?: number;
+};
+
+function isCoverStudioRequest(blogId: number, snapshot?: AgentBlogSnapshot): boolean {
+  if (blogId === COVER_STUDIO_BLOG_ID) return true;
+  return Boolean((snapshot as SnapshotWithCoverStudio)?.coverStudioMode);
+}
 
 export type ResolvedBlogPost = {
   numericId?: number;
@@ -40,6 +52,27 @@ export async function resolveBlogForPublishKit(
 
   const title = snapshot.title?.trim() ?? '';
   const content = snapshot.content?.trim() ?? '';
+  const excerpt = snapshot.excerpt?.trim() ?? '';
+
+  if (isCoverStudioRequest(blogId, snapshot)) {
+    if (!title) {
+      throw new Error('Add a title first.');
+    }
+    if (!excerpt) {
+      throw new Error('Add a description first.');
+    }
+    const ext = snapshot as SnapshotWithCoverStudio;
+    return {
+      title: snapshot.title,
+      excerpt,
+      content: excerpt,
+      tags: snapshot.tags ?? [],
+      category: COVER_STUDIO_CATEGORY,
+      author: snapshot.author ?? 'Cover Studio',
+      color: ext.color ?? '#6366f1',
+      numericId: ext.numericId ?? blogId,
+    };
+  }
 
   if (title && content) {
     const ext = snapshot as AgentBlogSnapshot & { color?: string; numericId?: number };

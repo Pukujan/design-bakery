@@ -18,6 +18,8 @@ import { ContactSectionEditor } from './sections/ContactSectionEditor';
 import { FooterEditor } from './sections/FooterEditor';
 import { RelevantExperienceEditor } from './sections/RelevantExperienceEditor';
 import { MediaLibraryEditor } from './sections/MediaLibraryEditor';
+import { CoverStudioEditor } from './sections/CoverStudioEditor';
+import { CoverStudioPackEditor } from './sections/CoverStudioPackEditor';
 import type { PortfolioId } from '../../portfolios/registry';
 
 const ENGINEERING_ROUTES: RouteObject[] = [
@@ -34,6 +36,8 @@ const ENGINEERING_ROUTES: RouteObject[] = [
   { path: 'relevant-experience', element: <RelevantExperienceEditor /> },
   { path: 'engineering-skills', element: <EngineeringSkillsEditor /> },
   { path: 'media-library', element: <MediaLibraryEditor /> },
+  { path: 'cover-studio', element: <CoverStudioEditor /> },
+  { path: 'cover-studio/pack/:packId', element: <CoverStudioPackEditor /> },
 ];
 
 const DESIGN_ROUTES: RouteObject[] = [

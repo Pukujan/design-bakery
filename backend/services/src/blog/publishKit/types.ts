@@ -6,7 +6,8 @@ export type PublishKitAction =
   | 'visual_and_meta'
   | 'tags'
   | 'meta_and_tags'
-  | 'commit_visual';
+  | 'commit_visual'
+  | 'suggest_tags';
 
 export type VisualStylePreset = 'auto' | 'minimal' | 'bold' | 'line_art';
 export type MetaTonePreset = 'auto' | 'technical' | 'friendly' | 'bold';
@@ -27,6 +28,8 @@ export type PublishKitSnapshot = {
   /** Existing SEO fields (used for contextual template icons). */
   metaTitle?: string;
   metaDescription?: string;
+  /** Cover Studio: title + description only; no markdown body required. */
+  coverStudioMode?: boolean;
 };
 
 export type PublishKitPreferences = {
@@ -80,6 +83,17 @@ export type PublishKitTagsResult = {
   rationale?: string;
 };
 
+export type PublishKitSuggestTagsResult = {
+  suggestedTags: string[];
+  rationale?: string;
+};
+
+export type PublishKitNormalizedCopy = {
+  title: string;
+  description: string;
+  changed: boolean;
+};
+
 /** Preview-only result from visual / visual_and_meta (no Storage upload). */
 export type PublishKitVisualResult = {
   ogPreviewDataUrl: string;
@@ -107,10 +121,34 @@ export type PublishKitVisualResult = {
   heroCacheScore?: number;
 };
 
+export type PublishKitSocialVariant = {
+  id: string;
+  label: string;
+  platform: string;
+  width: number;
+  height: number;
+  previewFrame: string;
+  previewDataUrl: string;
+};
+
+export type PublishKitGallerySaveResult = {
+  ok: boolean;
+  packId?: string;
+  assetCount?: number;
+  message?: string;
+};
+
 export type PublishKitResponse = {
   ok: true;
   action: PublishKitAction;
   meta?: PublishKitMetaResult;
   tags?: PublishKitTagsResult;
-  visual?: PublishKitVisualResult;
+  suggestTags?: PublishKitSuggestTagsResult;
+  normalizedCopy?: PublishKitNormalizedCopy;
+  gallerySave?: PublishKitGallerySaveResult;
+  mediaLibrarySave?: PublishKitGallerySaveResult;
+  visual?: PublishKitVisualResult & {
+    /** Cover Studio: nine platform exports with in-app preview metadata. */
+    socialVariants?: PublishKitSocialVariant[];
+  };
 };

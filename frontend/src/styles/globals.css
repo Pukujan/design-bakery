@@ -349,17 +349,52 @@ body::before {
   color: #1a2a3a !important;
 }
 
-/* Arrows — visible in dark mode */
+/*
+ * Arrows / edges in dark mode — Mermaid 11 injects #id-scoped <style> with !important.
+ * themeVariables in MermaidDiagram.tsx set line/arrow colors at render; these rules are fallback.
+ */
 .dark .blog-mermaid-chart svg .flowchart-link,
 .dark .blog-mermaid-chart svg .edgePath .path,
 .dark .blog-mermaid-chart svg .edgePath path,
 .dark .blog-mermaid-chart svg .arrowheadPath,
-.dark .blog-mermaid-chart svg marker path {
-  stroke: #ffffff !important;
+.dark .blog-mermaid-chart svg .marker,
+.dark .blog-mermaid-chart svg .marker path,
+.dark .blog-mermaid-chart svg marker path,
+.dark .blog-mermaid-chart svg .messageLine0,
+.dark .blog-mermaid-chart svg .messageLine1,
+.dark .blog-mermaid-chart svg .loopLine,
+.dark .blog-mermaid-chart svg .loopLine path,
+.dark .blog-mermaid-chart svg .arrowMarkerPath {
+  stroke: #e5e7eb !important;
 }
 
-.dark .blog-mermaid-chart svg .flowchart-link {
+.dark .blog-mermaid-chart svg .arrowheadPath,
+.dark .blog-mermaid-chart svg .arrowMarkerPath,
+.dark .blog-mermaid-chart svg .marker,
+.dark .blog-mermaid-chart svg .marker path,
+.dark .blog-mermaid-chart svg marker path {
+  fill: #e5e7eb !important;
+}
+
+.dark .blog-mermaid-chart svg .flowchart-link,
+.dark .blog-mermaid-chart svg .messageLine0,
+.dark .blog-mermaid-chart svg .messageLine1 {
   fill: none !important;
+}
+
+.dark .blog-mermaid-chart svg .edgeLabel rect {
+  fill: #374151 !important;
+}
+
+.dark .blog-mermaid-chart svg .edgeLabel,
+.dark .blog-mermaid-chart svg .edgeLabel tspan,
+.dark .blog-mermaid-chart svg .edgeLabel foreignObject div {
+  color: #e5e7eb !important;
+  fill: #e5e7eb !important;
+}
+
+.dark .blog-mermaid-chart svg .cluster rect {
+  stroke: #94a3b8 !important;
 }
 
 /* Blog Mermaid — scroll viewport + zoom toolbar (see MermaidDiagram.tsx) */
@@ -499,6 +534,16 @@ body::before {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--muted-foreground, #6b7280);
+}
+
+/* Ordered lists (e.g. manual Table of Contents) — keep decimal markers; bullets use custom ▸ in BlogDetailPage */
+.blog-article-prose ol {
+  list-style-type: decimal;
+  list-style-position: outside;
+}
+
+.blog-article-prose ol > li {
+  display: list-item;
 }
 
 /* Fenced code — dark panel in all site modes */

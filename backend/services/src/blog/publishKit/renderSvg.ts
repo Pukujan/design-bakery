@@ -24,6 +24,8 @@ export type RenderCardInput = {
   designSeed?: number;
   /** Agent/heuristic icon pool for template stickers. */
   templateIconPool?: TechIconId[];
+  /** Cover Studio: hide category pill and author line on exports. */
+  hideBranding?: boolean;
 };
 
 function escapeXml(text: string): string {
@@ -446,10 +448,12 @@ export function renderBlogCardSvg(input: RenderCardInput): string {
   const showExcerpt = textLayout.showExcerpt && excerptLine.length > 0;
 
   const titleBlockLines = titleLines.length;
-  const metaBlockH = 36 + titleBlockLines * textLayout.lineH + (showExcerpt ? 52 : 20) + 28;
+  const brandingOffset = input.hideBranding ? 0 : 36;
+  const metaBlockH =
+    brandingOffset + titleBlockLines * textLayout.lineH + (showExcerpt ? 52 : 20) + (input.hideBranding ? 0 : 28);
   const blockTop = verticalAnchorY(textLayout.verticalZone, metaBlockH, h, pad, palette.textYJitter);
   const catY = blockTop + 8;
-  const titleStartY = blockTop + 36;
+  const titleStartY = blockTop + brandingOffset;
   const excerptY = titleStartY + titleBlockLines * textLayout.lineH + 18;
   const authorY = (showExcerpt ? excerptY + 32 : titleStartY + titleBlockLines * textLayout.lineH + 28);
   const textBottom = authorY + 12;
@@ -550,13 +554,21 @@ export function renderBlogCardSvg(input: RenderCardInput): string {
   ${decorThemeLayer(palette.decorTheme, palette, w, h)}
   ${stickers}
   ${scrimSvg}
-  ${categoryPill(input.categoryLabel, textX, catY, pillAccent, textLayout.anchor)}
+  ${
+    input.hideBranding
+      ? ''
+      : categoryPill(input.categoryLabel, textX, catY, pillAccent, textLayout.anchor)
+  }
   <text x="${textX}" y="${titleStartY}" font-family="${FONT_FAMILY}" text-anchor="${anchorAttr}" filter="url(#titleShadow)">${titleSvg}</text>
   ${
     showExcerpt
       ? `<text x="${textX}" y="${excerptY}" font-family="${FONT_FAMILY}" font-size="18" font-weight="400" fill="#e2e8f0" text-anchor="${anchorAttr}" filter="url(#titleShadow)">${escapeXml(excerptLine)}</text>`
       : ''
   }
-  <text x="${textX}" y="${authorY}" font-family="${FONT_FAMILY}" font-size="15" font-weight="600" fill="#cbd5e1" text-anchor="${anchorAttr}" opacity="0.95">${escapeXml(input.author)}</text>
+  ${
+    input.hideBranding
+      ? ''
+      : `<text x="${textX}" y="${authorY}" font-family="${FONT_FAMILY}" font-size="15" font-weight="600" fill="#cbd5e1" text-anchor="${anchorAttr}" opacity="0.95">${escapeXml(input.author)}</text>`
+  }
 </svg>`;
 }

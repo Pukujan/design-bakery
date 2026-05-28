@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { ApiError } from '../../apiError.js';
 import { resolveBlogForPublishKit, type ResolvedBlogPost } from '../resolveBlogPost.js';
 import { resolveCategoryLabel } from './categoryLabels.js';
@@ -16,7 +17,14 @@ import {
 import { resolveCardBlurb } from './textUtils.js';
 import { logPublishKitFontsForContext } from './fontDiagnostics.js';
 import { renderUnifiedPublishVisuals } from './unifiedVisual.js';
-import { uploadMediaAssets } from '../../media/mediaLibrary.js';
+import { COVER_STUDIO_BLOG_ID } from '../../coverStudio/constants.js';
+import { saveCoverStudioPackFromBuffers } from '../../coverStudio/coverStudioLibrary.js';
+import { normalizeTextFreeHeroPng } from '../../coverStudio/normalizeTextFreeHero.js';
+import { normalizeCoverStudioCopy } from '../../coverStudio/normalizeCopy.js';
+import { renderCoverStudioSocialPack } from '../../coverStudio/renderSocialPack.js';
+import { suggestCoverStudioTags } from '../../coverStudio/suggestTags.js';
+import { uploadMediaAssets, uploadMediaAssetsFromBuffers } from '../../media/mediaLibrary.js';
+import { MASTER_HERO_SIZE } from './visualFormats.js';
 import {
   PUBLISH_KIT_API_VERSION,
   type PublishKitRequest,
@@ -31,6 +39,7 @@ const VALID_ACTIONS = [
   'tags',
   'meta_and_tags',
   'commit_visual',
+  'suggest_tags',
 ] as const;
 
 function slugifyForGallery(raw: string): string {
@@ -178,6 +187,16 @@ export async function handlePublishKit(params: {
     });
   }
 
+  if (body.action === 'suggest_tags') {
+    response.suggestTags = await suggestCoverStudioTags({
+      apiKey,
+      model,
+      title: snapshot.title,
+      description: snapshot.excerpt || snapshot.content,
+    });
+    return response;
+  }
+
   if (body.action === 'tags' || body.action === 'meta_and_tags') {
     response.tags = await generateTags({
       apiKey,
@@ -229,6 +248,133 @@ export async function handlePublishKit(params: {
       runSvgProbe: true,
     });
 
+    const isCoverStudio = blogId === COVER_STUDIO_BLOG_ID || snapshot.coverStudioMode;
+
+    if (isCoverStudio) {
+      const normalized = await normalizeCoverStudioCopy({
+        apiKey,
+        model,
+        title: snapshot.title,
+        description: cardBlurb,
+      });
+      response.normalizedCopy = normalized;
+
+      const studioSnapshot = normalized.changed
+        ? {
+            ...snapshot,
+            title: normalized.title,
+            excerpt: normalized.description,
+            content: normalized.description,
+          }
+        : snapshot;
+      const studioBlurb = normalized.description;
+
+      const pack = await renderCoverStudioSocialPack({
+        apiKey,
+        title: studioSnapshot.title,
+        excerpt: studioBlurb,
+        category: studioSnapshot.category,
+        categoryLabel,
+        author: studioSnapshot.author,
+        accentColor: studioSnapshot.color,
+        tags,
+        family,
+        layout,
+        panelMode,
+        stylePreset,
+        visualMode: prefs.visualMode,
+        imageModel: prefs.imageModel,
+        designSeed,
+        templateIconPool: iconResult.iconIds,
+        preferHeroCache: prefs.preferHeroCache,
+      });
+
+      const socialVariants = pack.variants.map((v) => ({
+        id: v.format.id,
+        label: v.format.label,
+        platform: v.format.platform,
+        width: v.format.width,
+        height: v.format.height,
+        previewFrame: v.format.previewFrame,
+        previewDataUrl: bufferToDataUrl(v.png),
+      }));
+
+      const instagram =
+        socialVariants.find((s) => s.id === 'instagram-post') ?? socialVariants[0];
+      const facebookPost =
+        socialVariants.find((s) => s.id === 'facebook-post') ?? instagram;
+
+      response.visual = {
+        ogPreviewDataUrl: facebookPost.previewDataUrl,
+        coverPreviewDataUrl: instagram.previewDataUrl,
+        templateFamily: family,
+        layoutVariant: layout,
+        panelMode,
+        imageModel: pack.imageModel,
+        usedAiArt: pack.usedAi,
+        templateIconPool: iconResult.iconIds,
+        templateIconRationale: iconResult.rationale,
+        heroSource: pack.heroSource,
+        heroCacheId: pack.heroCacheId,
+        heroCacheScore: pack.heroCacheScore,
+        socialVariants,
+      };
+
+      try {
+        const packId = randomUUID();
+        const baseSlug =
+          slugifyForGallery(studioSnapshot.title) || `cover-${studioSnapshot.numericId ?? blogId}`;
+        const ts = Date.now();
+        const galleryTags = (studioSnapshot.tags ?? []).filter(Boolean).slice(0, 5);
+        const bufferUploads = pack.variants.map((v) => ({
+          buffer: v.png,
+          filename: `${baseSlug}-${v.format.id}-${ts}.png`,
+          slug: `${baseSlug}-${v.format.id}-${ts}`,
+          tags: [...galleryTags, v.format.platform.toLowerCase(), v.format.id],
+          altText: `${studioSnapshot.title} — ${v.format.label}`,
+          notes: `Cover Studio · ${v.format.width}×${v.format.height}`,
+          formatId: v.format.id,
+          platform: v.format.platform,
+        }));
+        const saved = await saveCoverStudioPackFromBuffers(bufferUploads, {
+          packId,
+          packTitle: studioSnapshot.title,
+        });
+        response.gallerySave = {
+          ok: true,
+          packId: saved.packId,
+          assetCount: saved.assets.length,
+        };
+
+        if (pack.rawHeroPng && pack.usedAi) {
+          try {
+            const heroPng = await normalizeTextFreeHeroPng(pack.rawHeroPng);
+            await uploadMediaAssetsFromBuffers([
+              {
+                buffer: heroPng,
+                filename: `${baseSlug}-hero-${ts}.png`,
+                slug: `${baseSlug}-hero-${ts}`,
+                tags: [...galleryTags, 'hero', 'text-free', 'cover-studio'],
+                altText: `${studioSnapshot.title} — AI hero (no text)`,
+                notes: `Cover Studio · text-free hero · ${MASTER_HERO_SIZE.width}×${MASTER_HERO_SIZE.height}`,
+              },
+            ]);
+            response.mediaLibrarySave = { ok: true, assetCount: 1 };
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.warn('[coverStudio] media library hero save failed:', message);
+            response.mediaLibrarySave = { ok: false, message };
+          }
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.warn('[coverStudio] gallery pack save failed:', message);
+        response.gallerySave = { ok: false, message };
+      }
+
+      return response;
+    }
+
     const { variants, rawHeroPng, imageModel, usedAi, heroSource, heroCacheId, heroCacheScore } =
       await renderUnifiedPublishVisuals({
         apiKey,
@@ -265,9 +411,9 @@ export async function handlePublishKit(params: {
       heroCacheScore,
     };
 
-    // Mirror every AI/hybrid-generated blog visual into media library (best effort).
+    // Mirror AI/hybrid heroes to site Media Library (Cover Studio handles its own save earlier).
     if (response.visual.usedAiArt) {
-      const baseSlug = slugifyForGallery(snapshot.title) || `blog-${snapshot.numericId ?? blogId}`;
+      const baseSlug = slugifyForGallery(snapshot.title) || `cover-${snapshot.numericId ?? blogId}`;
       const ts = Date.now();
       const galleryTags = galleryTagsFromSnapshot(snapshot);
       const notes = `Auto-saved from publish-kit ${body.action} (mode=${prefs.visualMode ?? 'hybrid'}) blog=${snapshot.numericId ?? blogId}`;
@@ -286,7 +432,7 @@ export async function handlePublishKit(params: {
         await uploadMediaAssets(uploads);
       } catch (err) {
         console.warn(
-          '[publishKit] media mirror failed:',
+          '[publishKit] gallery mirror failed:',
           err instanceof Error ? err.message : err,
         );
       }

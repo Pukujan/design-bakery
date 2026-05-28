@@ -49,6 +49,7 @@ const ENGINEERING_NAV: NavItem[] = [
   { path: 'footer', label: 'Footer', icon: PanelsTopLeft },
   { path: 'engineering-skills', label: 'Eng. Skills Data', icon: Wrench },
   { path: 'media-library', label: 'Media Library', icon: Images },
+  { path: 'cover-studio', label: 'Cover Studio', icon: Image },
 ];
 
 const DESIGN_NAV: NavItem[] = [

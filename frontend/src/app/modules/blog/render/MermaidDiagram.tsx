@@ -8,12 +8,37 @@ import { Button } from '@/components/ui/button';
 import mermaid from 'mermaid';
 import { enqueueMermaidRender } from './mermaidRenderQueue';
 import { useInView } from '@/hooks/useInView';
+import { useDarkMode } from '@/hooks/useDarkMode';
 
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'default',
-  securityLevel: 'loose',
-});
+const MERMAID_LIGHT_EDGE_VARS = {
+  lineColor: '#333333',
+  arrowheadColor: '#333333',
+  defaultLinkColor: '#333333',
+  signalColor: '#333333',
+  clusterBorder: '#aaaaaa',
+  titleColor: '#333333',
+  edgeLabelBackground: '#e8e8e8',
+} as const;
+
+const MERMAID_DARK_EDGE_VARS = {
+  lineColor: '#e5e7eb',
+  arrowheadColor: '#e5e7eb',
+  defaultLinkColor: '#e5e7eb',
+  signalColor: '#e5e7eb',
+  clusterBorder: '#94a3b8',
+  titleColor: '#e5e7eb',
+  edgeLabelBackground: '#374151',
+} as const;
+
+/** Keep `theme: 'default'`; edge/arrow tokens only (see agent-devlog-mermaid.md). */
+function configureMermaid(isDark: boolean) {
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'default',
+    securityLevel: 'loose',
+    themeVariables: isDark ? MERMAID_DARK_EDGE_VARS : MERMAID_LIGHT_EDGE_VARS,
+  });
+}
 
 const CHART_SHELL_CLASS =
   'blog-mermaid-chart my-4 sm:my-5 md:my-6 p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg md:rounded-xl border-2 sm:border-2 md:border-3 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-xs sm:text-xs md:text-sm';
@@ -92,6 +117,7 @@ function estimateLoadingMinHeight(chart: string): number {
 }
 
 export function MermaidDiagram({ chart }: { chart: string }) {
+  const isDark = useDarkMode();
   const { ref: shellRef, inView: shouldRender } = useInView();
   const viewportRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -178,7 +204,11 @@ export function MermaidDiagram({ chart }: { chart: string }) {
     const renderChart = async () => {
       try {
         const id = `blog-mmd-${Math.random().toString(36).slice(2, 11)}`;
-        const { svg, bindFunctions } = await enqueueMermaidRender(() => mermaid.render(id, chart));
+        const dark = document.documentElement.classList.contains('dark');
+        const { svg, bindFunctions } = await enqueueMermaidRender(() => {
+          configureMermaid(dark);
+          return mermaid.render(id, chart);
+        });
         if (cancelled) return;
         el.innerHTML = svg;
         bindFunctions?.(el);
@@ -211,7 +241,7 @@ export function MermaidDiagram({ chart }: { chart: string }) {
       cancelled = true;
       el.innerHTML = '';
     };
-  }, [chart, measureChart, shouldRender]);
+  }, [chart, isDark, measureChart, shouldRender]);
 
   useEffect(() => {
     measureChart();

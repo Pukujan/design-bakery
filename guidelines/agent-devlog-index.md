@@ -21,7 +21,8 @@
 | Engineering blog posts | [agent-devlog-engineering-blog-posts.md](agent-devlog-engineering-blog-posts.md) | — | `src/app/modules/blog/data/`, `content/posts/` |
 | Blog motion & decor | [agent-devlog-blog-motion.md](agent-devlog-blog-motion.md) | `.cursor/rules/blog-motion.mdc` | `src/app/modules/blog/shared/BlogPageMotion.tsx` |
 | CodeGraph usage | [agent-devlog-codegraph.md](agent-devlog-codegraph.md) | `.cursor/rules/codegraph.mdc` | `.codegraph/config.json` |
-| Blog publish kit | [agent-devlog-blog-publish-kit.md](agent-devlog-blog-publish-kit.md) | — | `src/app/modules/blog/studio/`, `functions/src/blog/publishKit/` |
+| Blog publish kit | [agent-devlog-blog-publish-kit.md](agent-devlog-blog-publish-kit.md) | — | `src/app/modules/blog/studio/`, `backend/services/src/blog/publishKit/` |
+| Cover Studio (exportable) | [packages/cover-studio-kit/README.md](../packages/cover-studio-kit/README.md) | [docs/HISTORY.md](../packages/cover-studio-kit/docs/HISTORY.md) | `packages/cover-studio-kit/`, `pnpm run export:cover-studio` |
 | Supabase migration (Firebase exit) | [agent-devlog-supabase-migration.md](agent-devlog-supabase-migration.md) | `.cursor/rules/supabase-migration.mdc` | `supabase/migrations/`, `backend/services/src/supabaseClient.ts`, `adminContentService.ts` |
 | Blog agents roadmap | [agent-devlog-blog-agents-roadmap.md](agent-devlog-blog-agents-roadmap.md) | — | **Archived** — see [archive/blog-agents/README.md](../archive/blog-agents/README.md) |
 

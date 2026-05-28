@@ -1,5 +1,5 @@
 /** Blog motion: guidelines/agent-devlog-blog-motion.md | Mermaid: guidelines/agent-devlog-mermaid.md */
-import { Children, isValidElement, useRef, useState, type ReactNode } from 'react';
+import { Children, createContext, isValidElement, useContext, useRef, useState, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Clock, Tag, Calendar, User } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -26,6 +26,9 @@ import { useStickySidebar } from './useStickySidebar';
 import { usePortfolio } from '@/portfolios/PortfolioContext';
 
 const HEADING_SCROLL_MARGIN = 'scroll-mt-32';
+
+/** Distinguish manual TOC `<ol>` from bullet `<ul>` — custom `li` must not add ▸ to ordered lists. */
+const MarkdownListParentContext = createContext<'ul' | 'ol'>('ul');
 
 function flattenMarkdownText(node: ReactNode): string {
   return Children.toArray(node)
@@ -198,17 +201,43 @@ const MarkdownComponents = {
       <hr className="my-4 sm:my-5 md:my-6 border-t-2 sm:border-t-2 md:border-t-3 border-black" {...props} />
     );
   },
+  ol({ children, ...props }: any) {
+    return (
+      <MarkdownListParentContext.Provider value="ol">
+        <ol
+          className="my-2.5 sm:my-3 md:my-4 space-y-1 sm:space-y-1 md:space-y-1.5 list-decimal pl-5 sm:pl-6 md:pl-7 marker:font-bold marker:text-blue-600 dark:marker:text-blue-400"
+          {...props}
+        >
+          {children}
+        </ol>
+      </MarkdownListParentContext.Provider>
+    );
+  },
   ul({ children, ...props }: any) {
     return (
-      <ul className="my-2.5 sm:my-3 md:my-4 space-y-1 sm:space-y-1 md:space-y-1.5 list-none" {...props}>
-        {children}
-      </ul>
+      <MarkdownListParentContext.Provider value="ul">
+        <ul className="my-2.5 sm:my-3 md:my-4 space-y-1 sm:space-y-1 md:space-y-1.5 list-none" {...props}>
+          {children}
+        </ul>
+      </MarkdownListParentContext.Provider>
     );
   },
   li({ children, ...props }: any) {
+    const listParent = useContext(MarkdownListParentContext);
+
+    if (listParent === 'ol') {
+      return (
+        <li className="pl-1 text-sm sm:text-sm md:text-base leading-relaxed" {...props}>
+          {children}
+        </li>
+      );
+    }
+
     return (
       <li className="flex items-start gap-1.5 sm:gap-1.5 md:gap-2 text-sm sm:text-sm md:text-base" {...props}>
-        <span className="text-blue-500 font-bold mt-0.5 text-xs sm:text-xs md:text-sm">▸</span>
+        <span className="text-blue-500 font-bold mt-0.5 text-xs sm:text-xs md:text-sm" aria-hidden>
+          ▸
+        </span>
         <span className="flex-1">{children}</span>
       </li>
     );

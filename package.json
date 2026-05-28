@@ -27,7 +27,8 @@
     "test:blog-workflow:live": "pnpm --dir backend/services run test:blog-workflow:live",
     "test:blog-workflow:live:ai": "pnpm --dir backend/services run test:blog-workflow:live:ai",
     "test:blog-workflow:storage": "pnpm --dir backend/services run test:blog-workflow:storage",
-    "test:blog-workflow:full": "pnpm --dir backend/services run test:blog-workflow:full"
+    "test:blog-workflow:full": "pnpm --dir backend/services run test:blog-workflow:full",
+    "export:cover-studio": "node scripts/export-cover-studio-kit.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

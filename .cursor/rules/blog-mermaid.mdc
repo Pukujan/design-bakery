@@ -14,7 +14,8 @@ alwaysApply: false
 ## Quick rules (full history in that file)
 
 - **Use:** `theme: 'default'`, `startOnLoad: false`, `mermaid.render()` per chart, wrapper class `blog-mermaid-chart`
-- **Do not:** `theme: 'base'` + `themeVariables`, `contentLoaded()`, post-render SVG JS, `#mermaid-*` CSS selectors
+- **Do not:** `theme: 'base'`, `contentLoaded()`, post-render SVG JS, `#mermaid-*` CSS selectors
+- **Dark arrows:** edge-only `themeVariables` via `configureMermaid(isDark)` in `MermaidDiagram.tsx` (re-render on theme toggle)
 - **Colors:** change hex in `globals.css` under `.blog-mermaid-chart` only
 - **Loading:** `.blog-mermaid-viewport--loading` reserves `min-height: min(70vh, 520px)` until SVG measures; do not zero `chartSize` unless `chart` text changed
 - **Test:** http://localhost:5300/endtoend-engineer/blogs/1 (use port from Vite log if 5300 is busy)

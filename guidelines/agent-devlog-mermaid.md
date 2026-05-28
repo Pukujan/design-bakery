@@ -4,7 +4,7 @@
 |-------|-------|
 | **Document date** | 2026-05-18 |
 | **Created** | 2026-05-18 |
-| **Last updated** | 2026-05-21 |
+| **Last updated** | 2026-05-27 |
 
 **For Cursor agents.** Read this **before** any change to blog Mermaid styling or rendering.
 
@@ -15,6 +15,7 @@
 | 2026-05-18 | Mermaid on blog detail; globals.css chart shell |
 | 2026-05-20 | Blog detail v2 integration |
 | 2026-05-21 | Interactive zoom toolbar; scroll viewport |
+| 2026-05-27 | Dark-mode arrows: `themeVariables` at render + expanded `.blog-mermaid-chart` edge CSS |
 
 **In-repo pointers (so this doc is not missed):**
 - `src/app/modules/engineering/BlogDetailPage/MermaidDiagram.tsx` — `mermaid.initialize`
@@ -89,7 +90,7 @@ For **new long-form posts**, default to **`flowchart TD`** or **`sequenceDiagram
 |------|----------------|
 | Node fill / border color | Edit `.blog-mermaid-chart svg g.node …` in `globals.css` |
 | Label color | `.blog-mermaid-chart svg .nodeLabel`, `g.node text`, etc. |
-| Dark-mode arrows | `.dark .blog-mermaid-chart svg .flowchart-link`, `.edgePath path`, `marker path` |
+| Dark-mode arrows | `configureMermaid(isDark)` in `MermaidDiagram.tsx` sets `themeVariables` (`lineColor`, `arrowheadColor`, `signalColor`, …); CSS fallback on `.arrowheadPath` **fill**, `.marker`, `.messageLine0/1` in `globals.css` |
 | Slightly different palette | Change hex in CSS only; **keep** `theme: 'default'` in JS |
 
 **Risky (test on `/blogs/1` immediately):** `theme: 'base'`, `themeVariables`, gradient fills, JS that touches SVG after render.
@@ -112,7 +113,7 @@ For **new long-form posts**, default to **`flowchart TD`** or **`sequenceDiagram
 
 ## Checklist before merging Mermaid changes
 
-- [ ] Still `theme: 'default'` (no `themeVariables` unless explicitly re-tested and approved)
+- [ ] Still `theme: 'default'` (edge-only `themeVariables` for light/dark arrows is OK; no `theme: 'base'`)
 - [ ] Still `startOnLoad: false` + `mermaid.render()` per chart
 - [ ] No `contentLoaded()` in `BlogDetailPage`
 - [ ] No post-render SVG JS (gradients, hover, attribute rewrites)

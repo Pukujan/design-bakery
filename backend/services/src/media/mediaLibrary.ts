@@ -99,10 +99,37 @@ export async function uploadMediaAssets(
     notes?: string;
   }[],
 ): Promise<MediaAssetDto[]> {
+  const buffers = files.map((file) => {
+    const { buffer } = parseImageDataUrl(file.dataUrl);
+    return {
+      buffer,
+      filename: file.filename,
+      slug: file.slug,
+      tags: file.tags,
+      altText: file.altText,
+      notes: file.notes,
+    };
+  });
+  return uploadMediaAssetsFromBuffers(buffers);
+}
+
+export async function uploadMediaAssetsFromBuffers(
+  files: {
+    buffer: Buffer;
+    filename?: string;
+    slug?: string;
+    tags?: string[];
+    altText?: string;
+    notes?: string;
+    contentType?: string;
+    ext?: string;
+  }[],
+): Promise<MediaAssetDto[]> {
   const created: MediaAssetDto[] = [];
 
   for (const file of files) {
-    const { buffer, contentType, ext } = parseImageDataUrl(file.dataUrl);
+    const contentType = file.contentType ?? 'image/png';
+    const ext = file.ext ?? 'png';
     const id = randomUUID();
     const basename = (file.filename?.trim() || 'image').replace(/\.[^.]+$/, '');
     const filename = displayFilename(basename, ext);
@@ -112,7 +139,7 @@ export async function uploadMediaAssets(
     const { url, path } = await uploadMediaBuffer({
       assetId: id,
       filename: basename,
-      buffer,
+      buffer: file.buffer,
       contentType,
       ext,
     });
@@ -126,7 +153,7 @@ export async function uploadMediaAssets(
       storage_path: path,
       url,
       content_type: contentType,
-      byte_size: buffer.length,
+      byte_size: file.buffer.length,
       alt_text: file.altText?.trim() || null,
       notes: file.notes?.trim() || null,
       created_at: now,

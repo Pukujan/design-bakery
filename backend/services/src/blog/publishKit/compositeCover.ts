@@ -3,13 +3,22 @@ import { rasterizePublishKitSvg } from './fontDiagnostics.js';
 import { renderBlogCardSvg, type RenderCardInput } from './renderSvg.js';
 import { renderCoverOverlaySvg, type OverlayInput } from './renderOverlay.js';
 
+function heroCropPosition(overlay: OverlayInput): string {
+  if (overlay.layoutHint === 'banner' || overlay.layoutHint === 'landscape') {
+    return 'north';
+  }
+  const aspect = overlay.width / overlay.height;
+  if (aspect > 1.45) return 'north';
+  return 'centre';
+}
+
 export async function compositeHeroCover(
   backgroundPng: Buffer,
   overlay: OverlayInput,
 ): Promise<Buffer> {
   const { width: w, height: h } = overlay;
   const bg = await sharp(backgroundPng)
-    .resize(w, h, { fit: 'cover', position: 'centre' })
+    .resize(w, h, { fit: 'cover', position: heroCropPosition(overlay) })
     .png()
     .toBuffer();
 

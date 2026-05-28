@@ -2,3 +2,4 @@ packages:
   - frontend
   - backend
   - backend/services
+  - packages/*

@@ -1,0 +1,44 @@
+{
+  "name": "cover-studio-export",
+  "version": "1.0.0",
+  "description": "Files to copy from design-bakery for a standalone social image generator",
+  "package": "packages/cover-studio-kit",
+  "server": {
+    "api": [
+      "backend/src/api/publishKit.ts",
+      "backend/src/api/coverStudioLibrary.ts",
+      "backend/src/api/mediaLibrary.ts",
+      "backend/src/middleware/auth.ts",
+      "backend/src/middleware/httpErrors.ts",
+      "backend/src/config/env.ts"
+    ],
+    "services": {
+      "publishKit": "backend/services/src/blog/publishKit",
+      "coverStudio": "backend/services/src/coverStudio",
+      "resolveBlogPost": "backend/services/src/blog/resolveBlogPost.ts",
+      "agentJson": "backend/services/src/blog/agentJson.ts",
+      "openrouter": "backend/services/src/openrouter.ts",
+      "openrouterImage": "backend/services/src/openrouterImage.ts",
+      "openrouterVision": "backend/services/src/openrouterVision.ts",
+      "apiError": "backend/services/src/apiError.ts",
+      "supabaseClient": "backend/services/src/supabaseClient.ts",
+      "media": "backend/services/src/media"
+    },
+    "build": [
+      "backend/services/package.json",
+      "backend/services/tsconfig.json",
+      "backend/services/scripts/copy-publish-kit-inter-ttf.mjs"
+    ]
+  },
+  "supabase": [
+    "supabase/migrations/003_publish_kit_hero_cache.sql",
+    "supabase/migrations/004_media_library.sql",
+    "supabase/migrations/005_media_library_tags_slug.sql",
+    "supabase/migrations/006_cover_studio_library.sql",
+    "supabase/migrations/007_cover_studio_format_platform.sql",
+    "supabase/migrations/008_cover_studio_pack_grouping.sql"
+  ],
+  "examples": [
+    "packages/cover-studio-kit/examples"
+  ]
+}

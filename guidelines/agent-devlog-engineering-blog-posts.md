@@ -101,4 +101,5 @@ Do not convert diagrams to `graph LR` when editing this post.
 
 - [ ] `/endtoend-engineer/blogs` — card appears, correct category chip
 - [ ] `/endtoend-engineer/blogs/<id>` — title, TOC anchors, all Mermaid blocks render
+- [ ] Manual TOC `1.` / `2.` ordered list shows **numbers**, not ▸ bullets (`BlogDetailPage` `ol` vs `ul` list renderers)
 - [ ] Dark mode — diagram borders readable (`.blog-mermaid-chart` in `globals.css`)
