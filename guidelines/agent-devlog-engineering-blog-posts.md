@@ -93,7 +93,7 @@ Do not convert diagrams to `graph LR` when editing this post.
 
 ## Sort order
 
-`sortBlogsByDateDesc()` — newest first by hidden `publishedAt` (ISO), else display `date` (`may - 27 - 2026`), then higher `id`. New post editor shows placeholders (`design-bakery`, today format), then first save writes real defaults if fields are blank. Run migration `009_blog_posts_published_at.sql` for CMS sort column.
+`sortBlogsByDateDesc()` — newest first by hidden `publishedAt` (ISO), else display `date` (`May 27 2026`), then higher `id`. New post editor shows placeholders (`design-bakery`, today format), then first save writes real defaults if fields are blank. Run migration `009_blog_posts_published_at.sql` for CMS sort column.
 
 ---
 

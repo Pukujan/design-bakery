@@ -1,38 +1,53 @@
 /** Default author for new blog posts (admin editor). */
 export const DEFAULT_BLOG_AUTHOR = 'design-bakery';
 
-const MONTH_ABBREV = [
-  'jan',
-  'feb',
-  'mar',
-  'apr',
-  'may',
-  'jun',
-  'jul',
-  'aug',
-  'sep',
-  'oct',
-  'nov',
-  'dec',
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ] as const;
 
-/** Display date for blog cards/detail — e.g. `may - 27 - 2026`. */
+/** Display date for blog cards/detail — e.g. `May 27 2026`. */
 export function formatBlogDisplayDate(date = new Date()): string {
-  const month = MONTH_ABBREV[date.getMonth()];
+  const month = MONTH_NAMES[date.getMonth()];
   const day = date.getDate();
   const year = date.getFullYear();
-  return `${month} - ${day} - ${year}`;
+  return `${month} ${day} ${year}`;
 }
 
 export function parseBlogDisplayDate(date: string): number {
   const trimmed = date.trim();
-  const m = trimmed.match(
-    /^([a-z]{3})\s*-\s*(\d{1,2})\s*-\s*(\d{4})$/i,
-  );
-  if (m) {
-    const monthIdx = MONTH_ABBREV.indexOf(m[1].toLowerCase() as (typeof MONTH_ABBREV)[number]);
+  const monthNames = MONTH_NAMES.map((month) => month.toLowerCase());
+  const monthShort = MONTH_NAMES.map((month) => month.slice(0, 3).toLowerCase());
+
+  // Legacy format support: `may - 27 - 2026`
+  const legacy = trimmed.match(/^([a-z]{3})\s*-\s*(\d{1,2})\s*-\s*(\d{4})$/i);
+  if (legacy) {
+    const monthIdx = monthShort.indexOf(legacy[1].toLowerCase());
     if (monthIdx >= 0) {
-      const ts = Date.UTC(Number(m[3]), monthIdx, Number(m[2]));
+      const ts = Date.UTC(Number(legacy[3]), monthIdx, Number(legacy[2]));
+      if (!Number.isNaN(ts)) return ts;
+    }
+  }
+
+  // New format: `May 27 2026` (also accepts short month like `May 27 2026`, `Jun 2 2026`)
+  const modern = trimmed.match(/^([a-z]+)\s+(\d{1,2})\s+(\d{4})$/i);
+  if (modern) {
+    const rawMonth = modern[1].toLowerCase();
+    const monthIdx = monthNames.indexOf(rawMonth);
+    const resolvedMonth =
+      monthIdx >= 0 ? monthIdx : monthShort.indexOf(rawMonth.slice(0, 3));
+    if (resolvedMonth >= 0) {
+      const ts = Date.UTC(Number(modern[3]), resolvedMonth, Number(modern[2]));
       if (!Number.isNaN(ts)) return ts;
     }
   }
