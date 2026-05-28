@@ -1,20 +1,15 @@
 import { motion } from "motion/react";
-import { TrendingUp, Users, DollarSign, MapPin, Award, Banknote, AlertTriangle } from "lucide-react";
+import { TrendingUp, Users, DollarSign, MapPin, Award, Banknote } from "lucide-react";
 
-const VERIFIED_RECOGNITIONS = [
-  "National ICT Innovation Award",
-  "NAS IT First Runner-Up",
-  "Startup World Cup Nepal regional Top 4",
-  "IEDI Top 11/1658",
-  "NYEF Finalist",
-];
+const VERIFIED_RECOGNITIONS =
+  "National ICT Innovation Award, NAS IT First Runner-Up, Startup World Cup Nepal regional Top 4, IEDI Top 11/1658, NYEF Finalist, Game Changer Startup Award 2024 (Australian Catholic University)";
 
 export function ImpactSectionV2() {
   const impacts = [
     {
       icon: Users,
       metric: "35,000+",
-      description: "registered users",
+      description: "registered users (internal metric, unverified by independent audit)",
     },
     {
       icon: DollarSign,
@@ -28,8 +23,8 @@ export function ImpactSectionV2() {
     },
     {
       icon: Award,
-      metric: "5 Verified Recognitions",
-      description: VERIFIED_RECOGNITIONS.join(", "),
+      metric: "6 Verified Recognitions",
+      description: VERIFIED_RECOGNITIONS,
     },
     {
       icon: Banknote,
@@ -73,27 +68,15 @@ export function ImpactSectionV2() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 * index, duration: 0.5 }}
-                className="bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-lg p-8 shadow-lg hover:shadow-xl transition-shadow duration-300"
+                className={`bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-lg p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 ${
+                  impact.metric === "6 Verified Recognitions" ? "md:col-span-2" : ""
+                }`}
               >
                 <impact.icon className="w-12 h-12 text-secondary mb-6" />
                 <div className="text-3xl font-bold mb-3 text-secondary">{impact.metric}</div>
                 <p className="text-primary-foreground/90 leading-relaxed">{impact.description}</p>
               </motion.div>
             ))}
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.55, duration: 0.5 }}
-              className="bg-gray-100 text-gray-900 rounded-lg p-8 border-2 border-dashed border-gray-300 md:col-span-2 lg:col-span-1"
-            >
-              <AlertTriangle className="w-10 h-10 text-amber-600 mb-4" />
-              <div className="text-xl font-bold mb-2 text-primary">1 Additional Claim</div>
-              <p className="text-gray-700 leading-relaxed">
-                Game Changer Startup Award 2024 (unverified independently)
-              </p>
-            </motion.div>
           </motion.div>
 
           <motion.div

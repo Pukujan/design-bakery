@@ -5,24 +5,25 @@ export function PDFGenerationSectionV2() {
   const pdfSystemFeatures = [
     {
       icon: FileText,
-      title: "Structured user input into templates"
+      title: "Structured user input into templates",
     },
     {
       icon: AlertTriangle,
-      title: "Blocked output when required data was missing"
+      title: "Blocked output when required data was missing",
     },
     {
       icon: CheckSquare,
-      title: "Reduced manual document preparation"
+      title: "Reduced manual document preparation",
     },
     {
       icon: FileCheck,
-      title: "Generated PDFs accepted by government offices, legal firms, and financial institutions"
+      title:
+        "Generated PDFs accepted by government offices, legal firms, and financial institutions",
     },
     {
       icon: MapPin,
-      title: "Created repeatable document workflows for individuals and consultants"
-    }
+      title: "Created repeatable document workflows for individuals and consultants",
+    },
   ];
 
   return (
@@ -51,9 +52,11 @@ export function PDFGenerationSectionV2() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-xl leading-relaxed text-primary-foreground/95 mb-12"
+            className="text-xl leading-relaxed text-primary-foreground/95 mb-8"
           >
-            Document generation was one of the most important parts of the system.
+            Document generation was one of the most important parts of the system, because a document
+            that looks unofficial or contains formatting errors is often rejected by clerks who already
+            distrust digital submissions, forcing users back to brokers.
           </motion.p>
 
           <motion.p
@@ -63,7 +66,9 @@ export function PDFGenerationSectionV2() {
             transition={{ delay: 0.35, duration: 0.6 }}
             className="text-xl leading-relaxed text-primary-foreground/95 mb-12"
           >
-            The platform converted structured user input into standardized, submission-ready PDF documents. Before a document could be generated, the system checked required fields, validation status, and completion state.
+            The platform converted structured user input into standardized, submission-ready PDF
+            documents. Before a document could be generated, the system checked required fields,
+            validation status, and completion state.
           </motion.p>
 
           <motion.div
@@ -77,14 +82,14 @@ export function PDFGenerationSectionV2() {
             <div className="space-y-4">
               {pdfSystemFeatures.map((feature, index) => (
                 <motion.div
-                  key={index}
+                  key={feature.title}
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.1 * index, duration: 0.5 }}
                   className="flex items-start gap-4"
                 >
-                  <feature.icon className="w-6 h-6 text-secondary mt-1 flex-shrink-0" />
+                  <feature.icon className="w-6 h-6 text-secondary mt-1 shrink-0" />
                   <p className="text-lg leading-relaxed text-primary-foreground/90">{feature.title}</p>
                 </motion.div>
               ))}
@@ -99,7 +104,10 @@ export function PDFGenerationSectionV2() {
             className="bg-secondary/20 backdrop-blur-sm rounded-lg p-8 border-l-4 border-secondary"
           >
             <p className="text-xl leading-relaxed text-primary-foreground font-medium">
-              This made document generation a <span className="text-secondary">fullstack product problem</span>, not just a frontend feature.
+              This made document generation a{" "}
+              <span className="text-secondary">civic workflow problem</span>, not just a frontend
+              feature: the PDF had to look identical to government-issued paper because clerks in
+              under-resourced offices judge authenticity visually.
             </p>
           </motion.div>
         </motion.div>

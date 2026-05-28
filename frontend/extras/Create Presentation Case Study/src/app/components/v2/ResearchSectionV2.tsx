@@ -7,14 +7,18 @@ type ResearchStudy = {
   studyName: string;
   methods: string;
   findings: string;
+  supplement?: string;
 };
+
+const HAMROBAZAAR_SUPPLEMENT =
+  "This research included studying Hamrobazaar's documented challenges in Q1 2022, where a site redesign coincided with significant traffic disruption. Reports from the IT Entrepreneurs Community (Facebook) and user discussions on Reddit indicated a 45% organic traffic drop attributed to URL restructuring without redirects, creating thousands of dead links and severe SEO disruption, alongside a sudden UI change that users struggled to navigate. Community feedback highlighted broken location search and difficulty adapting to the new interface. In a market with 31% digital literacy, the incident underscored the risk of replacing a familiar, functional interface with changes that introduced both technical and cognitive friction. This validated our decision to prioritize familiar, simple, single-pathway flows over trend-driven aesthetic changes.";
 
 const RESEARCH_STUDIES: ResearchStudy[] = [
   {
     icon: MapPin,
     studyName: "Socio-Economic & Demographic Analysis",
     methods:
-      "Desk research plus field mapping of literacy rates, household income bands, and digital access across urban, semi-urban, and rural Nepal.",
+      "Desk research plus field mapping of literacy rates, household income bands, and digital access across urban, semi-urban, and rural Nepal. Sources included Nepal Rastra Bank Survey 2022/23 and National Census 2021 broadband data.",
     findings:
       "Defined primary personas: low-income individuals, micro-business owners, and rural users excluded from formal documentation channels.",
   },
@@ -22,7 +26,7 @@ const RESEARCH_STUDIES: ResearchStudy[] = [
     icon: TrendingUp,
     studyName: "User Research & Market Survey (2023)",
     methods:
-      "Structured interviews and market surveys with citizens, brokers, and small-business owners on documentation costs, trust, and workflow pain points.",
+      "Structured interviews and market surveys with over 3,500 citizens, brokers, and small-business owners across middle-income households, conducted online and in person, on documentation costs, trust, and workflow pain points.",
     findings:
       "Documented broker fee inflation (often 10-20x legitimate costs), legal risk from unregistered agents, and lack of price transparency.",
   },
@@ -33,6 +37,7 @@ const RESEARCH_STUDIES: ResearchStudy[] = [
       "Competitive and behavioral review of how Nepali users already transact online, centered on Facebook Marketplace and Hamrobazaar (top platforms in 2021).",
     findings:
       "Informed trust patterns, simplicity expectations, and single-pathway flows for digitally adverse audiences.",
+    supplement: HAMROBAZAAR_SUPPLEMENT,
   },
   {
     icon: Search,
@@ -46,7 +51,7 @@ const RESEARCH_STUDIES: ResearchStudy[] = [
     icon: Quote,
     studyName: "Figma Prototype Usability Testing",
     methods:
-      "Interactive prototype sessions with first-time users; task-based tests on form flows, transliteration, and video-guided help.",
+      "Interactive prototype sessions with 90 first-time users from the broader research pool; task-based tests on form flows, transliteration, and video-guided help.",
     findings:
       "Surfaced friction points in step progression, terminology, and reassurance; validated romanized Nepali input and one-click legal consultation patterns.",
   },
@@ -87,12 +92,24 @@ export function ResearchSectionV2() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.25, duration: 0.6 }}
-            className="text-xl text-gray-700 leading-relaxed mb-10"
+            className="text-xl text-gray-700 leading-relaxed mb-6"
           >
             Design decisions were grounded in named research studies below, not assumptions about
-            how government forms should look online. The platform targeted citizens with low
-            literacy and digital literacy who had been priced out of legal participation by a
-            broker-driven black market.
+            how government forms should look online. Research engaged over 3,500 participants across
+            middle-income households, combining online and in-person methods.
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.28, duration: 0.6 }}
+            className="text-lg text-gray-600 leading-relaxed mb-10"
+          >
+            The sample skewed male; women&apos;s documentation experiences may differ due to distinct
+            legal and bureaucratic barriers not fully captured in this study. The platform targeted
+            citizens with low literacy and digital literacy who had been priced out of legal
+            participation by a broker-driven black market.
           </motion.p>
 
           <motion.div
@@ -112,7 +129,7 @@ export function ResearchSectionV2() {
                 className="bg-gray-50 rounded-lg p-6 md:p-8 border border-gray-200"
               >
                 <div className="flex items-start gap-4 mb-4">
-                  <study.icon className="w-8 h-8 text-secondary flex-shrink-0 mt-1" />
+                  <study.icon className="w-8 h-8 text-secondary shrink-0 mt-1" />
                   <h3 className="text-xl font-bold text-primary">{study.studyName}</h3>
                 </div>
                 <dl className="grid md:grid-cols-2 gap-4 text-gray-700">
@@ -129,6 +146,11 @@ export function ResearchSectionV2() {
                     <dd className="leading-relaxed">{study.findings}</dd>
                   </div>
                 </dl>
+                {study.supplement ? (
+                  <p className="mt-6 pt-6 border-t border-gray-200 text-gray-700 leading-relaxed">
+                    {study.supplement}
+                  </p>
+                ) : null}
               </motion.article>
             ))}
           </motion.div>
@@ -142,8 +164,8 @@ export function ResearchSectionV2() {
           >
             <Quote className="w-10 h-10 text-secondary mb-4 opacity-90" />
             <p className="text-xl md:text-2xl font-medium leading-relaxed italic">
-              “Simplicity and ease of use were as vital as trust: people needed to feel good and
-              taken care of when using something to build trust in the platform.”
+              &ldquo;Simplicity and ease of use were as vital as trust: people needed to feel good and
+              taken care of when using something to build trust in the platform.&rdquo;
             </p>
             <p className="mt-4 text-primary-foreground/80 text-sm">
               Core insight from User Research & Market Survey (2023) and usability testing

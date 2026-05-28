@@ -11,6 +11,7 @@ import {
   MapPin,
   ShieldAlert,
   Newspaper,
+  BarChart3,
 } from "lucide-react";
 
 export function ProblemSectionV2() {
@@ -104,6 +105,27 @@ export function ProblemSectionV2() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.32, duration: 0.6 }}
+            className="bg-white rounded-lg p-6 md:p-8 border-l-4 border-primary shadow-sm mb-8"
+          >
+            <div className="flex items-start gap-4">
+              <BarChart3 className="w-8 h-8 text-secondary shrink-0" />
+              <p className="text-lg text-gray-700 leading-relaxed">
+                Nepal&apos;s digital literacy rate stands at just 31% (Nepal Rastra Bank Survey
+                2022/23, reported in Rising Nepal Daily, June 2025; OnlineKhabar, February 2024).
+                Broadband internet access reaches only 21.5% of rural households versus 45.7% in
+                urban centers (National Census 2021, cited in Digital Rights Nepal, State of Digital
+                Rights in Nepal 2022). With 15.1% of the population below the poverty line (Economic
+                Survey 2022/23) and rural broadband access under a quarter of households, the most
+                vulnerable citizens are effectively excluded from digital channels.
+              </p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.34, duration: 0.6 }}
             className="bg-white rounded-lg p-6 md:p-8 border-l-4 border-secondary shadow-sm mb-10"
           >
             <div className="flex items-start gap-4">
@@ -111,10 +133,11 @@ export function ProblemSectionV2() {
               <p className="text-lg text-gray-700 leading-relaxed">
                 A <span className="font-semibold text-primary">2025 Nepal News</span> investigation
                 documented 300+ brokers operating openly at a single Kathmandu transport office,
-                charging citizens Rs 500-7,000 for form-filling services that should be free. This
-                sustained a system where users depended on informal brokers to complete forms,
-                businesses faced recurring documentation burden without organized digital tools, and
-                legal and financial consultants used manual or disconnected systems.
+                charging citizens Rs 500-7,000 for form-filling services that should be free,
+                confirming the broker-driven black market our platform targeted remains active
+                today. This sustained a system where users depended on informal brokers to complete
+                forms, businesses faced recurring documentation burden without organized digital
+                tools, and legal and financial consultants used manual or disconnected systems.
               </p>
             </div>
           </motion.div>

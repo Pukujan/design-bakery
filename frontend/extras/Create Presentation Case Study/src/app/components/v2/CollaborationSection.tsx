@@ -31,25 +31,38 @@ export function CollaborationSection() {
             className="space-y-8"
           >
             <p className="text-xl leading-relaxed text-primary-foreground/95">
-              I worked across <span className="font-semibold text-secondary">product, design, frontend, backend, and business requirements</span>.
+              I worked across{" "}
+              <span className="font-semibold text-secondary">
+                product, design, frontend, backend, and business requirements
+              </span>
+              .
             </p>
 
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-secondary/20">
               <div className="flex items-start gap-4 mb-6">
-                <Network className="w-8 h-8 text-secondary flex-shrink-0" />
+                <Network className="w-8 h-8 text-secondary shrink-0" />
                 <p className="text-xl leading-relaxed text-primary-foreground/95">
-                  I collaborated with legal experts, backend engineers, stakeholders, and users to translate complex documentation processes into usable software.
+                  I collaborated with legal experts, backend engineers, stakeholders, and users to
+                  translate complex documentation processes into usable software.
                 </p>
               </div>
             </div>
 
             <p className="text-xl leading-relaxed text-primary-foreground/95">
-              My role required balancing <span className="font-semibold text-secondary">user experience, technical implementation, business sustainability, and regulatory/document accuracy</span>.
+              My role required balancing{" "}
+              <span className="font-semibold text-secondary">
+                user experience, technical implementation, business sustainability, and
+                regulatory/document accuracy
+              </span>
+              .
             </p>
 
             <div className="bg-secondary/20 rounded-lg p-8 border-l-4 border-secondary">
               <p className="text-xl leading-relaxed text-primary-foreground font-medium">
-                This project strengthened my ability to work as an end-to-end product engineer, connecting design decisions directly to system architecture and operational outcomes.
+                This project strengthened my ability to work as an end-to-end product engineer,
+                connecting design decisions directly to system architecture and operational outcomes,
+                with the civic constraint that the system had to work for users who had been failed by
+                both government and market alternatives.
               </p>
             </div>
           </motion.div>

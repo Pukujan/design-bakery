@@ -43,8 +43,8 @@ export function OverviewSectionV2() {
               documentation accessible, affordable, and understandable for low-income and digitally
               underserved users across Nepal, serving{" "}
               <span className="font-semibold text-primary">35,000+ registered users</span> with
-              platform fees near zero compared to broker fees documented at{" "}
-              <span className="font-semibold text-primary">10-20x</span> legitimate costs.
+              platform fees near zero compared to broker fees documented at 10-20x legitimate
+              costs.
             </p>
 
             <div className="w-24 h-1 bg-secondary my-8" />

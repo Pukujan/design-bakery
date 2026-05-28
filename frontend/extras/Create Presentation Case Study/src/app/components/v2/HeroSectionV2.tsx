@@ -82,7 +82,7 @@ export function HeroSectionV2() {
             <div className="flex items-start gap-3 md:col-span-2">
               <div className="text-secondary font-semibold shrink-0">Outcome:</div>
               <div className="text-primary-foreground/90">
-                Up to 99% cost reduction vs. broker fees, 5 verified recognitions
+                Up to 99% cost reduction vs. broker fees, 6 verified recognitions
               </div>
             </div>
           </motion.div>

@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Lightbulb, Users, Monitor, CheckCircle, FileCheck, Layers, Database, Award } from "lucide-react";
+import { Lightbulb, Users, Monitor, CheckCircle, FileCheck, Layers, Database, Award, Smartphone } from "lucide-react";
 
 export function LearningSectionV2() {
   const learnings = [
@@ -21,31 +21,35 @@ export function LearningSectionV2() {
     },
     {
       icon: Users,
-      text: "Fullstack product engineering requires understanding the user journey, not just the codebase",
+      text: "Fullstack product engineering in civic contexts requires understanding the user journey, the bureaucratic reality, and the infrastructure gap, not just the codebase",
     },
     {
       icon: CheckCircle,
-      text: "Complex forms work better as guided workflows than static digital documents",
+      text: "Complex forms work better as guided workflows than static digital documents because static forms assume literacy and confidence that most citizens do not have",
     },
     {
       icon: FileCheck,
-      text: "Frontend systems are responsible for data correctness, not just presentation",
+      text: "Frontend systems in civic tech are responsible for data correctness, not just presentation, because users cannot afford to discover errors at a government counter",
     },
     {
       icon: Layers,
-      text: "Product design decisions shape backend and data requirements",
+      text: "Product design decisions shape backend and data requirements when the user population has low digital literacy and unreliable connectivity",
     },
     {
       icon: Database,
-      text: "Document generation is a core workflow architecture problem",
+      text: "Document generation is a core workflow architecture problem because the output must be accepted by institutions that still judge validity by appearance",
     },
     {
       icon: Monitor,
-      text: "Desktop-first design can still support responsive mobile access when the component system is intentional",
+      text: "Desktop-first design can still support responsive mobile access when the component system is intentional, but the choice must be grounded in how users actually access technology in their communities",
     },
     {
       icon: Users,
-      text: "Multi-role SaaS platforms need clear separation of workflows, permissions, and user intent",
+      text: "Multi-role civic platforms need clear separation of workflows, permissions, and user intent because a consultant acting on behalf of a low-literacy client is a different trust scenario than self-service",
+    },
+    {
+      icon: Smartphone,
+      text: "Familiarity over novelty in low-literacy markets: Hamrobazaar's documented traffic decline after a redesign, driven by URL restructuring without redirects and a sudden UI change users could not navigate, underscored the risk of replacing functional familiarity with technical and cognitive friction in a market with 31% digital literacy",
     },
     {
       icon: Award,

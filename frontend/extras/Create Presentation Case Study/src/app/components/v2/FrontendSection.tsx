@@ -10,7 +10,7 @@ export function FrontendSection() {
     "Error messages",
     "Tooltips",
     "Dashboard views",
-    "Document preview flows"
+    "Document preview flows",
   ];
 
   return (
@@ -42,7 +42,11 @@ export function FrontendSection() {
             className="space-y-8"
           >
             <p className="text-xl leading-relaxed text-primary-foreground/95">
-              The frontend was built with <span className="font-semibold text-secondary">React, Next.js, TypeScript, and TailwindCSS</span>.
+              The frontend was built with{" "}
+              <span className="font-semibold text-secondary">
+                React, Next.js, TypeScript, and TailwindCSS
+              </span>
+              .
             </p>
 
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-secondary/20">
@@ -55,14 +59,14 @@ export function FrontendSection() {
               <div className="grid md:grid-cols-2 gap-4">
                 {componentTypes.map((component, index) => (
                   <motion.div
-                    key={index}
+                    key={component}
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.05 * index, duration: 0.5 }}
                     className="flex items-start gap-3"
                   >
-                    <div className="w-2 h-2 bg-secondary rounded-full mt-2 flex-shrink-0" />
+                    <div className="w-2 h-2 bg-secondary rounded-full mt-2 shrink-0" />
                     <span className="text-lg text-primary-foreground/90">{component}</span>
                   </motion.div>
                 ))}
@@ -70,7 +74,11 @@ export function FrontendSection() {
             </div>
 
             <p className="text-xl leading-relaxed text-primary-foreground/95">
-              The frontend handled complex form behavior, preserved user progress, surfaced missing information early, and prevented invalid document generation.
+              The frontend handled complex form behavior, preserved user progress, surfaced missing
+              information early, and prevented invalid document generation, because a low-literacy
+              user who loses progress or generates a rejected document often lacks the time, money,
+              or confidence to start again. Consistent patterns across all forms reduced the
+              learning burden for users unfamiliar with digital interfaces.
             </p>
 
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-secondary/20">
@@ -81,7 +89,13 @@ export function FrontendSection() {
                 <h3 className="text-2xl font-bold">Desktop-First, Mobile-Ready</h3>
               </div>
               <p className="text-lg leading-relaxed text-primary-foreground/90">
-                The architecture was <span className="font-semibold text-secondary">desktop-first</span> because users needed enough screen space to review long, detailed documentation. At the same time, <span className="font-semibold text-secondary">reusable responsive components</span> kept the platform mobile-ready without requiring separate mobile-specific workflows.
+                The architecture was <span className="font-semibold text-secondary">desktop-first</span>{" "}
+                because users needed enough screen space to review long, detailed documentation, and
+                because many rural and semi-urban users access the internet through shared community
+                computers, cyber cafés, or borrowed devices where a cramped mobile interface would
+                increase error rates for people already intimidated by legal paperwork. Reusable
+                responsive components kept the platform mobile-ready without requiring separate
+                mobile-specific workflows.
               </p>
             </div>
           </motion.div>

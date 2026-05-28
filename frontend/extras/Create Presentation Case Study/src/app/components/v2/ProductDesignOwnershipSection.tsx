@@ -9,7 +9,7 @@ export function ProductDesignOwnershipSection() {
     "Romanized Nepali transliteration and video-guided legal support",
     "Reducing confusion through content hierarchy and single-pathway web flows",
     "B2B partner and legal-consultant onboarding experiences",
-    "Collaborating with Next.js developers on component-based implementation"
+    "Collaborating with Next.js developers on component-based implementation",
   ];
 
   return (
@@ -41,11 +41,13 @@ export function ProductDesignOwnershipSection() {
             className="space-y-8"
           >
             <p className="text-xl text-gray-700 leading-relaxed">
-              My work included both <span className="font-semibold text-primary">interface design</span> and <span className="font-semibold text-primary">product logic</span>.
+              My work included both <span className="font-semibold text-primary">interface design</span>{" "}
+              and <span className="font-semibold text-primary">product logic</span>.
             </p>
 
             <p className="text-xl text-gray-700 leading-relaxed">
-              I focused on designing flows that matched how real users approached documentation, especially users who were not highly technical or familiar with legal terminology.
+              I focused on designing flows that matched how real users approached documentation,
+              especially users who were not highly technical or familiar with legal terminology.
             </p>
 
             <div className="bg-gray-50 rounded-lg p-8 border border-gray-200 shadow-sm">
@@ -58,14 +60,14 @@ export function ProductDesignOwnershipSection() {
               <ul className="space-y-4">
                 {focusAreas.map((area, index) => (
                   <motion.li
-                    key={index}
+                    key={area}
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.05 * index, duration: 0.5 }}
                     className="flex items-start gap-3"
                   >
-                    <div className="w-2 h-2 bg-secondary rounded-full mt-2 flex-shrink-0" />
+                    <div className="w-2 h-2 bg-secondary rounded-full mt-2 shrink-0" />
                     <span className="text-lg text-gray-700">{area}</span>
                   </motion.li>
                 ))}
@@ -74,9 +76,12 @@ export function ProductDesignOwnershipSection() {
 
             <div className="bg-primary text-primary-foreground rounded-lg p-8 border-l-4 border-secondary">
               <div className="flex items-start gap-4">
-                <FileText className="w-8 h-8 text-secondary flex-shrink-0" />
+                <FileText className="w-8 h-8 text-secondary shrink-0" />
                 <p className="text-xl leading-relaxed text-primary-foreground/95">
-                  The strongest product decision was treating documentation as a <span className="font-semibold text-secondary">guided workflow</span>, not a static form.
+                  The strongest product decision was treating documentation as a{" "}
+                  <span className="font-semibold text-secondary">guided workflow</span>, not a static
+                  form, because for a user with 31% digital literacy, a static form is a wall, not a
+                  tool.
                 </p>
               </div>
             </div>

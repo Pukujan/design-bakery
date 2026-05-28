@@ -8,7 +8,7 @@ export function DataIntegrationSectionV2() {
     "Submitting structured form data",
     "Handling consultant and business workflows",
     "Supporting reusable document templates",
-    "Managing subscription-based access"
+    "Managing subscription-based access",
   ];
 
   return (
@@ -40,7 +40,8 @@ export function DataIntegrationSectionV2() {
             className="space-y-8"
           >
             <p className="text-xl text-gray-700 leading-relaxed">
-              The platform integrated frontend workflows with backend APIs and PostgreSQL-backed data models.
+              The platform integrated frontend workflows with backend APIs and PostgreSQL-backed data
+              models.
             </p>
 
             <div className="bg-white rounded-lg p-8 border border-gray-200 shadow-sm">
@@ -53,14 +54,14 @@ export function DataIntegrationSectionV2() {
               <div className="grid md:grid-cols-2 gap-4">
                 {apiContracts.map((contract, index) => (
                   <motion.div
-                    key={index}
+                    key={contract}
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.05 * index, duration: 0.5 }}
                     className="flex items-start gap-3"
                   >
-                    <div className="w-2 h-2 bg-secondary rounded-full mt-2 flex-shrink-0" />
+                    <div className="w-2 h-2 bg-secondary rounded-full mt-2 shrink-0" />
                     <span className="text-lg text-gray-700">{contract}</span>
                   </motion.div>
                 ))}
@@ -69,18 +70,27 @@ export function DataIntegrationSectionV2() {
 
             <div className="bg-white rounded-lg p-8 border-l-4 border-secondary">
               <div className="flex items-start gap-4 mb-4">
-                <FileStack className="w-8 h-8 text-secondary flex-shrink-0" />
+                <FileStack className="w-8 h-8 text-secondary shrink-0" />
                 <p className="text-xl text-gray-700 leading-relaxed">
-                  The data model needed to support multi-layered, tabular, and reusable information because government and legal documents often required repeated parties, business details, addresses, dates, and supporting fields.
+                  The data model needed to support multi-layered, tabular, and reusable information
+                  because government and legal documents often required repeated parties, business
+                  details, addresses, dates, and supporting fields. For a user filling out multiple
+                  forms for the same business or family member, reusing stored data meant fewer
+                  opportunities to make errors and less exposure to confusing re-entry, critical for
+                  users who struggle with typing and form navigation.
                 </p>
               </div>
             </div>
 
             <div className="bg-primary text-primary-foreground rounded-lg p-8">
               <div className="flex items-start gap-4">
-                <Save className="w-8 h-8 text-secondary flex-shrink-0" />
+                <Save className="w-8 h-8 text-secondary shrink-0" />
                 <p className="text-xl leading-relaxed text-primary-foreground/95">
-                  The system was designed so that user input could move cleanly from <span className="font-semibold text-secondary">form state</span> to <span className="font-semibold text-secondary">backend storage</span> to <span className="font-semibold text-secondary">PDF output</span>.
+                  The system was designed so that user input could move cleanly from{" "}
+                  <span className="font-semibold text-secondary">form state</span> to{" "}
+                  <span className="font-semibold text-secondary">backend storage</span> to{" "}
+                  <span className="font-semibold text-secondary">PDF output</span>, preserving
+                  accuracy across unreliable network conditions.
                 </p>
               </div>
             </div>

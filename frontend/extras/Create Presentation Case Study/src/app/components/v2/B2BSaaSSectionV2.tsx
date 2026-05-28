@@ -3,30 +3,12 @@ import { Building2, LayoutDashboard, Users, FileText, CreditCard, Lock, RefreshC
 
 export function B2BSaaSSectionV2() {
   const supportedFeatures = [
-    {
-      icon: Building2,
-      text: "Business accounts"
-    },
-    {
-      icon: Users,
-      text: "Consultant workflows"
-    },
-    {
-      icon: CreditCard,
-      text: "Paid professional features"
-    },
-    {
-      icon: RefreshCw,
-      text: "Reusable form structures"
-    },
-    {
-      icon: Lock,
-      text: "Role-based access patterns"
-    },
-    {
-      icon: FileText,
-      text: "Separation between free public workflows and paid features"
-    }
+    { icon: Building2, text: "Business accounts" },
+    { icon: Users, text: "Consultant workflows" },
+    { icon: CreditCard, text: "Paid professional features" },
+    { icon: RefreshCw, text: "Reusable form structures" },
+    { icon: Lock, text: "Role-based access patterns" },
+    { icon: FileText, text: "Separation between free public workflows and paid features" },
   ];
 
   return (
@@ -55,7 +37,7 @@ export function B2BSaaSSectionV2() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-xl text-gray-700 mb-12 leading-relaxed"
+            className="text-xl text-gray-700 mb-8 leading-relaxed"
           >
             Ekagajpatra served both individual users and professional users.
           </motion.p>
@@ -67,10 +49,14 @@ export function B2BSaaSSectionV2() {
             transition={{ delay: 0.35, duration: 0.6 }}
             className="text-xl text-gray-700 mb-12 leading-relaxed"
           >
-            For businesses and consultants, I helped design dashboard-based workflows that supported recurring documentation needs, multiple client records, reusable templates, and professional document generation.
+            For businesses and consultants, I helped design dashboard-based workflows that supported
+            recurring documentation needs, multiple client records, reusable templates, and
+            professional document generation. The B2B layer was designed so that local legal aid
+            organizations and micro-business advisors could serve multiple low-literacy clients without
+            each client needing independent digital fluency, extending the platform&apos;s civic reach to
+            users who would never register or complete a form themselves.
           </motion.p>
 
-          {/* Business and Consultant Dashboards */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -85,15 +71,14 @@ export function B2BSaaSSectionV2() {
 
             <div className="grid md:grid-cols-2 gap-4">
               {supportedFeatures.map((feature, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <feature.icon className="w-5 h-5 text-secondary mt-1 flex-shrink-0" />
+                <div key={feature.text} className="flex items-start gap-3">
+                  <feature.icon className="w-5 h-5 text-secondary mt-1 shrink-0" />
                   <p className="text-gray-700 leading-relaxed">{feature.text}</p>
                 </div>
               ))}
             </div>
           </motion.div>
 
-          {/* Impact Statement */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -102,9 +87,11 @@ export function B2BSaaSSectionV2() {
             className="bg-primary text-primary-foreground rounded-lg p-8 border-l-4 border-secondary"
           >
             <div className="flex items-start gap-4">
-              <TrendingUp className="w-10 h-10 text-secondary flex-shrink-0" />
+              <TrendingUp className="w-10 h-10 text-secondary shrink-0" />
               <p className="text-xl leading-relaxed text-primary-foreground/95">
-                This helped the platform move beyond a consumer form tool into a <span className="font-semibold text-secondary">scalable civic-tech SaaS product</span>.
+                This helped the platform move beyond a consumer form tool into a{" "}
+                <span className="font-semibold text-secondary">civic infrastructure product</span> that
+                could sustain itself while keeping public workflows free or near-zero cost.
               </p>
             </div>
           </motion.div>

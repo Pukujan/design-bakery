@@ -1,7 +1,17 @@
 import { motion } from "motion/react";
 import { Sparkles, ExternalLink } from "lucide-react";
 
-const SOURCES = ["Nepal News (Nov 2025)", "Kathmandu Post", "My Republica", "Fiscal Nepal"];
+const SOURCES = [
+  "Nepal Rastra Bank Survey 2022/23 (via Rising Nepal Daily, June 2025; OnlineKhabar, Feb 2024)",
+  "National Census 2021 broadband data (via Digital Rights Nepal, 2022)",
+  "Economic Survey 2022/23",
+  "Nepal News (Nov 2025)",
+  "Kathmandu Post",
+  "My Republica",
+  "Fiscal Nepal",
+  "IT Entrepreneurs Community (Facebook, 2022)",
+  "r/Nepal (Reddit, 2022)",
+];
 
 export function ReflectionSectionV2() {
   return (
@@ -44,12 +54,15 @@ export function ReflectionSectionV2() {
             <p className="text-xl leading-relaxed text-primary-foreground/90">
               Impactful design here was not about pixels alone. Research-driven flows, transparent
               pricing, and fullstack workflow architecture made complex government, legal, and
-              financial documentation more accessible, affordable, and reliable at national scale.
+              financial documentation more accessible, affordable, and reliable at national scale, for
+              those who could reach it. In a country where 31% digital literacy and 60% household
+              internet absence remain the baseline, software alone cannot outrun infrastructure
+              inequality.
             </p>
 
-            <p className="text-sm text-primary-foreground/75 pt-4">
+            <p className="text-sm text-primary-foreground/75 pt-4 leading-relaxed">
               <span className="font-semibold text-primary-foreground/90">Sources: </span>
-              {SOURCES.join(", ")}
+              {SOURCES.join("; ")}
             </p>
           </motion.div>
 
