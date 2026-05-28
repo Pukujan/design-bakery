@@ -4,12 +4,14 @@ import { Code2, Layers, Zap } from "lucide-react";
 export function HeroSectionV2() {
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-primary text-primary-foreground overflow-hidden">
-      {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, rgb(255, 215, 0) 1px, transparent 0)`,
-          backgroundSize: '40px 40px'
-        }} />
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, rgb(255, 215, 0) 1px, transparent 0)`,
+            backgroundSize: "40px 40px",
+          }}
+        />
       </div>
 
       <div className="container mx-auto px-6 py-20 relative z-10">
@@ -46,28 +48,42 @@ export function HeroSectionV2() {
             className="grid md:grid-cols-2 gap-4 mb-12 max-w-4xl"
           >
             <div className="flex items-start gap-3">
-              <div className="text-secondary font-semibold">Role:</div>
-              <div className="text-primary-foreground/90">Fullstack Product Engineer / Product Designer</div>
+              <div className="text-secondary font-semibold shrink-0">Role:</div>
+              <div className="text-primary-foreground/90">
+                Lead Product Designer (research · branding · UX/UI · front-end)
+              </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="text-secondary font-semibold">Stack:</div>
-              <div className="text-primary-foreground/90">React, Next.js, TypeScript, TailwindCSS, PostgreSQL, REST APIs, PDF Generation</div>
+              <div className="text-secondary font-semibold shrink-0">Duration:</div>
+              <div className="text-primary-foreground/90">14 months</div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="text-secondary font-semibold">Architecture:</div>
-              <div className="text-primary-foreground/90">Product-led fullstack platform, desktop-first, responsive, mobile-ready</div>
+              <div className="text-secondary font-semibold shrink-0">Stack:</div>
+              <div className="text-primary-foreground/90">
+                React, Next.js, TypeScript, TailwindCSS, PostgreSQL, REST APIs, PDF Generation
+              </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="text-secondary font-semibold">Scale:</div>
-              <div className="text-primary-foreground/90">35,000+ users nationwide</div>
+              <div className="text-secondary font-semibold shrink-0">Architecture:</div>
+              <div className="text-primary-foreground/90">
+                Product-led fullstack platform, desktop-first, responsive, mobile-ready
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="text-secondary font-semibold shrink-0">Scale:</div>
+              <div className="text-primary-foreground/90">35,000+ registered users</div>
             </div>
             <div className="flex items-start gap-3 md:col-span-2">
-              <div className="text-secondary font-semibold">Domain:</div>
-              <div className="text-primary-foreground/90">Civic Tech, B2C and B2B SaaS, Complex Forms, Document Generation</div>
+              <div className="text-secondary font-semibold shrink-0">Domain:</div>
+              <div className="text-primary-foreground/90">
+                Civic Tech, B2C and B2B SaaS, Complex Forms, Document Generation
+              </div>
             </div>
             <div className="flex items-start gap-3 md:col-span-2">
-              <div className="text-secondary font-semibold">Outcome:</div>
-              <div className="text-primary-foreground/90">99% cost reduction, 5 national and international awards</div>
+              <div className="text-secondary font-semibold shrink-0">Outcome:</div>
+              <div className="text-primary-foreground/90">
+                Up to 99% cost reduction vs. broker fees, 5 verified recognitions
+              </div>
             </div>
           </motion.div>
 
@@ -80,17 +96,26 @@ export function HeroSectionV2() {
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-secondary/20">
               <Code2 className="w-8 h-8 text-secondary mb-4" />
               <div className="text-lg font-semibold mb-2">Product Design Systems</div>
-              <div className="text-sm text-primary-foreground/80">Converted complex government and legal documentation into guided, user-friendly digital workflows</div>
+              <div className="text-sm text-primary-foreground/80">
+                Converted complex government and legal documentation into guided, user-friendly
+                digital workflows
+              </div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-secondary/20">
               <Layers className="w-8 h-8 text-secondary mb-4" />
               <div className="text-lg font-semibold mb-2">Fullstack Workflow Architecture</div>
-              <div className="text-sm text-primary-foreground/80">Built form, validation, API, data, and document-generation systems that worked together across multiple user types</div>
+              <div className="text-sm text-primary-foreground/80">
+                Built form, validation, API, data, and document-generation systems that worked
+                together across multiple user types
+              </div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-secondary/20">
               <Zap className="w-8 h-8 text-secondary mb-4" />
               <div className="text-lg font-semibold mb-2">Desktop-First SaaS Platform</div>
-              <div className="text-sm text-primary-foreground/80">Designed for long-form document accuracy while keeping the system responsive and mobile-ready</div>
+              <div className="text-sm text-primary-foreground/80">
+                Designed for long-form document accuracy while keeping the system responsive and
+                mobile-ready
+              </div>
             </div>
           </motion.div>
         </motion.div>

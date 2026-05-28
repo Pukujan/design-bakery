@@ -7,7 +7,7 @@ export function OverviewSectionV2() {
     { icon: Building2, text: "Small businesses" },
     { icon: FileText, text: "Legal consultants" },
     { icon: CreditCard, text: "Financial consultants" },
-    { icon: Building2, text: "Subscription-based B2B users" }
+    { icon: Building2, text: "Subscription-based B2B users" },
   ];
 
   return (
@@ -39,20 +39,29 @@ export function OverviewSectionV2() {
             className="space-y-6"
           >
             <p className="text-xl leading-relaxed text-gray-700">
-              Ekagajpatra is a civic-tech platform built to simplify complex government, legal, and financial documentation for individuals, businesses, and professional consultants across Nepal.
+              Ekagajpatra is a civic-tech platform built to make government, legal, and financial
+              documentation accessible, affordable, and understandable for low-income and digitally
+              underserved users across Nepal, serving{" "}
+              <span className="font-semibold text-primary">35,000+ registered users</span> with
+              platform fees near zero compared to broker fees documented at{" "}
+              <span className="font-semibold text-primary">10-20x</span> legitimate costs.
             </p>
 
             <div className="w-24 h-1 bg-secondary my-8" />
 
             <p className="text-xl leading-relaxed text-gray-700">
-              I worked across <span className="font-semibold text-primary">product design, frontend engineering, fullstack architecture, and product development</span> to help turn fragmented, broker-driven documentation workflows into a scalable digital platform.
+              Over <span className="font-semibold text-primary">14 months</span> as lead product
+              designer, I worked across{" "}
+              <span className="font-semibold text-primary">
+                socio-economic research, branding, UX/UI, marketing, and front-end implementation
+              </span>
+              , collaborating with engineering on a scalable platform that replaced fragmented,
+              broker-driven workflows with guided digital journeys.
             </p>
 
             <div className="w-24 h-1 bg-secondary my-8" />
 
-            <p className="text-xl leading-relaxed text-gray-700">
-              The platform supported:
-            </p>
+            <p className="text-xl leading-relaxed text-gray-700">The platform supported:</p>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -63,21 +72,27 @@ export function OverviewSectionV2() {
             >
               {userTypes.map((type, index) => (
                 <motion.div
-                  key={index}
+                  key={type.text}
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.1 * index, duration: 0.5 }}
                   className="flex items-center gap-3 bg-gray-50 rounded-lg p-4 border border-gray-200"
                 >
-                  <type.icon className="w-6 h-6 text-secondary flex-shrink-0" />
+                  <type.icon className="w-6 h-6 text-secondary shrink-0" />
                   <span className="text-gray-700 font-medium">{type.text}</span>
                 </motion.div>
               ))}
             </motion.div>
 
             <p className="text-xl leading-relaxed text-gray-700">
-              The system transformed paper-based documentation into <span className="font-semibold text-primary">guided, validated, and PDF-generated digital workflows</span>. It was designed <span className="font-semibold text-primary">desktop-first</span> for accuracy, review, and document visibility, while using responsive components that allowed mobile access without requiring separate codebases.
+              The system transformed paper-based documentation into{" "}
+              <span className="font-semibold text-primary">
+                guided, validated, and PDF-generated digital workflows
+              </span>
+              . It was designed <span className="font-semibold text-primary">desktop-first</span> for
+              accuracy, review, and document visibility, while using responsive components that allowed
+              mobile access without requiring separate codebases.
             </p>
           </motion.div>
         </motion.div>

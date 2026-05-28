@@ -1,3 +1,5 @@
+import { TEMP_ETE_HOME_ONLY } from '../lib/siteMode';
+
 export type PortfolioId =
   | 'default'
   | 'legal-workflow-engineer'
@@ -60,6 +62,9 @@ export function getPortfolioConfig(id: PortfolioId): PortfolioConfig {
 }
 
 export function getPortfolioFromPathname(pathname: string): PortfolioId {
+  if (TEMP_ETE_HOME_ONLY && (pathname === '/' || pathname === '')) {
+    return 'endtoend-engineer';
+  }
   if (pathname === '/legal-workflow-engineer' || pathname.startsWith('/legal-workflow-engineer/')) {
     return 'legal-workflow-engineer';
   }

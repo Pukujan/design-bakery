@@ -3,12 +3,13 @@ import { Palette, Layout, FileText } from "lucide-react";
 
 export function ProductDesignOwnershipSection() {
   const focusAreas = [
+    "Socio-economic research, branding, and market-tested visual identity for Nepalese audiences",
     "Mapping offline documentation steps into digital flows",
-    "Designing form progression and review states",
-    "Reducing confusion through content hierarchy",
-    "Creating reusable UI patterns",
-    "Balancing simplicity with legal and financial accuracy",
-    "Designing for both first-time users and professional repeat users"
+    "Figma prototyping and usability testing with first-time users",
+    "Romanized Nepali transliteration and video-guided legal support",
+    "Reducing confusion through content hierarchy and single-pathway web flows",
+    "B2B partner and legal-consultant onboarding experiences",
+    "Collaborating with Next.js developers on component-based implementation"
   ];
 
   return (

@@ -1,6 +1,8 @@
 import { motion } from "motion/react";
 import { Sparkles, ExternalLink } from "lucide-react";
 
+const SOURCES = ["Nepal News (Nov 2025)", "Kathmandu Post", "My Republica", "Fiscal Nepal"];
+
 export function ReflectionSectionV2() {
   return (
     <section className="py-24 bg-gradient-to-br from-primary via-primary/95 to-primary/90 text-primary-foreground">
@@ -28,16 +30,26 @@ export function ReflectionSectionV2() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="space-y-6"
+            className="space-y-6 text-left md:text-center"
           >
             <p className="text-2xl md:text-3xl font-semibold leading-relaxed text-primary-foreground/95">
-              Ekagajpatra showed how product design and fullstack engineering can turn a fragmented offline process into scalable digital infrastructure.
+              Ekagajpatra was an attempt to reduce broker dependency through better design. The
+              platform reached users and earned recognition, but systemic broker capture persists, as
+              documented by Nepal News in 2025. Civic-tech can improve individual experiences;
+              institutional reform requires more than software.
             </p>
 
             <div className="w-24 h-1 bg-secondary mx-auto my-8" />
 
             <p className="text-xl leading-relaxed text-primary-foreground/90">
-              By combining user-centered design, reusable frontend architecture, backend data integration, validation logic, and document generation, the platform made complex government, legal, and financial documentation more accessible, affordable, and reliable at national scale.
+              Impactful design here was not about pixels alone. Research-driven flows, transparent
+              pricing, and fullstack workflow architecture made complex government, legal, and
+              financial documentation more accessible, affordable, and reliable at national scale.
+            </p>
+
+            <p className="text-sm text-primary-foreground/75 pt-4">
+              <span className="font-semibold text-primary-foreground/90">Sources: </span>
+              {SOURCES.join(", ")}
             </p>
           </motion.div>
 
@@ -57,7 +69,7 @@ export function ReflectionSectionV2() {
               Visit Live Website
               <ExternalLink className="w-5 h-5" />
             </a>
-            
+
             <p className="text-sm text-primary-foreground/70">
               Fullstack Product Engineering Case Study • Ekagajpatra • 2024
             </p>

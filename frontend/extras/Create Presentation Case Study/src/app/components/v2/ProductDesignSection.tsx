@@ -3,13 +3,15 @@ import { Palette, Layers, CheckCircle } from "lucide-react";
 
 export function ProductDesignSection() {
   const designPoints = [
-    "Clear visual hierarchy",
-    "Step-by-step form progression",
-    "Contextual guidance and tooltips",
-    "Early validation feedback",
-    "Reduced cognitive load",
-    "Document preview and review flows",
-    "Dashboard-based workflows for professional users"
+    "Clear visual hierarchy and single-pathway flows for digitally adverse audiences",
+    "Step-by-step form progression with visual hints and icons",
+    "Romanized Nepali input: real-time English → Nepali transliteration",
+    "Video-guided lawyer tutorials embedded in each flow",
+    "One-click legal partner consultation on every form",
+    "Contextual guidance and tooltips for unfamiliar legal terminology",
+    "Desktop-first review with mobile-responsive layouts",
+    "Transparent fixed pricing (90%+ below broker fees)",
+    "Separate partner onboarding for legal consultants and B2B SaaS partners"
   ];
 
   return (
@@ -41,11 +43,11 @@ export function ProductDesignSection() {
             className="space-y-8"
           >
             <p className="text-xl text-gray-700 leading-relaxed">
-              The product design challenge was to make complex documentation feel manageable.
+              The product design challenge was to make complex documentation feel manageable and trustworthy for users who had been exploited by brokers.
             </p>
 
             <p className="text-xl text-gray-700 leading-relaxed">
-              I focused on turning intimidating forms into guided workflows with clear steps, contextual explanations, and visible progress. Instead of forcing users to understand legal or financial terminology upfront, the interface explained unfamiliar concepts at the moment they appeared.
+              Research showed that simplicity and emotional reassurance were as important as feature completeness. I turned multi-page legal forms into guided experiences: romanized Nepali typing, video tutorials, one-click expert help, and plain-language explanations at the moment concepts appeared, not upfront walls of jargon.
             </p>
 
             <div className="bg-white rounded-lg p-8 border border-gray-200 shadow-sm">

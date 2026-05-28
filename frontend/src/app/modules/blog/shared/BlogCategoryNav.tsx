@@ -1,19 +1,43 @@
-import { useEffect, useMemo, useRef, type Ref } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type Ref,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Tag } from 'lucide-react';
+import { ChevronDown, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'motion/react';
-/** Subtle lift inside scroll panel — avoids clipping vs blogCardMotion on list cards. */
-const categoryNavButtonMotion = {
-  whileHover: { y: -4, scale: 1.02 },
-  whileTap: { scale: 0.98 },
-} as const;
 import type { BlogCategory, BlogSummary } from '@/modules/blog/data/blogData';
 import {
   buildBlogsPathWithCategory,
   resolveBlogCategoryId,
 } from '@/modules/blog/lib/blogCategoryNav';
+
+/** Subtle lift inside scroll panel — avoids clipping vs blogCardMotion on list cards. */
+const categoryNavButtonMotion = {
+  whileHover: { y: -4, scale: 1.02 },
+  whileTap: { scale: 0.98 },
+} as const;
+
+type ScrollHints = {
+  canScroll: boolean;
+  top: boolean;
+  bottom: boolean;
+};
+
+function readScrollHints(el: HTMLDivElement): ScrollHints {
+  const overflow = el.scrollHeight - el.clientHeight > 6;
+  return {
+    canScroll: overflow,
+    top: overflow && el.scrollTop > 6,
+    bottom: overflow && el.scrollTop + el.clientHeight < el.scrollHeight - 6,
+  };
+}
 
 type BlogCategoryNavProps = {
   categories: BlogCategory[];
@@ -79,25 +103,26 @@ function CategoryRow({ category, count, isActive, onSelect, compact, rowRef }: C
           type="button"
           onClick={onSelect}
           className={`
-            w-full justify-between px-4 py-3 border-4 border-black
+            relative w-full justify-between overflow-hidden px-4 py-3 border-4 border-black
             shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
             hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]
             transition-all font-black text-sm
             ${
               isActive
-                ? 'bg-black text-white'
+                ? 'blog-category-nav-btn--active bg-black text-white'
                 : 'bg-white dark:bg-gray-900 text-black dark:text-white'
             }
           `}
-          style={{
-            borderLeftColor: isActive ? category.color : undefined,
-            borderLeftWidth: isActive ? '8px' : undefined,
-          }}
+          style={
+            isActive
+              ? ({ '--category-accent': category.color } as CSSProperties)
+              : undefined
+          }
         >
-          <span>{category.label}</span>
+          <span className="relative z-[1]">{category.label}</span>
           <Badge
             variant="outline"
-            className={`border-2 ${isActive ? 'border-white text-white' : 'border-black'}`}
+            className={`relative z-[1] border-2 ${isActive ? 'border-white text-white' : 'border-black'}`}
           >
             {count}
           </Badge>
@@ -118,6 +143,17 @@ export function BlogCategoryNav({
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeRowRef = useRef<HTMLDivElement>(null);
+  const [scrollHints, setScrollHints] = useState<ScrollHints>({
+    canScroll: false,
+    top: false,
+    bottom: false,
+  });
+
+  const updateScrollHints = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setScrollHints(readScrollHints(el));
+  }, []);
 
   const navCategories = useMemo(
     () => categories.filter((c) => c.id !== 'all'),
@@ -144,15 +180,38 @@ export function BlogCategoryNav({
     }
   }, [activeCategoryId, navCategories.length]);
 
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    updateScrollHints();
+    el.addEventListener('scroll', updateScrollHints, { passive: true });
+    const observer = new ResizeObserver(updateScrollHints);
+    observer.observe(el);
+  return () => {
+      el.removeEventListener('scroll', updateScrollHints);
+      observer.disconnect();
+    };
+  }, [navCategories.length, updateScrollHints]);
+
   if (navCategories.length === 0) return null;
 
   const scrollClass =
     layout === 'menu'
       ? 'max-h-[min(45vh,320px)]'
-      : 'max-h-[min(52vh,22rem)]';
+      : 'max-h-[min(42vh,17.5rem)]';
+
+  const shellClass = [
+    'blog-category-nav-shell',
+    scrollHints.canScroll ? 'blog-category-nav-shell--scrollable' : '',
+    scrollHints.top ? 'blog-category-nav-shell--fade-top' : '',
+    scrollHints.bottom ? 'blog-category-nav-shell--fade-bottom' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const list = (
-    <div className="blog-category-nav-shell overflow-visible">
+    <div className={shellClass}>
       <div
         ref={scrollRef}
         className={`blog-category-nav-scroll scrollbar-mini scrollbar-mini--always overflow-y-scroll overscroll-contain ${scrollClass} ${
@@ -160,22 +219,34 @@ export function BlogCategoryNav({
         }`}
         role="list"
         aria-label="Blog categories"
+        aria-describedby={scrollHints.canScroll ? 'blog-category-nav-scroll-hint' : undefined}
       >
-      {navCategories.map((category) => {
-        const isActive = category.id === activeCategoryId;
-        return (
-          <CategoryRow
-            key={category.id}
-            rowRef={isActive ? activeRowRef : undefined}
-            category={category}
-            count={categoryCount(blogs, category.id, categories)}
-            isActive={isActive}
-            onSelect={() => goToCategory(category.id)}
-            compact={layout === 'menu'}
-          />
-        );
-      })}
+        {navCategories.map((category) => {
+          const isActive = category.id === activeCategoryId;
+          return (
+            <CategoryRow
+              key={category.id}
+              rowRef={isActive ? activeRowRef : undefined}
+              category={category}
+              count={categoryCount(blogs, category.id, categories)}
+              isActive={isActive}
+              onSelect={() => goToCategory(category.id)}
+              compact={layout === 'menu'}
+            />
+          );
+        })}
       </div>
+
+      {scrollHints.bottom ? (
+        <p
+          id="blog-category-nav-scroll-hint"
+          className="blog-category-nav-more-hint"
+          aria-live="polite"
+        >
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 animate-bounce" aria-hidden />
+          Scroll for more categories
+        </p>
+      ) : null}
     </div>
   );
 

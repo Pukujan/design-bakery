@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -158,6 +158,7 @@ function BlogListDesktopCarousel({
   const [slideIndex, setSlideIndex] = useState(0);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
+  const carouselViewportRef = useRef<HTMLDivElement>(null);
   const visiblePerView = useBlogCarouselVisibleCount();
 
   const totalCards = blogs.length;
@@ -191,7 +192,7 @@ function BlogListDesktopCarousel({
     api.reInit();
   }, [api, blogs.length, carouselKey, visiblePerView]);
 
-  useBlogCarouselWheel(api, totalCards > 1);
+  useBlogCarouselWheel(api, totalCards > 1, carouselViewportRef);
 
   return (
     <div className="space-y-6">
@@ -204,6 +205,7 @@ function BlogListDesktopCarousel({
         className={`blog-list-carousel blog-list-carousel--bleed pt-4 pb-16 md:pb-20 ${BLOG_CAROUSEL_BLEED_CLASS}`}
       >
         <div
+          ref={carouselViewportRef}
           className="blog-list-carousel-viewport relative pt-2 pb-6"
           aria-label="Blog posts carousel. Use arrows, drag, or swipe sideways to browse posts."
         >
@@ -216,7 +218,9 @@ function BlogListDesktopCarousel({
                 onClick={() => api?.scrollPrev()}
                 aria-label="Previous posts"
               >
-                <ChevronLeft className="h-6 w-6" aria-hidden />
+                <span className="blog-list-carousel-nav__hit">
+                  <ChevronLeft className="h-10 w-10 stroke-[2.5]" aria-hidden />
+                </span>
               </button>
               <button
                 type="button"
@@ -225,7 +229,9 @@ function BlogListDesktopCarousel({
                 onClick={() => api?.scrollNext()}
                 aria-label="Next posts"
               >
-                <ChevronRight className="h-6 w-6" aria-hidden />
+                <span className="blog-list-carousel-nav__hit">
+                  <ChevronRight className="h-10 w-10 stroke-[2.5]" aria-hidden />
+                </span>
               </button>
             </>
           ) : null}
