@@ -1,0 +1,23 @@
+{
+  "name": "@design-bakery/blog-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Blog types, data hooks, admin API, and host configuration",
+  "type": "module",
+  "license": "UNLICENSED",
+  "exports": {
+    ".": "./src/index.ts",
+    "./host": "./src/host/index.ts",
+    "./data": "./src/data/blogData.ts",
+    "./admin": "./src/api/adminApi.ts",
+    "./lib/*": "./src/lib/*",
+    "./seo/*": "./src/seo/*",
+    "./seo/blogSocialMeta": "./src/seo/blogSocialMeta.ts"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1"
+  }
+}

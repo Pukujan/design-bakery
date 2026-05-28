@@ -1,0 +1,828 @@
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Thin visible scrollbar for category lists and similar panels */
+.scrollbar-mini {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.08);
+}
+
+.scrollbar-mini::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-mini::-webkit-scrollbar-track {
+  margin-block: 2px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.scrollbar-mini::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.38);
+}
+
+.scrollbar-mini::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.dark .scrollbar-mini {
+  scrollbar-color: rgba(255, 255, 255, 0.45) rgba(255, 255, 255, 0.1);
+}
+
+.dark .scrollbar-mini::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dark .scrollbar-mini::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.dark .scrollbar-mini::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.58);
+}
+
+/* Always-on track + thumb (category nav); overflow-y: scroll on element */
+.scrollbar-mini--always {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.14);
+}
+
+.scrollbar-mini--always::-webkit-scrollbar {
+  width: 8px;
+  -webkit-appearance: none;
+}
+
+.scrollbar-mini--always::-webkit-scrollbar-track {
+  margin-block: 4px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.scrollbar-mini--always::-webkit-scrollbar-thumb {
+  min-height: 2.5rem;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.scrollbar-mini--always::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.dark .scrollbar-mini--always {
+  scrollbar-color: rgba(255, 255, 255, 0.5) rgba(255, 255, 255, 0.14);
+}
+
+.dark .scrollbar-mini--always::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.dark .scrollbar-mini--always::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.dark .scrollbar-mini--always::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.blog-category-nav-shell {
+  position: relative;
+  margin-inline: -0.25rem;
+  padding-inline-end: 0.125rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.blog-category-nav-shell--scrollable .blog-category-nav-scroll {
+  padding-inline-end: 0.625rem;
+}
+
+.blog-category-nav-scroll {
+  padding: 0.625rem 0.375rem 0.75rem 0.25rem;
+}
+
+.blog-category-nav-scroll.scrollbar-mini--always::-webkit-scrollbar {
+  width: 10px;
+}
+
+.blog-category-nav-scroll.scrollbar-mini--always::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.16);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.blog-category-nav-scroll.scrollbar-mini--always::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+}
+
+.dark .blog-category-nav-scroll.scrollbar-mini--always::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.dark .blog-category-nav-scroll.scrollbar-mini--always::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.48);
+  border-color: rgba(17, 24, 39, 0.5);
+}
+
+/* Fade edges when list overflows */
+.blog-category-nav-shell--fade-bottom::after,
+.blog-category-nav-shell--fade-top::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0.75rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.blog-category-nav-shell--fade-bottom::after {
+  bottom: 0;
+  height: 3.25rem;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(255, 255, 255, 0.92) 55%,
+    rgba(255, 255, 255, 1)
+  );
+}
+
+.blog-category-nav-shell--fade-top::before {
+  top: 0;
+  height: 2rem;
+  background: linear-gradient(
+    to top,
+    transparent,
+    rgba(255, 255, 255, 0.92) 70%,
+    rgba(255, 255, 255, 1)
+  );
+}
+
+.dark .blog-category-nav-shell--fade-bottom::after {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(17, 24, 39, 0.92) 55%,
+    rgba(17, 24, 39, 1)
+  );
+}
+
+.dark .blog-category-nav-shell--fade-top::before {
+  background: linear-gradient(
+    to top,
+    transparent,
+    rgba(17, 24, 39, 0.92) 70%,
+    rgba(17, 24, 39, 1)
+  );
+}
+
+.blog-category-nav-more-hint {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.35rem;
+  left: 0.25rem;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.2rem 0.35rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 2px solid rgba(0, 0, 0, 0.35);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #374151;
+  pointer-events: none;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+}
+
+.dark .blog-category-nav-more-hint {
+  background: rgba(31, 41, 55, 0.92);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #e5e7eb;
+}
+
+.blog-category-nav-row {
+  padding: 0.375rem 0.125rem;
+}
+
+/* Active category accent — inset bar avoids border-radius gap vs thick border-left */
+.blog-category-nav-btn--active::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 8px;
+  background: var(--category-accent, #9b6dd6);
+  border-radius: inherit;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/*
+ * Blog Mermaid styles — READ FIRST: guidelines/agent-devlog-mermaid.md
+ * Do not use theme: base / themeVariables in JS; do not target #mermaid-* IDs.
+ * Scoped to .blog-mermaid-chart only (see BlogDetailPage.tsx MermaidDiagram).
+ */
+/* Blog Mermaid — bluish-white nodes (CSS only; keep theme: default in JS) */
+.blog-mermaid-chart svg g.node rect,
+.blog-mermaid-chart svg g.node circle,
+.blog-mermaid-chart svg g.node ellipse,
+.blog-mermaid-chart svg g.node polygon {
+  fill: #e8f2fa !important;
+  stroke: #6b9ac4 !important;
+}
+
+.blog-mermaid-chart svg .nodeLabel,
+.blog-mermaid-chart svg .label,
+.blog-mermaid-chart svg g.node text,
+.blog-mermaid-chart svg .nodeLabel tspan,
+.blog-mermaid-chart svg .edgeLabel,
+.blog-mermaid-chart svg .edgeLabel tspan {
+  fill: #1a2a3a !important;
+  color: #1a2a3a !important;
+}
+
+.blog-mermaid-chart svg .nodeLabel foreignObject div,
+.blog-mermaid-chart svg .nodeLabel span,
+.blog-mermaid-chart svg .edgeLabel foreignObject div {
+  color: #1a2a3a !important;
+}
+
+/*
+ * Arrows / edges in dark mode — Mermaid 11 injects #id-scoped <style> with !important.
+ * themeVariables in MermaidDiagram.tsx set line/arrow colors at render; these rules are fallback.
+ */
+.dark .blog-mermaid-chart svg .flowchart-link,
+.dark .blog-mermaid-chart svg .edgePath .path,
+.dark .blog-mermaid-chart svg .edgePath path,
+.dark .blog-mermaid-chart svg .arrowheadPath,
+.dark .blog-mermaid-chart svg .marker,
+.dark .blog-mermaid-chart svg .marker path,
+.dark .blog-mermaid-chart svg marker path,
+.dark .blog-mermaid-chart svg .messageLine0,
+.dark .blog-mermaid-chart svg .messageLine1,
+.dark .blog-mermaid-chart svg .loopLine,
+.dark .blog-mermaid-chart svg .loopLine path,
+.dark .blog-mermaid-chart svg .arrowMarkerPath {
+  stroke: #e5e7eb !important;
+}
+
+.dark .blog-mermaid-chart svg .arrowheadPath,
+.dark .blog-mermaid-chart svg .arrowMarkerPath,
+.dark .blog-mermaid-chart svg .marker,
+.dark .blog-mermaid-chart svg .marker path,
+.dark .blog-mermaid-chart svg marker path {
+  fill: #e5e7eb !important;
+}
+
+.dark .blog-mermaid-chart svg .flowchart-link,
+.dark .blog-mermaid-chart svg .messageLine0,
+.dark .blog-mermaid-chart svg .messageLine1 {
+  fill: none !important;
+}
+
+.dark .blog-mermaid-chart svg .edgeLabel rect {
+  fill: #374151 !important;
+}
+
+.dark .blog-mermaid-chart svg .edgeLabel,
+.dark .blog-mermaid-chart svg .edgeLabel tspan,
+.dark .blog-mermaid-chart svg .edgeLabel foreignObject div {
+  color: #e5e7eb !important;
+  fill: #e5e7eb !important;
+}
+
+.dark .blog-mermaid-chart svg .cluster rect {
+  stroke: #94a3b8 !important;
+}
+
+/* Blog Mermaid — scroll viewport + zoom toolbar (see MermaidDiagram.tsx) */
+.blog-mermaid-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.blog-mermaid-toolbar__buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.blog-mermaid-toolbar__btn {
+  border-width: 2px !important;
+  border-color: #000 !important;
+  box-shadow: 2px 2px 0 0 #000 !important;
+}
+
+.dark .blog-mermaid-toolbar__btn {
+  border-color: #fff !important;
+  box-shadow: 2px 2px 0 0 rgba(255, 255, 255, 0.35) !important;
+}
+
+.blog-mermaid-toolbar__label {
+  min-width: 3.25rem;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.blog-mermaid-toolbar__slider-wrap {
+  flex: 1 1 8rem;
+  min-width: 6rem;
+  display: flex;
+  align-items: center;
+}
+
+.blog-mermaid-toolbar__slider {
+  width: 100%;
+  height: 0.5rem;
+  accent-color: #4169e1;
+  cursor: pointer;
+}
+
+.blog-mermaid-viewport {
+  position: relative;
+  min-height: 4rem;
+}
+
+/* Loading min-height is set inline from chart size estimate; this is the fallback cap. */
+.blog-mermaid-viewport--loading {
+  min-height: 280px;
+}
+
+.blog-mermaid-skeleton {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    110deg,
+    rgba(148, 163, 184, 0.12) 0%,
+    rgba(148, 163, 184, 0.28) 45%,
+    rgba(148, 163, 184, 0.12) 90%
+  );
+  background-size: 200% 100%;
+  animation: blog-mermaid-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.dark .blog-mermaid-skeleton {
+  background: linear-gradient(
+    110deg,
+    rgba(71, 85, 105, 0.2) 0%,
+    rgba(71, 85, 105, 0.45) 45%,
+    rgba(71, 85, 105, 0.2) 90%
+  );
+  background-size: 200% 100%;
+}
+
+.blog-mermaid-skeleton__label {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--muted-foreground, #6b7280);
+}
+
+@keyframes blog-mermaid-skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.blog-mermaid-viewport--scroll {
+  overflow: auto;
+  max-height: min(70vh, 520px);
+  -webkit-overflow-scrolling: touch;
+  /* When scrolled to an edge, further wheel/swipe moves the page (avoids scroll trap) */
+  overscroll-behavior: auto;
+}
+
+/* One-finger scroll inside frame; two-finger pinch handled in JS */
+.blog-mermaid-viewport--gesture.blog-mermaid-viewport--scroll {
+  touch-action: pan-x pan-y;
+}
+
+.blog-mermaid-zoom-spacer {
+  position: relative;
+  min-width: min-content;
+}
+
+.blog-mermaid-zoom-layer {
+  transform-origin: 0 0;
+}
+
+.blog-mermaid-svg-host svg {
+  display: block;
+  max-width: none;
+  height: auto;
+}
+
+.blog-mermaid-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground, #6b7280);
+}
+
+/* Blog article — keep native ordered-list markers (TOC + numbered sections) */
+.blog-article-prose ol,
+.blog-toc-nav ol {
+  list-style-type: decimal;
+  list-style-position: outside;
+}
+
+.blog-article-prose ol > li,
+.blog-toc-nav ol > li {
+  display: list-item;
+}
+
+/* Fenced code — dark panel in all site modes */
+.blog-fenced-code-wrap,
+.blog-fenced-code-wrap pre.blog-fenced-code,
+.blog-article-prose .blog-fenced-code-wrap,
+.blog-article-prose .blog-fenced-code-wrap pre,
+.blog-article-prose pre.blog-fenced-code {
+  background-color: var(--color-gray-900) !important;
+  background-image: none !important;
+  color: #fff8e7 !important;
+}
+
+.blog-fenced-code-wrap .blog-fenced-code__text,
+.blog-fenced-code-wrap pre code,
+.blog-article-prose .blog-fenced-code-wrap code,
+.blog-article-prose .blog-fenced-code-wrap .blog-fenced-code__text,
+.blog-article-prose pre.blog-fenced-code code,
+.prose .blog-fenced-code-wrap :where(code):not(:where([class~='not-prose'] *)) {
+  color: #fff8e7 !important;
+  background-color: transparent !important;
+  background: transparent !important;
+  font-weight: 500;
+  white-space: pre-wrap;
+  font-size: inherit;
+}
+
+/* Blog cover — loading shell (see BlogCoverImage.tsx) */
+.blog-cover-shell {
+  position: relative;
+}
+
+.blog-cover-shell--card {
+  aspect-ratio: 1 / 1;
+}
+
+.blog-cover-shell--card-compact {
+  aspect-ratio: 16 / 10;
+  max-height: 180px;
+}
+
+/* List cards — full artwork visible (no fixed crop box) */
+.blog-cover-shell--card-full {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 7rem;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.dark .blog-cover-shell--card-full {
+  background: rgba(17, 24, 39, 0.45);
+}
+
+.blog-cover-shell--card-full.blog-cover-shell--loading {
+  min-height: min(10rem, 28vw);
+}
+
+.blog-cover-img--card-full {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  border-radius: calc(0.5rem - 2px);
+  object-fit: contain;
+  object-position: center;
+}
+
+/* List cards — image fills bordered frame and clips to rounded outline */
+.blog-cover-shell--card-cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.dark .blog-cover-shell--card-cover {
+  background: #030712;
+}
+
+.blog-cover-shell--card-cover.blog-cover-shell--loading {
+  min-height: 0;
+}
+
+.blog-cover-img--card-cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Detail hero: height follows image so nothing is cropped (object-contain in TSX). */
+.blog-cover-shell--hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.dark .blog-cover-shell--hero {
+  background: rgba(17, 24, 39, 0.4);
+}
+
+.blog-cover-shell--hero.blog-cover-shell--loading {
+  min-height: min(240px, 40vh);
+}
+
+.blog-cover-img--hero {
+  object-position: center;
+}
+
+.blog-cover-img--card {
+  object-position: center;
+}
+
+.blog-cover-shell--card.blog-cover-shell--loading {
+  min-height: 0;
+}
+
+.blog-cover-skeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    110deg,
+    rgba(148, 163, 184, 0.12) 0%,
+    rgba(148, 163, 184, 0.28) 45%,
+    rgba(148, 163, 184, 0.12) 90%
+  );
+  background-size: 200% 100%;
+  animation: blog-cover-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.dark .blog-cover-skeleton {
+  background: linear-gradient(
+    110deg,
+    rgba(71, 85, 105, 0.2) 0%,
+    rgba(71, 85, 105, 0.45) 45%,
+    rgba(71, 85, 105, 0.2) 90%
+  );
+  background-size: 200% 100%;
+}
+
+.blog-cover-skeleton__label {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--muted-foreground, #6b7280);
+}
+
+@keyframes blog-cover-skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Blog list — gesture guard only blocks browser history at horizontal scroll edges */
+.blog-list-swipe-guard {
+  position: relative;
+}
+
+.blog-list-category-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+.blog-list-category-shell--scrollable .blog-list-category-track {
+  padding-inline-end: 0.75rem;
+}
+
+.blog-list-category-track {
+  overscroll-behavior-x: contain;
+}
+
+/* Horizontal fade + blur at scroll edges (matches blog list page gradient) */
+.blog-list-category-shell--fade-left::before,
+.blog-list-category-shell--fade-right::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 3.5rem;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.blog-list-category-shell--fade-left::before {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    rgb(243 232 255 / 0.98) 15%,
+    rgb(224 231 255 / 0.82) 50%,
+    transparent
+  );
+}
+
+.blog-list-category-shell--fade-right::after {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgb(219 234 254 / 0.98) 15%,
+    rgb(224 231 255 / 0.82) 50%,
+    transparent
+  );
+}
+
+.dark .blog-list-category-shell--fade-left::before {
+  background: linear-gradient(
+    to right,
+    rgb(59 7 100 / 0.98) 15%,
+    rgb(30 27 75 / 0.82) 50%,
+    transparent
+  );
+}
+
+.dark .blog-list-category-shell--fade-right::after {
+  background: linear-gradient(
+    to left,
+    rgb(23 37 84 / 0.98) 15%,
+    rgb(30 27 75 / 0.82) 50%,
+    transparent
+  );
+}
+
+/* Blog list carousel — full-bleed track; clip slides horizontally only */
+.blog-list-carousel--bleed {
+  overflow: visible;
+  overscroll-behavior-x: none;
+}
+
+.blog-list-carousel [data-slot="carousel-content"] {
+  overflow-x: hidden;
+  overflow-y: visible;
+  /* Room for 8px drop shadow so cards are not clipped at the bottom edge */
+  padding-bottom: 2.75rem;
+}
+
+.blog-list-carousel [data-slot="carousel-content"] > div {
+  padding-bottom: 0.5rem;
+}
+
+.blog-list-carousel [data-slot="carousel-item"],
+.blog-list-carousel [data-slot="carousel"] {
+  overflow: visible;
+}
+
+/* Wheel-nav viewport — scroll chaining at slide ends (see useBlogCarouselWheel) */
+.blog-list-carousel-viewport {
+  position: relative;
+  border-radius: 0.75rem;
+  outline: none;
+  overflow: visible;
+  overscroll-behavior-x: contain;
+  transition: box-shadow 0.2s ease;
+}
+
+.blog-list-carousel-viewport [data-slot="carousel-content"] {
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.blog-list-carousel-viewport [data-slot="carousel-content"]:active {
+  cursor: grabbing;
+}
+
+.blog-list-carousel-hint {
+  margin: 0.75rem 0 0;
+  padding-bottom: 0.25rem;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted-foreground, #6b7280);
+}
+
+/* Overlay nav — shell ignores pointer events; only __hit circle is clickable */
+.blog-list-carousel-nav {
+  position: absolute;
+  top: 0;
+  bottom: 2.75rem;
+  z-index: 11;
+  display: flex;
+  width: 5.5rem;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  pointer-events: none;
+  cursor: default;
+}
+
+.blog-list-carousel-nav--prev {
+  left: max(0.25rem, env(safe-area-inset-left, 0px));
+  justify-content: flex-start;
+}
+
+.blog-list-carousel-nav--next {
+  right: max(0.25rem, env(safe-area-inset-right, 0px));
+  justify-content: flex-end;
+}
+
+.blog-list-carousel-nav__hit {
+  pointer-events: auto;
+  display: flex;
+  height: 4.5rem;
+  width: 4.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 2px solid rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.22);
+  color: rgba(17, 24, 39, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.dark .blog-list-carousel-nav__hit {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(17, 24, 39, 0.28);
+  color: rgba(249, 250, 251, 0.55);
+}
+
+.blog-list-carousel-nav:hover:not(:disabled) .blog-list-carousel-nav__hit {
+  border-color: rgba(0, 0, 0, 0.32);
+  background: rgba(255, 255, 255, 0.42);
+  color: rgba(17, 24, 39, 0.85);
+  transform: scale(1.04);
+}
+
+.dark .blog-list-carousel-nav:hover:not(:disabled) .blog-list-carousel-nav__hit {
+  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(31, 41, 55, 0.48);
+  color: rgba(249, 250, 251, 0.9);
+}
+
+.blog-list-carousel-nav:disabled {
+  opacity: 0.28;
+}
+
+.blog-list-carousel-nav:disabled .blog-list-carousel-nav__hit {
+  pointer-events: none;
+  cursor: default;
+}
+
+.blog-list-carousel-nav:focus-visible .blog-list-carousel-nav__hit {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+}

@@ -1,5 +1,5 @@
 /** Blog motion: guidelines/agent-devlog-blog-motion.md — decor via BlogPageMotion */
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Search, X } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -21,6 +21,22 @@ import {
 import { usePortfolio } from '@/portfolios/PortfolioContext';
 import { BlogListCarousel } from './BlogListCarousel';
 import { BlogScrollToTopFab } from '@/modules/blog/shared/BlogScrollToTopFab';
+import { useBlogListGestureGuard } from '@/modules/blog/hooks/useBlogListGestureGuard';
+
+type CategoryTrackScrollHints = {
+  canScroll: boolean;
+  left: boolean;
+  right: boolean;
+};
+
+function readCategoryTrackScrollHints(el: HTMLDivElement): CategoryTrackScrollHints {
+  const overflow = el.scrollWidth - el.clientWidth > 6;
+  return {
+    canScroll: overflow,
+    left: overflow && el.scrollLeft > 6,
+    right: overflow && el.scrollLeft + el.clientWidth < el.scrollWidth - 6,
+  };
+}
 
 export function BlogListPage() {
   const navigate = useNavigate();
@@ -35,10 +51,22 @@ export function BlogListPage() {
   );
   const [searchQuery, setSearchQuery] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const gestureGuardRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const dragStartRef = useRef(false);
+  const [categoryScrollHints, setCategoryScrollHints] = useState<CategoryTrackScrollHints>({
+    canScroll: false,
+    left: false,
+    right: false,
+  });
+
+  const updateCategoryScrollHints = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCategoryScrollHints(readCategoryTrackScrollHints(el));
+  }, []);
 
   const categoryFilteredBlogs = useMemo(
     () =>
@@ -57,6 +85,32 @@ export function BlogListPage() {
 
   const carouselKey = `${selectedCategory}:${searchQuery.trim()}:${filteredBlogs.length}`;
 
+  useBlogListGestureGuard(gestureGuardRef);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    updateCategoryScrollHints();
+    el.addEventListener('scroll', updateCategoryScrollHints, { passive: true });
+    const observer = new ResizeObserver(updateCategoryScrollHints);
+    observer.observe(el);
+
+    return () => {
+      el.removeEventListener('scroll', updateCategoryScrollHints);
+      observer.disconnect();
+    };
+  }, [categories.length, updateCategoryScrollHints]);
+
+  const categoryShellClass = [
+    'blog-list-category-shell',
+    categoryScrollHints.canScroll ? 'blog-list-category-shell--scrollable' : '',
+    categoryScrollHints.left ? 'blog-list-category-shell--fade-left' : '',
+    categoryScrollHints.right ? 'blog-list-category-shell--fade-right' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
     setIsDragging(true);
@@ -74,10 +128,12 @@ export function BlogListPage() {
       dragStartRef.current = true;
     }
     scrollRef.current.scrollLeft = scrollLeft - walk;
+    updateCategoryScrollHints();
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    updateCategoryScrollHints();
     setTimeout(() => {
       dragStartRef.current = false;
     }, 50);
@@ -149,6 +205,11 @@ export function BlogListPage() {
           </div>
         </motion.div>
 
+        <div
+          ref={gestureGuardRef}
+          className="blog-list-swipe-guard"
+          aria-label="Blog list — horizontal gestures scroll content, not browser history"
+        >
         {/* Swipable Category Filter */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -157,14 +218,16 @@ export function BlogListPage() {
           transition={{ duration: 0.5 }}
           className="mb-12"
         >
-          <div className="relative overflow-hidden">
+          <div className={categoryShellClass}>
             <div
               ref={scrollRef}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseLeave}
-              className="flex gap-4 overflow-x-auto p-2 scrollbar-hide snap-x snap-mandatory scroll-smooth cursor-grab active:cursor-grabbing select-none"
+              onScroll={updateCategoryScrollHints}
+              className="blog-list-category-track flex gap-4 overflow-x-auto p-2 scrollbar-hide snap-x snap-mandatory scroll-smooth cursor-grab active:cursor-grabbing select-none"
+              aria-label="Blog categories"
             >
               {categories.map((category) => (
                 <motion.div key={category.id} {...blogButtonMotion} className="snap-start">
@@ -209,6 +272,7 @@ export function BlogListPage() {
             carouselKey={carouselKey}
             onClearSearch={() => setSearchQuery('')}
           />
+        </div>
         </div>
       </div>
 

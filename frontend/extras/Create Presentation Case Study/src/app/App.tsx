@@ -1,6 +1,7 @@
 import { HeroSectionV2 } from "./components/v2/HeroSectionV2";
 import { OverviewSectionV2 } from "./components/v2/OverviewSectionV2";
 import { ProblemSectionV2 } from "./components/v2/ProblemSectionV2";
+import { ResearchSectionV2 } from "./components/v2/ResearchSectionV2";
 import { GoalsSectionV2 } from "./components/v2/GoalsSectionV2";
 import { ProductDesignSection } from "./components/v2/ProductDesignSection";
 import { ArchitectureSectionV2 } from "./components/v2/ArchitectureSectionV2";
@@ -21,6 +22,7 @@ export default function App() {
       <HeroSectionV2 />
       <OverviewSectionV2 />
       <ProblemSectionV2 />
+      <ResearchSectionV2 />
       <GoalsSectionV2 />
       <ProductDesignSection />
       <ArchitectureSectionV2 />

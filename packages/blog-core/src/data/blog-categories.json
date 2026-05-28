@@ -1,0 +1,27 @@
+[
+  {
+    "id": "all",
+    "label": "All Topics",
+    "color": "#4169E1"
+  },
+  {
+    "id": "ai-ml",
+    "label": "AI & ML",
+    "color": "#9B6DD6"
+  },
+  {
+    "id": "systems",
+    "label": "Systems Design",
+    "color": "#FF8C42"
+  },
+  {
+    "id": "product",
+    "label": "Product Engineering",
+    "color": "#FF6B9D"
+  },
+  {
+    "id": "architecture",
+    "label": "Architecture",
+    "color": "#A8CC00"
+  }
+]

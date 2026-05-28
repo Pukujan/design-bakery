@@ -1,0 +1,27 @@
+{
+  "name": "@design-bakery/blog-creator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Blog editor, categories admin, and publish kit UI",
+  "type": "module",
+  "license": "UNLICENSED",
+  "exports": {
+    ".": "./src/index.ts",
+    "./editor": "./src/admin/sections/BlogEditor.tsx",
+    "./categories": "./src/admin/sections/BlogCategoriesEditor.tsx",
+    "./studio": "./src/studio/BlogPublishKit.tsx",
+    "./studio/*": "./src/studio/*",
+    "./admin/*": "./src/admin/*"
+  },
+  "dependencies": {
+    "@design-bakery/blog-agents": "workspace:*",
+    "@design-bakery/blog-core": "workspace:*",
+    "@design-bakery/blog-ui": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "lucide-react": "^0.500.0",
+    "motion": "^12.0.0"
+  }
+}

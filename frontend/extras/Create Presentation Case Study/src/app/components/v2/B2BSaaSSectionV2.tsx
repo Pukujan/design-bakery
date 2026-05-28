@@ -2,21 +2,6 @@ import { motion } from "motion/react";
 import { Building2, LayoutDashboard, Users, FileText, CreditCard, Lock, RefreshCw, TrendingUp } from "lucide-react";
 
 export function B2BSaaSSectionV2() {
-  const dashboardFeatures = [
-    {
-      icon: Building2,
-      text: "Businesses managing recurring documentation needs"
-    },
-    {
-      icon: FileText,
-      text: "Legal consultants handling multiple client cases"
-    },
-    {
-      icon: CreditCard,
-      text: "Financial consultants generating compliance documents"
-    }
-  ];
-
   const supportedFeatures = [
     {
       icon: Building2,
@@ -43,8 +28,6 @@ export function B2BSaaSSectionV2() {
       text: "Separation between free public workflows and paid features"
     }
   ];
-
-  const saasModelPoints = [];
 
   return (
     <section className="py-24 bg-gray-50">

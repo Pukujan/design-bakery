@@ -1,0 +1,19 @@
+/**
+ * Styles needed for blog-preview + blog-creator (no list carousel).
+ */
+@import './tokens.css';
+@import './blog.css';
+
+/* Omit list-only rules — preview/creator subset via layer order */
+@layer blog-preview {
+  .blog-list-carousel--bleed,
+  .blog-list-carousel,
+  .blog-list-carousel-viewport,
+  .blog-list-carousel-nav,
+  .blog-list-carousel-hint,
+  .blog-list-category-shell,
+  .blog-list-category-track,
+  .blog-list-swipe-guard {
+    /* kept in full blog.css; harmless if unused */
+  }
+}

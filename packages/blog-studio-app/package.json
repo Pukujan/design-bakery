@@ -1,0 +1,39 @@
+{
+  "name": "@design-bakery/blog-studio-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reference Vite app — blog creator + AI + preview",
+  "type": "module",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@design-bakery/blog-agents": "workspace:*",
+    "@design-bakery/blog-core": "workspace:*",
+    "@design-bakery/blog-creator": "workspace:*",
+    "@design-bakery/blog-preview": "workspace:*",
+    "@design-bakery/blog-styles": "workspace:*",
+    "@design-bakery/blog-ui": "workspace:*",
+    "lucide-react": "^0.487.0",
+    "motion": "^12.23.24",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.2",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "rehype-raw": "^7.0.0",
+    "mermaid": "^11.14.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.12",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "@vitejs/plugin-react": "^4.5.2",
+    "tailwindcss": "^4.1.12",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}

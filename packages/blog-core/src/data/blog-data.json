@@ -1,0 +1,119 @@
+[
+  {
+    "id": 1,
+    "title": "Building Scalable Form Systems in Next.js",
+    "excerpt": "How we engineered a multi-step form workflow that handles complex validation, real-time error handling, and maintains state across 15+ screens.",
+    "date": "January 2026",
+    "readTime": "8 min read",
+    "tags": [
+      "Systems Design",
+      "React",
+      "TypeScript"
+    ],
+    "category": "systems",
+    "color": "#4169E1",
+    "author": "Design Baker",
+    "content": "\n# Building Scalable Form Systems in Next.js\n\n## Introduction\n\nBuilding forms at scale is one of the most challenging aspects of modern web development. In this article, I'll share how we built a multi-step form workflow that handles complex validation, real-time error handling, and maintains state across 15+ screens.\n\n## The Challenge\n\nWe needed to build a comprehensive onboarding flow that:\n- Collects user data across multiple steps\n- Validates data in real-time\n- Persists state across page reloads\n- Handles conditional logic and branching\n- Provides excellent UX with instant feedback\n\n## Architecture Overview\n\n```mermaid\ngraph TD\n    A[User Input] --> B[Form State Manager]\n    B --> C{Validation Engine}\n    C -->|Valid| D[Progress to Next Step]\n    C -->|Invalid| E[Show Errors]\n    E --> A\n    D --> F[Persist to Storage]\n    F --> G[API Sync]\n```\n\n## Key Components\n\n### 1. State Management\n\nWe used **React Hook Form** for local state and **Zustand** for global persistence.\n\n### 2. Validation Strategy\n\nReal-time validation with debouncing to prevent excessive re-renders.\n\n### 3. Error Handling\n\nUser-friendly error messages with contextual hints and inline corrections.\n\n## Conclusion\n\nBuilding forms at scale requires thoughtful architecture, proper state management, and excellent UX. The patterns we've shared here have served us well across multiple projects.\n"
+  },
+  {
+    "id": 2,
+    "title": "Agentic AI: Orchestrating Multiple LLMs for Complex Tasks",
+    "excerpt": "Lessons learned building an AI workflow system that coordinates multiple agents, manages context windows, and handles streaming responses.",
+    "date": "December 2025",
+    "readTime": "10 min read",
+    "tags": [
+      "AI",
+      "Product Engineering",
+      "OpenAI"
+    ],
+    "category": "ai-ml",
+    "color": "#9B6DD6",
+    "author": "Design Baker",
+    "content": "\n# Agentic AI: Orchestrating Multiple LLMs for Complex Tasks\n\n## Introduction\n\nAgentic AI systems represent the next frontier in AI application development. Learn how to build systems that coordinate multiple AI agents.\n\n## The Multi-Agent Architecture\n\n```mermaid\ngraph LR\n    A[User Request] --> B[Orchestrator]\n    B --> C[Agent 1: Research]\n    B --> D[Agent 2: Analysis]\n    B --> E[Agent 3: Writing]\n    C --> F[Response Synthesis]\n    D --> F\n    E --> F\n    F --> G[Final Output]\n```\n\n## Key Challenges\n\n- Context window management\n- Agent coordination\n- Response streaming\n- Error handling across agents\n\n## Best Practices\n\n1. Design clear agent responsibilities\n2. Implement robust fallback strategies\n3. Monitor token usage carefully\n4. Test extensively with real-world scenarios\n\n## Conclusion\n\nAgentic AI systems unlock powerful capabilities but require careful architectural planning and robust error handling.\n"
+  },
+  {
+    "id": 3,
+    "title": "Frontend Architecture for Multi-Tenant SaaS",
+    "excerpt": "Designing a frontend architecture that serves multiple client types while maintaining code reusability, security, and performance.",
+    "date": "November 2025",
+    "readTime": "12 min read",
+    "tags": [
+      "Architecture",
+      "SaaS",
+      "Next.js"
+    ],
+    "category": "architecture",
+    "color": "#FF8C42",
+    "author": "Design Baker",
+    "content": "\n# Frontend Architecture for Multi-Tenant SaaS\n\n## The Challenge\n\nBuilding a frontend that serves multiple tenants with different needs, branding, and feature sets requires careful architecture.\n\n## Architecture Principles\n\n1. **Isolation**: Clear boundaries between tenant data\n2. **Customization**: Flexible theming and feature flags\n3. **Performance**: Efficient code splitting and lazy loading\n4. **Security**: Robust authentication and authorization\n\n## Implementation Strategy\n\n```mermaid\ngraph TD\n    A[User Login] --> B{Tenant Detection}\n    B --> C[Load Tenant Config]\n    C --> D[Apply Theme]\n    C --> E[Load Features]\n    C --> F[Set Permissions]\n    D --> G[Render App]\n    E --> G\n    F --> G\n```\n\n## Conclusion\n\nMulti-tenant SaaS frontends require thoughtful architecture that balances flexibility with maintainability.\n"
+  },
+  {
+    "id": 4,
+    "title": "RAG Systems: From Embeddings to Production",
+    "excerpt": "Deep dive into building retrieval-augmented generation systems: vector databases, chunking strategies, hybrid search, and optimizing for accuracy.",
+    "date": "January 2026",
+    "readTime": "15 min read",
+    "tags": [
+      "AI",
+      "RAG",
+      "Vector DB",
+      "LangChain"
+    ],
+    "category": "ai-ml",
+    "color": "#9B6DD6",
+    "author": "Design Baker",
+    "content": "\n# RAG Systems: From Embeddings to Production\n\n## What is RAG?\n\nRetrieval-Augmented Generation (RAG) combines the power of large language models with external knowledge retrieval for more accurate, context-aware responses.\n\n## System Components\n\n```mermaid\ngraph LR\n    A[User Query] --> B[Embedding Model]\n    B --> C[Vector Search]\n    C --> D[Retrieve Chunks]\n    D --> E[LLM Context]\n    E --> F[Generate Response]\n```\n\n## Key Considerations\n\n- **Chunking Strategy**: How to split documents\n- **Embedding Quality**: Choosing the right model\n- **Retrieval Accuracy**: Hybrid search techniques\n- **Context Management**: Fitting retrieved data in LLM context\n\n## Conclusion\n\nRAG systems enable AI applications to provide accurate, up-to-date information grounded in your specific data.\n"
+  },
+  {
+    "id": 5,
+    "title": "Fine-Tuning LLMs: When and How",
+    "excerpt": "Practical guide to fine-tuning language models: dataset preparation, evaluation metrics, LoRA vs full fine-tuning, and cost optimization.",
+    "date": "December 2025",
+    "readTime": "12 min read",
+    "tags": [
+      "AI",
+      "Fine-Tuning",
+      "Machine Learning",
+      "OpenAI"
+    ],
+    "category": "ai-ml",
+    "color": "#9B6DD6",
+    "author": "Design Baker",
+    "content": "\n# Fine-Tuning LLMs: When and How\n\n## When to Fine-Tune\n\nFine-tuning is beneficial when:\n- You have domain-specific language patterns\n- You need consistent output formatting\n- Prompt engineering isn't sufficient\n- You have quality training data\n\n## Fine-Tuning Approaches\n\n1. **Full Fine-Tuning**: Update all model parameters\n2. **LoRA**: Low-rank adaptation for efficient training\n3. **Prompt Tuning**: Optimize soft prompts\n\n## Dataset Preparation\n\nQuality over quantity - ensure your training data is:\n- Representative of your use case\n- Properly formatted\n- Diverse in examples\n- Clean and validated\n\n## Conclusion\n\nFine-tuning can unlock significant performance gains when applied correctly to the right use case.\n"
+  },
+  {
+    "id": 6,
+    "title": "Prompt Engineering: Beyond Basic Prompts",
+    "excerpt": "Advanced prompt engineering techniques: chain-of-thought, few-shot learning, prompt chaining, and building reliable AI workflows.",
+    "date": "November 2025",
+    "readTime": "10 min read",
+    "tags": [
+      "AI",
+      "Prompt Engineering",
+      "GPT-4",
+      "Claude"
+    ],
+    "category": "ai-ml",
+    "color": "#9B6DD6",
+    "author": "Design Baker",
+    "content": "\n# Prompt Engineering: Beyond Basic Prompts\n\n## Advanced Techniques\n\n### 1. Chain-of-Thought\n\nGuide the model through step-by-step reasoning for complex problems.\n\n### 2. Few-Shot Learning\n\nProvide examples to establish patterns and expected outputs.\n\n### 3. Prompt Chaining\n\nBreak complex tasks into sequential prompts that build on each other.\n\n## Best Practices\n\n- Be specific about output format\n- Include relevant context\n- Use delimiters for clarity\n- Test extensively\n- Version your prompts\n\n## Conclusion\n\nEffective prompt engineering is essential for reliable AI applications. Master these techniques to build robust systems.\n"
+  },
+  {
+    "id": 8,
+    "title": "Understanding the Database Architecture: Postgres, Qdrant, and Neo4j",
+    "excerpt": "Why a regulatory impact demo uses three databases, how each answers a different question on every /analyze call, and what breaks if you try to use Postgres for everything.",
+    "date": "May 2026",
+    "readTime": "18 min read",
+    "tags": [
+      "Architecture",
+      "Databases",
+      "Neo4j",
+      "Qdrant",
+      "RAG"
+    ],
+    "category": "architecture",
+    "color": "#A8CC00",
+    "author": "Design Baker",
+    "content": "\n\n# Understanding the Database Architecture\n\n## A learning guide for the regulatory impact demo\n\n> **What this covers:** Why three databases power this project, how each one works, what breaks if you use Postgres for everything, and how Postgres, Qdrant, and Neo4j cooperate on every `/analyze` call.\n\n---\n\n## Table of Contents\n\n1. [The Core Problem](#1-the-core-problem)\n2. [Postgres \u2014 The Grid](#2-postgres--the-grid)\n3. [Qdrant \u2014 The Meaning Machine](#3-qdrant--the-meaning-machine)\n4. [Neo4j \u2014 The Relationship Map](#4-neo4j--the-relationship-map)\n5. [How All Three Work Together](#5-how-all-three-work-together)\n6. [Why Not Just Use Postgres for Everything?](#6-why-not-just-use-postgres-for-everything)\n7. [The Architectural Decision](#7-the-architectural-decision)\n8. [Things That Bit Us During Setup](#8-things-that-bit-us-during-setup)\n9. [Key Things to Remember](#9-key-things-to-remember)\n10. [Phase Progress](#phase-progress)\n\n---\n\n## 1. The Core Problem\n\nThe system needs to answer three completely different kinds of questions for every `/analyze` call:\n\n**Question 1:** Which regulatory chunks are most similar in *meaning* to this policy clause?  \n\u2192 Semantic search. Postgres cannot do this natively.\n\n**Question 2:** What does this chunk mean inside the regulatory structure \u2014 obligation, jurisdiction, evidence type?  \n\u2192 Graph traversal. Postgres can do it with many JOINs, but the structure becomes hard to see in the schema.\n\n**Question 3:** What did we analyze? What did humans decide? What was exported?  \n\u2192 Canonical records and audit. Postgres is the right tool.\n\nEach question maps to a different database. That is the entire architectural reason.\n\n```mermaid\nflowchart TD\n    Q1[\"Question 1<br/>Which chunks MEAN the same as this clause?\"]\n    Q2[\"Question 2<br/>What does this chunk mean structurally?\"]\n    Q3[\"Question 3<br/>What did we analyze? What did humans decide?\"]\n\n    Q1 --> QD[\"Qdrant \u2014 vector similarity\"]\n    Q2 --> N4[\"Neo4j \u2014 graph traversal\"]\n    Q3 --> PG[\"Postgres \u2014 canonical record\"]\n\n    style QD fill:#1D9E75,color:#fff\n    style N4 fill:#7F77DD,color:#fff\n    style PG fill:#378ADD,color:#fff\n```\n\n---\n\n## 2. Postgres \u2014 The Grid\n\n### What it is\n\nPostgres is a **relational database**. Data lives in tables \u2014 rows and columns. You query by matching exact values.\n\n### How data looks\n\n| chunk_id | region | framework | topic | status |\n|----------|--------|-----------|-------|--------|\n| EU_ESRS_E1_001 | EU | ESRS | climate_risk_disclosure | active |\n| EU_ESRS_E1_002 | EU | ESRS | ghg_emissions | active |\n| US_SEC_001 | US | SEC | climate_risk | active |\n\n### How you query it\n\n```sql\nSELECT * FROM regulatory_chunks\nWHERE region = 'EU' AND status = 'active';\n```\n\nPostgres excels at exact filters. It has no built-in concept of *meaning* \u2014 it cannot rank rows by similarity to a sentence.\n\n### Where it lives in this project\n\nDeferred to production in the demo; results are held in memory locally. In deployment, Postgres (Neon) is the canonical source of truth: policy documents, clauses, impact results, confidence scores, human annotations, dataset exports, and timestamped audit events.\n\n---\n\n## 3. Qdrant \u2014 The Meaning Machine\n\n### What it is\n\nQdrant is a **vector database**. Each stored item has a vector \u2014 a list of numbers representing *meaning*. You search by similarity, not exact match.\n\n### Embeddings\n\nThe Python embedder turns text into vectors (384 floats with `all-MiniLM-L6-v2`):\n\n- `\"We disclose climate-related risks annually\"` \u2192 `[0.032, -0.14, 0.87, \u2026]`\n- `\"Annual reporting of climate financial exposure\"` \u2192 `[0.028, -0.11, 0.84, \u2026]`\n\nSimilar meaning \u2192 similar vectors \u2192 high **cosine similarity** (0\u20131).\n\n### How a point looks in Qdrant\n\n```json\n{\n  \"id\": \"uuid-from-sha1-of-chunk-id\",\n  \"vector\": [0.032, -0.14, 0.87],\n  \"payload\": {\n    \"chunk_id\": \"EU_ESRS_E1_001\",\n    \"jurisdiction_id\": \"EU_ESRS_E1\",\n    \"region\": \"EU\",\n    \"framework\": \"ESRS\",\n    \"topic\": \"climate_risk_disclosure\",\n    \"obligation_id\": \"OBL_EU_001\",\n    \"status\": \"active\"\n  }\n}\n```\n\n- **id** must be a UUID (string slugs are rejected)\n- **vector** is the meaning\n- **payload** is filterable JSON metadata\n\n### Search flow\n\n```mermaid\nsequenceDiagram\n    participant API\n    participant Embedder as Python Embedder\n    participant Qdrant\n\n    API->>Embedder: POST /embed clause text\n    Embedder-->>API: embedding[384]\n    API->>Qdrant: search(vector, filter jurisdiction, limit 5)\n    Qdrant-->>API: matches with scores\n    Note over API: score becomes retrieval_score in confidence formula\n```\n\n### Payload indexes\n\nQdrant does not auto-index payload fields. Create **keyword indexes** at collection creation for `jurisdiction_id`, `topic`, `framework`, `region`, and `status` \u2014 otherwise filtered search scans every point and collapses at scale. Our shared vector driver creates these indexes automatically on new collections.\n\n---\n\n## 4. Neo4j \u2014 The Relationship Map\n\n### What it is\n\nNeo4j is a **graph database**: **nodes** (things) and **relationships** (named arrows). Structure is explicit in the data, not implied by foreign keys.\n\n### Cypher reads like a path\n\n```cypher\nMATCH (r:Region { jurisdiction_id: \"EU_ESRS_E1\" })\n      -[:HAS_FRAMEWORK]->(f:Framework)\n      -[:HAS_OBLIGATION]->(o:Obligation)\n      -[:SUPPORTED_BY_CHUNK]->(c:RegulatoryChunk { id: \"EU_ESRS_E1_001\" })\nRETURN r.name, f.name, o.text, c.citation_label\n```\n\nThe SQL equivalent needs four JOINs. As the graph grows, Cypher stays readable; SQL accumulates joins until relationships disappear into schema noise.\n\n### EU graph (demo)\n\n```mermaid\nflowchart TD\n    R[\"Region: EU\"]\n    F[\"Framework: ESRS\"]\n    O1[\"Obligation: Climate Risk Disclosure\"]\n    O2[\"Obligation: GHG Emissions\"]\n    T1[\"Topic: climate_risk_disclosure\"]\n    T2[\"Topic: ghg_emissions\"]\n    C1[\"Chunk: EU_ESRS_E1_001\"]\n    C2[\"Chunk: EU_ESRS_E1_002\"]\n    E1[\"Evidence: governance_disclosure\"]\n    E2[\"Evidence: emissions_inventory\"]\n\n    R -->|HAS_FRAMEWORK| F\n    F -->|HAS_OBLIGATION| O1\n    F -->|HAS_OBLIGATION| O2\n    O1 -->|HAS_TOPIC| T1\n    O1 -->|SUPPORTED_BY_CHUNK| C1\n    O1 -->|REQUIRES_EVIDENCE| E1\n    O2 -->|HAS_TOPIC| T2\n    O2 -->|SUPPORTED_BY_CHUNK| C2\n    O2 -->|REQUIRES_EVIDENCE| E2\n```\n\n### Cross-jurisdiction bridges\n\nBridge edges carry caveats on the relationship itself \u2014 not in a separate junction table:\n\n```cypher\n(:Topic { id: \"climate_risk_disclosure\" })\n  -[:TRANSLATES_TO {\n      confidence: 0.72,\n      caveats: [\"EU_requires_double_materiality\", \"US_investor_materiality_only\"],\n      reliability: \"unverified\"\n  }]->\n(:Topic { id: \"us_climate_risk\" })\n```\n\n```mermaid\nflowchart TD\n    T1[\"EU topic: climate_risk_disclosure\"]\n    BR[\"TRANSLATES_TO<br/>confidence 0.72<br/>caveats on edge<br/>reliability: unverified\"]\n    T2[\"US topic: us_climate_risk\"]\n\n    T1 --> BR\n    BR --> T2\n```\n\n### Living ontology\n\nNew topics (e.g. `biodiversity_impact`) can be promoted at runtime with `origin: dynamic` \u2014 no schema migration. Seeded nodes keep `origin: seed` for auditability.\n\n---\n\n## 5. How All Three Work Together\n\nEvery `/analyze` call follows this sequence:\n\n1. **Clause arrives** \u2014 e.g. climate disclosure language from a policy draft.\n2. **Topic detector** \u2014 keyword map \u2192 `climate_risk_disclosure`.\n3. **Embedder** \u2014 clause \u2192 384-dimensional vector.\n4. **Qdrant** \u2014 filtered similarity search \u2192 chunk IDs + `retrieval_score`.\n5. **Neo4j** \u2014 traverse from chunk IDs \u2192 obligations, frameworks, evidence paths \u2192 `graph_match_score`.\n6. **Confidence scorer** \u2014 weighted sum + caps \u2192 `final_score`, `requires_human_review`.\n7. **Response** \u2014 impact status, citations, graph context, match list.\n\n```mermaid\nflowchart TD\n    IN[\"Policy clause input\"]\n    TD[\"Topic detector\"]\n    EM[\"Python embedder\"]\n    QD[\"Qdrant search\"]\n    N4[\"Neo4j traversal\"]\n    CS[\"Confidence scorer\"]\n    OUT[\"API response\"]\n\n    IN --> TD\n    TD --> EM\n    EM --> QD\n    QD --> N4\n    N4 --> CS\n    CS --> OUT\n\n    PG[\"Postgres (production)<br/>canonical results + audit\"]\n    OUT -.->|persist| PG\n```\n\n### Confidence formula\n\n```mermaid\nflowchart TD\n    A[\"retrieval_score \u00d7 0.40\"] --> WS[\"Weighted sum\"]\n    B[\"graph_match_score \u00d7 0.35\"] --> WS\n    C[\"evidence_coverage \u00d7 0.25\"] --> WS\n    WS --> CAPS{Caps triggered?}\n    CAPS -->|No citations| CA[\"Cap 0.45\"]\n    CAPS -->|Outdated regulation| CB[\"Cap 0.55\"]\n    CAPS -->|Unknown term| CC[\"Cap 0.40\"]\n    CAPS -->|Unverified bridge| CE[\"Cap 0.70\"]\n    CAPS -->|None| FINAL[\"final_score = raw_score\"]\n    CA --> MIN[\"min with caps\"]\n    CB --> MIN\n    CC --> MIN\n    CE --> MIN\n    MIN --> FINAL2[\"final_score = lowest cap\"]\n    FINAL --> REV{Human review?}\n    FINAL2 --> REV\n    REV -->|Yes| YES[\"requires_human_review: true\"]\n    REV -->|No| NO[\"requires_human_review: false\"]\n```\n\nExample: `0.84\u00d70.40 + 0.82\u00d70.35 + 0.76\u00d70.25 \u2248 0.81` \u2192 after caps and review rules \u2192 `confidence_score: 0.78`.\n\n---\n\n## 6. Why Not Just Use Postgres for Everything?\n\n| Need | Postgres | Qdrant | Neo4j |\n|------|----------|--------|-------|\n| Meaning-based chunk search | \u274c (pgvector is bolt-on) | \u2705 Core | \u274c |\n| Filter by jurisdiction before similarity | \u26a0\ufe0f Limited | \u2705 Payload indexes | \u274c |\n| Region \u2192 Framework \u2192 Obligation \u2192 Chunk | \u26a0\ufe0f Many JOINs | \u274c | \u2705 |\n| Bridge edges with caveats | \u26a0\ufe0f Junction table | \u274c | \u2705 On the edge |\n| Grow ontology without migrations | \u274c | \u274c | \u2705 |\n| Canonical records + audit log | \u2705 | \u274c | \u274c |\n\nYou *could* force one database to do all three \u2014 but you fight the tool on two jobs, and the regulatory graph structure stays invisible.\n\n---\n\n## 7. The Architectural Decision\n\nThis maps to the product thesis behind the demo: **vector retrieval finds candidates; graph context explains why they matter; Postgres remembers what was decided.**\n\n| Concern | How the demo addresses it |\n|---------|---------------------------|\n| Vector DB hits similarity walls | Qdrant scores visible on every response |\n| Graph DB adds context | Neo4j paths on every matched chunk |\n| Static vocabulary | Unknown terms cap confidence and surface candidates |\n| Living ontology | `/ontology/expand` promotes topics at runtime |\n| Universal coverage | Federated districts + bridge edges |\n\n```mermaid\nflowchart TD\n    GOAL[\"Goal: universal regulatory coverage\"]\n    GOAL --> CHOICE{Scaling strategy}\n\n    CHOICE --> TOP[\"Top-down: one universal schema\"]\n    CHOICE --> BOT[\"Bottom-up: federated districts + bridges\"]\n\n    TOP --> TRISK[\"Risk: legal nuance collapsed<br/>one schema change breaks all districts\"]\n    BOT --> TWIN[\"Local accuracy per jurisdiction<br/>bridge edges carry caveats<br/>add districts incrementally\"]\n\n    style BOT fill:#dcfce7\n    style TOP fill:#fef3c7\n```\n\nEU climate disclosure (double materiality) and US climate disclosure (investor materiality) are not the same obligation. Bridge edges with caveats preserve nuance while still enabling cross-jurisdiction reasoning.\n\n### Unknown terms\n\n```mermaid\nflowchart TD\n    A[\"Clause mentions unknown term e.g. biodiversity\"]\n    A --> B{In keyword map?}\n    B -->|Yes| C[\"Standard /analyze flow\"]\n    B -->|No| D[\"Wall: term unknown\"]\n    D --> E[\"Qdrant: nearest known vectors\"]\n    D --> F[\"Neo4j: candidate edges\"]\n    E --> G[\"dynamic_candidates + cap 0.40\"]\n    F --> G\n    G --> H[\"requires_human_review: true\"]\n    H --> I{Human approves via /ontology/expand?}\n    I -->|Yes| J[\"New Topic node origin: dynamic\"]\n    I -->|No| K[\"Stays in review queue\"]\n    J --> L[\"Next /analyze resolves term\"]\n```\n\n---\n\n## 8. Things That Bit Us During Setup\n\n### Qdrant rejects string point IDs\n\nUse deterministic UUIDs from SHA1 of `chunk_id`; keep human-readable id in payload.\n\n### Payload indexes before filtering\n\nIndexes must exist at collection creation. Delete and recreate if missing.\n\n### AuraDB username\n\n`verifyConnectivity()` is not enough \u2014 run `RETURN 1` with real credentials. Some instances use instance id as username, not `neo4j`.\n\n### Embedder dependency\n\nReplaced Ollama-only embedder with `sentence-transformers` (`all-MiniLM-L6-v2`, 384 dimensions). Collection vector size must match model output.\n\n### Import paths\n\nUse package entrypoints: `shared/graph/index.js`, `shared/vector/index.js`, `shared/events/index.js`.\n\n---\n\n## 9. Key Things to Remember\n\n- **Qdrant IDs:** UUID only; SHA1 helper in adapter; `chunk_id` in payload.\n- **Indexes:** Created at collection setup in shared vector driver.\n- **Embedder:** Must run before seeding real vectors; dimension **384**.\n- **Neo4j auth:** Test with a real query, not connectivity-only checks.\n- **Bridges:** Default `reliability: unverified`, cap **0.70** until approved; always return `caveats[]`.\n- **Ontology:** `origin: dynamic` vs `origin: seed` for audit trails.\n\n---\n\n## Phase Progress\n\n| Phase | Status | What it proves |\n|-------|--------|----------------|\n| Phase 0: Module scaffold | \u2705 Complete | Module wires into monolith without touching other modules |\n| Phase 1: EU + US seed | \u2705 Complete | Real vectors in Qdrant, real graph in Neo4j |\n| Phase 2: Local analyze | \ud83d\udd28 Next | Live Qdrant + Neo4j + deterministic confidence on a clause |\n| Phase 3: Living ontology | Planned | Unknown terms \u2192 candidates \u2192 human promote \u2192 re-analyze |\n| Phase 4: Bridge layer | Planned | EU \u2194 US bridges with caveats |\n| Phase 5: Frontend | Planned | District \u2192 wall \u2192 federation narrative |\n| Phase 6: Diff + export | Planned | Current vs proposed clause diff + Markdown report |\n| Phase 7: Tests + deploy | Planned | Critical-path tests, live URL, README |\n\n**Phase 2 goal:** `POST /analyze` with a sample clause returns real Qdrant matches, Neo4j paths, populated `confidence_components`, and a result id like `RESULT_CLAUSE_001_EU_ESRS`.\n\n---\n\n## Closing thought\n\nThree databases is not complexity for its own sake. Each one answers a question the others cannot answer well. Postgres remembers decisions, Qdrant finds meaning, Neo4j explains structure \u2014 and `/analyze` is where they meet.\n"
+  }
+]

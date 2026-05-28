@@ -1,13 +1,13 @@
 {
-  "badge": "FULLSTACK DESIGN ENGINEER / PRODUCT SYSTEMS BUILDER",
-  "titleLine1": "I build products from messy idea to working system.",
-  "titleLine2": "0→1 product building, full-stack execution, workflow systems, and AI-enabled tools.",
-  "description": "I combine product design, frontend engineering, backend workflows, and AI-assisted systems to turn ambiguous problems into usable software.\n\nMy strength is owning the full path: understand the problem, shape the workflow, design the interface, build the system, and iterate from real feedback.",
+  "badge": "AI/ML ENGINEER · DOCUMENT INTELLIGENCE & LEGAL-TECH AI",
+  "titleLine1": "I build AI-assisted workflow systems for complex operational environments.",
+  "titleLine2": "I combine document classification, RAG, and OCR production work with independent litigation workflow research.",
+  "description": "I combine production engineering discipline, procedural domain knowledge, and transparent documentation to turn messy human processes into structured, testable, reliable tools.",
   "primaryCtaLabel": "View Engineering Projects",
   "stats": [
-    { "label": "Users Served", "value": "35,000+" },
-    { "label": "Cost Reduction", "value": "99%" },
-    { "label": "Awards Won", "value": "5" },
-    { "label": "Product Systems Built", "value": "0→1" }
+    { "label": "Awards Won", "value": "6" },
+    { "label": "Production AI/ML Engineering", "value": "1.5 YRS" },
+    { "label": "Litigation Operations Exposure", "value": "4 MOS" },
+    { "label": "Years in Tech", "value": "8" }
   ]
 }

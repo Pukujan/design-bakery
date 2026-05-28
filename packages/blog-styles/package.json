@@ -1,0 +1,14 @@
+{
+  "name": "@design-bakery/blog-styles",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Blog CSS tokens and component styles for design-bakery blog packages",
+  "type": "module",
+  "license": "UNLICENSED",
+  "exports": {
+    ".": "./src/index.css",
+    "./tokens": "./src/tokens.css",
+    "./blog": "./src/blog.css",
+    "./preview": "./src/preview.css"
+  }
+}

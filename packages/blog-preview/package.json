@@ -1,0 +1,26 @@
+{
+  "name": "@design-bakery/blog-preview",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Single-post blog preview viewer",
+  "type": "module",
+  "license": "UNLICENSED",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@design-bakery/blog-core": "workspace:*",
+    "@design-bakery/blog-styles": "workspace:*",
+    "@design-bakery/blog-ui": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "react-markdown": "^10.0.0",
+    "remark-gfm": "^4.0.0",
+    "rehype-raw": "^7.0.0",
+    "react-router-dom": "^7.0.0",
+    "lucide-react": "^0.500.0",
+    "motion": "^12.0.0"
+  }
+}

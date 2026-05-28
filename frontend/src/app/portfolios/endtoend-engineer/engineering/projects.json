@@ -1,9 +1,9 @@
 [
   {
     "id": 1,
-    "title": "ONI vs My Agent Ready Architecture",
+    "title": "Agent-Ready Repo Architecture",
     "tagline": "@pukujan/create-modular-monolith",
-    "description": "Software architecture has not caught up with agent-first coding yet. I built an npm package so repos keep agent speed without losing planning time, audit trails, or architecture shape — modular boundaries, contracts, versioned dev logs, agent-readable JSON audits, prompt versioning, evals, and patch/rollback context stronger than git alone. Inspired by Oxygen Not Included systems thinking; tested with multi-agent pipelines up to 500 agents and designed to grow naturally toward microservices.",
+    "description": "An npm scaffolding package for solo developers using AI-assisted coding. Modular boundaries, architecture contracts, versioned dev logs, and prompt versioning to prevent agent-driven drift. Experimental: tested in personal workflows, not production-validated at enterprise scale.",
     "tech": [
       "AI Agents",
       "Modular Monolith",
@@ -15,29 +15,29 @@
     "color": "#0891B2",
     "accentColor": "#22D3EE",
     "stats": [
-      { "label": "500+ Agents Tested", "icon": "Sparkles" },
-      { "label": "Audit + Rollback", "icon": "TrendingUp" },
+      { "label": "Modular Scaffolding", "icon": "Sparkles" },
+      { "label": "Dev Log Versioning", "icon": "TrendingUp" },
       { "label": "npm Package Release", "icon": "Award" }
     ],
     "links": [
       { "label": "Case Study", "url": "/case-studies/ai-agents/v3" },
       { "label": "npm Package", "url": "https://www.npmjs.com/package/@pukujan/create-modular-monolith" },
-      { "label": "Read More", "url": "https://lnkd.in/eXgZgm6N" },
-      { "label": "Source", "url": "https://lnkd.in/eaDVxREt" }
+      { "label": "Study Log", "url": "/endtoend-engineer/blogs/11" },
+      { "label": "Source", "url": "https://github.com/Pukujan/create-modular-monolith" }
     ]
   },
   {
     "id": 2,
     "title": "Ekagajpatra",
     "tagline": "Civic-Tech Product Platform",
-    "description": "Led product design and full-stack development for a civic-tech platform helping users navigate government documentation, legal guides, and consultation workflows.",
-    "tech": ["Product Design", "Full-Stack", "Civic Tech", "Workflow UX", "Next.js"],
+    "description": "Lead Product Designer for a civic-tech platform simplifying government documentation for 35,000+ users in Nepal. 6 national and international recognitions including Nepal's National ICT Award (PM-presented, 2025). Collaborated with frontend engineering team; did not lead full-stack development.",
+    "tech": ["Product Design", "UX Research", "Civic Tech", "Workflow UX", "Next.js"],
     "color": "#4169E1",
     "accentColor": "#FFD93D",
     "stats": [
       { "label": "35,000+ Users", "icon": "Users" },
       { "label": "99% Cost Reduction", "icon": "TrendingUp" },
-      { "label": "5 Awards / Grants", "icon": "Award" }
+      { "label": "6 Awards / Grants", "icon": "Award" }
     ],
     "links": [
       { "label": "Case Study", "url": "/case-studies/ekagajpatra" },
@@ -46,9 +46,9 @@
   },
   {
     "id": 3,
-    "title": "Litigation Workflow Intelligence",
-    "tagline": "AI-Assisted Workflow System",
-    "description": "A workflow intelligence system for modeling litigation operations, court filing signals, deadlines, part rules, and procedural risk patterns.",
+    "title": "Litigation Workflow Research",
+    "tagline": "AI-Assisted Workflow Prototypes",
+    "description": "Independent research prototypes modeling New York civil procedure: CPLR authority hierarchy, NYSCEF filing signals, judge/part rules, and procedural risk patterns. Built with synthetic data in isolated environments.",
     "tech": ["Legal Ops", "RAG", "Node.js", "Python", "Workflow Systems"],
     "color": "#9B6DD6",
     "accentColor": "#FF8C42",
@@ -65,8 +65,8 @@
   {
     "id": 4,
     "title": "InvestAI",
-    "tagline": "AI Financial Learning Platform",
-    "description": "Built a working MVP for an AI-assisted financial learning platform focused on sentiment analysis, credibility evaluation, and user education.",
+    "tagline": "AI Financial Learning MVP",
+    "description": "Personal learning project: MVP for AI-assisted financial sentiment analysis and credibility evaluation. Frontend prototype with experimental backend. Not production-deployed.",
     "tech": ["AI/ML", "Next.js", "Python", "Finance", "Product MVP"],
     "color": "#A8CC00",
     "accentColor": "#FF6B9D",

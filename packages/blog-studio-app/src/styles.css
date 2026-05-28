@@ -1,0 +1,7 @@
+@import 'tailwindcss';
+@import '@design-bakery/blog-styles/preview';
+
+@source "../**/*.{ts,tsx}";
+@source "../../blog-creator/**/*.{ts,tsx}";
+@source "../../blog-preview/**/*.{ts,tsx}";
+@source "../../blog-ui/**/*.{ts,tsx}";

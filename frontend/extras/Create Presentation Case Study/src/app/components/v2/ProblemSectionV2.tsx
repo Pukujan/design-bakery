@@ -1,41 +1,69 @@
 import { motion } from "motion/react";
-import { AlertCircle, Users, Building2, FileText, DollarSign, Wifi, Target } from "lucide-react";
+import {
+  AlertCircle,
+  Users,
+  Building2,
+  FileText,
+  DollarSign,
+  Wifi,
+  Target,
+  BookOpen,
+  MapPin,
+  ShieldAlert,
+  Newspaper,
+} from "lucide-react";
 
 export function ProblemSectionV2() {
   const challenges = [
     {
       icon: Users,
       title: "Informal broker dependency",
-      description: "Individuals relied on informal brokers for form completion"
+      description: "Individuals relied on informal brokers for form completion",
     },
     {
       icon: Building2,
       title: "Business documentation burden",
-      description: "Businesses struggled with recurring administrative documentation"
+      description: "Businesses struggled with recurring administrative documentation",
     },
     {
       icon: FileText,
       title: "Disconnected consultant systems",
-      description: "Legal and financial consultants used manual or disconnected systems"
+      description: "Legal and financial consultants used manual or disconnected systems",
     },
     {
       icon: AlertCircle,
       title: "Late error discovery",
-      description: "Errors were discovered late and required costly rework"
+      description: "Errors were discovered late and required costly rework",
     },
     {
       icon: Wifi,
       title: "Variable digital access",
-      description: "Digital literacy and internet reliability varied significantly"
-    }
-  ];
-
-  const engineeringGoals = [
-    "Support multiple user types with different needs",
-    "Guide users through complex workflows",
-    "Validate inputs early and clearly",
-    "Generate accurate, submission-ready PDF documents",
-    "Scale across consumer and professional use cases"
+      description: "Digital literacy and internet reliability varied significantly",
+    },
+    {
+      icon: BookOpen,
+      title: "Low literacy barriers",
+      description:
+        "Many users could not parse legal language or complete forms without intermediaries",
+    },
+    {
+      icon: DollarSign,
+      title: "Broker fee inflation",
+      description:
+        "Informal brokers charged 10-20x legitimate costs, pricing citizens out of compliance",
+    },
+    {
+      icon: MapPin,
+      title: "Geographic inequality",
+      description:
+        "Rural and semi-urban users lacked access to affordable, transparent documentation services",
+    },
+    {
+      icon: ShieldAlert,
+      title: "Trust deficit",
+      description:
+        "Opaque processes eroded confidence in both brokers and formal government channels",
+    },
   ];
 
   return (
@@ -64,20 +92,32 @@ export function ProblemSectionV2() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-xl text-gray-700 mb-10"
+            className="text-xl text-gray-700 mb-8"
           >
-            Documentation workflows in Nepal were expensive, fragmented, and difficult to navigate.
+            In Nepal, government documentation was inaccessible for most citizens: low literacy and
+            digital illiteracy, broker fees inflated 10-20x, geographic inequality, and a lack of
+            transparency sustained a broker-driven black market.
           </motion.p>
 
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.35, duration: 0.6 }}
-            className="text-xl text-gray-700 mb-10"
+            transition={{ delay: 0.32, duration: 0.6 }}
+            className="bg-white rounded-lg p-6 md:p-8 border-l-4 border-secondary shadow-sm mb-10"
           >
-            Users often depended on informal brokers to complete forms. Businesses had recurring documentation needs but lacked organized digital tools. Legal and financial consultants worked through manual or disconnected systems. Errors were often discovered late, leading to costly rework.
-          </motion.p>
+            <div className="flex items-start gap-4">
+              <Newspaper className="w-8 h-8 text-secondary shrink-0" />
+              <p className="text-lg text-gray-700 leading-relaxed">
+                A <span className="font-semibold text-primary">2025 Nepal News</span> investigation
+                documented 300+ brokers operating openly at a single Kathmandu transport office,
+                charging citizens Rs 500-7,000 for form-filling services that should be free. This
+                sustained a system where users depended on informal brokers to complete forms,
+                businesses faced recurring documentation burden without organized digital tools, and
+                legal and financial consultants used manual or disconnected systems.
+              </p>
+            </div>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -88,7 +128,7 @@ export function ProblemSectionV2() {
           >
             {challenges.map((challenge, index) => (
               <motion.div
-                key={index}
+                key={challenge.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -114,7 +154,9 @@ export function ProblemSectionV2() {
               <h3 className="text-2xl font-bold">From a product and engineering perspective:</h3>
             </div>
             <p className="text-lg leading-relaxed text-primary-foreground/95">
-              The challenge was not just to digitize forms. The real challenge was to design a system that could guide different users through complex workflows, validate information early, generate reliable documents, and scale across consumer and professional use cases.
+              The challenge was not just to digitize forms. The real challenge was to design a system
+              that could guide different users through complex workflows, validate information early,
+              generate reliable documents, and scale across consumer and professional use cases.
             </p>
           </motion.div>
         </motion.div>
