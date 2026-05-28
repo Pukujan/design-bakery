@@ -157,6 +157,8 @@ export interface BlogPost {
   coverImageUrl?: string;
   thumbnailImageUrl?: string;
   seo?: BlogSeo;
+  /** ISO timestamp for sort order — not shown on public blog UI. */
+  publishedAt?: string;
 }
 
 /** Firestore rejects explicit `undefined` field values (e.g. empty coverImageUrl). */

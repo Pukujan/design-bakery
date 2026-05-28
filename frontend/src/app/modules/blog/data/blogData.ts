@@ -10,6 +10,7 @@ import {
   fetchBlogPostFromSupabase,
   type RemoteBlogDto,
 } from './blogSupabase.js';
+import { blogSortTimestamp } from '@/modules/blog/lib/blogPostDefaults';
 import { normalizeBlogSeo, type BlogSeo } from '@/modules/blog/seo/blogMeta';
 import {
   clearPersistedBlogCache,
@@ -43,6 +44,8 @@ export interface Blog {
   seo?: BlogSeo;
   /** CMS revision time — used to invalidate stale localStorage (#23). */
   updatedAt?: string;
+  /** ISO sort key from CMS — not shown on public blog UI. */
+  publishedAt?: string;
 }
 
 /** List / nav / similar-articles — no markdown body (smaller React trees). */
@@ -71,12 +74,7 @@ export function invalidateBlogCache(): void {
   clearPersistedBlogCache();
 }
 
-function parseBlogDate(date: string): number {
-  const ts = Date.parse(date.trim());
-  return Number.isNaN(ts) ? 0 : ts;
-}
-
-type BlogSortable = { date: string; id?: number; numericId?: number };
+type BlogSortable = { date: string; publishedAt?: string; id?: number; numericId?: number };
 
 /** Canonical numeric id for routes and merge. */
 export function resolveBlogNumericId(post: {
@@ -146,12 +144,12 @@ function fallbackBlogsFromJson(): Blog[] {
 }
 
 export function compareBlogsByDateDesc(a: BlogSortable, b: BlogSortable): number {
-  const byDate = parseBlogDate(b.date) - parseBlogDate(a.date);
+  const byDate = blogSortTimestamp(b) - blogSortTimestamp(a);
   if (byDate !== 0) return byDate;
   return (b.id ?? b.numericId ?? 0) - (a.id ?? a.numericId ?? 0);
 }
 
-/** Newest first (by `date` string, then `id` as tiebreaker). */
+/** Newest first (`publishedAt`, else display `date`, then `id`). */
 export function sortBlogsByDateDesc<T extends BlogSortable>(blogs: T[]): T[] {
   return [...blogs].sort(compareBlogsByDateDesc);
 }
@@ -176,6 +174,7 @@ function mapRemoteBlog(row: RemoteBlogDto): Blog {
     thumbnailImageUrl: row.thumbnailImageUrl?.trim() || undefined,
     seo: normalizeBlogSeo(row.seo as BlogSeo | undefined),
     updatedAt: row.updatedAt,
+    publishedAt: row.publishedAt,
   };
 }
 

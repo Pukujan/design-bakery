@@ -18,6 +18,7 @@ export type BlogPostRow = {
   thumbnail_image_url: string | null;
   seo: Record<string, unknown> | null;
   updated_at?: string;
+  published_at?: string | null;
 };
 
 export type BlogPostDto = {
@@ -36,6 +37,7 @@ export type BlogPostDto = {
   thumbnailImageUrl?: string;
   seo?: Record<string, unknown>;
   updatedAt?: string;
+  publishedAt?: string;
 };
 
 function rowToDto(row: BlogPostRow): BlogPostDto {
@@ -55,11 +57,12 @@ function rowToDto(row: BlogPostRow): BlogPostDto {
     thumbnailImageUrl: row.thumbnail_image_url ?? undefined,
     seo: row.seo ?? undefined,
     updatedAt: row.updated_at ?? undefined,
+    publishedAt: row.published_at ?? undefined,
   };
 }
 
 function dtoToRow(data: Omit<BlogPostDto, 'id'>, legacyDocId?: string): Omit<BlogPostRow, 'id'> {
-  return {
+  const row: Omit<BlogPostRow, 'id'> = {
     legacy_doc_id: legacyDocId ?? null,
     numeric_id: data.numericId ?? 0,
     title: data.title,
@@ -75,11 +78,15 @@ function dtoToRow(data: Omit<BlogPostDto, 'id'>, legacyDocId?: string): Omit<Blo
     thumbnail_image_url: data.thumbnailImageUrl?.trim() || null,
     seo: data.seo ?? null,
   };
+  if (data.publishedAt) {
+    row.published_at = data.publishedAt;
+  }
+  return row;
 }
 
 /** List columns without markdown body — public index + cards only. */
 const BLOG_LIST_COLUMNS =
-  'id, legacy_doc_id, numeric_id, title, excerpt, tags, category, author, color, date, read_time, cover_image_url, thumbnail_image_url, seo, updated_at';
+  'id, legacy_doc_id, numeric_id, title, excerpt, tags, category, author, color, date, read_time, cover_image_url, thumbnail_image_url, seo, updated_at, published_at';
 
 export type ListBlogPostsOptions = {
   /** Admin editor needs full markdown; public list omits body for speed. */
@@ -90,8 +97,14 @@ export async function listBlogPosts(options: ListBlogPostsOptions = {}): Promise
   const includeContent = options.includeContent === true;
   const base = supabaseAdmin().from('blog_posts');
   const { data, error } = includeContent
-    ? await base.select('*').order('numeric_id', { ascending: false })
-    : await base.select(BLOG_LIST_COLUMNS).order('numeric_id', { ascending: false });
+    ? await base
+        .select('*')
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .order('numeric_id', { ascending: false })
+    : await base
+        .select(BLOG_LIST_COLUMNS)
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .order('numeric_id', { ascending: false });
 
   if (error) throw new Error(`Blog list failed: ${error.message}`);
   const rows = (data ?? []) as BlogPostRow[];
@@ -130,9 +143,13 @@ export async function upsertBlogPost(post: BlogPostDto): Promise<string> {
       .maybeSingle();
 
     if (existing?.id) {
+      const updateRow = { ...row, updated_at: new Date().toISOString() };
+      if (!data.publishedAt) {
+        delete (updateRow as { published_at?: string | null }).published_at;
+      }
       const { error } = await supabaseAdmin()
         .from('blog_posts')
-        .update({ ...row, updated_at: new Date().toISOString() })
+        .update(updateRow)
         .eq('id', existing.id);
       if (error) throw new Error(`Blog update failed: ${error.message}`);
       return legacyId;
@@ -143,6 +160,7 @@ export async function upsertBlogPost(post: BlogPostDto): Promise<string> {
     .from('blog_posts')
     .insert({
       ...row,
+      published_at: post.publishedAt ?? new Date().toISOString(),
       legacy_doc_id: legacyId ?? `seed-${row.numeric_id}`,
       updated_at: new Date().toISOString(),
     })

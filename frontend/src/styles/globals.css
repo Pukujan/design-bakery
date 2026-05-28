@@ -536,16 +536,6 @@ body::before {
   color: var(--muted-foreground, #6b7280);
 }
 
-/* Ordered lists (e.g. manual Table of Contents) — keep decimal markers; bullets use custom ▸ in BlogDetailPage */
-.blog-article-prose ol {
-  list-style-type: decimal;
-  list-style-position: outside;
-}
-
-.blog-article-prose ol > li {
-  display: list-item;
-}
-
 /* Fenced code — dark panel in all site modes */
 .blog-fenced-code-wrap,
 .blog-fenced-code-wrap pre.blog-fenced-code,

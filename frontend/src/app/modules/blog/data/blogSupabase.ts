@@ -3,7 +3,7 @@ import type { BlogCategory } from './blogData';
 
 /** List columns — omit markdown body for faster cards. */
 const BLOG_LIST_COLUMNS =
-  'numeric_id, legacy_doc_id, title, excerpt, tags, category, author, color, date, read_time, cover_image_url, thumbnail_image_url, seo, updated_at';
+  'numeric_id, legacy_doc_id, title, excerpt, tags, category, author, color, date, read_time, cover_image_url, thumbnail_image_url, seo, updated_at, published_at';
 
 export type RemoteBlogDto = {
   numericId?: number;
@@ -21,6 +21,7 @@ export type RemoteBlogDto = {
   thumbnailImageUrl?: string;
   seo?: Record<string, unknown>;
   updatedAt?: string;
+  publishedAt?: string;
 };
 
 type BlogPostRow = {
@@ -39,6 +40,7 @@ type BlogPostRow = {
   thumbnail_image_url: string | null;
   seo: Record<string, unknown> | null;
   updated_at?: string;
+  published_at?: string | null;
 };
 
 function rowToDto(row: BlogPostRow): RemoteBlogDto {
@@ -58,6 +60,7 @@ function rowToDto(row: BlogPostRow): RemoteBlogDto {
     thumbnailImageUrl: row.thumbnail_image_url ?? undefined,
     seo: row.seo ?? undefined,
     updatedAt: row.updated_at ?? undefined,
+    publishedAt: row.published_at ?? undefined,
   };
 }
 
@@ -68,6 +71,7 @@ export async function fetchBlogListFromSupabase(): Promise<RemoteBlogDto[]> {
   const { data, error } = await sb
     .from('blog_posts')
     .select(BLOG_LIST_COLUMNS)
+    .order('published_at', { ascending: false, nullsFirst: false })
     .order('numeric_id', { ascending: false });
 
   if (error) throw new Error(error.message);

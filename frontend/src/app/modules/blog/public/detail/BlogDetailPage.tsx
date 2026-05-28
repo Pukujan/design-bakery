@@ -204,10 +204,7 @@ const MarkdownComponents = {
   ol({ children, ...props }: any) {
     return (
       <MarkdownListParentContext.Provider value="ol">
-        <ol
-          className="my-2.5 sm:my-3 md:my-4 space-y-1 sm:space-y-1 md:space-y-1.5 list-decimal pl-5 sm:pl-6 md:pl-7 marker:font-bold marker:text-blue-600 dark:marker:text-blue-400"
-          {...props}
-        >
+        <ol className="my-2.5 sm:my-3 md:my-4" {...props}>
           {children}
         </ol>
       </MarkdownListParentContext.Provider>
@@ -226,11 +223,7 @@ const MarkdownComponents = {
     const listParent = useContext(MarkdownListParentContext);
 
     if (listParent === 'ol') {
-      return (
-        <li className="pl-1 text-sm sm:text-sm md:text-base leading-relaxed" {...props}>
-          {children}
-        </li>
-      );
+      return <li {...props}>{children}</li>;
     }
 
     return (

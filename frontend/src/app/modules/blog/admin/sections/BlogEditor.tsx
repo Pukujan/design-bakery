@@ -50,6 +50,11 @@ import {
   publishKitImagesNeedUpload,
 } from '@/modules/blog/studio/publishKitSaveHint';
 import { resolveBlogNumericId } from '@/modules/blog/data/blogData';
+import {
+  createNewBlogPostDraft,
+  DEFAULT_BLOG_AUTHOR,
+  prepareBlogPostForSave,
+} from '@/modules/blog/lib/blogPostDefaults';
 import { resolveBlogOgPreviewUrl } from '@/modules/blog/seo/blogMeta';
 import { PublishImagePreview } from '@/modules/blog/studio/PublishImagePreview';
 
@@ -65,16 +70,8 @@ const TEXTAREA_OVERFLOW =
   'min-w-0 max-w-full field-sizing-fixed overflow-x-auto overflow-y-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere]';
 
 const EMPTY_POST: Omit<BlogPost, 'id'> = {
-  numericId: 0,
-  title: '',
-  excerpt: '',
-  date: '',
-  readTime: '',
-  tags: [],
+  ...createNewBlogPostDraft(''),
   category: '',
-  color: '#6366f1',
-  author: '',
-  content: '',
 };
 
 export function BlogEditor() {
@@ -213,7 +210,7 @@ export function BlogEditor() {
     }
     newPostSlotRef.current = `new-${Date.now()}`;
     const defaultCategory = categories.find((c) => c.id !== 'all')?.id ?? '';
-    beginEditSession({ ...EMPTY_POST, category: defaultCategory });
+    beginEditSession({ ...createNewBlogPostDraft(defaultCategory) });
   }
 
   function openEdit(post: BlogPost) {
@@ -320,7 +317,7 @@ export function BlogEditor() {
       }
 
       setSaveWarning(null);
-      const docId = await saveBlog(toSave);
+      const docId = await saveBlog(prepareBlogPostForSave(toSave));
       await load();
       const refreshed = (await getBlogs()).find((p) => p.id === docId);
       if (refreshed) {
@@ -513,6 +510,7 @@ export function BlogEditor() {
                 <Label>Author</Label>
                 <Input
                   className={FIELD_OVERFLOW}
+                  placeholder={DEFAULT_BLOG_AUTHOR}
                   value={editPost.author}
                   onChange={(e) => setEditPost({ ...editPost, author: e.target.value })}
                 />
@@ -670,12 +668,16 @@ export function BlogEditor() {
 
             <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="min-w-0 space-y-1">
-                <Label>Date (e.g. May 2026)</Label>
+                <Label>Date (display)</Label>
                 <Input
                   className={FIELD_OVERFLOW}
+                  placeholder="may - 27 - 2026"
                   value={editPost.date}
                   onChange={(e) => setEditPost({ ...editPost, date: e.target.value })}
                 />
+                <p className="text-xs text-gray-500">
+                  Shown on the blog. Sort order uses a hidden timestamp set when the post is first saved.
+                </p>
               </div>
               <div className="min-w-0 space-y-1">
                 <Label>Read Time</Label>

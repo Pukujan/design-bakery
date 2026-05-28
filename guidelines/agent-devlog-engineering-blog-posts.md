@@ -93,7 +93,7 @@ Do not convert diagrams to `graph LR` when editing this post.
 
 ## Sort order
 
-`sortBlogsByDateDesc()` — newest `date` string first, then higher `id`. Use a recent month/year in `date` so new posts surface at the top.
+`sortBlogsByDateDesc()` — newest first by hidden `publishedAt` (ISO), else display `date` (`may - 27 - 2026`), then higher `id`. New posts default author `design-bakery` and auto-fill display date in the editor (`blogPostDefaults.ts`). Run migration `009_blog_posts_published_at.sql` for CMS sort column.
 
 ---
 
