@@ -2,8 +2,11 @@ import { HeroSectionV2 } from "./components/v2/HeroSectionV2";
 import { OverviewSectionV2 } from "./components/v2/OverviewSectionV2";
 import { ProblemSectionV2 } from "./components/v2/ProblemSectionV2";
 import { ResearchSectionV2 } from "./components/v2/ResearchSectionV2";
+import { PrototypeTestingSectionV2 } from "./components/v2/PrototypeTestingSectionV2";
+import { ProductWalkthroughVideoSectionV2 } from "./components/v2/ProductWalkthroughVideoSectionV2";
 import { GoalsSectionV2 } from "./components/v2/GoalsSectionV2";
 import { ProductDesignSection } from "./components/v2/ProductDesignSection";
+import { AwardsRecognitionSectionV2 } from "./components/v2/AwardsRecognitionSectionV2";
 import { ArchitectureSectionV2 } from "./components/v2/ArchitectureSectionV2";
 import { FrontendSection } from "./components/v2/FrontendSection";
 import { DataIntegrationSectionV2 } from "./components/v2/DataIntegrationSectionV2";
@@ -23,8 +26,10 @@ export default function App() {
       <OverviewSectionV2 />
       <ProblemSectionV2 />
       <ResearchSectionV2 />
-      <GoalsSectionV2 />
+      <PrototypeTestingSectionV2 />
+      <ProductWalkthroughVideoSectionV2 />
       <ProductDesignSection />
+      <GoalsSectionV2 />
       <ArchitectureSectionV2 />
       <FrontendSection />
       <DataIntegrationSectionV2 />
@@ -33,6 +38,7 @@ export default function App() {
       <ProductDesignOwnershipSection />
       <PerformanceSectionV2 />
       <CollaborationSection />
+      <AwardsRecognitionSectionV2 />
       <ImpactSectionV2 />
       <LearningSectionV2 />
       <ReflectionSectionV2 />

@@ -2,43 +2,52 @@
 
 :root {
   --font-size: 16px;
+  --radius: 0.625rem;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+}
+
+/* Scoped so portfolio globals (pink/royal blue) do not override Ekagajpatra brand colors */
+.ekagajpatra-case-study {
+  /* Ekagajpatra brand: #002945 primary, #FFD700 secondary */
+  --eka-primary: #002945;
+  --eka-secondary: #ffd700;
   --background: #ffffff;
-  --foreground: oklch(0.145 0 0);
+  --foreground: #002945;
   --card: #ffffff;
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: hsl(204, 100%, 14%);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: rgb(255, 215, 0);
-  --secondary-foreground: hsl(204, 100%, 14%);
+  --card-foreground: #002945;
+  --popover: #ffffff;
+  --popover-foreground: #002945;
+  --primary: #002945;
+  --primary-foreground: #ffffff;
+  --secondary: #ffd700;
+  --secondary-foreground: #002945;
   --muted: #ececf0;
   --muted-foreground: #717182;
-  --accent: #e9ebef;
-  --accent-foreground: #030213;
+  --accent: #ffd700;
+  --accent-foreground: #002945;
   --destructive: #d4183d;
   --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.1);
+  --border: rgba(0, 41, 69, 0.12);
   --input: transparent;
   --input-background: #f3f3f5;
   --switch-background: #cbced4;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
+  --ring: #002945;
+  --chart-1: #002945;
+  --chart-2: #ffd700;
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #030213;
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #002945;
+  --sidebar-primary: #002945;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f3f3f5;
+  --sidebar-accent-foreground: #002945;
+  --sidebar-border: rgba(0, 41, 69, 0.12);
+  --sidebar-ring: #002945;
+  color: var(--foreground);
+  background-color: var(--background);
 }
 
 .dark {

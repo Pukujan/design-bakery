@@ -8,7 +8,7 @@ export function HeroSectionV2() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, rgb(255, 215, 0) 1px, transparent 0)`,
+            backgroundImage: `radial-gradient(circle at 2px 2px, #ffd700 1px, transparent 0)`,
             backgroundSize: "40px 40px",
           }}
         />
@@ -30,6 +30,19 @@ export function HeroSectionV2() {
             <span className="px-6 py-2 bg-secondary text-secondary-foreground rounded-full text-sm font-semibold tracking-wide">
               FULLSTACK PRODUCT ENGINEERING CASE STUDY
             </span>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.28, duration: 0.6 }}
+            className="mb-6"
+          >
+            <img
+              src="/images/ekagajpatra-logo.png"
+              alt="Ekagajpatra logo"
+              className="h-8 md:h-10 w-auto max-w-[220px] object-contain"
+            />
           </motion.div>
 
           <motion.h1
