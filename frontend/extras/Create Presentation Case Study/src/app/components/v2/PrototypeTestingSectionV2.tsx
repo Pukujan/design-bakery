@@ -1,10 +1,6 @@
 import { motion } from "motion/react";
 import {
   FlaskConical,
-  Search,
-  Target,
-  Layers,
-  Rocket,
   Lightbulb,
   ArrowRight,
   Users,
@@ -51,33 +47,6 @@ const UX_IMPROVEMENTS = [
   "Dashboard access to generated documents",
 ];
 
-const DIAMOND_PHASES = [
-  {
-    icon: Search,
-    title: "Discover",
-    description:
-      "Field research, broker fee mapping, and behavioral studies across urban and semi-urban Nepal.",
-  },
-  {
-    icon: Target,
-    title: "Define",
-    description:
-      "Personas for low-literacy citizens priced out of legal participation; trust and affordability as core requirements.",
-  },
-  {
-    icon: Layers,
-    title: "Develop",
-    description:
-      "A/B prototypes for dense catalogs, task blocks, guided forms, contextual help, and previews.",
-  },
-  {
-    icon: Rocket,
-    title: "Deliver",
-    description:
-      "Shipped iterative releases with measured completion time and rate improvements over eight months.",
-  },
-];
-
 const PROTOTYPE_GALLERY: Array<{
   label: string;
   slot: UxVisualSlot;
@@ -119,7 +88,7 @@ const PROTOTYPE_GALLERY: Array<{
     slot: {
       path: pe.contextualHelp,
       fallbackLabel: uxFallbackLabel(pe.contextualHelp),
-      kind: "wireframe",
+      kind: "verified-image",
     },
     caption: "Guidance, tooltips, and video support were moved closer to the form.",
     insight: "Users trusted the process more when help appeared at the moment of confusion.",
@@ -139,9 +108,7 @@ const PROTOTYPE_GALLERY: Array<{
     slot: {
       path: pe.dashboardAccess,
       fallbackLabel: uxFallbackLabel(pe.dashboardAccess),
-      kind: "placeholder",
-      placeholderTitle: "Dashboard screenshot needed",
-      placeholderHint: "Use only a clean dashboard/document-access screenshot.",
+      kind: "verified-image",
     },
     caption: "Generated documents were saved for later review and download.",
     insight: "Saved access made the product feel more reliable and trustworthy.",
@@ -377,9 +344,8 @@ export function PrototypeTestingSectionV2() {
             className="text-xl text-gray-700 leading-relaxed mb-10"
           >
             Ekagajpatra was not designed in one pass. Over roughly one year, the product went through
-            repeated prototype cycles using Double Diamond-style discovery and delivery loops,
-            in-person walkthroughs, online demo surveys, and A/B tests with about 100 users across
-            different demographics.
+            repeated prototype cycles with in-person walkthroughs, online demo surveys, and A/B tests
+            with about 100 users across different demographics.
           </motion.p>
 
           <div className="grid md:grid-cols-2 gap-8 mb-12">
@@ -420,37 +386,6 @@ export function PrototypeTestingSectionV2() {
               </ul>
             </motion.div>
           </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="mb-14"
-          >
-            <h3 className="text-2xl font-bold text-primary mb-6">Double Diamond research loop</h3>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {DIAMOND_PHASES.map((phase, index) => (
-                <motion.div
-                  key={phase.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.08 * index, duration: 0.5 }}
-                  className="bg-white rounded-3xl p-6 border border-gray-200 relative min-h-[174px]"
-                >
-                  {index < DIAMOND_PHASES.length - 1 ? (
-                    <ArrowRight className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary z-10" />
-                  ) : null}
-                  <span className="inline-grid place-items-center w-9 h-9 rounded-full bg-secondary text-primary font-black text-sm mb-3">
-                    {index + 1}
-                  </span>
-                  <h4 className="text-lg font-bold text-primary mb-2">{phase.title}</h4>
-                  <p className="text-sm text-gray-600 leading-relaxed">{phase.description}</p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}

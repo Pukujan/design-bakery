@@ -4,7 +4,9 @@ const UX_IMAGE_BASE = "/images/case-studies/ekagajpatra";
 const VERIFIED_UX_FILENAMES = new Set([
   "prototype-service-grouping.png",
   "prototype-guided-form.png",
+  "prototype-contextual-help.png",
   "prototype-preview-before-download.png",
+  "prototype-dashboard-access.png",
   "ab-task-blocks-b.png",
   "ab-guided-form-b.png",
   "ab-preview-flow-b.png",
