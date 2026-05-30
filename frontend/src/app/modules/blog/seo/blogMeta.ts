@@ -86,20 +86,14 @@ function toAbsoluteImageUrl(url: string | undefined): string | undefined {
   return u;
 }
 
-export function resolveBlogMeta(blog: Blog, siteName = 'Design Baker') {
+export function resolveBlogMeta(blog: Blog, _siteName = 'Design Baker') {
   const seo = normalizeBlogSeo(blog.seo);
-  const rawTitle = seo?.metaTitle?.trim() || blog.title.trim();
+  const documentTitle = seo?.metaTitle?.trim() || blog.title.trim();
   const description = seo?.metaDescription?.trim() || blog.excerpt?.trim() || blog.title.trim();
-  const documentTitle = seo?.metaTitle?.trim()
-    ? seo.metaTitle.trim()
-    : rawTitle.includes(siteName)
-      ? rawTitle
-      : `${rawTitle} | ${siteName}`;
   const imageUrl = toAbsoluteImageUrl(resolveBlogSocialImageUrl(blog));
   return {
-    /** `<title>` — custom metaTitle is used as-is when set. */
+    /** `<title>` and OG title — post title or custom metaTitle, no site suffix. */
     documentTitle,
-    /** Open Graph / Twitter title. */
     pageTitle: documentTitle,
     description,
     imageUrl,

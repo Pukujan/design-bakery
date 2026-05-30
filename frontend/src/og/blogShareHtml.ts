@@ -1,6 +1,7 @@
 /** Crawler-facing Open Graph HTML for blog URLs (Vercel Edge middleware). */
 
 import {
+  collectPageSocialMetaTags,
   collectBlogSocialMetaTags,
   escapeHtml,
   readEdgeSocialEnv,
@@ -61,11 +62,7 @@ export async function resolveShareMeta(
   const ogImage = await resolveSocialPreviewImage(blog);
   const rawTitle = metaTitle || blog.title.trim();
   const description = metaDescription || blog.excerpt?.trim() || blog.title.trim();
-  const pageTitle = metaTitle
-    ? metaTitle
-    : rawTitle.includes(SITE_NAME)
-      ? rawTitle
-      : `${rawTitle} | ${SITE_NAME}`;
+  const pageTitle = metaTitle || rawTitle;
   const env = readEdgeSocialEnv();
 
   return {
@@ -73,7 +70,7 @@ export async function resolveShareMeta(
     description,
     canonicalUrl,
     ogImage,
-    imageAlt: title,
+    imageAlt: rawTitle,
     author: blog.author,
     publishedTime: blog.date,
     siteName: SITE_NAME,
@@ -88,7 +85,9 @@ export function buildBlogShareHtml(
 ): string {
   const title = escapeHtml(meta.pageTitle);
   const url = escapeHtml(meta.canonicalUrl);
-  const tagsHtml = socialMetaTagsToHtml(collectBlogSocialMetaTags(meta));
+  const tagsHtml = socialMetaTagsToHtml(
+    collectBlogSocialMetaTags({ ...meta, ogType: meta.ogType ?? 'article' }),
+  );
   const imageSrcLink = meta.ogImage
     ? `\n    <link rel="image_src" href="${escapeHtml(meta.ogImage)}" />`
     : '';
@@ -163,4 +162,53 @@ ${tagsHtml}
     </ul>
   </body>
 </html>`;
+}
+
+/** Replace homepage SEO tags in the built SPA shell — keeps Vite asset scripts intact. */
+export function injectSocialMetaIntoHtmlHead(
+  html: string,
+  meta: BlogSocialMetaInput & { ogType?: 'website' | 'article' },
+): string {
+  const title = escapeHtml(meta.pageTitle);
+  const tagsHtml = socialMetaTagsToHtml(
+    collectBlogSocialMetaTags({
+      ...meta,
+      ogType: meta.ogType ?? 'article',
+    }),
+  );
+  const canonical = escapeHtml(meta.canonicalUrl);
+  const imageSrcLink = meta.ogImage
+    ? `\n    <link rel="image_src" href="${escapeHtml(meta.ogImage)}" />`
+    : '';
+
+  let out = html
+    .replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`)
+    .replace(/<meta\s+name="description"[^>]*>/gi, '')
+    .replace(/<meta\s+name="robots"[^>]*>/gi, '')
+    .replace(/<link\s+rel="canonical"[^>]*>/gi, '')
+    .replace(/<link\s+rel="image_src"[^>]*>/gi, '')
+    .replace(/<meta\s+(?:name|property)="(?:og:|twitter:|fb:)[^"]+"[^>]*>/gi, '');
+
+  const injection = `
+    <link rel="canonical" href="${canonical}" />${imageSrcLink}
+${tagsHtml}`;
+
+  return out.replace('</head>', `${injection}\n  </head>`);
+}
+
+export async function fetchSpaIndexHtml(origin: string): Promise<string | null> {
+  try {
+    const res = await fetch(new URL('/index.html', origin), {
+      headers: { Accept: 'text/html' },
+    });
+    if (!res.ok) return null;
+    return await res.text();
+  } catch {
+    return null;
+  }
+}
+
+export function resolveEdgeSiteOrigin(requestUrl: URL): string {
+  const fromEnv = process.env.VITE_SITE_URL?.trim() || process.env.SITE_URL?.trim();
+  return (fromEnv || requestUrl.origin).replace(/\/$/, '');
 }

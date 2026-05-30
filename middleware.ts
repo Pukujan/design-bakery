@@ -1,6 +1,9 @@
 import {
   buildBlogListShareHtml,
   buildBlogShareHtml,
+  fetchSpaIndexHtml,
+  injectSocialMetaIntoHtmlHead,
+  resolveEdgeSiteOrigin,
   resolveShareMeta,
   stripMarkdownForCrawlers,
   SITE_NAME,
@@ -181,49 +184,110 @@ function htmlResponse(html: string): Response {
   });
 }
 
-export default async function middleware(request: Request) {
-  const ua = request.headers.get('user-agent') ?? '';
-  if (!isLinkPreviewCrawler(ua)) return;
+async function injectBlogDetailSpaShell(
+  request: Request,
+  pathname: string,
+  numericId: number,
+): Promise<Response | null> {
+  const blog = await fetchBlog(numericId);
+  if (!blog) return null;
 
   const url = new URL(request.url);
+  const siteOrigin = resolveEdgeSiteOrigin(url);
+  const canonicalUrl = `${siteOrigin}${pathname}`;
+  const meta = await resolveShareMeta(blog, canonicalUrl);
+  const spaHtml = await fetchSpaIndexHtml(url.origin);
+  if (!spaHtml) return null;
+
+  const html = injectSocialMetaIntoHtmlHead(spaHtml, { ...meta, ogType: 'article' });
+  return htmlResponse(html);
+}
+
+async function injectBlogListSpaShell(
+  request: Request,
+  pathname: string,
+): Promise<Response | null> {
+  const url = new URL(request.url);
+  const siteOrigin = resolveEdgeSiteOrigin(url);
+  const canonicalUrl = `${siteOrigin}${pathname}`;
+  const spaHtml = await fetchSpaIndexHtml(url.origin);
+  if (!spaHtml) return null;
+
+  const html = injectSocialMetaIntoHtmlHead(spaHtml, {
+    pageTitle: `Engineering Blog | ${SITE_NAME}`,
+    description:
+      'Engineering blog on systems design, AI workflows, document intelligence, legal-tech product engineering, and agent architecture.',
+    canonicalUrl,
+    ogType: 'website',
+    siteName: SITE_NAME,
+  });
+  return htmlResponse(html);
+}
+
+export default async function middleware(request: Request) {
+  const url = new URL(request.url);
   const pathname = url.pathname;
+  const ua = request.headers.get('user-agent') ?? '';
+  const isCrawler = isLinkPreviewCrawler(ua);
+
+  const detailMatch = pathname.match(BLOG_DETAIL_RE);
+  if (detailMatch) {
+    const numericId = Number(detailMatch[1]);
+    if (Number.isFinite(numericId)) {
+      const injected = await injectBlogDetailSpaShell(request, pathname, numericId);
+      if (injected) return injected;
+    }
+  }
+
+  if (BLOG_LIST_RE.test(pathname)) {
+    const injected = await injectBlogListSpaShell(request, pathname);
+    if (injected) return injected;
+  }
+
+  // Crawler-only static HTML fallback when SPA shell injection fails (no index.html fetch).
+  if (!isCrawler) return;
 
   if (BLOG_LIST_RE.test(pathname)) {
     const posts = await fetchBlogList();
     const prefix = blogPathPrefix(pathname);
-    const canonicalUrl = url.origin + pathname;
+    const siteOrigin = resolveEdgeSiteOrigin(url);
+    const canonicalUrl = `${siteOrigin}${pathname}`;
     const items: BlogListShareItem[] = posts.map((post) => ({
       id: post.id,
       title: post.title,
       excerpt: post.excerpt,
       date: post.date,
-      href: `${url.origin}${prefix}/blogs/${post.id}`,
+      href: `${siteOrigin}${prefix}/blogs/${post.id}`,
     }));
     const html = buildBlogListShareHtml({
-      pageTitle: `Blog | ${SITE_NAME}`,
+      pageTitle: `Engineering Blog | ${SITE_NAME}`,
       canonicalUrl,
-      description: 'Engineering blog posts on systems design, AI workflows, and product engineering.',
+      description:
+        'Engineering blog posts on systems design, AI workflows, and product engineering.',
       posts: items,
     });
     return htmlResponse(html);
   }
 
-  const detailMatch = pathname.match(BLOG_DETAIL_RE);
-  if (!detailMatch) return;
+  if (detailMatch) {
+    const numericId = Number(detailMatch[1]);
+    if (!Number.isFinite(numericId)) return;
 
-  const numericId = Number(detailMatch[1]);
-  if (!Number.isFinite(numericId)) return;
+    const blog = await fetchBlog(numericId);
+    if (!blog) return;
 
-  const blog = await fetchBlog(numericId);
-  if (!blog) return;
+    const siteOrigin = resolveEdgeSiteOrigin(url);
+    const canonicalUrl = `${siteOrigin}${pathname}`;
+    const meta = await resolveShareMeta(blog, canonicalUrl);
+    const bodyText = blog.content ? stripMarkdownForCrawlers(blog.content) : undefined;
+    const html = buildBlogShareHtml(
+      { ...meta, ogType: 'article' },
+      {
+        excerpt: meta.description,
+        bodyText,
+      },
+    );
 
-  const canonicalUrl = url.origin + pathname;
-  const meta = await resolveShareMeta(blog, canonicalUrl);
-  const bodyText = blog.content ? stripMarkdownForCrawlers(blog.content) : undefined;
-  const html = buildBlogShareHtml(meta, {
-    excerpt: meta.description,
-    bodyText,
-  });
-
-  return htmlResponse(html);
+    return htmlResponse(html);
+  }
 }
