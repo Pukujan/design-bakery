@@ -34,7 +34,7 @@ export const PORTFOLIOS: Record<PortfolioId, PortfolioConfig> = {
   },
   'endtoend-engineer': {
     id: 'endtoend-engineer',
-    label: 'Fullstack Design Engineer',
+    label: 'AI/ML Engineer',
     basePath: '/endtoend-engineer',
     defaultBlogCategory: 'all',
     collectionPrefix: 'ete__',

@@ -461,6 +461,10 @@ export const setGallery = (key: GalleryKey, items: GalleryItem[]) =>
 export interface HeroStat {
   label: string;
   value: string;
+  /** When set, hero stat card scrolls to experience and expands this entry. */
+  experienceId?: number;
+  /** When set, hero stat card scrolls to projects and features this project card. */
+  projectId?: number;
 }
 
 export interface EngineeringHeroContent {
@@ -694,7 +698,7 @@ export interface FooterContent {
 
 export const FOOTER_CONTENT_DEFAULT: FooterContent = {
   brandTitle: 'Design Baker',
-  brandDescription: 'Engineered for reliability • Built for real-world impact',
+  brandDescription: 'AI/ML systems · Document intelligence · Workflow reliability',
   socialLinks: [
     { icon: 'Github', href: 'https://github.com/pukujan', label: 'GitHub' },
     { icon: 'Linkedin', href: 'https://www.linkedin.com/in/pujan3645', label: 'LinkedIn' },

@@ -15,10 +15,17 @@ import { Badge } from "../../../components/ui/badge";
 import { Squiggle, Star, BlobShape } from "../../../components/GraphicElements";
 import { FlowerCharacter } from "../../../components/FlowerCharacter";
 import { Cupcake, Donut, Cookie, IceCream } from "../../../components/BakeryItems";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useProjectsContent } from '../../../lib/contentHooks';
 import { isInternalAppPath } from '../../../lib/caseStudyRoutes';
+import {
+  OPEN_FEATURED_PROJECT_EVENT,
+  parseProjectHash,
+  projectCarouselPosition,
+  type OpenFeaturedProjectDetail,
+} from '../../../lib/openFeaturedProject';
 
 const projectIconMap = {
   Users,
@@ -27,7 +34,10 @@ const projectIconMap = {
   Sparkles,
 } as const;
 
+const PROJECTS_PAGE_SIZE = 4;
+
 export function EngineeringProjects() {
+  const location = useLocation();
   const rawProjects = useProjectsContent();
   const allProjects = rawProjects.map((project) => ({
     ...project,
@@ -42,9 +52,38 @@ export function EngineeringProjects() {
   const [shouldScroll, setShouldScroll] = useState(false);
   const featuredCardRef = useRef<HTMLDivElement>(null);
 
-  const visibleProjects = allProjects.slice(startIndex, startIndex + 4);
+  const visibleProjects = allProjects.slice(startIndex, startIndex + PROJECTS_PAGE_SIZE);
   const canGoPrev = startIndex > 0;
-  const canGoNext = startIndex + 4 < allProjects.length;
+  const canGoNext = startIndex + PROJECTS_PAGE_SIZE < allProjects.length;
+
+  const featureProjectById = useCallback(
+    (projectId: number) => {
+      const projectIndex = allProjects.findIndex((project) => project.id === projectId);
+      if (projectIndex < 0) return;
+      const { startIndex: nextStart, featuredIndex: nextFeatured } = projectCarouselPosition(
+        projectIndex,
+        PROJECTS_PAGE_SIZE,
+      );
+      setStartIndex(nextStart);
+      setFeaturedIndex(nextFeatured);
+      setShouldScroll(true);
+    },
+    [allProjects],
+  );
+
+  useEffect(() => {
+    const fromHash = parseProjectHash(location.hash);
+    if (fromHash !== null) featureProjectById(fromHash);
+  }, [location.hash, featureProjectById]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const { projectId } = (event as CustomEvent<OpenFeaturedProjectDetail>).detail;
+      if (typeof projectId === 'number') featureProjectById(projectId);
+    };
+    window.addEventListener(OPEN_FEATURED_PROJECT_EVENT, handler);
+    return () => window.removeEventListener(OPEN_FEATURED_PROJECT_EVENT, handler);
+  }, [featureProjectById]);
 
   useEffect(() => {
     if (shouldScroll && featuredCardRef.current) {

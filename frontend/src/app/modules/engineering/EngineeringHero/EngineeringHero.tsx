@@ -3,6 +3,8 @@ import { ArrowRight, Code, Terminal, Cpu } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { BlobShape, Star } from '../../../components/GraphicElements';
 import { useEngineeringHeroSection } from '../../../lib/contentHooks';
+import { openExperience } from '../../../lib/openExperience';
+import { openFeaturedProject } from '../../../lib/openFeaturedProject';
 
 export function EngineeringHero() {
   const content = useEngineeringHeroSection();
@@ -99,20 +101,49 @@ export function EngineeringHero() {
             transition={{ delay: 0.9, duration: 0.8 }}
             className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto"
           >
-            {content.stats.map((stat, idx) => (
-              <motion.div
-                key={idx}
-                whileHover={{ scale: 1.05, rotate: Math.random() * 4 - 2 }}
-                className="bg-white/10 backdrop-blur-md border-4 border-white/30 rounded-2xl p-6 shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)]"
-              >
-                <p className="text-3xl md:text-4xl font-black text-yellow-300 mb-2">
-                  {stat.value}
-                </p>
-                <p className="text-white/90 font-medium">
-                  {stat.label}
-                </p>
-              </motion.div>
-            ))}
+            {content.stats.map((stat, idx) => {
+              const isExperienceLink =
+                typeof stat.experienceId === 'number' && stat.experienceId > 0;
+              const isProjectLink =
+                typeof stat.projectId === 'number' && stat.projectId > 0;
+              const isClickable = isExperienceLink || isProjectLink;
+              const StatWrapper = isClickable ? 'button' : 'div';
+              return (
+                <motion.div
+                  key={idx}
+                  whileHover={{ scale: 1.05 }}
+                  className={isClickable ? 'cursor-pointer' : ''}
+                >
+                  <StatWrapper
+                    type={isClickable ? 'button' : undefined}
+                    className={`w-full text-left bg-white/10 backdrop-blur-md border-4 border-white/30 rounded-2xl p-6 shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] transition-colors ${
+                      isClickable
+                        ? 'hover:bg-white/20 hover:border-white/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300'
+                        : ''
+                    }`}
+                    onClick={
+                      isExperienceLink
+                        ? () => openExperience(stat.experienceId!)
+                        : isProjectLink
+                          ? () => openFeaturedProject(stat.projectId!)
+                          : undefined
+                    }
+                    aria-label={
+                      isExperienceLink
+                        ? `${stat.value} ${stat.label} — view experience details`
+                        : isProjectLink
+                          ? `${stat.value} ${stat.label} — view featured project`
+                          : undefined
+                    }
+                  >
+                    <p className="text-3xl md:text-4xl font-black text-yellow-300 mb-2">
+                      {stat.value}
+                    </p>
+                    <p className="text-white/90 font-medium">{stat.label}</p>
+                  </StatWrapper>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </motion.div>
       </div>

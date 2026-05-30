@@ -16,9 +16,19 @@ export function EngineeringHome() {
 
   useEffect(() => {
     if (!location.hash) return;
-    const id = decodeURIComponent(location.hash.replace(/^#/, ''));
+    const raw = decodeURIComponent(location.hash.replace(/^#/, ''));
+    const experienceMatch = raw.match(/^experience-(\d+)$/);
+    const projectMatch = raw.match(/^project-(\d+)$/);
     requestAnimationFrame(() => {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      if (experienceMatch) {
+        document.getElementById('experience')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      if (projectMatch) {
+        document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      document.getElementById(raw)?.scrollIntoView({ behavior: 'smooth' });
     });
   }, [location.pathname, location.hash]);
 

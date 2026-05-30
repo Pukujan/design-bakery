@@ -165,8 +165,8 @@ export function BlogListPage() {
             />
           </h2>
           <p className="text-xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto mb-6">
-            Deep dives into systems thinking, AI workflows, and engineering
-            decision-making
+            Technical study logs on AI/ML systems, LLM workflows, legal-tech AI,
+            eval engineering, and document intelligence
           </p>
           <Squiggle color="#4169E1" className="mx-auto" />
         </motion.div>

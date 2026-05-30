@@ -1,13 +1,13 @@
 {
-  "badge": "AI/ML ENGINEER · DOCUMENT INTELLIGENCE & LEGAL-TECH AI",
-  "titleLine1": "I build AI-assisted workflow systems for complex operational environments.",
-  "titleLine2": "I combine document classification, RAG, and OCR production work with independent litigation workflow research.",
-  "description": "I combine production engineering discipline, procedural domain knowledge, and transparent documentation to turn messy human processes into structured, testable, reliable tools.",
+  "badge": "AI/ML ENGINEER · LLM SYSTEMS · DOCUMENT INTELLIGENCE",
+  "titleLine1": "I build AI/ML systems for document-heavy workflows.",
+  "titleLine2": "Legal Workflow AI · Eval Engineering · Human-in-the-Loop Systems",
+  "description": "My work spans RAG, OCR, LangChain, LangGraph, PyTorch study pipelines, LLM evaluation, context engineering, multi-agent workflows, and human-in-the-loop validation. I focus on legal workflow AI, where ground truth, source authority, paralegal-style review, and procedural context matter as much as model output.",
   "primaryCtaLabel": "View Engineering Projects",
   "stats": [
-    { "label": "Awards Won", "value": "6" },
-    { "label": "Production AI/ML Engineering", "value": "1.5 YRS" },
-    { "label": "Litigation Operations Exposure", "value": "4 MOS" },
-    { "label": "Years in Tech", "value": "8" }
+    { "label": "Awards Won", "value": "6", "projectId": 2 },
+    { "label": "AI/ML + LLM Systems", "value": "1.5 YRS", "experienceId": 2 },
+    { "label": "Legal Workflow Grounding", "value": "4 MOS", "experienceId": 1 },
+    { "label": "Software + Product Systems", "value": "8", "experienceId": 5 }
   ]
 }

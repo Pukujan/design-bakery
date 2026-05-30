@@ -28,6 +28,7 @@ import lweSkillsMeta from './legal-workflow-engineer/engineering/skills-meta.jso
 import _lweProjectsJson from './legal-workflow-engineer/engineering/projects.json';
 import _lweEngSkillsJson from './legal-workflow-engineer/engineering/skill-categories.json';
 import eteHero from './endtoend-engineer/engineering/hero.json';
+import eteAbout from './endtoend-engineer/engineering/about.json';
 import eteExperience from './endtoend-engineer/engineering/relevant-experience.json';
 import _eteProjectsJson from './endtoend-engineer/engineering/projects.json';
 import fdeHero from './forward-deployed-engineer/engineering/hero.json';
@@ -69,6 +70,7 @@ export function getAboutFallback(portfolioId: PortfolioId): EngineeringAboutCont
   if (portfolioId === 'ai-engineer') return aiAbout as EngineeringAboutContent;
   if (portfolioId === 'legal-workflow-engineer') return lweAbout as EngineeringAboutContent;
   if (portfolioId === 'forward-deployed-engineer') return fdeAbout as EngineeringAboutContent;
+  if (portfolioId === 'endtoend-engineer') return eteAbout as EngineeringAboutContent;
   return ENGINEERING_ABOUT_DEFAULT;
 }
 

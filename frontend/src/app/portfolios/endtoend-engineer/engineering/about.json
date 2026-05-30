@@ -2,36 +2,31 @@
   "headingLeft": "ABOUT",
   "headingRight": "ME",
   "portraitUrl": "https://i.imgur.com/umGE4Kd.jpeg",
-  "roleTitle": "I work best where product, engineering, and messy real-world workflows overlap.",
+  "roleTitle": "Design Baker · AI/ML Engineer · LLM Systems",
   "paragraphs": [
-    "I'm Pujan Bajracharya, an end-to-end engineer with a background in product design, full-stack development, AI-assisted workflows, and operational systems.",
-    "I like taking vague problems and turning them into structured products: mapping the workflow, designing the interface, building the system, and improving it through use."
+    "I work across AI/ML engineering, document intelligence, LLM systems, product engineering, and workflow automation.",
+    "From 0→1, I turn ambiguous workflows into usable prototypes, structured data flows, eval pipelines, and testable AI-assisted systems.",
+    "From 1→+, I strengthen systems through backend integration, model evaluation, validation logic, human review, and reliability improvements."
   ],
   "highlights": [
     {
       "icon": "Code",
-      "title": "Product Thinking",
-      "desc": "I start by understanding the user, the workflow, the pain point, and what the system needs to make easier.",
+      "title": "AI/ML Workflow Systems",
+      "desc": "Building RAG, OCR, LLM, and multi-agent systems for document-heavy domains",
       "color": "#4169E1"
     },
     {
       "icon": "Zap",
-      "title": "Design-Led Engineering",
-      "desc": "I use UX, prototyping, and interface design to make complex systems clear and usable.",
+      "title": "Eval + Data Correctness",
+      "desc": "Ground truth, validation, error handling, and human-review workflows",
       "color": "#9B6DD6"
     },
     {
       "icon": "Shield",
-      "title": "Full-Stack Execution",
-      "desc": "I build interfaces, workflows, APIs, dashboards, and product logic across the stack.",
+      "title": "Legal Workflow Grounding",
+      "desc": "Connecting AI systems with source authority, procedural context, and paralegal-style review",
       "color": "#FF8C42"
-    },
-    {
-      "icon": "Code",
-      "title": "AI-Assisted Systems",
-      "desc": "I prototype tools using RAG, OCR, structured extraction, evals, and human review workflows.",
-      "color": "#0D9488"
     }
   ],
-  "callout": "The common thread across my work is simple: I build systems that make complicated processes easier to use, verify, and improve."
+  "callout": "Every system I build combines AI/ML engineering, product thinking, frontend architecture, supporting backend APIs, and human-reviewable workflows — written with reliability, maintainability, and real-world impact in mind."
 }

@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { MapPin, Calendar, ChevronDown, Zap, Sparkles, Rocket } from 'lucide-react';
 import { Button } from './ui/button';
@@ -11,6 +12,11 @@ import { Link } from 'react-router-dom';
 import { useRelevantExperienceContent } from '../lib/contentHooks';
 import { resolveIcon } from '../lib/iconResolver';
 import { EKAGAJPATRA_CASE_STUDY_PATH } from '../lib/caseStudyRoutes';
+import {
+  OPEN_EXPERIENCE_EVENT,
+  parseExperienceHash,
+  type OpenExperienceDetail,
+} from '../lib/openExperience';
 
 /**
  * Create a gradient string from two hex colors at 135 degrees
@@ -21,12 +27,32 @@ function createGradient(color: string, accentColor: string): string {
 
 export function RelevantExperience() {
   const content = useRelevantExperienceContent();
+  const location = useLocation();
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const expandedRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+  const expandExperience = useCallback((id: number) => {
+    const exists = content.experiences.some((exp) => exp.id === id);
+    if (exists) setExpandedId(id);
+  }, [content.experiences]);
 
   const toggleExpanded = (id: number) => {
     setExpandedId(expandedId === id ? null : id);
   };
+
+  useEffect(() => {
+    const fromHash = parseExperienceHash(location.hash);
+    if (fromHash !== null) expandExperience(fromHash);
+  }, [location.hash, expandExperience]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const { experienceId } = (event as CustomEvent<OpenExperienceDetail>).detail;
+      if (typeof experienceId === 'number') expandExperience(experienceId);
+    };
+    window.addEventListener(OPEN_EXPERIENCE_EVENT, handler);
+    return () => window.removeEventListener(OPEN_EXPERIENCE_EVENT, handler);
+  }, [expandExperience]);
 
   // Smooth scroll to expanded card
   useEffect(() => {
@@ -41,7 +67,10 @@ export function RelevantExperience() {
   }, [expandedId]);
 
   return (
-    <section className="py-24 px-6 bg-gradient-to-br from-blue-100 via-purple-100 to-green-100 dark:from-blue-950 dark:via-purple-950 dark:to-green-950 relative overflow-hidden">
+    <section
+      id="experience"
+      className="py-24 px-6 bg-gradient-to-br from-blue-100 via-purple-100 to-green-100 dark:from-blue-950 dark:via-purple-950 dark:to-green-950 relative overflow-hidden"
+    >
       {/* Decorative Elements */}
       <BlobShape
         color="#A8C5FF"
@@ -133,6 +162,7 @@ export function RelevantExperience() {
             return (
               <motion.div
                 key={experience.id}
+                id={`experience-${experience.id}`}
                 ref={(el) => {
                   if (el) expandedRefs.current[experience.id] = el;
                 }}

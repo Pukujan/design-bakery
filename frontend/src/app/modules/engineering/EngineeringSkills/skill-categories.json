@@ -1,59 +1,68 @@
 [
   {
-    "title": "Frontend Engineering",
+    "title": "AI/ML Engineering",
+    "icon": "Cpu",
+    "color": "#9B6DD6",
+    "skills": [
+      "RAG Pipelines",
+      "LangChain",
+      "LangGraph",
+      "PyTorch",
+      "LLM Distillation",
+      "Model Evaluation",
+      "Prompt Engineering",
+      "OpenAI",
+      "OpenRouter",
+      "Google Gemini"
+    ]
+  },
+  {
+    "title": "Document Intelligence",
+    "icon": "Layers",
+    "color": "#0D9488",
+    "skills": [
+      "OCR Workflows",
+      "Document Classification",
+      "PDF Parsing",
+      "Structured Extraction",
+      "Source Grounding",
+      "Ground Truth Datasets",
+      "Annotation Workflows",
+      "Human Review",
+      "Legal Document Workflows"
+    ]
+  },
+  {
+    "title": "LLM Systems & Agents",
     "icon": "Code",
+    "color": "#6366F1",
+    "skills": [
+      "Context Engineering",
+      "Multi-Agent Pipelines",
+      "Agentic AI Systems",
+      "Confidence Routing",
+      "Workflow Orchestration",
+      "Validation Pipelines",
+      "Audit Logs",
+      "State Machines",
+      "Eval Engineering"
+    ]
+  },
+  {
+    "title": "Product Engineering",
+    "icon": "Palette",
     "color": "#4169E1",
     "skills": [
       "React",
       "Next.js",
       "TypeScript",
       "TailwindCSS",
-      "CSS Architecture",
-      "Redux",
-      "React Toolkit",
-      "GraphQL",
-      "REST APIs"
-    ]
-  },
-  {
-    "title": "AI & Systems Integration",
-    "icon": "Cpu",
-    "color": "#9B6DD6",
-    "skills": [
-      "Agentic AI Systems",
-      "RAG Pipelines",
-      "OpenAI",
-      "OpenRouter",
-      "Google Gemini",
       "Supabase",
       "PostgreSQL",
-      "Vector Databases"
-    ]
-  },
-  {
-    "title": "Product & UX Engineering",
-    "icon": "Layers",
-    "color": "#FF8C42",
-    "skills": [
-      "Complex Form Systems",
-      "Validation & Error Handling",
-      "PDF & Document Generation",
-      "Accessibility (a11y)",
-      "Responsive Design",
-      "Performance Optimization"
-    ]
-  },
-  {
-    "title": "Design (Supporting Skill)",
-    "icon": "Palette",
-    "color": "#FF6B9D",
-    "skills": [
+      "REST APIs",
+      "GraphQL",
       "Figma",
-      "Motion Design",
-      "Visual Design",
-      "Design Systems",
-      "Prototyping",
-      "User Research"
+      "Design Systems"
     ]
   }
 ]
