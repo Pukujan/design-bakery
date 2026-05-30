@@ -22,6 +22,7 @@ import { usePortfolio } from '@/portfolios/PortfolioContext';
 import { BlogListCarousel } from './BlogListCarousel';
 import { BlogScrollToTopFab } from '@/modules/blog/shared/BlogScrollToTopFab';
 import { useBlogListGestureGuard } from '@/modules/blog/hooks/useBlogListGestureGuard';
+import { BlogListHead } from '@/seo/BlogListHead';
 
 type CategoryTrackScrollHints = {
   canScroll: boolean;
@@ -144,7 +145,9 @@ export function BlogListPage() {
   };
 
   return (
-    <section className="relative min-h-screen overflow-x-clip bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 py-24 px-6 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 md:overflow-x-visible">
+    <>
+      <BlogListHead />
+      <section className="relative min-h-screen overflow-x-clip bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 py-24 px-6 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 md:overflow-x-visible">
       <BlogPageDecor variant="list" seed={`blogs-${selectedCategory}`} />
 
       <div className="max-w-7xl mx-auto relative z-10">
@@ -278,5 +281,6 @@ export function BlogListPage() {
 
       <BlogScrollToTopFab />
     </section>
+    </>
   );
 }

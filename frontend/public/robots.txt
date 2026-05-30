@@ -1,18 +1,4 @@
 User-agent: *
 Allow: /
-Allow: /blogs
-Allow: /endtoend-engineer/blogs
-
-User-agent: GPTBot
-Allow: /
-
-User-agent: ChatGPT-User
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
 
 Sitemap: https://www.design-bakery.com/sitemap.xml

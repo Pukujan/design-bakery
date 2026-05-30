@@ -37,7 +37,11 @@ export type BlogSocialMetaInput = {
   fbAppId?: string;
   /** X handle, e.g. @designbaker (stored without @ in env is ok) */
   twitterSite?: string;
+  ogType?: 'website' | 'article';
+  robots?: string;
 };
+
+export type PageSocialMetaInput = BlogSocialMetaInput;
 
 function normalizeTwitterSite(handle: string | undefined): string | undefined {
   const h = handle?.trim();
@@ -54,18 +58,20 @@ function isoPublishedTime(date: string | undefined): string | undefined {
 }
 
 /** All tags LinkedIn, Slack, Facebook, and X read from this set. */
-export function collectBlogSocialMetaTags(input: BlogSocialMetaInput): SocialMetaTag[] {
+export function collectPageSocialMetaTags(input: PageSocialMetaInput): SocialMetaTag[] {
   const site = input.siteName ?? SITE_NAME;
   const image = input.ogImage?.trim();
   const imageAlt = (input.imageAlt ?? input.pageTitle).trim();
   const twitterCard = image ? 'summary_large_image' : 'summary';
   const twitterSite = normalizeTwitterSite(input.twitterSite);
   const published = isoPublishedTime(input.publishedTime);
+  const ogType = input.ogType ?? 'website';
+  const robots = input.robots ?? 'index, follow';
 
   const tags: SocialMetaTag[] = [
     { attribute: 'name', key: 'description', content: input.description },
-    { attribute: 'name', key: 'robots', content: 'index, follow' },
-    { attribute: 'property', key: 'og:type', content: 'article' },
+    { attribute: 'name', key: 'robots', content: robots },
+    { attribute: 'property', key: 'og:type', content: ogType },
     { attribute: 'property', key: 'og:site_name', content: site },
     { attribute: 'property', key: 'og:locale', content: 'en_US' },
     { attribute: 'property', key: 'og:title', content: input.pageTitle },
@@ -112,6 +118,11 @@ export function collectBlogSocialMetaTags(input: BlogSocialMetaInput): SocialMet
   }
 
   return tags;
+}
+
+/** Blog posts use article Open Graph type. */
+export function collectBlogSocialMetaTags(input: BlogSocialMetaInput): SocialMetaTag[] {
+  return collectPageSocialMetaTags({ ...input, ogType: input.ogType ?? 'article' });
 }
 
 export function socialMetaTagsToHtml(tags: SocialMetaTag[]): string {

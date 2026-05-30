@@ -9,6 +9,7 @@ import { EngineeringInsights } from '../EngineeringInsights/EngineeringInsights'
 import { RelevantExperience } from '../../../components/RelevantExperience';
 import { Contact } from '../../../components/Contact';
 import { Footer } from '../../../components/Footer';
+import { EngineeringHomeHead } from '@/seo/EngineeringHomeHead';
 
 export function EngineeringHome() {
   const location = useLocation();
@@ -23,6 +24,7 @@ export function EngineeringHome() {
 
   return (
     <>
+      <EngineeringHomeHead />
       <EngineeringHero />
       <EngineeringProjects />
       <EngineeringCommunity />

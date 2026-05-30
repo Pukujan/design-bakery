@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { AdminSeoHead } from '@/seo/PageSeo';
 
 function formatAuthError(err: unknown): string {
   if (!(err instanceof Error)) return 'Sign in failed. Please try again.';
@@ -58,14 +59,19 @@ export function AdminLogin() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950 text-gray-500">
-        Loading…
-      </div>
+      <>
+        <AdminSeoHead />
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950 text-gray-500">
+          Loading…
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950 p-4">
+    <>
+      <AdminSeoHead />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950 p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-xl">Admin Login</CardTitle>
@@ -129,5 +135,6 @@ export function AdminLogin() {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }

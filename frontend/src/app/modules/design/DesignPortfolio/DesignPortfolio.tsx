@@ -10,6 +10,8 @@ import { Blog } from '../Blog/Blog';
 import { Contact } from '../../../components/Contact';
 import { Footer } from '../../../components/Footer';
 import { GalleryPage } from '../GalleryPage/GalleryPage';
+import { PageSeo } from '@/seo/PageSeo';
+import { DESIGN_PORTFOLIO_SEO } from '@/seo/pageSeoConfig';
 import {
   abstractCollageGallery,
   communityEventsGallery,
@@ -100,6 +102,7 @@ export function DesignPortfolio() {
 
   return (
     <>
+      <PageSeo {...DESIGN_PORTFOLIO_SEO} />
       <Hero onNavigate={scrollToSection} />
 
       <div ref={showcaseRef}>

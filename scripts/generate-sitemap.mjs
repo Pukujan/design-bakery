@@ -120,10 +120,16 @@ async function main() {
   const today = new Date().toISOString().slice(0, 10);
   const staticPaths = [
     '/',
+    '/#about',
+    '/#projects',
+    '/#contact',
     '/blogs',
     '/endtoend-engineer/blogs',
+    '/endtoend-engineer',
+    '/design',
     '/case-studies/ekagajpatra',
     '/case-studies/invest-ai',
+    '/case-studies/ai-agents/v3',
     '/case-studies/ai-agents/v4',
   ];
 

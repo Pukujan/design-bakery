@@ -1,5 +1,6 @@
 import { Fragment, type ReactElement } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { DefaultSiteHead } from './seo/PageSeo';
 import { EngineeringHome } from './modules/engineering/EngineeringHome/EngineeringHome';
 import { PortfolioHub } from './portfolios/PortfolioHub';
 import { EkagajpatraCaseStudyPage } from './modules/case-studies/ekagajpatra/EkagajpatraCaseStudyPage';
@@ -160,6 +161,7 @@ export default function App() {
   return (
     <AdminAuthProvider>
       <Router>
+        <DefaultSiteHead />
         <Routes>
           <Fragment>
             {adminRoutes()}
