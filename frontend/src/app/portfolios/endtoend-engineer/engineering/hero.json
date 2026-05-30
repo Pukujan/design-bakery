@@ -2,7 +2,7 @@
   "badge": "AI/ML ENGINEER · LLM SYSTEMS · DOCUMENT INTELLIGENCE",
   "titleLine1": "I build AI/ML systems for document-heavy workflows.",
   "titleLine2": "Legal Workflow AI · Eval Engineering · Human-in-the-Loop Systems",
-  "description": "My work spans RAG, OCR, LangChain, LangGraph, PyTorch study pipelines, LLM evaluation, context engineering, multi-agent workflows, and human-in-the-loop validation. I focus on legal workflow AI, where ground truth, source authority, paralegal-style review, and procedural context matter as much as model output.",
+  "description": "My work spans RAG, OCR, LangChain, LangGraph, PyTorch model experimentation, LLM evaluation, context engineering, multi-agent workflows, and human-in-the-loop validation. I focus on legal workflow AI, where ground truth, source authority, paralegal-style review, and procedural context matter as much as model output.",
   "primaryCtaLabel": "View Engineering Projects",
   "stats": [
     { "label": "Awards Won", "value": "6", "projectId": 2 },

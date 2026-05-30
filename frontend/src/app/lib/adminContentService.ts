@@ -610,6 +610,8 @@ export interface EngineeringAboutContent {
   headingLeft: string;
   headingRight: string;
   portraitUrl: string;
+  /** Optional brand line above role title (e.g. site name). */
+  brandLine?: string;
   roleTitle: string;
   paragraphs: string[];
   highlights: EngineeringAboutHighlight[];
@@ -658,7 +660,7 @@ export interface ContactSectionContent {
 
 export const CONTACT_SECTION_DEFAULT: ContactSectionContent = {
   heading: "LET'S\nCONNECT",
-  quote: "Let's create something that moves people.",
+  quote: "Let's build reliable AI systems for real-world workflows.",
   footerNote:
     'Designed with empathy • Built with passion • 2025',
 };
@@ -706,16 +708,16 @@ export const FOOTER_CONTENT_DEFAULT: FooterContent = {
     { icon: 'Mail', href: 'mailto:pujan3645@gmail.com', label: 'Email' },
   ],
   navigationLinks: [
-    { label: 'Engineering', href: '/', type: 'route' },
-    { label: 'Design', href: '/design', type: 'route' },
+    { label: 'AI/ML', href: '/', type: 'route' },
     { label: 'Projects', href: '#projects', type: 'anchor' },
-    { label: 'About', href: '#about', type: 'anchor' },
+    { label: 'Research', href: '/case-studies/legal-workflow-research', type: 'route' },
+    { label: 'Blogs', href: '/blogs', type: 'route' },
     { label: 'Contact', href: '#contact', type: 'anchor' },
   ],
   quickLinks: [
     { label: 'Skills', href: '#skills', type: 'anchor' },
-    { label: 'Insights', href: '#insights', type: 'anchor' },
-    { label: 'Case Study', href: '/case-studies/ekagajpatra', type: 'route' },
+    { label: 'Study Logs', href: '#insights', type: 'anchor' },
+    { label: 'Case Studies', href: '#projects', type: 'anchor' },
   ],
   copyrightText: 'Design Baker. All rights reserved.',
 };

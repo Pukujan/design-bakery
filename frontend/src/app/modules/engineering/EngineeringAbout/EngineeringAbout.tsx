@@ -66,7 +66,7 @@ export function EngineeringAbout() {
             <div className="relative aspect-[3/4] overflow-hidden rounded-3xl border-6 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] bg-blue-200 transform hover:rotate-2 transition-all">
               <ImageWithFallback
                 src={content.portraitUrl}
-                alt="Design Baker"
+                alt="Portrait"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -81,7 +81,18 @@ export function EngineeringAbout() {
             className="space-y-6"
           >
             <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              <h3 className="text-3xl font-black mb-6 text-gray-900 dark:text-gray-100">
+              {content.brandLine ? (
+                <p className="text-3xl font-black mb-2 text-gray-900 dark:text-gray-100">
+                  {content.brandLine}
+                </p>
+              ) : null}
+              <h3
+                className={`font-black text-gray-900 dark:text-gray-100 ${
+                  content.brandLine
+                    ? 'text-2xl mb-6 text-purple-700 dark:text-purple-300'
+                    : 'text-3xl mb-6'
+                }`}
+              >
                 {content.roleTitle}
               </h3>
               {content.paragraphs.map((paragraph, index) => (

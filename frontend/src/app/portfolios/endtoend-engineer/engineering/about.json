@@ -2,7 +2,8 @@
   "headingLeft": "ABOUT",
   "headingRight": "ME",
   "portraitUrl": "https://i.imgur.com/umGE4Kd.jpeg",
-  "roleTitle": "Design Baker · AI/ML Engineer · LLM Systems",
+  "brandLine": "Design Baker",
+  "roleTitle": "AI/ML Engineer · LLM Systems",
   "paragraphs": [
     "I work across AI/ML engineering, document intelligence, LLM systems, product engineering, and workflow automation.",
     "From 0→1, I turn ambiguous workflows into usable prototypes, structured data flows, eval pipelines, and testable AI-assisted systems.",
