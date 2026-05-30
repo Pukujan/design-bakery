@@ -50,7 +50,6 @@ export function PageSeo({
 
   return (
     <Helmet prioritizeSeoTags>
-      <html lang="en" />
       <title>{title}</title>
       <meta name="description" content={description} />
       <meta name="robots" content={robots} />

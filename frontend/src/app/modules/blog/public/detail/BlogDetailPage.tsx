@@ -272,6 +272,12 @@ export function BlogDetailPage() {
   const categories = useBlogCategories();
   const blogsPath = pathTo('/blogs');
   const { columnRef, sidebarRef, sidebarStyle } = useStickySidebar();
+  const contentToRender =
+    !blog || isContentLoading ? '' : blog.content?.trim() || 'No content available';
+  const articleParts = useMemo(
+    () => extractTableOfContents(contentToRender),
+    [contentToRender],
+  );
 
   if (isLoading && !blog) {
     return <BlogDetailPageSkeleton />;
@@ -293,15 +299,6 @@ export function BlogDetailPage() {
   const similarBlogs = blogSummaries
     .filter((b) => resolveBlogCategoryId(b.category, categories) === activeCategoryId && b.id !== blog.id)
     .slice(0, 3);
-
-  const contentToRender = isContentLoading
-    ? ''
-    : blog.content?.trim() || 'No content available';
-
-  const articleParts = useMemo(
-    () => extractTableOfContents(contentToRender),
-    [contentToRender],
-  );
 
   const renderMarkdown = (markdown: string) =>
     markdown.trim() ? (
