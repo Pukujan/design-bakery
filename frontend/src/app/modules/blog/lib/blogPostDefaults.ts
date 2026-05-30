@@ -57,11 +57,18 @@ export function parseBlogDisplayDate(date: string): number {
 
 /** Hidden sort key — prefers ISO `publishedAt`, then display `date`. */
 export function blogSortTimestamp(post: { publishedAt?: string; date: string }): number {
-  if (post.publishedAt) {
-    const t = Date.parse(post.publishedAt);
+  if (post.publishedAt?.trim()) {
+    const t = Date.parse(post.publishedAt.trim());
     if (!Number.isNaN(t)) return t;
   }
   return parseBlogDisplayDate(post.date);
+}
+
+function resolvePublishedAt(post: { id?: string; publishedAt?: string }): string | undefined {
+  const trimmed = post.publishedAt?.trim();
+  if (trimmed) return trimmed;
+  if (!post.id) return new Date().toISOString();
+  return undefined;
 }
 
 export type NewBlogPostDraft = {
@@ -103,19 +110,18 @@ export function prepareBlogPostForSave<
   },
 >(post: T): T {
   const author = post.author.trim() || DEFAULT_BLOG_AUTHOR;
-  const isNew = !post.id;
-  const publishedAt =
-    post.publishedAt ?? (isNew ? new Date().toISOString() : post.publishedAt);
+  const publishedAt = resolvePublishedAt(post);
   let date = post.date.trim();
   if (!date) {
     date = formatBlogDisplayDate(
       publishedAt ? new Date(publishedAt) : new Date(),
     );
   }
+  const { publishedAt: _ignoredPublishedAt, ...rest } = post;
   return {
-    ...post,
+    ...rest,
     author,
     date,
     ...(publishedAt ? { publishedAt } : {}),
-  };
+  } as T;
 }

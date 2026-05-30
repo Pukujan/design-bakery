@@ -40,6 +40,11 @@ export type BlogPostDto = {
   publishedAt?: string;
 };
 
+function normalizePublishedAt(value?: string | null): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed || undefined;
+}
+
 function rowToDto(row: BlogPostRow): BlogPostDto {
   return {
     id: row.legacy_doc_id ?? row.id,
@@ -78,8 +83,9 @@ function dtoToRow(data: Omit<BlogPostDto, 'id'>, legacyDocId?: string): Omit<Blo
     thumbnail_image_url: data.thumbnailImageUrl?.trim() || null,
     seo: data.seo ?? null,
   };
-  if (data.publishedAt) {
-    row.published_at = data.publishedAt;
+  const publishedAt = normalizePublishedAt(data.publishedAt);
+  if (publishedAt) {
+    row.published_at = publishedAt;
   }
   return row;
 }
@@ -144,7 +150,7 @@ export async function upsertBlogPost(post: BlogPostDto): Promise<string> {
 
     if (existing?.id) {
       const updateRow = { ...row, updated_at: new Date().toISOString() };
-      if (!post.publishedAt) {
+      if (!normalizePublishedAt(post.publishedAt)) {
         delete (updateRow as { published_at?: string | null }).published_at;
       }
       const { error } = await supabaseAdmin()
@@ -160,7 +166,7 @@ export async function upsertBlogPost(post: BlogPostDto): Promise<string> {
     .from('blog_posts')
     .insert({
       ...row,
-      published_at: post.publishedAt ?? new Date().toISOString(),
+      published_at: normalizePublishedAt(post.publishedAt) ?? new Date().toISOString(),
       legacy_doc_id: legacyId ?? `seed-${row.numeric_id}`,
       updated_at: new Date().toISOString(),
     })

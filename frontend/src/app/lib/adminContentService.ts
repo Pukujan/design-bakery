@@ -176,12 +176,14 @@ function normalizeBlogPostForSave(post: BlogPost): Omit<BlogPost, 'id'> {
     coverImageUrl: _cover,
     thumbnailImageUrl: _thumb,
     seo: _seo,
+    publishedAt: rawPublishedAt,
     ...data
   } = post;
   const tags = (data.tags ?? []).filter(Boolean).slice(0, 5);
   const coverImageUrl = post.coverImageUrl?.trim();
   const thumbnailImageUrl = post.thumbnailImageUrl?.trim();
   const seo = normalizeBlogSeo(post.seo);
+  const publishedAt = rawPublishedAt?.trim();
 
   return stripUndefinedShallow({
     ...data,
@@ -189,6 +191,7 @@ function normalizeBlogPostForSave(post: BlogPost): Omit<BlogPost, 'id'> {
     ...(coverImageUrl ? { coverImageUrl } : {}),
     ...(thumbnailImageUrl ? { thumbnailImageUrl } : {}),
     ...(seo ? { seo } : {}),
+    ...(publishedAt ? { publishedAt } : {}),
   }) as Omit<BlogPost, 'id'>;
 }
 
