@@ -1,5 +1,5 @@
 export const LEGAL_WORKFLOW_GITHUB =
-  'https://github.com/Pukujan/litigation-system-research';
+  'https://github.com/Pukujan/litigation-prompt-engineering-v2';
 
 export const BLOGS_INDEX_PATH = '/endtoend-engineer/blogs';
 
@@ -103,13 +103,14 @@ export const AUTHORITY_RANKS: { title: string; description: string }[] = [
 
 export const RESEARCH_REPOS: { name: string; description: string; url: string }[] = [
   {
-    name: 'litigation-system-research',
-    description: 'Main research platform for legal workflow intelligence.',
+    name: 'litigation-prompt-engineering-v2',
+    description:
+      'Product monolith for case filing, document ingest, prompts, and agent workflows with architecture contracts.',
     url: LEGAL_WORKFLOW_GITHUB,
   },
   {
     name: 'litigation-prompt-engineering',
-    description: 'Prompt, eval, and structured extraction platform for litigation documents.',
+    description: 'Earlier prompt, eval, and structured extraction platform for litigation documents.',
     url: 'https://github.com/Pukujan/litigation-prompt-engineering',
   },
   {
