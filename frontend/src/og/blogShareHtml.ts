@@ -59,9 +59,13 @@ export async function resolveShareMeta(
   const metaTitle = blog.seo?.metaTitle?.trim();
   const metaDescription = blog.seo?.metaDescription?.trim();
   const ogImage = await resolveSocialPreviewImage(blog);
-  const title = metaTitle || blog.title;
-  const description = metaDescription || blog.excerpt?.trim() || blog.title;
-  const pageTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
+  const rawTitle = metaTitle || blog.title.trim();
+  const description = metaDescription || blog.excerpt?.trim() || blog.title.trim();
+  const pageTitle = metaTitle
+    ? metaTitle
+    : rawTitle.includes(SITE_NAME)
+      ? rawTitle
+      : `${rawTitle} | ${SITE_NAME}`;
   const env = readEdgeSocialEnv();
 
   return {

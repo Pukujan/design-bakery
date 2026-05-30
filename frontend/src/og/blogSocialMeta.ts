@@ -64,6 +64,7 @@ export function collectBlogSocialMetaTags(input: BlogSocialMetaInput): SocialMet
 
   const tags: SocialMetaTag[] = [
     { attribute: 'name', key: 'description', content: input.description },
+    { attribute: 'name', key: 'robots', content: 'index, follow' },
     { attribute: 'property', key: 'og:type', content: 'article' },
     { attribute: 'property', key: 'og:site_name', content: site },
     { attribute: 'property', key: 'og:locale', content: 'en_US' },

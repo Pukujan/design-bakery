@@ -88,11 +88,19 @@ function toAbsoluteImageUrl(url: string | undefined): string | undefined {
 
 export function resolveBlogMeta(blog: Blog, siteName = 'Design Baker') {
   const seo = normalizeBlogSeo(blog.seo);
-  const title = seo?.metaTitle || blog.title;
-  const description = seo?.metaDescription || blog.excerpt || blog.title;
+  const rawTitle = seo?.metaTitle?.trim() || blog.title.trim();
+  const description = seo?.metaDescription?.trim() || blog.excerpt?.trim() || blog.title.trim();
+  const documentTitle = seo?.metaTitle?.trim()
+    ? seo.metaTitle.trim()
+    : rawTitle.includes(siteName)
+      ? rawTitle
+      : `${rawTitle} | ${siteName}`;
   const imageUrl = toAbsoluteImageUrl(resolveBlogSocialImageUrl(blog));
   return {
-    title: title.includes(siteName) ? title : `${title} | ${siteName}`,
+    /** `<title>` — custom metaTitle is used as-is when set. */
+    documentTitle,
+    /** Open Graph / Twitter title. */
+    pageTitle: documentTitle,
     description,
     imageUrl,
     ogImageUrl: seo?.ogImageUrl,

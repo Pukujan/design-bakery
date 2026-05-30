@@ -14,3 +14,5 @@ Allow: /
 
 User-agent: PerplexityBot
 Allow: /
+
+Sitemap: https://www.design-bakery.com/sitemap.xml
