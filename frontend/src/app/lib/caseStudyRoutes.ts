@@ -4,6 +4,10 @@ export const EKAGAJPATRA_CASE_STUDY_PATH = '/case-studies/ekagajpatra';
 /** In-app InvestAI case study (from extras/invest-ai-case-study/). */
 export const INVEST_AI_CASE_STUDY_PATH = '/case-studies/invest-ai';
 
+/** Legal workflow research flagship case study. */
+export const LEGAL_WORKFLOW_RESEARCH_CASE_STUDY_PATH =
+  '/case-studies/legal-workflow-research';
+
 /** Interactive AI agents case study v3 (SVG + dark mode — extras/oni_agent_interactive_page_svg_darkmode_src/). */
 export const AI_AGENTS_CASE_STUDY_PATH = '/case-studies/ai-agents/v3';
 
@@ -52,6 +56,15 @@ export function resolveCaseStudyUrl(title: string, label: string, url: string): 
       legacyHosts(url, LEGACY_INVEST_AI_CASE_STUDY_URLS)
     ) {
       return INVEST_AI_CASE_STUDY_PATH;
+    }
+  }
+  if (
+    title === 'Legal Workflow Research' ||
+    title === 'Litigation Workflow Research' ||
+    title === 'Litigation Workflow Intelligence'
+  ) {
+    if (isCaseStudyLabel(label) || url === '#' || url === '') {
+      return LEGAL_WORKFLOW_RESEARCH_CASE_STUDY_PATH;
     }
   }
   if (

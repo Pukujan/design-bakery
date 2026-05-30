@@ -131,6 +131,7 @@ async function main() {
     '/case-studies/invest-ai',
     '/case-studies/ai-agents/v3',
     '/case-studies/ai-agents/v4',
+    '/case-studies/legal-workflow-research',
   ];
 
   const blogRows = await loadBlogRows();

@@ -64,20 +64,20 @@
   },
   {
     "id": 4,
-    "title": "Litigation Workflow Intelligence",
-    "tagline": "AI-Assisted Operations System",
-    "description": "A workflow intelligence system for modeling litigation operations, court filing signals, deadlines, part rules, and operational risk.",
-    "tech": ["Legal Ops", "AI Workflow", "RAG", "Node.js", "Python", "Internal Tools"],
+    "title": "Legal Workflow Research",
+    "tagline": "AI-Assisted Litigation & Document Intelligence",
+    "description": "Independent research into safer AI-assisted legal workflows using document intelligence, confidence routing, source authority, human review, and procedural memory.",
+    "tech": ["Legal AI", "RAG", "Workflow Systems", "Python", "Node.js"],
     "color": "#9B6DD6",
     "accentColor": "#C4B5FD",
     "stats": [
-      { "label": "Workflow Modeling", "icon": "Sparkles" },
-      { "label": "AI-Assisted Ops", "icon": "TrendingUp" },
+      { "label": "Workflow Modeling", "icon": "TrendingUp" },
+      { "label": "Confidence Routing", "icon": "Sparkles" },
       { "label": "Human Review", "icon": "Users" }
     ],
     "links": [
-      { "label": "Case Study", "url": "#" },
-      { "label": "Architecture Notes", "url": "#" }
+      { "label": "Case Study", "url": "/case-studies/legal-workflow-research" },
+      { "label": "GitHub", "url": "https://github.com/Pukujan/litigation-system-research" }
     ]
   }
 ]

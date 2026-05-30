@@ -3,6 +3,7 @@ import {
   AI_AGENTS_CASE_STUDY_V4_PATH,
   EKAGAJPATRA_CASE_STUDY_PATH,
   INVEST_AI_CASE_STUDY_PATH,
+  LEGAL_WORKFLOW_RESEARCH_CASE_STUDY_PATH,
 } from '@/lib/caseStudyRoutes';
 import {
   DEFAULT_OG_IMAGE_PATH,
@@ -17,6 +18,8 @@ export type PageSeoConfig = {
   canonicalPath: string;
   ogImage?: string;
   imageAlt?: string;
+  ogTitle?: string;
+  ogDescription?: string;
 };
 
 export const HOME_PAGE_SEO: PageSeoConfig = {
@@ -106,6 +109,18 @@ export const CASE_STUDY_SEO = {
     ogImage: DEFAULT_OG_IMAGE_PATH,
     imageAlt: 'ONI vs agent-ready architecture v4 case study',
   },
+  legalWorkflowResearch: {
+    title: `Legal Workflow Research Case Study | ${SITE_NAME}`,
+    description:
+      'A technical case study on building safer AI systems for litigation operations using document intelligence, confidence routing, authority-aware reasoning, human review, procedural memory, and agent-safe architecture.',
+    canonicalPath: LEGAL_WORKFLOW_RESEARCH_CASE_STUDY_PATH,
+    ogImage: DEFAULT_OG_IMAGE_PATH,
+    imageAlt:
+      'Legal Workflow Research: Building Safer AI Systems for Litigation Operations',
+    ogTitle: 'Legal Workflow Research: Building Safer AI Systems for Litigation Operations',
+    ogDescription:
+      'A research ecosystem for legal document intelligence, workflow confidence, human review, procedural memory, and AI-agent architecture.',
+  },
 } satisfies Record<string, PageSeoConfig>;
 
 /** Sitemap static paths (relative). Blog posts are appended at build time. */
@@ -122,6 +137,7 @@ export const SITEMAP_STATIC_PATHS = [
   INVEST_AI_CASE_STUDY_PATH,
   AI_AGENTS_CASE_STUDY_PATH,
   AI_AGENTS_CASE_STUDY_V4_PATH,
+  LEGAL_WORKFLOW_RESEARCH_CASE_STUDY_PATH,
 ] as const;
 
 export { DEFAULT_SITE_DESCRIPTION, DEFAULT_SITE_TITLE };

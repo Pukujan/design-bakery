@@ -25,6 +25,8 @@ export function PageSeo({
   canonicalPath,
   ogImage,
   imageAlt,
+  ogTitle,
+  ogDescription,
   ogType = 'website',
   robots = DEFAULT_ROBOTS,
   author,
@@ -34,8 +36,8 @@ export function PageSeo({
   const resolvedOgImage = toAbsoluteSiteUrl(ogImage ?? DEFAULT_OG_IMAGE_PATH);
   const env = readClientSocialEnv();
   const tags = collectPageSocialMetaTags({
-    pageTitle: title,
-    description,
+    pageTitle: ogTitle ?? title,
+    description: ogDescription ?? description,
     canonicalUrl,
     ogImage: resolvedOgImage,
     imageAlt: imageAlt ?? title,

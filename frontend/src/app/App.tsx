@@ -8,6 +8,7 @@ import { InvestAiCaseStudyPage } from './modules/case-studies/invest-ai/InvestAi
 import { Navigate } from 'react-router-dom';
 import { AiAgentsCaseStudyV3Page } from './modules/case-studies/ai-agents/AiAgentsCaseStudyV3Page';
 import { AiAgentsCaseStudyV4Page } from './modules/case-studies/ai-agents/AiAgentsCaseStudyV4Page';
+import { LegalWorkflowResearchCaseStudyPage } from './modules/case-studies/legal-workflow-research/LegalWorkflowResearchCaseStudyPage';
 import { AI_AGENTS_CASE_STUDY_PATH, AI_AGENTS_CASE_STUDY_V1_PATH } from './lib/caseStudyRoutes';
 import { DesignPortfolio } from './modules/design/DesignPortfolio/DesignPortfolio';
 import { BlogListPage } from './modules/blog/public/list/BlogListPage';
@@ -85,6 +86,11 @@ function tempEtePublicRoutes(): ReactElement[] {
   return [
     <Route key="cs-eka" path="/case-studies/ekagajpatra" element={<EkagajpatraCaseStudyPage />} />,
     <Route key="cs-invest" path="/case-studies/invest-ai" element={<InvestAiCaseStudyPage />} />,
+    <Route
+      key="cs-legal-workflow"
+      path="/case-studies/legal-workflow-research"
+      element={<LegalWorkflowResearchCaseStudyPage />}
+    />,
     <Route key="cs-agents-v3" path="/case-studies/ai-agents/v3" element={<AiAgentsCaseStudyV3Page />} />,
     <Route key="cs-agents-v4" path="/case-studies/ai-agents/v4" element={<AiAgentsCaseStudyV4Page />} />,
     <Route
@@ -116,6 +122,11 @@ function fullPublicRoutes(): ReactElement[] {
     <Route key="hub" path="/" element={<PortfolioHub />} />,
     <Route key="cs-eka" path="/case-studies/ekagajpatra" element={<EkagajpatraCaseStudyPage />} />,
     <Route key="cs-invest" path="/case-studies/invest-ai" element={<InvestAiCaseStudyPage />} />,
+    <Route
+      key="cs-legal-workflow"
+      path="/case-studies/legal-workflow-research"
+      element={<LegalWorkflowResearchCaseStudyPage />}
+    />,
     <Route key="cs-agents-v3" path="/case-studies/ai-agents/v3" element={<AiAgentsCaseStudyV3Page />} />,
     <Route key="cs-agents-v4" path="/case-studies/ai-agents/v4" element={<AiAgentsCaseStudyV4Page />} />,
     <Route
