@@ -18,10 +18,12 @@ import { CollaborationSection } from "./components/v2/CollaborationSection";
 import { ImpactSectionV2 } from "./components/v2/ImpactSectionV2";
 import { LearningSectionV2 } from "./components/v2/LearningSectionV2";
 import { ReflectionSectionV2 } from "./components/v2/ReflectionSectionV2";
+import { EkagajpatraDemoVideoButton } from "./components/v2/EkagajpatraDemoVideoButton";
 
 export default function App() {
   return (
     <div className="min-h-screen">
+      <EkagajpatraDemoVideoButton />
       <HeroSectionV2 />
       <OverviewSectionV2 />
       <ProblemSectionV2 />

@@ -11,7 +11,7 @@ export const LEGAL_WORKFLOW_INTERACTIVE_DEMO_PATH =
   '/case-studies/legal-workflow-research/legal_workflow_interactive_demo_v5.html';
 
 export const LEGAL_WORKFLOW_TECHNICAL_DEMO_URL =
-  'https://litigation-prompt-engineering-v2-git-main-pukujans-projects.vercel.app/';
+  'https://litigation-prompt-engineering-v2.vercel.app/demo/ai-ops';
 
 export const BLOGS_INDEX_PATH = '/endtoend-engineer/blogs';
 

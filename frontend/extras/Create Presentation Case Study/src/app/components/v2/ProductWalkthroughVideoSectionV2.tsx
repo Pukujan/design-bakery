@@ -1,13 +1,10 @@
 import { motion } from "motion/react";
 import { PlayCircle } from "lucide-react";
-import { ekagajpatraUxAssets } from "./ekagajpatraUxAssets";
-
-const VIDEO_SRC = ekagajpatraUxAssets.productWalkthrough;
-const CAPTIONS_SRC = ekagajpatraUxAssets.captions;
+import { EkagajpatraWalkthroughVideo } from "./EkagajpatraWalkthroughVideo";
 
 export function ProductWalkthroughVideoSectionV2() {
   return (
-    <section className="py-24 bg-gray-50">
+    <section id="product-walkthrough" className="py-24 bg-gray-50 scroll-mt-6">
       <div className="container mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -43,24 +40,8 @@ export function ProductWalkthroughVideoSectionV2() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="bg-white rounded-3xl p-4 md:p-5 border border-gray-200 shadow-md"
           >
-            <video
-              className="w-full rounded-2xl border border-slate-200 shadow-sm bg-black"
-              controls
-              preload="metadata"
-              playsInline
-            >
-              <source src={VIDEO_SRC} type="video/mp4" />
-              <track
-                kind="captions"
-                src={CAPTIONS_SRC}
-                srcLang="en"
-                label="English"
-                default
-              />
-              Your browser does not support the video tag.
-            </video>
+            <EkagajpatraWalkthroughVideo className="rounded-3xl p-4 md:p-5 shadow-md" />
           </motion.div>
 
           <motion.p
