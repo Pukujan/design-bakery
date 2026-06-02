@@ -7,7 +7,10 @@ import {
   ARCHITECTURE_LAYERS,
   AUTHORITY_RANKS,
   BLOGS_INDEX_PATH,
+  CASE_OS_PRESENTATION_DEMO_PATH,
   LEGAL_WORKFLOW_GITHUB,
+  LEGAL_WORKFLOW_INTERACTIVE_DEMO_PATH,
+  LEGAL_WORKFLOW_TECHNICAL_DEMO_URL,
   RESEARCH_REPOS,
   SOURCES_FOOTER,
   STUDY_BLOG_TRAIL,
@@ -148,6 +151,59 @@ export function LegalWorkflowCaseStudyApp() {
       </header>
 
       <main>
+        <section id="interactive-demo" className="lwr-section">
+          <div className="lwr-wrap">
+            <div className="lwr-kicker">Interactive Demo</div>
+            <h2>Case OS Interactive Demo</h2>
+            <p className="lwr-lede">
+              Explore the recruiter-facing product story and workflow demo for a litigation Case OS.
+              The presentation explains the problem, the planned solution, the AI workflow engineering
+              layer, and how the system connects documents, rules, drafts, emails, calendar work, and
+              human review. The workflow demo shows a synthetic Bill of Particulars task moving from
+              pending to complete through source-aware AI assistance.
+            </p>
+            <div className="lwr-grid lwr-grid-2 lwr-demo-cards">
+              <div className="lwr-card lwr-demo-card">
+                <h3>Product Presentation</h3>
+                <p>
+                  See the full Case OS story, problem, solution, productivity value, and engineering
+                  layer.
+                </p>
+                <a className="lwr-btn lwr-btn-primary" href={CASE_OS_PRESENTATION_DEMO_PATH}>
+                  View Presentation
+                </a>
+              </div>
+              <div className="lwr-card lwr-demo-card">
+                <h3>Workflow Demo</h3>
+                <p>
+                  Try a synthetic BOP and OPA email workflow from pending task to completed filing.
+                </p>
+                <a className="lwr-btn lwr-btn-primary" href={LEGAL_WORKFLOW_INTERACTIVE_DEMO_PATH}>
+                  Try Workflow Demo
+                </a>
+              </div>
+            </div>
+            <div className="lwr-btn-row lwr-demo-secondary">
+              <a
+                className="lwr-btn"
+                href={LEGAL_WORKFLOW_TECHNICAL_DEMO_URL}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Go to Technical Demo
+              </a>
+              <a
+                className="lwr-btn"
+                href={LEGAL_WORKFLOW_GITHUB}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View GitHub
+              </a>
+            </div>
+          </div>
+        </section>
+
         <section id="overview" className="lwr-section">
           <div className="lwr-wrap">
             <div className="lwr-kicker">Overview</div>

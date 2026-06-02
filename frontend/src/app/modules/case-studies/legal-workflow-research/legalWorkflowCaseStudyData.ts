@@ -1,6 +1,18 @@
 export const LEGAL_WORKFLOW_GITHUB =
   'https://github.com/Pukujan/litigation-prompt-engineering-v2';
 
+export const LEGAL_WORKFLOW_RESEARCH_CASE_STUDY_PATH =
+  '/case-studies/legal-workflow-research';
+
+export const CASE_OS_PRESENTATION_DEMO_PATH =
+  '/case-studies/legal-workflow-research/case_os_interactive_presentation_refined.html';
+
+export const LEGAL_WORKFLOW_INTERACTIVE_DEMO_PATH =
+  '/case-studies/legal-workflow-research/legal_workflow_interactive_demo_v5.html';
+
+export const LEGAL_WORKFLOW_TECHNICAL_DEMO_URL =
+  'https://litigation-prompt-engineering-v2-git-main-pukujans-projects.vercel.app/';
+
 export const BLOGS_INDEX_PATH = '/endtoend-engineer/blogs';
 
 export const SOURCES_FOOTER =
@@ -166,6 +178,7 @@ export const STUDY_BLOG_TRAIL: StudyBlogEntry[] = [
 ];
 
 export const SECTION_SUBNAV: { href: string; label: string }[] = [
+  { href: '#interactive-demo', label: 'Demo' },
   { href: '#problem', label: 'Problem' },
   { href: '#example', label: 'Example' },
   { href: '#architecture', label: 'Pipeline' },

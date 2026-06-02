@@ -552,3 +552,23 @@
     font-size: 48px;
   }
 }
+
+.lwr-demo-cards {
+  margin-top: 18px;
+}
+
+.lwr-demo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.lwr-demo-card p {
+  margin: 0;
+  flex: 1;
+  color: var(--lwr-muted);
+}
+
+.lwr-demo-secondary {
+  margin-top: 20px;
+}
