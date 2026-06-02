@@ -295,7 +295,7 @@ export function RelevantExperience() {
                     {isExpanded && (
                       <motion.div
                         initial={{ opacity: 0, maxHeight: 0 }}
-                        animate={{ opacity: 1, maxHeight: 800 }}
+                        animate={{ opacity: 1, maxHeight: 1200 }}
                         exit={{ opacity: 0, maxHeight: 0 }}
                         transition={{ duration: 0.4, ease: 'easeInOut' }}
                         className="overflow-hidden"
@@ -381,3 +381,9 @@ export function RelevantExperience() {
     </section>
   );
 }
+
+
+
+
+
+

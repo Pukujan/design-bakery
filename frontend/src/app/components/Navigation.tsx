@@ -98,6 +98,14 @@ export function Navigation() {
               type="button"
               variant="ghost"
               className="hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={() => scrollToSection("experience")}
+            >
+              Experience
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="hover:bg-gray-100 dark:hover:bg-gray-800"
               onClick={() => scrollToSection("about")}
             >
               About
@@ -153,6 +161,17 @@ export function Navigation() {
               }}
             >
               Projects
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                scrollToSection("experience");
+              }}
+            >
+              Experience
             </Button>
             <Button
               type="button"

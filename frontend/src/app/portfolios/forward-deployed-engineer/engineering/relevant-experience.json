@@ -35,16 +35,34 @@
     {
       "id": 3,
       "company": "Nepasoft LLC",
-      "role": "Data Annotation Associate & AI Orchestration Supervisor",
+      "role": "AI/ML Engineer",
       "period": "Mar 2024 - Dec 2025 · 1 yr 10 mos",
-      "location": "Remote",
-      "icon": "Cpu",
+      "location": "Fairfax, Virginia · Remote",
+      "icon": "Brain",
       "color": "#9B6DD6",
       "accentColor": "#C4B5FD",
-      "collapsedSummary": "Worked on AI orchestration, RAG pipelines, OCR workflows, document classification, validation systems, and governance-sensitive datasets.",
-      "expandedSummary": "Worked on AI orchestration, RAG pipelines, OCR workflows, document classification, validation systems, and governance-sensitive datasets.",
-      "highlights": [],
-      "tags": ["AI Orchestration", "RAG", "OCR", "Validation", "Workflow Systems"]
+      "collapsedSummary": "Progressed from Data Annotation Associate to AI/ML Engineer on production document processing systems for large regulated legal, healthcare, and insurance environments, improving accuracy up to 99% on internal benchmarks.",
+      "expandedSummary": "Worked on AI orchestration, RAG pipelines, OCR workflows, document classification, extraction systems, validation workflows, and governance-sensitive datasets across legal, healthcare, insurance, OCR, and geospatial domains.",
+      "highlights": [
+        "Built and optimized RAG pipelines, multi-document ingestion systems, and model-output validation workflows using Python, LangChain, PyTorch, and LangGraph.",
+        "Contributed to AI document classification and extraction systems operating against industry-standard accuracy, compliance, and governance benchmarks, including HIPAA and SOC 2-sensitive workflows.",
+        "Improved model reliability and evaluation rigor through iterative testing frameworks, prompt versioning, audit trails, and human-in-the-loop validation.",
+        "Collaborated with PhD-level data scientists on model validation, feedback loops, and production AI workflow optimization.",
+        "Specific clients, platforms, and proprietary metrics withheld per confidentiality agreements."
+      ],
+      "tags": [
+        "RAG",
+        "OCR",
+        "Document Classification",
+        "AI Orchestration",
+        "Document Classification & Extraction",
+        "Model Validation",
+        "Human-in-the-Loop Validation",
+        "Prompt Versioning",
+        "Audit Trails",
+        "Governance",
+        "HIPAA / SOC 2-Sensitive Workflows"
+      ]
     },
     {
       "id": 4,
