@@ -105,17 +105,17 @@ export function LegalWorkflowCaseStudyApp() {
               ))}
             </div>
             <div className="lwr-btn-row">
-              <a
+              <button
+                type="button"
                 className="lwr-btn lwr-btn-primary"
-                href={LEGAL_WORKFLOW_GITHUB}
-                target="_blank"
-                rel="noreferrer"
+                onClick={() =>
+                  document
+                    .getElementById('interactive-demo')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
               >
-                View GitHub Research
-              </a>
-              <Link className="lwr-btn" to={BLOGS_INDEX_PATH}>
-                Read Study Blogs
-              </Link>
+                View Demo
+              </button>
             </div>
             <p className="lwr-lede" style={{ marginTop: 24, fontSize: 18 }}>
               This research explores how legal AI systems can move beyond extracting information

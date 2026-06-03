@@ -572,3 +572,23 @@
 .lwr-demo-secondary {
   margin-top: 20px;
 }
+
+@media (max-width: 720px) {
+  .lwr-demo-cards.lwr-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .lwr-demo-card .lwr-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .lwr-demo-secondary {
+    flex-direction: column;
+  }
+
+  .lwr-demo-secondary .lwr-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
