@@ -728,9 +728,10 @@
       body { overflow: auto; }
       .deck {
         height: auto;
-        min-height: 100vh;
-        grid-template-rows: auto 78vh auto;
+        min-height: 100dvh;
+        grid-template-rows: auto minmax(420px, 1fr) auto;
         padding: 12px;
+        gap: 12px;
       }
       .topbar {
         align-items: flex-start;
@@ -749,14 +750,69 @@
         text-align: center;
       }
       .brand p { max-width: 82vw; white-space: normal; }
+      .viewport {
+        overflow-y: auto;
+        min-height: 0;
+      }
+      .slide {
+        position: relative;
+        inset: auto;
+        min-height: 100%;
+        height: auto;
+        overflow: visible;
+        padding: 20px 16px 28px;
+      }
       .slide-grid, .slide-grid.wide-left {
         grid-template-columns: 1fr;
+        gap: 28px;
         min-height: auto;
+        height: auto;
+        align-items: stretch;
+        align-content: start;
       }
-      h2 { font-size: 42px; }
-      .visual-card { min-height: auto; }
+      .slide-grid > div:first-child,
+      .slide-grid.wide-left > div:first-child {
+        order: 1;
+      }
+      .slide-grid > .visual-card,
+      .slide-grid.wide-left > .visual-card {
+        order: 2;
+      }
+      h2 {
+        font-size: clamp(28px, 8vw, 42px);
+        line-height: 1.02;
+        max-width: none;
+      }
+      .lead {
+        margin-top: 16px;
+        font-size: 16px;
+        max-width: none;
+      }
+      .mini-note {
+        margin-top: 14px;
+        max-width: none;
+      }
+      .kicker {
+        margin-bottom: 14px;
+      }
+      .visual-card {
+        min-height: auto;
+        margin-top: 0;
+        padding: 14px;
+      }
+      .comparison {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-top: 0;
+      }
+      .compare-col li {
+        font-size: 12px;
+      }
+      .source-row {
+        margin-bottom: 12px;
+      }
       .grid-3, .system-map { grid-template-columns: 1fr; }
-      .comparison, .cta-grid { grid-template-columns: 1fr; }
+      .cta-grid { grid-template-columns: 1fr; }
       .footer { grid-template-columns: 1fr; }
       .dots { justify-content: center; flex-wrap: wrap; }
       .slide-count { text-align: center; }
