@@ -357,92 +357,71 @@
       overflow: hidden;
     }
 
-    .anim-item::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(139,233,253,0.16) 0%, rgba(167,139,250,0.08) 55%, transparent 100%);
-      transform: translateY(-100%);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .anim-item.anim-loading::before {
-      animation: cardReadSweep 1.15s ease forwards;
-    }
-
-    @keyframes cardReadSweep {
-      0% { transform: translateY(-100%); opacity: 0.55; }
-      100% { transform: translateY(0); opacity: 0; }
-    }
-
     .anim-item > * {
       position: relative;
       z-index: 1;
     }
 
-    .anim-item .check,
-    .anim-item .anim-check {
+    /* Highlight mode: left-to-right green fill (all slides except slide 6) */
+    .anim-mode-highlight .anim-item.tile.good,
+    .anim-mode-highlight .anim-item.tile.warn,
+    .anim-mode-highlight .anim-item.node.highlight {
+      background: rgba(255,255,255,0.055);
+      border-color: rgba(255,255,255,0.11);
+    }
+
+    .anim-mode-highlight .anim-item.node.highlight {
+      background: rgba(255,255,255,0.058);
+    }
+
+    .anim-mode-highlight .anim-item::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: rgba(52,211,153,0.14);
+      transform: scaleX(0);
+      transform-origin: left center;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .anim-mode-highlight .anim-item.anim-loading::after {
+      animation: highlightSweep 1.2s ease forwards;
+    }
+
+    @keyframes highlightSweep {
+      to { transform: scaleX(1); }
+    }
+
+    .anim-mode-highlight .anim-item.anim-done {
+      background: rgba(52,211,153,0.09);
+      border-color: rgba(52,211,153,0.22);
+    }
+
+    .anim-mode-highlight .anim-item.anim-done::after {
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+
+    .anim-mode-highlight .anim-item .check {
+      display: none;
+    }
+
+    .anim-mode-highlight .compare-col li::before {
+      z-index: 1;
+    }
+
+    /* Tick mode: slide 6 guided workflow only */
+    .anim-mode-tick .flow-step .check {
       opacity: 0;
       transform: scale(0.55);
       transition: opacity 0.45s ease, transform 0.45s ease;
     }
 
-    .anim-item.anim-done .check,
-    .anim-item.anim-done .anim-check {
+    .anim-mode-tick .flow-step.anim-done .check {
       opacity: 1;
       transform: scale(1);
-    }
-
-    .anim-check {
-      width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      display: grid;
-      place-items: center;
-      background: rgba(52,211,153,0.16);
-      border: 1px solid rgba(52,211,153,0.34);
-      color: #bbf7d0;
-      font-size: 13px;
-      font-weight: 1000;
-      flex-shrink: 0;
-    }
-
-    .task.anim-item,
-    .source-row.anim-item,
-    .compare-col li.anim-item,
-    .node.anim-item {
-      padding-right: 14px;
-    }
-
-    .task.anim-item .anim-check,
-    .source-row.anim-item .anim-check {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-    }
-
-    .compare-col li.anim-item {
-      padding-right: 38px;
-    }
-
-    .compare-col li.anim-item .anim-check {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-    }
-
-    .node.anim-item .anim-check {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-    }
-
-    .tile.anim-item .anim-check {
-      position: absolute;
-      top: 10px;
-      right: 10px;
     }
 
     .grid-2 {
@@ -1327,24 +1306,28 @@
     const nextArrowBtn = document.getElementById("nextArrowBtn");
     const slideArrowPrev = document.getElementById("slideArrowPrev");
     const slideArrowNext = document.getElementById("slideArrowNext");
-    const ANIM_ITEM_SELECTOR = ".tile, .flow-step, .task, .source-row, .node, .compare-col li";
+    const TICK_SLIDE_INDEX = 5;
+    const HIGHLIGHT_SELECTOR = ".tile, .flow-step, .task, .source-row, .node, .compare-col li";
+    const TICK_SELECTOR = ".flow-step";
     const ITEM_DELAY = 680;
-    const SWEEP_DURATION = 1150;
+    const SWEEP_DURATION = 1200;
     let current = 0;
     let animTimers = [];
     let touchStartX = 0;
     let touchStartY = 0;
 
-    function ensureAnimChecks() {
-      document.querySelectorAll(ANIM_ITEM_SELECTOR).forEach((item) => {
+    function setupAnimItems() {
+      document.querySelectorAll(".anim-check").forEach((el) => el.remove());
+      document.querySelectorAll(HIGHLIGHT_SELECTOR).forEach((item) => {
         item.classList.add("anim-item");
-        if (item.querySelector(".check") || item.querySelector(".anim-check")) return;
-        const tick = document.createElement("span");
-        tick.className = "anim-check";
-        tick.textContent = "✓";
-        tick.setAttribute("aria-hidden", "true");
-        item.appendChild(tick);
       });
+    }
+
+    function getAnimItems(slide, slideIndex) {
+      if (slideIndex === TICK_SLIDE_INDEX) {
+        return Array.from(slide.querySelectorAll(TICK_SELECTOR));
+      }
+      return Array.from(slide.querySelectorAll(HIGHLIGHT_SELECTOR));
     }
 
     function clearAnimTimers() {
@@ -1361,7 +1344,8 @@
     }
 
     function resetSlideAnimations(slide) {
-      slide.querySelectorAll(ANIM_ITEM_SELECTOR).forEach((item) => {
+      slide.classList.remove("anim-mode-tick", "anim-mode-highlight");
+      slide.querySelectorAll(HIGHLIGHT_SELECTOR).forEach((item) => {
         item.classList.remove("anim-loading", "anim-done");
       });
       resetStatusPill(slide);
@@ -1375,10 +1359,12 @@
       });
     }
 
-    function runSlideAnimations(slide) {
+    function runSlideAnimations(slide, slideIndex) {
       clearAnimTimers();
       resetSlideAnimations(slide);
-      const items = Array.from(slide.querySelectorAll(ANIM_ITEM_SELECTOR));
+      const isTickSlide = slideIndex === TICK_SLIDE_INDEX;
+      slide.classList.add(isTickSlide ? "anim-mode-tick" : "anim-mode-highlight");
+      const items = getAnimItems(slide, slideIndex);
       if (!items.length) return;
 
       items.forEach((item, index) => {
@@ -1418,7 +1404,7 @@
       count.textContent = "Slide " + (current + 1) + " of " + slides.length;
       nextBtn.textContent = current === slides.length - 1 ? "Start Over" : "Next";
       renderDots();
-      runSlideAnimations(slides[current]);
+      runSlideAnimations(slides[current], current);
     }
 
     function next() {
@@ -1459,9 +1445,9 @@
       if (event.key === "End") goTo(slides.length - 1);
     });
 
-    ensureAnimChecks();
+    setupAnimItems();
     renderDots();
-    runSlideAnimations(slides[current]);
+    runSlideAnimations(slides[current], current);
   </script>
 </body>
 </html>
