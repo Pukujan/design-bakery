@@ -313,6 +313,138 @@
       color: #bdf5ff;
     }
 
+    .status-pill.good {
+      background: rgba(52,211,153,0.11);
+      border-color: rgba(52,211,153,0.28);
+      color: #b7f7dc;
+    }
+
+    .slide-arrow {
+      display: none;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 12;
+      width: 64px;
+      height: 64px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(7,10,18,0.28);
+      backdrop-filter: blur(6px);
+      color: rgba(255,255,255,0.92);
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 300;
+      cursor: pointer;
+      place-items: center;
+      transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+    }
+
+    .slide-arrow:hover {
+      background: rgba(139,233,253,0.14);
+      border-color: rgba(139,233,253,0.38);
+    }
+
+    .slide-arrow:active {
+      transform: translateY(-50%) scale(0.96);
+    }
+
+    .slide-arrow-prev { left: 10px; }
+    .slide-arrow-next { right: 10px; }
+
+    .anim-item {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .anim-item::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(139,233,253,0.16) 0%, rgba(167,139,250,0.08) 55%, transparent 100%);
+      transform: translateY(-100%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .anim-item.anim-loading::before {
+      animation: cardReadSweep 1.15s ease forwards;
+    }
+
+    @keyframes cardReadSweep {
+      0% { transform: translateY(-100%); opacity: 0.55; }
+      100% { transform: translateY(0); opacity: 0; }
+    }
+
+    .anim-item > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .anim-item .check,
+    .anim-item .anim-check {
+      opacity: 0;
+      transform: scale(0.55);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .anim-item.anim-done .check,
+    .anim-item.anim-done .anim-check {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .anim-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(52,211,153,0.16);
+      border: 1px solid rgba(52,211,153,0.34);
+      color: #bbf7d0;
+      font-size: 13px;
+      font-weight: 1000;
+      flex-shrink: 0;
+    }
+
+    .task.anim-item,
+    .source-row.anim-item,
+    .compare-col li.anim-item,
+    .node.anim-item {
+      padding-right: 14px;
+    }
+
+    .task.anim-item .anim-check,
+    .source-row.anim-item .anim-check {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+    }
+
+    .compare-col li.anim-item {
+      padding-right: 38px;
+    }
+
+    .compare-col li.anim-item .anim-check {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+
+    .node.anim-item .anim-check {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+
+    .tile.anim-item .anim-check {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -816,6 +948,14 @@
       .footer { grid-template-columns: 1fr; }
       .dots { justify-content: center; flex-wrap: wrap; }
       .slide-count { text-align: center; }
+      .slide-arrow { display: grid; }
+      .footer .controls,
+      .footer .dots { display: none; }
+      .footer {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding-top: 4px;
+      }
     }
   </style>
 </head>
@@ -838,6 +978,8 @@
     </header>
 
     <section class="viewport" aria-live="polite">
+      <button type="button" class="slide-arrow slide-arrow-prev" id="slideArrowPrev" aria-label="Previous slide">‹</button>
+      <button type="button" class="slide-arrow slide-arrow-next" id="slideArrowNext" aria-label="Next slide">›</button>
       <article class="slide active">
         <div class="slide-grid">
           <div>
@@ -995,7 +1137,7 @@
             <div class="visual-inner">
               <div class="mock-header">
                 <div class="mock-title">Guided workflow</div>
-                <span class="status-pill warn">BOP pending</span>
+                <span class="status-pill warn" id="bopWorkflowStatus" data-status-pending="BOP pending" data-status-complete="BOP completed">BOP pending</span>
               </div>
               <div class="flow">
                 <div class="flow-step"><div class="num">1</div><div><b>Check requirements</b><small>AI reads case repository and BOP checklist</small></div><span class="check">✓</span></div>
@@ -1177,12 +1319,83 @@
 
   <script>
     const slides = Array.from(document.querySelectorAll(".slide"));
+    const viewport = document.querySelector(".viewport");
     const dotsWrap = document.getElementById("dots");
     const count = document.getElementById("slideCount");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
     const nextArrowBtn = document.getElementById("nextArrowBtn");
+    const slideArrowPrev = document.getElementById("slideArrowPrev");
+    const slideArrowNext = document.getElementById("slideArrowNext");
+    const ANIM_ITEM_SELECTOR = ".tile, .flow-step, .task, .source-row, .node, .compare-col li";
+    const ITEM_DELAY = 680;
+    const SWEEP_DURATION = 1150;
     let current = 0;
+    let animTimers = [];
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    function ensureAnimChecks() {
+      document.querySelectorAll(ANIM_ITEM_SELECTOR).forEach((item) => {
+        item.classList.add("anim-item");
+        if (item.querySelector(".check") || item.querySelector(".anim-check")) return;
+        const tick = document.createElement("span");
+        tick.className = "anim-check";
+        tick.textContent = "✓";
+        tick.setAttribute("aria-hidden", "true");
+        item.appendChild(tick);
+      });
+    }
+
+    function clearAnimTimers() {
+      animTimers.forEach((id) => clearTimeout(id));
+      animTimers = [];
+    }
+
+    function resetStatusPill(slide) {
+      slide.querySelectorAll("[data-status-pending]").forEach((pill) => {
+        pill.textContent = pill.dataset.statusPending || pill.textContent;
+        pill.classList.remove("good");
+        pill.classList.add("warn");
+      });
+    }
+
+    function resetSlideAnimations(slide) {
+      slide.querySelectorAll(ANIM_ITEM_SELECTOR).forEach((item) => {
+        item.classList.remove("anim-loading", "anim-done");
+      });
+      resetStatusPill(slide);
+    }
+
+    function onSequenceComplete(slide) {
+      slide.querySelectorAll("[data-status-pending]").forEach((pill) => {
+        pill.textContent = pill.dataset.statusComplete || "Completed";
+        pill.classList.remove("warn");
+        pill.classList.add("good");
+      });
+    }
+
+    function runSlideAnimations(slide) {
+      clearAnimTimers();
+      resetSlideAnimations(slide);
+      const items = Array.from(slide.querySelectorAll(ANIM_ITEM_SELECTOR));
+      if (!items.length) return;
+
+      items.forEach((item, index) => {
+        const startTimer = setTimeout(() => {
+          item.classList.add("anim-loading");
+          const doneTimer = setTimeout(() => {
+            item.classList.remove("anim-loading");
+            item.classList.add("anim-done");
+            if (index === items.length - 1) {
+              onSequenceComplete(slide);
+            }
+          }, SWEEP_DURATION);
+          animTimers.push(doneTimer);
+        }, index * ITEM_DELAY);
+        animTimers.push(startTimer);
+      });
+    }
 
     function renderDots() {
       dotsWrap.innerHTML = "";
@@ -1196,11 +1409,16 @@
     }
 
     function goTo(index) {
-      current = Math.max(0, Math.min(slides.length - 1, index));
+      const nextIndex = Math.max(0, Math.min(slides.length - 1, index));
+      if (nextIndex !== current) {
+        resetSlideAnimations(slides[current]);
+      }
+      current = nextIndex;
       slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
       count.textContent = "Slide " + (current + 1) + " of " + slides.length;
       nextBtn.textContent = current === slides.length - 1 ? "Start Over" : "Next";
       renderDots();
+      runSlideAnimations(slides[current]);
     }
 
     function next() {
@@ -1218,6 +1436,21 @@
     prevBtn.addEventListener("click", prev);
     nextBtn.addEventListener("click", next);
     nextArrowBtn.addEventListener("click", next);
+    slideArrowPrev.addEventListener("click", prev);
+    slideArrowNext.addEventListener("click", next);
+
+    viewport.addEventListener("touchstart", (event) => {
+      touchStartX = event.changedTouches[0].screenX;
+      touchStartY = event.changedTouches[0].screenY;
+    }, { passive: true });
+
+    viewport.addEventListener("touchend", (event) => {
+      const dx = event.changedTouches[0].screenX - touchStartX;
+      const dy = event.changedTouches[0].screenY - touchStartY;
+      if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy)) return;
+      if (dx < 0) next();
+      else prev();
+    }, { passive: true });
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "ArrowRight" || event.key === " ") next();
@@ -1226,7 +1459,9 @@
       if (event.key === "End") goTo(slides.length - 1);
     });
 
+    ensureAnimChecks();
     renderDots();
+    runSlideAnimations(slides[current]);
   </script>
 </body>
 </html>
