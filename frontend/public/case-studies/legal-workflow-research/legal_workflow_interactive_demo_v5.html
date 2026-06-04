@@ -217,7 +217,11 @@
     .source-item strong { display:block; margin:3px 0; }
     .source-item span { color:#334155; font-size:13px; }
 
-    .floating-controls { position:fixed; right:18px; bottom:18px; display:flex; flex-direction:row; align-items:center; gap:10px; z-index:50; flex-wrap:wrap; justify-content:flex-end; max-width:min(520px, calc(100vw - 36px)); }
+    .coach-stack { display: contents; }
+    .coach-stack--fixed-mode .floating-controls { position:fixed; right:18px; bottom:18px; display:flex; flex-direction:row; align-items:center; gap:10px; z-index:50; flex-wrap:wrap; justify-content:flex-end; max-width:min(520px, calc(100vw - 36px)); }
+    .floating-controls { display:flex; flex-direction:row; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .coach-stack--fixed-mode .drawer { position:fixed; right:18px; bottom:76px; width:min(440px, calc(100vw - 36px)); max-height:min(200px, 28vh); display:none; flex-direction:column; z-index:55; border:1px solid rgba(139,233,253,.28); background:rgba(13,19,36,.97); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; }
+    .drawer { display:none; flex-direction:column; border:1px solid rgba(139,233,253,.28); background:rgba(13,19,36,.97); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; }
     .float-btn { border:1px solid rgba(139,233,253,.36); color:#eaf8ff; background:rgba(13,19,36,.94); box-shadow:var(--shadow); border-radius:999px; padding:12px 14px; font-weight:1000; position:relative; }
     .float-btn:hover { background:rgba(139,233,253,.14); }
     .float-btn.guide-highlight, .btn.guide-highlight, .task-card.guide-highlight, .panel.guide-highlight {
@@ -236,7 +240,6 @@
       font-weight: 1000;
       text-shadow: 0 0 12px rgba(139,233,253,.6);
     }
-    .drawer { position:fixed; right:18px; bottom:76px; width:min(440px, calc(100vw - 36px)); max-height:min(200px, 28vh); display:none; flex-direction:column; z-index:55; border:1px solid rgba(139,233,253,.28); background:rgba(13,19,36,.97); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; }
     .drawer.open { display:flex; animation:enter .18s ease both; }
     .drawer-head { display:flex; align-items:center; justify-content:space-between; padding:13px 14px; border-bottom:1px solid rgba(255,255,255,.08); flex-shrink:0; }
     .drawer-head strong { letter-spacing:-.02em; font-size:14px; }
@@ -292,10 +295,34 @@
       .stage-wrap, .panel { overflow:visible; }
     }
     @media (max-width: 720px) {
-      :root {
-        --mobile-coach-bar-top: calc(env(safe-area-inset-top, 0px) + 200px);
-        --mobile-coach-drawer-top: calc(env(safe-area-inset-top, 0px) + 256px);
+      .global-nav { position: static; }
+      .coach-stack--inline-mode {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 0 0 12px;
       }
+      .coach-stack--inline-mode .floating-controls {
+        position: static;
+        width: 100%;
+        max-width: none;
+        justify-content: center;
+      }
+      .coach-stack--inline-mode .drawer {
+        position: static;
+        width: 100%;
+        max-width: none;
+        max-height: none;
+      }
+      .coach-stack--inline-mode .toast {
+        position: static;
+        transform: none;
+        left: auto;
+        width: 100%;
+        max-width: none;
+        margin: 0;
+      }
+      .coach-stack--inline-mode .toast.show { display: block; }
       .hero { min-height:auto; padding:36px 0; }
       h1 { font-size:38px; }
       .field-grid, .metric-grid { grid-template-columns:1fr; }
@@ -309,16 +336,6 @@
       .nav-actions .btn { flex:1 1 calc(50% - 4px); min-width:9rem; justify-content:center; text-align:center; }
       .preview-row { grid-template-columns:32px 1fr; }
       .preview-row .pill { grid-column:1 / -1; justify-self:start; margin-top:4px; }
-      .floating-controls {
-        top: var(--mobile-coach-bar-top);
-        bottom: auto;
-        right: 12px;
-        left: 12px;
-        flex-direction: row;
-        justify-content: center;
-        max-width: none;
-        z-index: 65;
-      }
       .float-btn { padding:10px 12px; font-size:12px; }
       .float-btn.guide-arrow-hint::after {
         right: auto;
@@ -327,19 +344,6 @@
         bottom: -16px;
         transform: translateX(-50%);
         content: '↓';
-      }
-      .drawer {
-        top: var(--mobile-coach-drawer-top);
-        bottom: auto;
-        right: 12px;
-        left: 12px;
-        width: auto;
-        max-height: min(180px, 26vh);
-        z-index: 66;
-      }
-      .toast {
-        top: var(--mobile-coach-bar-top);
-        bottom: auto;
       }
       .drawer-head { padding:10px 12px; }
       .drawer-head .btn { padding:7px 10px; font-size:12px; }
@@ -411,7 +415,9 @@
     </section>
 
     <section id="demo" class="demo">
-      <div class="wrap demo-shell">
+      <div class="wrap">
+        <div id="coachInlineAnchor"></div>
+        <div class="demo-shell">
         <div class="demo-topbar">
           <div class="case-title">
             <strong>Santos v. Metropolitan City Health and Hospitals Corporation</strong>
@@ -553,22 +559,25 @@
     </section>
   </main>
 
-  <div class="floating-controls">
-    <button id="floatAiBtn" class="float-btn">🤖 AI Assistant</button>
-    <button id="floatLogBtn" class="float-btn">📋 Work Log</button>
-  </div>
+  <div id="coachBodyAnchor"></div>
+  <div id="coachStack" class="coach-stack coach-stack--fixed-mode">
+    <div class="floating-controls">
+      <button id="floatAiBtn" class="float-btn">🤖 AI Assistant</button>
+      <button id="floatLogBtn" class="float-btn">📋 Work Log</button>
+    </div>
 
-  <div id="aiDrawer" class="drawer">
-    <div class="drawer-head"><strong>AI litigation assistant</strong><button id="closeAiBtn" class="btn">Close</button></div>
-    <div class="drawer-body"><p id="coachHint" class="coach-hint">Tap <strong>Run Guided Workflow</strong> above, then follow each highlighted step.</p></div>
-  </div>
+    <div id="aiDrawer" class="drawer">
+      <div class="drawer-head"><strong>AI litigation assistant</strong><button id="closeAiBtn" class="btn">Close</button></div>
+      <div class="drawer-body"><p id="coachHint" class="coach-hint">Tap <strong>Run Guided Workflow</strong> above, then follow each highlighted step.</p></div>
+    </div>
 
-  <div id="logDrawer" class="drawer">
-    <div class="drawer-head"><strong>Workflow log</strong><button id="closeLogBtn" class="btn">Close</button></div>
-    <div class="drawer-body"><div id="logList" class="log-list"><div class="log-line"><b>Ready</b> Demo loaded with synthetic case data.</div></div></div>
-  </div>
+    <div id="logDrawer" class="drawer">
+      <div class="drawer-head"><strong>Workflow log</strong><button id="closeLogBtn" class="btn">Close</button></div>
+      <div class="drawer-body"><div id="logList" class="log-list"><div class="log-line"><b>Ready</b> Demo loaded with synthetic case data.</div></div></div>
+    </div>
 
-  <div id="toast" class="toast"></div>
+    <div id="toast" class="toast"></div>
+  </div>
 
   <div id="completionOverlay" class="completion-overlay" aria-hidden="true">
     <div class="completion-card">
@@ -939,17 +948,24 @@
       $('toggleDashboardBtn').setAttribute('aria-expanded', 'false');
       $('toggleDashboardBtn').textContent = 'Case queue ▸';
     }
-    function syncMobileCoachOffset() {
-      if (!window.matchMedia('(max-width: 720px)').matches) return;
-      const nav = document.querySelector('.global-nav');
-      if (!nav) return;
-      const barTop = Math.ceil(nav.getBoundingClientRect().bottom + 12);
-      document.documentElement.style.setProperty('--mobile-coach-bar-top', `${barTop}px`);
-      document.documentElement.style.setProperty('--mobile-coach-drawer-top', `${barTop + 56}px`);
+    function placeCoachStack() {
+      const stack = $('coachStack');
+      const inlineAnchor = $('coachInlineAnchor');
+      const bodyAnchor = $('coachBodyAnchor');
+      const mobile = window.matchMedia('(max-width: 720px)').matches;
+      if (mobile) {
+        stack.classList.remove('coach-stack--fixed-mode');
+        stack.classList.add('coach-stack--inline-mode');
+        inlineAnchor.appendChild(stack);
+        return;
+      }
+      stack.classList.add('coach-stack--fixed-mode');
+      stack.classList.remove('coach-stack--inline-mode');
+      bodyAnchor.appendChild(stack);
     }
-    syncMobileCoachOffset();
-    window.addEventListener('resize', syncMobileCoachOffset);
-    window.addEventListener('orientationchange', syncMobileCoachOffset);
+    placeCoachStack();
+    window.addEventListener('resize', placeCoachStack);
+    window.addEventListener('orientationchange', placeCoachStack);
     $('topAiBtn').addEventListener('click', () => {
       openDemo();
       openDrawer('ai');
