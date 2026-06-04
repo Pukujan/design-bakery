@@ -60,18 +60,6 @@ const CASE_STUDY_SHARE_ENTRIES: CaseStudyShareEntry[] = [
     ogDescription:
       'A research ecosystem for legal document intelligence, workflow confidence, human review, procedural memory, and AI-agent architecture.',
   },
-  {
-    title: 'Legal Workflow AI · Guided Recruiter Demo',
-    description:
-      'Interactive recruiter demo: Bill of Particulars workflow, OPA authorization email, source review, and simulated court filing — synthetic case data.',
-    canonicalPath:
-      '/case-studies/legal-workflow-research/legal_workflow_interactive_demo_v5.html',
-    ogImage: DEFAULT_OG_IMAGE_PATH,
-    imageAlt: 'Legal Workflow interactive recruiter demo',
-    ogTitle: 'Legal Workflow AI · Guided Recruiter Demo',
-    ogDescription:
-      'Walk through a paralegal case dashboard: draft OPA authorization, review sources, and finalize the Bill of Particulars.',
-  },
 ];
 
 function normalizePath(pathname: string): string {

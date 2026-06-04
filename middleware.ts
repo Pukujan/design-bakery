@@ -226,6 +226,10 @@ async function injectBlogListSpaShell(
   return htmlResponse(html);
 }
 
+function isStaticCaseStudyAsset(pathname: string): boolean {
+  return /\.html$/i.test(pathname);
+}
+
 async function injectCaseStudySpaShell(
   request: Request,
   pathname: string,
@@ -248,8 +252,10 @@ export default async function middleware(request: Request) {
   const ua = request.headers.get('user-agent') ?? '';
   const isCrawler = isLinkPreviewCrawler(ua);
 
-  const caseStudyInjected = await injectCaseStudySpaShell(request, pathname);
-  if (caseStudyInjected) return caseStudyInjected;
+  if (!isStaticCaseStudyAsset(pathname)) {
+    const caseStudyInjected = await injectCaseStudySpaShell(request, pathname);
+    if (caseStudyInjected) return caseStudyInjected;
+  }
 
   const detailMatch = pathname.match(BLOG_DETAIL_RE);
   if (detailMatch) {
