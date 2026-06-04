@@ -219,6 +219,41 @@
 
     .coach-stack { display: contents; }
     .coach-stack--fixed-mode .floating-controls { position:fixed; right:18px; bottom:18px; display:flex; flex-direction:row; align-items:center; gap:10px; z-index:50; flex-wrap:wrap; justify-content:flex-end; max-width:min(520px, calc(100vw - 36px)); }
+    .coach-stack--sticky-top-mode {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 65;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 10px;
+      background: linear-gradient(180deg, rgba(7,10,18,.97) 0%, rgba(7,10,18,.92) 82%, rgba(7,10,18,0) 100%);
+      pointer-events: none;
+    }
+    .coach-stack--sticky-top-mode > * { pointer-events: auto; }
+    .coach-stack--sticky-top-mode .floating-controls {
+      position: static;
+      width: 100%;
+      max-width: none;
+      justify-content: center;
+    }
+    .coach-stack--sticky-top-mode .drawer {
+      position: static;
+      width: 100%;
+      max-width: none;
+      max-height: min(168px, 24vh);
+    }
+    .coach-stack--sticky-top-mode .toast {
+      position: static;
+      transform: none;
+      left: auto;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+    }
+    .coach-stack--sticky-top-mode .toast.show { display: block; }
     .floating-controls { display:flex; flex-direction:row; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
     .coach-stack--fixed-mode .drawer { position:fixed; right:18px; bottom:76px; width:min(440px, calc(100vw - 36px)); max-height:min(200px, 28vh); display:none; flex-direction:column; z-index:55; border:1px solid rgba(139,233,253,.28); background:rgba(13,19,36,.97); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; }
     .drawer { display:none; flex-direction:column; border:1px solid rgba(139,233,253,.28); background:rgba(13,19,36,.97); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; }
@@ -296,33 +331,7 @@
     }
     @media (max-width: 720px) {
       .global-nav { position: static; }
-      .coach-stack--inline-mode {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin: 0 0 12px;
-      }
-      .coach-stack--inline-mode .floating-controls {
-        position: static;
-        width: 100%;
-        max-width: none;
-        justify-content: center;
-      }
-      .coach-stack--inline-mode .drawer {
-        position: static;
-        width: 100%;
-        max-width: none;
-        max-height: none;
-      }
-      .coach-stack--inline-mode .toast {
-        position: static;
-        transform: none;
-        left: auto;
-        width: 100%;
-        max-width: none;
-        margin: 0;
-      }
-      .coach-stack--inline-mode .toast.show { display: block; }
+      main { padding-top: var(--mobile-coach-inset, 72px); }
       .hero { min-height:auto; padding:36px 0; }
       h1 { font-size:38px; }
       .field-grid, .metric-grid { grid-template-columns:1fr; }
@@ -416,7 +425,6 @@
 
     <section id="demo" class="demo">
       <div class="wrap">
-        <div id="coachInlineAnchor"></div>
         <div class="demo-shell">
         <div class="demo-topbar">
           <div class="case-title">
@@ -783,7 +791,15 @@
       ['Next action', 'Prepare authorization request email to OPA with clerk copied.', 'warn']
     ];
 
-    function showToast(html) { toast.innerHTML = html; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 4300); }
+    function showToast(html) {
+      toast.innerHTML = html;
+      toast.classList.add('show');
+      syncMobileCoachInset();
+      setTimeout(() => {
+        toast.classList.remove('show');
+        syncMobileCoachInset();
+      }, 4300);
+    }
     function openDemo() { demo.classList.add('is-open'); demo.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     function addLog(label, text, type='') {
       const line = document.createElement('div');
@@ -794,6 +810,7 @@
     function openDrawer(which) {
       if (which === 'ai') { $('aiDrawer').classList.add('open'); $('logDrawer').classList.remove('open'); }
       if (which === 'log') { $('logDrawer').classList.add('open'); $('aiDrawer').classList.remove('open'); }
+      syncMobileCoachInset();
     }
     function setTab(tab) {
       document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
@@ -948,24 +965,30 @@
       $('toggleDashboardBtn').setAttribute('aria-expanded', 'false');
       $('toggleDashboardBtn').textContent = 'Case queue ▸';
     }
-    function placeCoachStack() {
+    function applyCoachLayout() {
       const stack = $('coachStack');
-      const inlineAnchor = $('coachInlineAnchor');
-      const bodyAnchor = $('coachBodyAnchor');
       const mobile = window.matchMedia('(max-width: 720px)').matches;
-      if (mobile) {
-        stack.classList.remove('coach-stack--fixed-mode');
-        stack.classList.add('coach-stack--inline-mode');
-        inlineAnchor.appendChild(stack);
+      $('coachBodyAnchor').appendChild(stack);
+      stack.classList.toggle('coach-stack--fixed-mode', !mobile);
+      stack.classList.toggle('coach-stack--sticky-top-mode', mobile);
+      syncMobileCoachInset();
+    }
+    function syncMobileCoachInset() {
+      const mobile = window.matchMedia('(max-width: 720px)').matches;
+      if (!mobile) {
+        document.documentElement.style.removeProperty('--mobile-coach-inset');
         return;
       }
-      stack.classList.add('coach-stack--fixed-mode');
-      stack.classList.remove('coach-stack--inline-mode');
-      bodyAnchor.appendChild(stack);
+      const stack = $('coachStack');
+      const inset = Math.ceil(stack.getBoundingClientRect().height + 4);
+      document.documentElement.style.setProperty('--mobile-coach-inset', `${inset}px`);
     }
-    placeCoachStack();
-    window.addEventListener('resize', placeCoachStack);
-    window.addEventListener('orientationchange', placeCoachStack);
+    applyCoachLayout();
+    window.addEventListener('resize', applyCoachLayout);
+    window.addEventListener('orientationchange', applyCoachLayout);
+    if (window.ResizeObserver) {
+      new ResizeObserver(syncMobileCoachInset).observe($('coachStack'));
+    }
     $('topAiBtn').addEventListener('click', () => {
       openDemo();
       openDrawer('ai');
@@ -980,8 +1003,8 @@
       else highlightDraftButton();
     });
     $('floatLogBtn').addEventListener('click', () => { openDemo(); openDrawer('log'); });
-    $('closeAiBtn').addEventListener('click', () => $('aiDrawer').classList.remove('open'));
-    $('closeLogBtn').addEventListener('click', () => $('logDrawer').classList.remove('open'));
+    $('closeAiBtn').addEventListener('click', () => { $('aiDrawer').classList.remove('open'); syncMobileCoachInset(); });
+    $('closeLogBtn').addEventListener('click', () => { $('logDrawer').classList.remove('open'); syncMobileCoachInset(); });
     $('taskBop').addEventListener('click', runInitialAnalysis);
     $('taskEmail').addEventListener('click', () => { setTaskActive('taskEmail'); setTab('email'); openDrawer('ai'); highlightDraftButton(); setCoach('Click <strong>Draft Email →</strong> to generate the OPA authorization request.'); });
     $('taskFile').addEventListener('click', () => { setTaskActive('taskFile'); setTab('bop'); if (!authorizationReceived) showToast('<strong>Still blocked.</strong><br>OPA authorization is needed before final filing.'); });
