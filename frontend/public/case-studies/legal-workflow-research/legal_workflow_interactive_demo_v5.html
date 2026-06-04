@@ -292,6 +292,10 @@
       .stage-wrap, .panel { overflow:visible; }
     }
     @media (max-width: 720px) {
+      :root {
+        --mobile-coach-bar-top: calc(env(safe-area-inset-top, 0px) + 132px);
+        --mobile-coach-drawer-top: calc(env(safe-area-inset-top, 0px) + 188px);
+      }
       .hero { min-height:auto; padding:36px 0; }
       h1 { font-size:38px; }
       .field-grid, .metric-grid { grid-template-columns:1fr; }
@@ -305,9 +309,36 @@
       .nav-actions .btn { flex:1 1 calc(50% - 4px); min-width:9rem; justify-content:center; text-align:center; }
       .preview-row { grid-template-columns:32px 1fr; }
       .preview-row .pill { grid-column:1 / -1; justify-self:start; margin-top:4px; }
-      .floating-controls { right:12px; bottom:12px; left:12px; flex-direction:row; justify-content:center; max-width:none; }
+      .floating-controls {
+        top: var(--mobile-coach-bar-top);
+        bottom: auto;
+        right: 12px;
+        left: 12px;
+        flex-direction: row;
+        justify-content: center;
+        max-width: none;
+      }
       .float-btn { padding:10px 12px; font-size:12px; }
-      .drawer { right:12px; left:12px; width:auto; bottom:76px; max-height:min(240px, 34vh); }
+      .float-btn.guide-arrow-hint::after {
+        right: auto;
+        left: 50%;
+        top: auto;
+        bottom: -16px;
+        transform: translateX(-50%);
+        content: '↓';
+      }
+      .drawer {
+        top: var(--mobile-coach-drawer-top);
+        bottom: auto;
+        right: 12px;
+        left: 12px;
+        width: auto;
+        max-height: min(180px, 26vh);
+      }
+      .toast {
+        top: var(--mobile-coach-bar-top);
+        bottom: auto;
+      }
       .drawer-head { padding:10px 12px; }
       .drawer-head .btn { padding:7px 10px; font-size:12px; }
       .drawer-body { padding:10px 12px; }
