@@ -11,6 +11,7 @@ import {
   type BlogSharePayload,
 } from './frontend/src/og/blogShareHtml';
 import { isLinkPreviewCrawler } from './frontend/src/og/linkPreviewCrawlers';
+import { resolveCaseStudyShareMeta } from './frontend/src/og/caseStudyShareMeta';
 
 const PORTFOLIO_PREFIX =
   '(?:endtoend-engineer|legal-workflow-engineer|ai-engineer|forward-deployed-engineer)';
@@ -33,6 +34,7 @@ export const config = {
     '/ai-engineer/blogs/:blogId',
     '/forward-deployed-engineer/blogs',
     '/forward-deployed-engineer/blogs/:blogId',
+    '/case-studies/:path*',
   ],
 };
 
@@ -224,11 +226,30 @@ async function injectBlogListSpaShell(
   return htmlResponse(html);
 }
 
+async function injectCaseStudySpaShell(
+  request: Request,
+  pathname: string,
+): Promise<Response | null> {
+  const url = new URL(request.url);
+  const siteOrigin = resolveEdgeSiteOrigin(url);
+  const meta = resolveCaseStudyShareMeta(pathname, siteOrigin);
+  if (!meta) return null;
+
+  const spaHtml = await fetchSpaIndexHtml(url.origin);
+  if (!spaHtml) return null;
+
+  const html = injectSocialMetaIntoHtmlHead(spaHtml, meta);
+  return htmlResponse(html);
+}
+
 export default async function middleware(request: Request) {
   const url = new URL(request.url);
   const pathname = url.pathname;
   const ua = request.headers.get('user-agent') ?? '';
   const isCrawler = isLinkPreviewCrawler(ua);
+
+  const caseStudyInjected = await injectCaseStudySpaShell(request, pathname);
+  if (caseStudyInjected) return caseStudyInjected;
 
   const detailMatch = pathname.match(BLOG_DETAIL_RE);
   if (detailMatch) {

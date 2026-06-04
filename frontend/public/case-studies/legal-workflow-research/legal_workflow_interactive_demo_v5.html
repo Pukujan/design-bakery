@@ -4,6 +4,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Legal Workflow AI · Guided Recruiter Demo</title>
+  <meta name="description" content="Interactive recruiter demo: Bill of Particulars workflow, OPA authorization email, source review, and simulated court filing." />
+  <link rel="canonical" href="https://www.design-bakery.com/case-studies/legal-workflow-research/legal_workflow_interactive_demo_v5.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Design Baker" />
+  <meta property="og:title" content="Legal Workflow AI · Guided Recruiter Demo" />
+  <meta property="og:description" content="Walk through a paralegal case dashboard: draft OPA authorization, review sources, and finalize the Bill of Particulars." />
+  <meta property="og:url" content="https://www.design-bakery.com/case-studies/legal-workflow-research/legal_workflow_interactive_demo_v5.html" />
+  <meta property="og:image" content="https://www.design-bakery.com/images/site-og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Legal Workflow AI · Guided Recruiter Demo" />
+  <meta name="twitter:description" content="Walk through a paralegal case dashboard: draft OPA authorization, review sources, and finalize the Bill of Particulars." />
+  <meta name="twitter:image" content="https://www.design-bakery.com/images/site-og.png" />
   <style>
     :root {
       --bg: #070a12;
@@ -79,6 +91,19 @@
     }
     .btn:hover { transform: translateY(-1px); border-color: rgba(139,233,253,.45); background: rgba(139,233,253,.10); }
     .btn-primary { background: linear-gradient(135deg, rgba(139,233,253,.2), rgba(167,139,250,.2)); border-color: rgba(139,233,253,.44); }
+    .btn-run-guide {
+      background: linear-gradient(135deg, rgba(139,233,253,.32), rgba(167,139,250,.28));
+      border-color: rgba(139,233,253,.65);
+      box-shadow: 0 0 0 0 rgba(139,233,253,.45), 0 12px 32px rgba(139,233,253,.18);
+      animation: guideBtnGlow 2s ease-in-out infinite;
+      padding-right: 18px;
+    }
+    .btn-run-guide .guide-arrow { font-size: 16px; line-height: 1; transition: transform .16s ease; }
+    .btn-run-guide:hover .guide-arrow { transform: translateX(3px); }
+    @keyframes guideBtnGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(139,233,253,.35), 0 12px 32px rgba(139,233,253,.14); }
+      50% { box-shadow: 0 0 0 6px rgba(139,233,253,.22), 0 14px 36px rgba(139,233,253,.22); }
+    }
     .btn-good { background: rgba(52,211,153,.14); border-color: rgba(52,211,153,.38); }
     .btn-warn { background: rgba(251,191,36,.14); border-color: rgba(251,191,36,.36); }
     .btn[disabled] { opacity: .48; cursor: not-allowed; transform: none; }
@@ -192,18 +217,42 @@
     .source-item strong { display:block; margin:3px 0; }
     .source-item span { color:#334155; font-size:13px; }
 
-    .floating-controls { position:fixed; right:18px; bottom:18px; display:flex; flex-direction:column; gap:10px; z-index:50; }
-    .float-btn { border:1px solid rgba(139,233,253,.36); color:#eaf8ff; background:rgba(13,19,36,.94); box-shadow:var(--shadow); border-radius:999px; padding:12px 14px; font-weight:1000; }
+    .floating-controls { position:fixed; right:18px; bottom:18px; display:flex; flex-direction:row; align-items:center; gap:10px; z-index:50; flex-wrap:wrap; justify-content:flex-end; max-width:min(520px, calc(100vw - 36px)); }
+    .float-btn { border:1px solid rgba(139,233,253,.36); color:#eaf8ff; background:rgba(13,19,36,.94); box-shadow:var(--shadow); border-radius:999px; padding:12px 14px; font-weight:1000; position:relative; }
     .float-btn:hover { background:rgba(139,233,253,.14); }
-    .drawer { position:fixed; right:18px; bottom:116px; width:min(440px, calc(100vw - 36px)); max-height:min(340px, 42vh); display:none; flex-direction:column; z-index:55; border:1px solid rgba(139,233,253,.28); background:rgba(13,19,36,.97); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; }
+    .float-btn.guide-highlight, .btn.guide-highlight, .task-card.guide-highlight, .panel.guide-highlight {
+      animation: pulse 1.15s ease-in-out infinite;
+      border-color: rgba(139,233,253,.75) !important;
+      box-shadow: 0 0 0 3px rgba(139,233,253,.28), var(--shadow);
+    }
+    .float-btn.guide-arrow-hint::after {
+      content: '→';
+      position: absolute;
+      right: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent);
+      font-size: 22px;
+      font-weight: 1000;
+      text-shadow: 0 0 12px rgba(139,233,253,.6);
+    }
+    .drawer { position:fixed; right:18px; bottom:76px; width:min(440px, calc(100vw - 36px)); max-height:min(200px, 28vh); display:none; flex-direction:column; z-index:55; border:1px solid rgba(139,233,253,.28); background:rgba(13,19,36,.97); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; }
     .drawer.open { display:flex; animation:enter .18s ease both; }
     .drawer-head { display:flex; align-items:center; justify-content:space-between; padding:13px 14px; border-bottom:1px solid rgba(255,255,255,.08); flex-shrink:0; }
     .drawer-head strong { letter-spacing:-.02em; font-size:14px; }
     .drawer-body { padding:12px; flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-    .chat { display:grid; gap:10px; }
-    .bubble { border-radius:15px; padding:11px; font-size:13px; line-height:1.45; }
-    .bubble.ai { background:rgba(139,233,253,.10); border:1px solid rgba(139,233,253,.22); color:#def8ff; }
-    .bubble.user { background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.24); color:#efe9ff; }
+    .coach-hint {
+      margin: 0;
+      padding: 14px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #def8ff;
+      background: rgba(139,233,253,.10);
+      border: 1px solid rgba(139,233,253,.28);
+      font-weight: 700;
+    }
+    .coach-hint strong { color: #fff; font-weight: 1000; }
     .log-list { display:grid; gap:8px; }
     .log-line { border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.045); border-radius:14px; padding:10px; color:var(--soft); font-size:12px; }
     .log-line b { color:var(--accent); } .log-line.good b { color:var(--good); } .log-line.warn b { color:var(--warn); } .log-line.bad b { color:var(--bad); }
@@ -256,7 +305,7 @@
       .nav-actions .btn { flex:1 1 calc(50% - 4px); min-width:9rem; justify-content:center; text-align:center; }
       .preview-row { grid-template-columns:32px 1fr; }
       .preview-row .pill { grid-column:1 / -1; justify-self:start; margin-top:4px; }
-      .floating-controls { right:12px; bottom:12px; left:auto; flex-direction:column; justify-content:flex-end; max-width:calc(100vw - 24px); }
+      .floating-controls { right:12px; bottom:12px; left:12px; flex-direction:row; justify-content:center; max-width:none; }
       .float-btn { padding:10px 12px; font-size:12px; }
       .drawer { right:12px; left:12px; width:auto; bottom:76px; max-height:min(240px, 34vh); }
       .drawer-head { padding:10px 12px; }
@@ -307,7 +356,9 @@
           </div>
           <div class="btn-row">
             <a class="btn btn-primary" href="/case-studies/legal-workflow-research/case_os_interactive_presentation_refined.html">View Presentation</a>
-            <button id="quickRunBtn" class="btn">Run Guided Workflow</button>
+            <button id="quickRunBtn" class="btn btn-primary btn-run-guide" type="button">
+              Run Guided Workflow <span class="guide-arrow" aria-hidden="true">→</span>
+            </button>
           </div>
         </div>
         <div class="hero-card">
@@ -476,7 +527,7 @@
 
   <div id="aiDrawer" class="drawer">
     <div class="drawer-head"><strong>AI litigation assistant</strong><button id="closeAiBtn" class="btn">Close</button></div>
-    <div class="drawer-body"><div class="chat" id="chatBox"><div class="bubble ai">Open the BOP task. I will guide you to the blocking email draft, source review, and final BOP filing.</div></div></div>
+    <div class="drawer-body"><p id="coachHint" class="coach-hint">Tap <strong>Run Guided Workflow</strong> above, then follow each highlighted step.</p></div>
   </div>
 
   <div id="logDrawer" class="drawer">
@@ -520,8 +571,101 @@
     let authorizationReceived = false;
     let bopPopulated = false;
     let bopFinalized = false;
+    let guidedMode = false;
+    let guideStep = -1;
     const tabProgress = { email: 0, sources: 0, bop: 0 };
     let tabProgressAnim = null;
+
+    function setCoach(html) {
+      $('coachHint').innerHTML = html;
+      openDrawer('ai');
+    }
+    function clearGuideHighlight() {
+      document.querySelectorAll('.guide-highlight, .guide-arrow-hint').forEach((el) => {
+        el.classList.remove('guide-highlight', 'guide-arrow-hint');
+      });
+    }
+    function highlightGuide(targetId, withArrow = false) {
+      clearGuideHighlight();
+      const el = $(targetId);
+      if (!el) return;
+      el.classList.add('guide-highlight');
+      if (withArrow) el.classList.add('guide-arrow-hint');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function goGuideStep(step) {
+      guideStep = step;
+      clearGuideHighlight();
+      if (step === 0) {
+        openDemo();
+        setCoach('Step 1 — Tap the <strong>AI Assistant</strong> button (arrow shows where).');
+        highlightGuide('floatAiBtn', true);
+        return;
+      }
+      if (step === 1) {
+        setTab('email');
+        setTaskActive('taskBop');
+        setGuide('guideEmail', ['guideAsk']);
+        $('nextAction').textContent = 'Draft email';
+        setCoach('Step 2 — Click <strong>Draft Email →</strong> to generate the OPA request.');
+        highlightGuide('draftEmailBtn');
+        return;
+      }
+      if (step === 2) {
+        setCoach('Step 3 — Review and edit the email body, then click <strong>Send Email</strong>.');
+        highlightGuide('sendEmailBtn');
+        return;
+      }
+      if (step === 3) {
+        setCoach('Step 4 — While OPA responds, review the <strong>pending tasks</strong> in the case queue.');
+        highlightGuide('dashboardPanel');
+        return;
+      }
+      if (step === 4) {
+        setCoach('Step 5 — OPA responded. Click <strong>Next: Review Sources →</strong>.');
+        highlightGuide('toSourcesBtn');
+        return;
+      }
+      if (step === 5) {
+        setCoach('Step 6 — Click <strong>Next: Review BOP Draft →</strong> when ready.');
+        highlightGuide('toBopBtn');
+        return;
+      }
+      if (step === 6) {
+        setTab('bop');
+        setCoach('Step 7 — Click <strong>Auto-populate BOP fields</strong>.');
+        highlightGuide('populateBopBtn');
+        return;
+      }
+      if (step === 7) {
+        setCoach('Step 8 — Review the BOP, then click <strong>Finalize BOP</strong>.');
+        highlightGuide('finalizeBopBtn');
+        return;
+      }
+      if (step === 8) {
+        setCoach('Step 9 — Click <strong>Send to Court</strong> to complete the simulated filing.');
+        highlightGuide('efileBtn');
+        return;
+      }
+      if (step === 9) {
+        guidedMode = false;
+        clearGuideHighlight();
+        setCoach('All steps complete. You can reset the demo or explore freely.');
+      }
+    }
+    function startGuidedTour() {
+      guidedMode = true;
+      resetTabProgress();
+      authorizationReceived = false;
+      bopPopulated = false;
+      bopFinalized = false;
+      openDemo();
+      goGuideStep(0);
+    }
+    function advanceGuide(expected) {
+      if (!guidedMode || guideStep !== expected) return;
+      goGuideStep(expected + 1);
+    }
 
     function applyTabProgress() {
       ['email', 'sources', 'bop'].forEach((key) => {
@@ -605,13 +749,6 @@
       line.innerHTML = `<b>${label}</b> ${text}`;
       $('logList').prepend(line);
     }
-    function addChat(text, who='ai') {
-      const bubble = document.createElement('div');
-      bubble.className = `bubble ${who}`;
-      bubble.textContent = text;
-      $('chatBox').appendChild(bubble);
-      $('chatBox').scrollTop = $('chatBox').scrollHeight;
-    }
     function openDrawer(which) {
       if (which === 'ai') { $('aiDrawer').classList.add('open'); $('logDrawer').classList.remove('open'); }
       if (which === 'log') { $('logDrawer').classList.add('open'); $('aiDrawer').classList.remove('open'); }
@@ -640,10 +777,14 @@
       setTaskActive('taskBop');
       setGuide('guideEmail', ['guideAsk']);
       $('nextAction').textContent = 'Draft email';
-      addChat('I reviewed the BOP requirements. The blocking task is an OPA authorization request for updated medical records. I highlighted the Draft Email button.', 'ai');
       logSeed.forEach((entry, i) => setTimeout(() => addLog(entry[0], entry[1], entry[2]), i * 220));
-      highlightDraftButton();
-      showToast('<strong>AI assistant opened.</strong><br>The Draft Email button is highlighted because authorization is blocking the BOP workflow.');
+      if (guidedMode) {
+        advanceGuide(0);
+      } else {
+        setCoach('The blocking task is an <strong>OPA authorization email</strong>. Click <strong>Draft Email →</strong>.');
+        highlightDraftButton();
+        showToast('<strong>AI assistant opened.</strong><br>Draft Email is the next action for the BOP workflow.');
+      }
     }
     function draftEmail() {
       setTab('email');
@@ -657,14 +798,16 @@
       setGuide('guideSend', ['guideAsk','guideEmail']);
       $('nextAction').textContent = 'Send email';
       addLog('Email', 'Drafted editable OPA authorization request using case name, index number, CC order reference, and pending BOP dependency.', 'good');
-      addChat('The authorization email is drafted and editable. Review the body, then click Send Email.', 'ai');
+      if (guidedMode) advanceGuide(1);
+      else setCoach('Email drafted. Review the body, then click <strong>Send Email</strong>.');
     }
     function sendEmail() {
       $('sendEmailBtn').disabled = true;
       $('emailStatus').textContent = 'Sending…';
       setTabProgress('email', 72, 600);
       addLog('Email sent', 'Authorization request sent to OPA; firm clerk copied.', 'good');
-      addChat('Email sent. Waiting for simulated OPA response…', 'ai');
+      if (guidedMode) advanceGuide(2);
+      else setCoach('Email sent. Waiting for simulated OPA response…');
       showToast('<strong>Email sent.</strong><br>Waiting for OPA response…');
       setTimeout(() => {
         authorizationReceived = true;
@@ -681,8 +824,9 @@
         setTabProgress('sources', 24, 500);
         setGuide('guideSources', ['guideAsk','guideEmail','guideSend']);
         addLog('OPA response', 'OPA responded and sent authorization / final document confirmation.', 'good');
-        addChat('OPA responded. Next, review the sources used, then move to the BOP draft.', 'ai');
-        showToast('<strong>OPA responded.</strong><br>Authorization/document confirmation received. Review sources next.');
+        if (guidedMode) advanceGuide(3);
+        else setCoach('OPA responded. Click <strong>Next: Review Sources →</strong>.');
+        showToast('<strong>OPA responded.</strong><br>Authorization received. Review sources next.');
       }, 3000);
     }
     function gotoSources() {
@@ -691,14 +835,17 @@
       setGuide('guideSources', ['guideAsk','guideEmail','guideSend']);
       $('nextAction').textContent = 'Review BOP';
       addLog('Sources opened', 'User reviewed source evidence before finalizing the BOP packet.', 'good');
+      if (guidedMode) advanceGuide(4);
+      else setCoach('Sources reviewed. Open the <strong>BOP Draft</strong> tab or click Next: Review BOP Draft.');
     }
     function gotoBop() {
       setTab('bop');
       setTabProgress('bop', 28, 500);
       setTaskActive('taskFile');
       setGuide('guideBop', ['guideAsk','guideEmail','guideSend','guideSources']);
-      addChat('Sources reviewed. Now auto-populate the remaining BOP draft fields and finalize.', 'ai');
       addLog('BOP opened', 'BOP draft opened after email and source review.', 'good');
+      if (guidedMode) advanceGuide(5);
+      else setCoach('Auto-populate the BOP fields, then finalize and send to court.');
     }
     function populateBop() {
       bopPopulated = true;
@@ -706,7 +853,7 @@
       $('natureField').className = ''; $('natureField').textContent = 'Medical malpractice action involving alleged departures from accepted standards of care at Queens Metropolitan Hospital Center.';
       setTimeout(() => { $('departuresField').className = ''; $('departuresField').textContent = 'Alleged failure to timely evaluate, monitor, escalate, and respond to clinical signs requiring further medical review. Final wording remains subject to attorney review.'; addLog('BOP fields', 'Nature of action and alleged departures populated from complaint + supporting exhibits.', 'good'); }, 350);
       setTimeout(() => { $('injuriesField').className = ''; $('injuriesField').textContent = 'Infant plaintiff treatment timeline and injury summary populated from synthetic medical summary; updated records authorization has been received.'; $('damagesField').className = ''; $('damagesField').textContent = 'Medical expenses and related damages flagged for attorney review after updated provider records.'; addLog('BOP fields', 'Injury/treatment and damages sections populated with review flags.', 'warn'); }, 700);
-      setTimeout(() => { $('verifyField').className = ''; $('verifyField').textContent = 'Verification/signature/date requires final human review before filing.'; $('finalizeBopBtn').disabled = false; $('pendingCount').textContent = '1'; $('caseStatus').textContent = 'Ready to finalize'; $('nextAction').textContent = 'Finalize'; $('dayProgress').style.width = '78%'; setTabProgress('bop', 84, 500); addLog('Review flag', 'Verification/signature/date remains human-review required.', 'warn'); addChat('BOP fields are populated. Finalize after review, then send to court.', 'ai'); }, 1100);
+      setTimeout(() => { $('verifyField').className = ''; $('verifyField').textContent = 'Verification/signature/date requires final human review before filing.'; $('finalizeBopBtn').disabled = false; $('pendingCount').textContent = '1'; $('caseStatus').textContent = 'Ready to finalize'; $('nextAction').textContent = 'Finalize'; $('dayProgress').style.width = '78%'; setTabProgress('bop', 84, 500); addLog('Review flag', 'Verification/signature/date remains human-review required.', 'warn'); if (guidedMode) advanceGuide(6); else setCoach('BOP fields populated. <strong>Finalize BOP</strong> after review.'); }, 1100);
     }
     function finalizeBop() {
       if (!authorizationReceived) { showToast('<strong>Still blocked.</strong><br>Send the OPA email and wait for the response first.'); return; }
@@ -718,7 +865,8 @@
       setTabProgress('bop', 94, 500);
       setGuide('guideCourt', ['guideAsk','guideEmail','guideSend','guideSources','guideBop']);
       addLog('Finalized', 'BOP packet finalized after authorization response and human review flag cleared.', 'good');
-      addChat('The BOP packet is finalized. Click Send to Court to complete the simulated filing.', 'ai');
+      if (guidedMode) advanceGuide(7);
+      else setCoach('BOP finalized. Click <strong>Send to Court</strong>.');
     }
     function showCompletionOverlay() {
       const overlay = $('completionOverlay');
@@ -737,25 +885,15 @@
       $('doneBanner').classList.add('show');
       setGuide('', ['guideAsk','guideEmail','guideSend','guideSources','guideBop','guideCourt']);
       addLog('Court filing', 'Simulated e-filing complete. Next action is to wait for court response. Expected time: 1 day.', 'good');
-      addChat('All pending tasks for this case are complete for today. Next action: wait for court response. Expected time: 1 day.', 'ai');
+      if (guidedMode) advanceGuide(8);
+      else setCoach('All pending tasks complete for today. Next: wait for court response.');
       showToast('<strong>All pending tasks done.</strong><br>Next action: wait for court response. Expected time: 1 day.');
       setTimeout(showCompletionOverlay, 450);
     }
 
     $('completionOverlay').addEventListener('click', (event) => { if (event.target === $('completionOverlay')) { $('completionOverlay').classList.remove('show'); $('completionOverlay').setAttribute('aria-hidden', 'true'); } });
     document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { $('completionOverlay').classList.remove('show'); $('completionOverlay').setAttribute('aria-hidden', 'true'); } });
-    $('quickRunBtn').addEventListener('click', () => {
-      resetTabProgress();
-      openDemo();
-      setTimeout(runInitialAnalysis, 500);
-      setTimeout(draftEmail, 2500);
-      setTimeout(sendEmail, 4200);
-      setTimeout(gotoSources, 7800);
-      setTimeout(gotoBop, 9000);
-      setTimeout(populateBop, 10000);
-      setTimeout(finalizeBop, 11600);
-      setTimeout(efile, 12800);
-    });
+    $('quickRunBtn').addEventListener('click', startGuidedTour);
     $('resetBtn').addEventListener('click', () => location.reload());
     $('toggleDashboardBtn').addEventListener('click', () => {
       const grid = $('demoGrid');
@@ -768,14 +906,24 @@
       $('toggleDashboardBtn').setAttribute('aria-expanded', 'false');
       $('toggleDashboardBtn').textContent = 'Case queue ▸';
     }
-    $('topAiBtn').addEventListener('click', () => { openDrawer('ai'); if (demo.classList.contains('is-open')) runInitialAnalysis(); });
-    $('topWorkLogBtn').addEventListener('click', () => openDrawer('log'));
-    $('floatAiBtn').addEventListener('click', () => { openDemo(); openDrawer('ai'); highlightDraftButton(); });
+    $('topAiBtn').addEventListener('click', () => {
+      openDemo();
+      openDrawer('ai');
+      if (guidedMode && guideStep === 0) runInitialAnalysis();
+      else if (demo.classList.contains('is-open')) runInitialAnalysis();
+    });
+    $('topWorkLogBtn').addEventListener('click', () => { openDemo(); openDrawer('log'); });
+    $('floatAiBtn').addEventListener('click', () => {
+      openDemo();
+      openDrawer('ai');
+      if (guidedMode && guideStep === 0) runInitialAnalysis();
+      else highlightDraftButton();
+    });
     $('floatLogBtn').addEventListener('click', () => { openDemo(); openDrawer('log'); });
     $('closeAiBtn').addEventListener('click', () => $('aiDrawer').classList.remove('open'));
     $('closeLogBtn').addEventListener('click', () => $('logDrawer').classList.remove('open'));
     $('taskBop').addEventListener('click', runInitialAnalysis);
-    $('taskEmail').addEventListener('click', () => { setTaskActive('taskEmail'); setTab('email'); openDrawer('ai'); highlightDraftButton(); addChat('Click Draft Email to generate the OPA authorization request.', 'ai'); });
+    $('taskEmail').addEventListener('click', () => { setTaskActive('taskEmail'); setTab('email'); openDrawer('ai'); highlightDraftButton(); setCoach('Click <strong>Draft Email →</strong> to generate the OPA authorization request.'); });
     $('taskFile').addEventListener('click', () => { setTaskActive('taskFile'); setTab('bop'); if (!authorizationReceived) showToast('<strong>Still blocked.</strong><br>OPA authorization is needed before final filing.'); });
     document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setTab(t.dataset.tab)));
     $('draftEmailBtn').addEventListener('click', draftEmail);
