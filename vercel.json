@@ -3,5 +3,10 @@
   "installCommand": "pnpm install",
   "buildCommand": "pnpm --dir frontend run build",
   "outputDirectory": "frontend/dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/((?!.*\\.html$).*)",
+      "destination": "/index.html"
+    }
+  ]
 }

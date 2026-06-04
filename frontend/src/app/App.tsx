@@ -9,6 +9,7 @@ import { Navigate } from 'react-router-dom';
 import { AiAgentsCaseStudyV3Page } from './modules/case-studies/ai-agents/AiAgentsCaseStudyV3Page';
 import { AiAgentsCaseStudyV4Page } from './modules/case-studies/ai-agents/AiAgentsCaseStudyV4Page';
 import { LegalWorkflowResearchCaseStudyPage } from './modules/case-studies/legal-workflow-research/LegalWorkflowResearchCaseStudyPage';
+import { StaticCaseStudyAssetGuard } from './modules/case-studies/legal-workflow-research/StaticCaseStudyAssetGuard';
 import { AI_AGENTS_CASE_STUDY_PATH, AI_AGENTS_CASE_STUDY_V1_PATH } from './lib/caseStudyRoutes';
 import { DesignPortfolio } from './modules/design/DesignPortfolio/DesignPortfolio';
 import { BlogListPage } from './modules/blog/public/list/BlogListPage';
@@ -91,6 +92,11 @@ function tempEtePublicRoutes(): ReactElement[] {
       path="/case-studies/legal-workflow-research"
       element={<LegalWorkflowResearchCaseStudyPage />}
     />,
+    <Route
+      key="cs-legal-workflow-static"
+      path="/case-studies/legal-workflow-research/:asset"
+      element={<StaticCaseStudyAssetGuard />}
+    />,
     <Route key="cs-agents-v3" path="/case-studies/ai-agents/v3" element={<AiAgentsCaseStudyV3Page />} />,
     <Route key="cs-agents-v4" path="/case-studies/ai-agents/v4" element={<AiAgentsCaseStudyV4Page />} />,
     <Route
@@ -126,6 +132,11 @@ function fullPublicRoutes(): ReactElement[] {
       key="cs-legal-workflow"
       path="/case-studies/legal-workflow-research"
       element={<LegalWorkflowResearchCaseStudyPage />}
+    />,
+    <Route
+      key="cs-legal-workflow-static-full"
+      path="/case-studies/legal-workflow-research/:asset"
+      element={<StaticCaseStudyAssetGuard />}
     />,
     <Route key="cs-agents-v3" path="/case-studies/ai-agents/v3" element={<AiAgentsCaseStudyV3Page />} />,
     <Route key="cs-agents-v4" path="/case-studies/ai-agents/v4" element={<AiAgentsCaseStudyV4Page />} />,

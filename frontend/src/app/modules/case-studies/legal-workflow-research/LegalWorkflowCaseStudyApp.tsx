@@ -15,6 +15,7 @@ import {
   SOURCES_FOOTER,
   STUDY_BLOG_TRAIL,
 } from './legalWorkflowCaseStudyData';
+import { StaticDemoLink } from './StaticDemoLink';
 import { resolveStudyBlogHref } from './resolveStudyBlogHref';
 import './legal-workflow-case-study.css';
 
@@ -169,18 +170,21 @@ export function LegalWorkflowCaseStudyApp() {
                   See the full Case OS story, problem, solution, productivity value, and engineering
                   layer.
                 </p>
-                <a className="lwr-btn lwr-btn-primary" href={CASE_OS_PRESENTATION_DEMO_PATH}>
+                <StaticDemoLink className="lwr-btn lwr-btn-primary" href={CASE_OS_PRESENTATION_DEMO_PATH}>
                   View Presentation
-                </a>
+                </StaticDemoLink>
               </div>
               <div className="lwr-card lwr-demo-card">
                 <h3>Workflow Demo</h3>
                 <p>
                   Try a synthetic BOP and OPA email workflow from pending task to completed filing.
                 </p>
-                <a className="lwr-btn lwr-btn-primary" href={LEGAL_WORKFLOW_INTERACTIVE_DEMO_PATH}>
+                <StaticDemoLink
+                  className="lwr-btn lwr-btn-primary"
+                  href={LEGAL_WORKFLOW_INTERACTIVE_DEMO_PATH}
+                >
                   Try Workflow Demo
-                </a>
+                </StaticDemoLink>
               </div>
             </div>
             <div className="lwr-btn-row lwr-demo-secondary">
