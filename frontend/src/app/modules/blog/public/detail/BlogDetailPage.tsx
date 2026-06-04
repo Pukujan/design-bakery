@@ -1,7 +1,7 @@
 /** Blog motion: guidelines/agent-devlog-blog-motion.md | Mermaid: guidelines/agent-devlog-mermaid.md */
 import { Children, createContext, isValidElement, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Clock, Tag, Calendar, User } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Clock, Tag, Calendar, User } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -258,6 +258,26 @@ const MarkdownComponents = {
       <blockquote className="my-3 sm:my-3.5 md:my-4 border-l-4 sm:border-l-5 md:border-l-6 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 p-3 sm:p-3.5 md:p-4 rounded-r-lg md:rounded-r-xl text-sm sm:text-sm md:text-base" {...props}>
         {children}
       </blockquote>
+    );
+  },
+  details({ children, className, ...props }: any) {
+    const mergedClassName = ['blog-md-disclosure not-prose', className].filter(Boolean).join(' ');
+    return (
+      <details className={mergedClassName} {...props}>
+        {children}
+      </details>
+    );
+  },
+  summary({ children, ...props }: any) {
+    return (
+      <summary className="blog-md-disclosure__trigger" {...props}>
+        <span className="blog-md-disclosure__title">{children}</span>
+        <span className="blog-md-disclosure__actions" aria-hidden="true">
+          <span className="blog-md-disclosure__cta blog-md-disclosure__cta-expand">Tap to expand</span>
+          <span className="blog-md-disclosure__cta blog-md-disclosure__cta-collapse">Collapse</span>
+          <ChevronDown className="blog-md-disclosure__chevron" />
+        </span>
+      </summary>
     );
   },
 };

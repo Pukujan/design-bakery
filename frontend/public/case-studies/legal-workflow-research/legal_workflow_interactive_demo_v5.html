@@ -293,8 +293,8 @@
     }
     @media (max-width: 720px) {
       :root {
-        --mobile-coach-bar-top: calc(env(safe-area-inset-top, 0px) + 132px);
-        --mobile-coach-drawer-top: calc(env(safe-area-inset-top, 0px) + 188px);
+        --mobile-coach-bar-top: calc(env(safe-area-inset-top, 0px) + 200px);
+        --mobile-coach-drawer-top: calc(env(safe-area-inset-top, 0px) + 256px);
       }
       .hero { min-height:auto; padding:36px 0; }
       h1 { font-size:38px; }
@@ -317,6 +317,7 @@
         flex-direction: row;
         justify-content: center;
         max-width: none;
+        z-index: 65;
       }
       .float-btn { padding:10px 12px; font-size:12px; }
       .float-btn.guide-arrow-hint::after {
@@ -334,6 +335,7 @@
         left: 12px;
         width: auto;
         max-height: min(180px, 26vh);
+        z-index: 66;
       }
       .toast {
         top: var(--mobile-coach-bar-top);
@@ -937,6 +939,17 @@
       $('toggleDashboardBtn').setAttribute('aria-expanded', 'false');
       $('toggleDashboardBtn').textContent = 'Case queue ▸';
     }
+    function syncMobileCoachOffset() {
+      if (!window.matchMedia('(max-width: 720px)').matches) return;
+      const nav = document.querySelector('.global-nav');
+      if (!nav) return;
+      const barTop = Math.ceil(nav.getBoundingClientRect().bottom + 12);
+      document.documentElement.style.setProperty('--mobile-coach-bar-top', `${barTop}px`);
+      document.documentElement.style.setProperty('--mobile-coach-drawer-top', `${barTop + 56}px`);
+    }
+    syncMobileCoachOffset();
+    window.addEventListener('resize', syncMobileCoachOffset);
+    window.addEventListener('orientationchange', syncMobileCoachOffset);
     $('topAiBtn').addEventListener('click', () => {
       openDemo();
       openDrawer('ai');
