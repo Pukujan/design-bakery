@@ -9,9 +9,9 @@ import {
   SITE_NAME,
   type BlogListShareItem,
   type BlogSharePayload,
-} from './frontend/src/og/blogShareHtml';
-import { isLinkPreviewCrawler } from './frontend/src/og/linkPreviewCrawlers';
-import { resolveCaseStudyShareMeta } from './frontend/src/og/caseStudyShareMeta';
+} from './frontend/src/og/blogShareHtml.js';
+import { isLinkPreviewCrawler } from './frontend/src/og/linkPreviewCrawlers.js';
+import { resolveCaseStudyShareMeta } from './frontend/src/og/caseStudyShareMeta.js';
 
 const PORTFOLIO_PREFIX =
   '(?:endtoend-engineer|legal-workflow-engineer|ai-engineer|forward-deployed-engineer)';
