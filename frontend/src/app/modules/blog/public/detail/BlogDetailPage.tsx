@@ -34,11 +34,8 @@ const HEADING_SCROLL_MARGIN = 'scroll-mt-32';
 /** Bullet lists only — TOC is rendered via `BlogTableOfContents`, not markdown `li`. */
 const MarkdownListParentContext = createContext<'ul' | 'ol'>('ul');
 
-/** GFM wraps cell copy in `<p>`; flag table scope for tighter typography + price chips. */
+/** GFM wraps cell copy in `<p>`; flag table scope for tighter typography. */
 const MarkdownInTableContext = createContext(false);
-
-const BLOG_TABLE_CHIP_CLASS =
-  'blog-table-chip not-prose inline-flex items-center justify-center max-w-full whitespace-nowrap px-2 py-0.5 text-[0.6875rem] sm:text-xs font-bold font-mono rounded-full border-2 border-black bg-gray-900 text-white shadow-[2px_2px_0_0_#000] dark:border-gray-200 dark:bg-gray-800 dark:text-gray-100';
 
 function flattenMarkdownText(node: ReactNode): string {
   return Children.toArray(node)
@@ -82,11 +79,7 @@ const MarkdownComponents = {
     }
 
     if (inTable && inline !== false) {
-      return (
-        <code className={BLOG_TABLE_CHIP_CLASS} {...props}>
-          {children}
-        </code>
-      );
+      return <>{children}</>;
     }
 
     return !inline ? (

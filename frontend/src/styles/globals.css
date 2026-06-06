@@ -769,7 +769,7 @@ body::before {
   display: list-item;
 }
 
-/* Blog tables — compact cells; price chips shrink-wrap (raw HTML + markdown) */
+/* Blog tables — compact cells */
 .blog-article-prose .blog-md-table-wrap table p {
   margin: 0;
 }
@@ -781,41 +781,6 @@ body::before {
   vertical-align: middle;
 }
 
-.blog-article-prose .blog-md-table code,
-.blog-article-prose .blog-md-table .blog-table-chip,
-.blog-article-prose table code:not(pre code) {
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  width: auto !important;
-  max-width: 100%;
-  text-align: center !important;
-  white-space: nowrap;
-  vertical-align: middle;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  line-height: 1.25;
-  padding: 0.2rem 0.55rem;
-  border-radius: 9999px;
-  border: 2px solid #000;
-  background-color: var(--color-gray-900, #111827) !important;
-  color: #fff !important;
-  box-shadow: 2px 2px 0 0 #000;
-}
-
-.dark .blog-article-prose .blog-md-table code,
-.dark .blog-article-prose .blog-md-table .blog-table-chip,
-.dark .blog-article-prose table code:not(pre code) {
-  border-color: #e5e7eb;
-  background-color: var(--color-gray-800, #1f2937) !important;
-  color: #f3f4f6 !important;
-  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.65);
-}
-
-.prose.blog-article-prose table :where(code):not(:where(pre *))::before,
-.prose.blog-article-prose table :where(code):not(:where(pre *))::after {
-  content: none !important;
-}
 
 /* Markdown <details> / <summary> — obvious expandable CTA blocks */
 .blog-article-prose .blog-md-disclosure {
