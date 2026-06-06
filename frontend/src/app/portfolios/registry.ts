@@ -62,7 +62,13 @@ export function getPortfolioConfig(id: PortfolioId): PortfolioConfig {
 }
 
 export function getPortfolioFromPathname(pathname: string): PortfolioId {
-  if (TEMP_ETE_HOME_ONLY && (pathname === '/' || pathname === '')) {
+  if (
+    TEMP_ETE_HOME_ONLY &&
+    (pathname === '/' ||
+      pathname === '' ||
+      pathname === '/blogs' ||
+      pathname.startsWith('/blogs/'))
+  ) {
     return 'endtoend-engineer';
   }
   if (pathname === '/legal-workflow-engineer' || pathname.startsWith('/legal-workflow-engineer/')) {

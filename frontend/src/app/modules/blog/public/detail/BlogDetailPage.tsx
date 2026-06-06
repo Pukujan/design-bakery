@@ -34,6 +34,12 @@ const HEADING_SCROLL_MARGIN = 'scroll-mt-32';
 /** Bullet lists only — TOC is rendered via `BlogTableOfContents`, not markdown `li`. */
 const MarkdownListParentContext = createContext<'ul' | 'ol'>('ul');
 
+/** GFM wraps cell copy in `<p>`; flag table scope for tighter typography + price chips. */
+const MarkdownInTableContext = createContext(false);
+
+const BLOG_TABLE_CHIP_CLASS =
+  'blog-table-chip not-prose inline-flex items-center justify-center max-w-full whitespace-nowrap px-2 py-0.5 text-[0.6875rem] sm:text-xs font-bold font-mono rounded-full border-2 border-black bg-gray-900 text-white shadow-[2px_2px_0_0_#000] dark:border-gray-200 dark:bg-gray-800 dark:text-gray-100';
+
 function flattenMarkdownText(node: ReactNode): string {
   return Children.toArray(node)
     .map((child) => {
@@ -67,11 +73,20 @@ function scrollToHashTarget(hash: string) {
 // Custom markdown components
 const MarkdownComponents = {
   code({ inline, className, children, ...props }: any) {
+    const inTable = useContext(MarkdownInTableContext);
     const match = /language-(\w+)/.exec(className || '');
     const lang = match ? match[1] : '';
 
     if (!inline && lang === 'mermaid') {
       return <MermaidDiagram chart={String(children).replace(/\n$/, '')} />;
+    }
+
+    if (inTable && inline !== false) {
+      return (
+        <code className={BLOG_TABLE_CHIP_CLASS} {...props}>
+          {children}
+        </code>
+      );
     }
 
     return !inline ? (
@@ -172,11 +187,16 @@ const MarkdownComponents = {
   },
   table({ children, ...props }: any) {
     return (
-      <div className="my-4 sm:my-5 md:my-6 overflow-x-auto -mx-2 sm:-mx-1 md:mx-0">
-        <table className="min-w-full border-2 sm:border-2 md:border-3 border-black text-xs sm:text-xs md:text-sm" {...props}>
-          {children}
-        </table>
-      </div>
+      <MarkdownInTableContext.Provider value={true}>
+        <div className="blog-md-table-wrap my-4 sm:my-5 md:my-6 overflow-x-auto -mx-2 sm:-mx-1 md:mx-0">
+          <table
+            className="blog-md-table min-w-full border-2 sm:border-2 md:border-3 border-black text-xs sm:text-xs md:text-sm"
+            {...props}
+          >
+            {children}
+          </table>
+        </div>
+      </MarkdownInTableContext.Provider>
     );
   },
   thead({ children, ...props }: any) {
@@ -186,16 +206,30 @@ const MarkdownComponents = {
       </thead>
     );
   },
-  th({ children, ...props }: any) {
+  th({ children, align, style, ...props }: any) {
+    const alignClass =
+      align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left';
     return (
-      <th className="px-2 py-1.5 sm:px-3 md:px-4 md:py-2 border border-black sm:border md:border-2 font-black text-left text-xs sm:text-xs md:text-sm" {...props}>
+      <th
+        align={align}
+        style={style}
+        className={`px-2 py-1.5 sm:px-3 md:px-4 md:py-2 border border-black sm:border md:border-2 font-black text-xs sm:text-xs md:text-sm ${alignClass}`}
+        {...props}
+      >
         {children}
       </th>
     );
   },
-  td({ children, ...props }: any) {
+  td({ children, align, style, ...props }: any) {
+    const alignClass =
+      align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left';
     return (
-      <td className="px-2 py-1.5 sm:px-3 md:px-4 md:py-2 border border-black sm:border md:border-2 text-xs sm:text-xs md:text-sm" {...props}>
+      <td
+        align={align}
+        style={style}
+        className={`px-2 py-1.5 sm:px-3 md:px-4 md:py-2 border border-black sm:border md:border-2 text-xs sm:text-xs md:text-sm align-top ${alignClass}`}
+        {...props}
+      >
         {children}
       </td>
     );
@@ -247,6 +281,14 @@ const MarkdownComponents = {
     );
   },
   p({ children, ...props }: any) {
+    const inTable = useContext(MarkdownInTableContext);
+    if (inTable) {
+      return (
+        <p className="m-0 leading-snug text-inherit text-xs sm:text-xs md:text-sm" {...props}>
+          {children}
+        </p>
+      );
+    }
     return (
       <p className="my-2 sm:my-2.5 md:my-3 leading-relaxed text-sm sm:text-sm md:text-base" {...props}>
         {children}

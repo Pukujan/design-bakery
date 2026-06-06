@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { TEMP_ETE_HOME_ONLY } from '../lib/siteMode';
 import {
   DEFAULT_PORTFOLIO_ID,
   getPortfolioConfig,
@@ -26,11 +27,13 @@ export function PortfolioProvider({
 }) {
   const value = useMemo(() => {
     const config = getPortfolioConfig(portfolioId);
+    const basePath =
+      TEMP_ETE_HOME_ONLY && portfolioId === 'endtoend-engineer' ? '' : config.basePath;
     return {
       portfolioId,
       config,
-      basePath: config.basePath,
-      pathTo: (segment = '/') => portfolioPath(config.basePath, segment),
+      basePath,
+      pathTo: (segment = '/') => portfolioPath(basePath, segment),
       isDefaultPortfolio: portfolioId === DEFAULT_PORTFOLIO_ID,
     };
   }, [portfolioId]);

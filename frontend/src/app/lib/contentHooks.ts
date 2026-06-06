@@ -54,6 +54,7 @@ function useAsyncContent<T>(
   }, []);
 
   useEffect(() => {
+    setData(fallback);
     let active = true;
     void loader()
       .then((next) => {
@@ -66,7 +67,7 @@ function useAsyncContent<T>(
     return () => {
       active = false;
     };
-  }, [portfolioId, reloadToken]);
+  }, [portfolioId, reloadToken, fallback]);
 
   return data;
 }
