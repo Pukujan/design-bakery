@@ -80,14 +80,15 @@ export function getSkillsMetaFallback(portfolioId: PortfolioId): EngineeringSkil
   return ENGINEERING_SKILLS_META_DEFAULT;
 }
 
+const eteExperienceMerged: RelevantExperienceContent = {
+  ...(lweExperience as RelevantExperienceContent),
+  subtitle: (eteExperience as RelevantExperienceContent).subtitle,
+};
+
 export function getExperienceFallback(portfolioId: PortfolioId): RelevantExperienceContent {
   if (portfolioId === 'ai-engineer') return aiExperience as RelevantExperienceContent;
   if (portfolioId === 'legal-workflow-engineer') return lweExperience as RelevantExperienceContent;
-  if (portfolioId === 'endtoend-engineer') {
-    const legal = lweExperience as RelevantExperienceContent;
-    const ete = eteExperience as RelevantExperienceContent;
-    return { ...legal, subtitle: ete.subtitle };
-  }
+  if (portfolioId === 'endtoend-engineer') return eteExperienceMerged;
   if (portfolioId === 'forward-deployed-engineer') return fdeExperience as RelevantExperienceContent;
   return RELEVANT_EXPERIENCE_DEFAULT;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePortfolio } from '../portfolios/PortfolioContext';
 import type { PortfolioId } from '../portfolios/registry';
 import {
@@ -41,9 +41,10 @@ const SOCIAL_LINKS_FALLBACK = _socialLinksJson as SocialLink[];
 
 function useAsyncContent<T>(
   loader: () => Promise<T>,
-  fallback: T,
+  fallbackFactory: () => T,
   portfolioId: PortfolioId
 ): T {
+  const fallback = useMemo(fallbackFactory, [portfolioId, fallbackFactory]);
   const [data, setData] = useState<T>(fallback);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -74,16 +75,14 @@ function useAsyncContent<T>(
 
 export function useProjectsContent() {
   const { portfolioId } = usePortfolio();
-  const fallback = PROJECT_FALLBACKS[portfolioId];
-  return useAsyncContent<Project[]>(() => getProjects(portfolioId), fallback, portfolioId);
+  return useAsyncContent<Project[]>(() => getProjects(portfolioId), () => PROJECT_FALLBACKS[portfolioId], portfolioId);
 }
 
 export function useEngineeringSkillsContent() {
   const { portfolioId } = usePortfolio();
-  const fallback = ENG_SKILLS_FALLBACKS[portfolioId];
   return useAsyncContent<SkillCategory[]>(
     () => getEngineeringSkills(portfolioId),
-    fallback,
+    () => ENG_SKILLS_FALLBACKS[portfolioId],
     portfolioId
   );
 }
@@ -92,7 +91,7 @@ export function useSocialLinksContent() {
   const { portfolioId } = usePortfolio();
   return useAsyncContent<SocialLink[]>(
     () => getSocialLinks(portfolioId),
-    SOCIAL_LINKS_FALLBACK,
+    () => SOCIAL_LINKS_FALLBACK,
     portfolioId
   );
 }
@@ -101,7 +100,7 @@ export function useEngineeringHeroSection() {
   const { portfolioId } = usePortfolio();
   return useAsyncContent<EngineeringHeroContent>(
     () => getEngineeringHeroContent(portfolioId),
-    getHeroFallback(portfolioId),
+    () => getHeroFallback(portfolioId),
     portfolioId
   );
 }
@@ -110,7 +109,7 @@ export function useEngineeringCommunitySection() {
   const { portfolioId } = usePortfolio();
   return useAsyncContent<EngineeringCommunityContent>(
     () => getEngineeringCommunityContent(portfolioId),
-    ENGINEERING_COMMUNITY_DEFAULT,
+    () => ENGINEERING_COMMUNITY_DEFAULT,
     portfolioId
   );
 }
@@ -119,7 +118,7 @@ export function useEngineeringAboutSection() {
   const { portfolioId } = usePortfolio();
   return useAsyncContent<EngineeringAboutContent>(
     () => getEngineeringAboutContent(portfolioId),
-    getAboutFallback(portfolioId),
+    () => getAboutFallback(portfolioId),
     portfolioId
   );
 }
@@ -128,7 +127,7 @@ export function useEngineeringSkillsMetaSection() {
   const { portfolioId } = usePortfolio();
   return useAsyncContent<EngineeringSkillsMeta>(
     () => getEngineeringSkillsMeta(portfolioId),
-    getSkillsMetaFallback(portfolioId),
+    () => getSkillsMetaFallback(portfolioId),
     portfolioId
   );
 }
@@ -137,7 +136,7 @@ export function useContactSection() {
   const { portfolioId } = usePortfolio();
   return useAsyncContent<ContactSectionContent>(
     () => getContactSectionContent(portfolioId),
-    CONTACT_SECTION_DEFAULT,
+    () => CONTACT_SECTION_DEFAULT,
     portfolioId
   );
 }
@@ -146,7 +145,7 @@ export function useFooterSection() {
   const { portfolioId } = usePortfolio();
   return useAsyncContent<FooterContent>(
     () => getFooterContent(portfolioId),
-    FOOTER_CONTENT_DEFAULT,
+    () => FOOTER_CONTENT_DEFAULT,
     portfolioId
   );
 }
@@ -155,7 +154,7 @@ export function useRelevantExperienceContent() {
   const { portfolioId } = usePortfolio();
   return useAsyncContent<RelevantExperienceContent>(
     () => getRelevantExperienceContent(portfolioId),
-    getExperienceFallback(portfolioId),
+    () => getExperienceFallback(portfolioId),
     portfolioId
   );
 }

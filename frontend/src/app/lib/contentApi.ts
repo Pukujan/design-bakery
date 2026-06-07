@@ -1,5 +1,17 @@
 import { getAuthApiBaseUrl } from './adminToken';
 
+const FETCH_TIMEOUT_MS = 5_000;
+
+async function fetchWithTimeout(url: string, init?: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export function isSupabaseContentEnabled(): boolean {
   return Boolean(getAuthApiBaseUrl());
 }
@@ -14,7 +26,7 @@ async function authFetch(path: string, init?: RequestInit): Promise<Response> {
   const { getAdminAccessToken } = await import('./adminToken');
   const token = getAdminAccessToken();
   if (!token) throw new Error('Sign in to admin first.');
-  return fetch(`${apiBase()}${path}`, {
+  return fetchWithTimeout(`${apiBase()}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -25,7 +37,7 @@ async function authFetch(path: string, init?: RequestInit): Promise<Response> {
 }
 
 export async function fetchPublic<T>(path: string): Promise<T> {
-  const res = await fetch(`${apiBase()}${path}`);
+  const res = await fetchWithTimeout(`${apiBase()}${path}`);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error((data as { message?: string }).message ?? `Request failed (${res.status})`);
