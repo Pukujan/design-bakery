@@ -1,11 +1,9 @@
 import { Fragment, type ReactElement } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { DefaultSiteHead } from './seo/PageSeo';
-import { EngineeringHome } from './modules/engineering/EngineeringHome/EngineeringHome';
 import { PortfolioHub } from './portfolios/PortfolioHub';
 import { EkagajpatraCaseStudyPage } from './modules/case-studies/ekagajpatra/EkagajpatraCaseStudyPage';
 import { InvestAiCaseStudyPage } from './modules/case-studies/invest-ai/InvestAiCaseStudyPage';
-import { Navigate } from 'react-router-dom';
 import { AiAgentsCaseStudyV3Page } from './modules/case-studies/ai-agents/AiAgentsCaseStudyV3Page';
 import { AiAgentsCaseStudyV4Page } from './modules/case-studies/ai-agents/AiAgentsCaseStudyV4Page';
 import { LegalWorkflowResearchCaseStudyPage } from './modules/case-studies/legal-workflow-research/LegalWorkflowResearchCaseStudyPage';
@@ -20,7 +18,29 @@ import { AdminLogin } from './modules/admin/AdminLogin';
 import { PortfolioPublicLayout } from './portfolios/PortfolioPublicLayout';
 import { AdminLayoutShell } from './modules/admin/AdminLayoutShell';
 import { buildAdminChildRoutes } from './modules/admin/adminRoutes';
-import { TEMP_ETE_HOME_ONLY } from './lib/siteMode';
+
+function HomeRedirect() {
+  return <Navigate to="/" replace />;
+}
+
+function BlogIndexRedirect() {
+  return <Navigate to="/blogs" replace />;
+}
+
+function BlogDetailRedirect() {
+  const { blogId } = useParams<{ blogId?: string }>();
+  return <Navigate to={blogId ? `/blogs/${blogId}` : '/blogs'} replace />;
+}
+
+function GalleryRedirect() {
+  const { category, imageId } = useParams<{ category?: string; imageId?: string }>();
+  return (
+    <Navigate
+      to={category && imageId ? `/gallery/image/${category}/${imageId}` : '/gallery'}
+      replace
+    />
+  );
+}
 
 function adminRoutes(): ReactElement[] {
   return [
@@ -83,46 +103,6 @@ function adminRoutes(): ReactElement[] {
   ];
 }
 
-function tempEtePublicRoutes(): ReactElement[] {
-  return [
-    <Route key="cs-eka" path="/case-studies/ekagajpatra" element={<EkagajpatraCaseStudyPage />} />,
-    <Route key="cs-invest" path="/case-studies/invest-ai" element={<InvestAiCaseStudyPage />} />,
-    <Route
-      key="cs-legal-workflow"
-      path="/case-studies/legal-workflow-research"
-      element={<LegalWorkflowResearchCaseStudyPage />}
-    />,
-    <Route
-      key="cs-legal-workflow-static"
-      path="/case-studies/legal-workflow-research/:asset"
-      element={<StaticCaseStudyAssetGuard />}
-    />,
-    <Route key="cs-agents-v3" path="/case-studies/ai-agents/v3" element={<AiAgentsCaseStudyV3Page />} />,
-    <Route key="cs-agents-v4" path="/case-studies/ai-agents/v4" element={<AiAgentsCaseStudyV4Page />} />,
-    <Route
-      key="cs-agents-v2"
-      path="/case-studies/ai-agents/v2"
-      element={<Navigate to={AI_AGENTS_CASE_STUDY_PATH} replace />}
-    />,
-    <Route
-      key="cs-agents-v1"
-      path={AI_AGENTS_CASE_STUDY_V1_PATH}
-      element={<Navigate to={AI_AGENTS_CASE_STUDY_PATH} replace />}
-    />,
-    <Route key="home" path="/" element={<PortfolioPublicLayout />}>
-      <Route index element={<EngineeringHome />} />
-      <Route path="blogs" element={<BlogListPage />} />
-      <Route path="blogs/:blogId" element={<BlogDetailPage />} />
-    </Route>,
-    <Route key="ete-redirect" path="/endtoend-engineer" element={<Navigate to="/" replace />} />,
-    <Route key="ete-blogs-layout" element={<PortfolioPublicLayout />}>
-      <Route path="/endtoend-engineer/blogs" element={<BlogListPage />} />
-      <Route path="/endtoend-engineer/blogs/:blogId" element={<BlogDetailPage />} />
-    </Route>,
-    <Route key="catch-all" path="*" element={<Navigate to="/" replace />} />,
-  ];
-}
-
 function fullPublicRoutes(): ReactElement[] {
   return [
     <Route key="hub" path="/" element={<PortfolioHub />} />,
@@ -156,26 +136,24 @@ function fullPublicRoutes(): ReactElement[] {
     <Route key="public-layout" element={<PortfolioPublicLayout />}>
       <Route path="/blogs" element={<BlogListPage />} />
       <Route path="/blogs/:blogId" element={<BlogDetailPage />} />
-      <Route path="/legal-workflow-engineer" element={<EngineeringHome />} />
-      <Route path="/legal-workflow-engineer/blogs" element={<BlogListPage />} />
-      <Route path="/legal-workflow-engineer/blogs/:blogId" element={<BlogDetailPage />} />
-      <Route path="/endtoend-engineer" element={<EngineeringHome />} />
-      <Route path="/endtoend-engineer/blogs" element={<BlogListPage />} />
-      <Route path="/endtoend-engineer/blogs/:blogId" element={<BlogDetailPage />} />
-      <Route path="/endtoend-engineer/gallery" element={<PhotoGalleryPage />} />
-      <Route
-        path="/endtoend-engineer/gallery/image/:category/:imageId"
-        element={<PhotoGalleryPage />}
-      />
       <Route path="/gallery" element={<PhotoGalleryPage />} />
       <Route path="/gallery/image/:category/:imageId" element={<PhotoGalleryPage />} />
-      <Route path="/ai-engineer" element={<EngineeringHome />} />
-      <Route path="/ai-engineer/blogs" element={<BlogListPage />} />
-      <Route path="/ai-engineer/blogs/:blogId" element={<BlogDetailPage />} />
-      <Route path="/forward-deployed-engineer" element={<EngineeringHome />} />
-      <Route path="/forward-deployed-engineer/blogs" element={<BlogListPage />} />
-      <Route path="/forward-deployed-engineer/blogs/:blogId" element={<BlogDetailPage />} />
     </Route>,
+    <Route path="/legal-workflow-engineer" element={<HomeRedirect />} />,
+    <Route path="/legal-workflow-engineer/blogs" element={<BlogIndexRedirect />} />,
+    <Route path="/legal-workflow-engineer/blogs/:blogId" element={<BlogDetailRedirect />} />,
+    <Route path="/endtoend-engineer" element={<HomeRedirect />} />,
+    <Route path="/endtoend-engineer/blogs" element={<BlogIndexRedirect />} />,
+    <Route path="/endtoend-engineer/blogs/:blogId" element={<BlogDetailRedirect />} />,
+    <Route path="/endtoend-engineer/gallery" element={<GalleryRedirect />} />,
+    <Route path="/endtoend-engineer/gallery/image/:category/:imageId" element={<GalleryRedirect />} />,
+    <Route path="/ai-engineer" element={<HomeRedirect />} />,
+    <Route path="/ai-engineer/blogs" element={<BlogIndexRedirect />} />,
+    <Route path="/ai-engineer/blogs/:blogId" element={<BlogDetailRedirect />} />,
+    <Route path="/forward-deployed-engineer" element={<HomeRedirect />} />,
+    <Route path="/forward-deployed-engineer/blogs" element={<BlogIndexRedirect />} />,
+    <Route path="/forward-deployed-engineer/blogs/:blogId" element={<BlogDetailRedirect />} />,
+    <Route key="catch-all" path="*" element={<Navigate to="/" replace />} />,
   ];
 }
 
@@ -187,7 +165,7 @@ export default function App() {
         <Routes>
           <Fragment>
             {adminRoutes()}
-            {TEMP_ETE_HOME_ONLY ? tempEtePublicRoutes() : fullPublicRoutes()}
+            {fullPublicRoutes()}
           </Fragment>
         </Routes>
       </Router>

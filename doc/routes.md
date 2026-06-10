@@ -39,9 +39,13 @@ Base path: **none** (`portfolioId: default`). Includes top [`Navigation`](../src
 | `/blogs` | `BlogListPage` | Shared blog index; category filter defaults to **All** (`all`) |
 | `/blogs/:blogId` | `BlogDetailPage` | Single post (`blogId` = numeric id from blog data) |
 
+Legacy public aliases such as `/legal-workflow-engineer`, `/endtoend-engineer`, `/ai-engineer`, `/forward-deployed-engineer`, and their `/blogs` variants redirect to `/` or `/blogs`.
+
 ### Engineering — legal-workflow-engineer portfolio
 
 Base path: **`/legal-workflow-engineer`**. Same components as default; different Firestore/JSON content. Same public nav pattern (scoped links).
+
+Currently treated as a legacy alias on the public site. The public route redirects to `/`, and `/legal-workflow-engineer/blogs` redirects to `/blogs`.
 
 | URL | Component | Description |
 |-----|-----------|-------------|
@@ -52,6 +56,8 @@ Base path: **`/legal-workflow-engineer`**. Same components as default; different
 ### Engineering — endtoend-engineer demo portfolio
 
 Base path: **`/endtoend-engineer`**. Same layout as default/LWE; **demo JSON fallbacks** (teal/orange pipeline theme) for hero, about, projects, skills, and experience.
+
+Currently treated as a legacy alias on the public site. The public route redirects to `/`, and `/endtoend-engineer/blogs` redirects to `/blogs`.
 
 | Path | Component | Notes |
 |------|-----------|--------|
@@ -177,6 +183,8 @@ Shown on engineering pages only (`PortfolioPublicLayout`):
 | Projects | `#projects` on home | `#projects` on LWE home |
 | About | `#about` | `#about` |
 | Contact | `#contact` | `#contact` |
+
+On the public site today, the LWE target is a compatibility alias and redirects to the canonical default routes.
 
 **Not in public nav:** Design (`/nav/design`), admin, portfolio switcher.
 
