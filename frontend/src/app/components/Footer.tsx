@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useFooterSection } from '../lib/contentHooks';
 import { normalizeFooterSocialLink } from '../lib/normalizeSocialLinks';
 import { resolveFooterSocialIcon } from '../lib/socialIconResolver';
+import { TEMP_ETE_HOME_ONLY } from '../lib/siteMode';
 import { usePortfolio } from '../portfolios/PortfolioContext';
 import type { FooterNavLink } from '../lib/adminContentService';
 
@@ -12,6 +13,7 @@ function isExternalHref(href: string): boolean {
 
 function resolveRoutePath(href: string, pathTo: (segment?: string) => string): string {
   if (href === '/' || href === '') return pathTo('/');
+  if (TEMP_ETE_HOME_ONLY) return pathTo('/');
   if (href === '/blogs') return pathTo('/blogs');
   if (
     href.startsWith('/case-studies') ||

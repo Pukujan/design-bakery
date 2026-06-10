@@ -5,6 +5,7 @@ import { Menu, X, BookOpen, ArrowLeft } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { usePortfolio } from "../portfolios/PortfolioContext";
+import { TEMP_ETE_HOME_ONLY } from "@/lib/siteMode";
 import { useBlogCategories, useBlogData, useBlogPost } from "@/modules/blog/data/blogData";
 import { resolveBlogCategoryId } from "@/modules/blog/lib/blogCategoryNav";
 import { BlogCategoryNav } from "@/modules/blog/shared/BlogCategoryNav";
@@ -72,20 +73,22 @@ export function Navigation() {
           </Link>
 
           <div className={desktopNavClass}>
-            <Button
-              asChild
-              variant={isBlogs ? "default" : "ghost"}
-              className={`gap-2 ${
-                isBlogs
-                  ? "bg-purple-600 hover:bg-purple-700 text-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                  : "hover:bg-gray-100 dark:hover:bg-gray-800"
-              }`}
-            >
-              <Link to={blogsPath}>
-                <BookOpen className="w-4 h-4" />
-                Blogs
-              </Link>
-            </Button>
+            {!TEMP_ETE_HOME_ONLY && (
+              <Button
+                asChild
+                variant={isBlogs ? "default" : "ghost"}
+                className={`gap-2 ${
+                  isBlogs
+                    ? "bg-purple-600 hover:bg-purple-700 text-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                }`}
+              >
+                <Link to={blogsPath}>
+                  <BookOpen className="w-4 h-4" />
+                  Blogs
+                </Link>
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"
@@ -137,20 +140,22 @@ export function Navigation() {
             animate={{ opacity: 1, y: 0 }}
             className={`${mobileMenuPanelClass} mt-4 pb-4 flex flex-col gap-2`}
           >
-            <Button
-              asChild
-              variant={isBlogs ? "default" : "ghost"}
-              className={`w-full justify-start gap-2 ${
-                isBlogs
-                  ? "bg-purple-600 hover:bg-purple-700 text-white border-2 border-black"
-                  : ""
-              }`}
-            >
-              <Link to={blogsPath} onClick={() => setMobileMenuOpen(false)}>
-                <BookOpen className="w-4 h-4" />
-                Blogs
-              </Link>
-            </Button>
+            {!TEMP_ETE_HOME_ONLY && (
+              <Button
+                asChild
+                variant={isBlogs ? "default" : "ghost"}
+                className={`w-full justify-start gap-2 ${
+                  isBlogs
+                    ? "bg-purple-600 hover:bg-purple-700 text-white border-2 border-black"
+                    : ""
+                }`}
+              >
+                <Link to={blogsPath} onClick={() => setMobileMenuOpen(false)}>
+                  <BookOpen className="w-4 h-4" />
+                  Blogs
+                </Link>
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"

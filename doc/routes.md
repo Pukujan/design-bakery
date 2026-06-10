@@ -29,41 +29,15 @@ flowchart LR
 
 ## Public routes
 
-### Engineering — default portfolio
+### Engineering — endtoend-engineer homepage
 
-Base path: **none** (`portfolioId: default`). Includes top [`Navigation`](../src/app/components/Navigation.tsx).
-
-| URL | Component | Description |
-|-----|-----------|-------------|
-| `/` | `EngineeringHome` | Main engineering portfolio (hero, projects, community, about, skills, insights, experience, contact, footer) |
-| `/blogs` | `BlogListPage` | Shared blog index; category filter defaults to **All** (`all`) |
-| `/blogs/:blogId` | `BlogDetailPage` | Single post (`blogId` = numeric id from blog data) |
-
-Legacy public aliases such as `/legal-workflow-engineer`, `/endtoend-engineer`, `/ai-engineer`, `/forward-deployed-engineer`, and their `/blogs` variants redirect to `/` or `/blogs`.
-
-### Engineering — legal-workflow-engineer portfolio
-
-Base path: **`/legal-workflow-engineer`**. Same components as default; different Firestore/JSON content. Same public nav pattern (scoped links).
-
-Currently treated as a legacy alias on the public site. The public route redirects to `/`, and `/legal-workflow-engineer/blogs` redirects to `/blogs`.
+Base path: **none** (`portfolioId: endtoend-engineer` in generation mode). Includes top [`Navigation`](../src/app/components/Navigation.tsx).
 
 | URL | Component | Description |
 |-----|-----------|-------------|
-| `/legal-workflow-engineer` | `EngineeringHome` | LWE engineering portfolio |
-| `/legal-workflow-engineer/blogs` | `BlogListPage` | Shared posts; category filter defaults to **Systems** (`systems`) |
-| `/legal-workflow-engineer/blogs/:blogId` | `BlogDetailPage` | Single post (shared content) |
+| `/` | `EngineeringHome` | End-to-end engineering homepage (hero, projects, community, about, skills, insights, experience, contact, footer) |
 
-### Engineering — endtoend-engineer demo portfolio
-
-Base path: **`/endtoend-engineer`**. Same layout as default/LWE; **demo JSON fallbacks** (teal/orange pipeline theme) for hero, about, projects, skills, and experience.
-
-Currently treated as a legacy alias on the public site. The public route redirects to `/`, and `/endtoend-engineer/blogs` redirects to `/blogs`.
-
-| Path | Component | Notes |
-|------|-----------|--------|
-| `/endtoend-engineer` | `EngineeringHome` | Demo E2E engineering portfolio |
-| `/endtoend-engineer/blogs` | `BlogListPage` | Shared posts; category filter defaults to **Architecture** (`architecture`) |
-| `/endtoend-engineer/blogs/:blogId` | `BlogDetailPage` | Single post (shared content) |
+All other public routes redirect to `/` in generation mode.
 
 ### Design portfolio
 
@@ -86,9 +60,9 @@ No shared engineering nav. Design page does not use `PortfolioPublicLayout`.
 
 ## In-page section anchors
 
-Hash links (`#section-id`) scroll within the current engineering home. Navbar **Projects**, **About**, and **Contact** use these on `/` or `/legal-workflow-engineer`.
+Hash links (`#section-id`) scroll within the current engineering home. Navbar **Projects**, **About**, and **Contact** use these on `/`.
 
-### Default and LWE engineering home
+### Generation-mode engineering home
 
 | Anchor | Section |
 |--------|---------|
@@ -174,17 +148,17 @@ Blog editors on both admins edit the **same** shared `blog_posts` / `blog_catego
 
 ## Public navbar vs routes
 
-Shown on engineering pages only (`PortfolioPublicLayout`):
+Shown on the homepage only (`PortfolioPublicLayout`):
 
-| Nav control | Default portfolio target | LWE target |
-|-------------|-------------------------|------------|
-| Logo / brand | `/` | `/legal-workflow-engineer` |
-| Blogs | `/blogs` | `/legal-workflow-engineer/blogs` |
-| Projects | `#projects` on home | `#projects` on LWE home |
-| About | `#about` | `#about` |
-| Contact | `#contact` | `#contact` |
+| Nav control | Generation-mode target |
+|-------------|------------------------|
+| Logo / brand | `/` |
+| Blogs | hidden |
+| Projects | `#projects` |
+| About | `#about` |
+| Contact | `#contact` |
 
-On the public site today, the LWE target is a compatibility alias and redirects to the canonical default routes.
+In generation mode, the public site only exposes `/`; every other public route redirects home.
 
 **Not in public nav:** Design (`/nav/design`), admin, portfolio switcher.
 

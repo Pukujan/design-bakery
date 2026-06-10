@@ -1,6 +1,7 @@
 import { Fragment, type ReactElement } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { DefaultSiteHead } from './seo/PageSeo';
+import { EngineeringHome } from './modules/engineering/EngineeringHome/EngineeringHome';
 import { PortfolioHub } from './portfolios/PortfolioHub';
 import { EkagajpatraCaseStudyPage } from './modules/case-studies/ekagajpatra/EkagajpatraCaseStudyPage';
 import { InvestAiCaseStudyPage } from './modules/case-studies/invest-ai/InvestAiCaseStudyPage';
@@ -18,6 +19,7 @@ import { AdminLogin } from './modules/admin/AdminLogin';
 import { PortfolioPublicLayout } from './portfolios/PortfolioPublicLayout';
 import { AdminLayoutShell } from './modules/admin/AdminLayoutShell';
 import { buildAdminChildRoutes } from './modules/admin/adminRoutes';
+import { TEMP_ETE_HOME_ONLY } from './lib/siteMode';
 
 function HomeRedirect() {
   return <Navigate to="/" replace />;
@@ -40,6 +42,35 @@ function GalleryRedirect() {
       replace
     />
   );
+}
+
+function tempEtePublicRoutes(): ReactElement[] {
+  return [
+    <Route key="home" path="/" element={<PortfolioPublicLayout />}>
+      <Route index element={<EngineeringHome />} />
+    </Route>,
+    <Route path="/blogs" element={<HomeRedirect />} />,
+    <Route path="/blogs/:blogId" element={<HomeRedirect />} />,
+    <Route path="/gallery" element={<HomeRedirect />} />,
+    <Route path="/gallery/image/:category/:imageId" element={<HomeRedirect />} />,
+    <Route path="/legal-workflow-engineer" element={<HomeRedirect />} />,
+    <Route path="/legal-workflow-engineer/blogs" element={<HomeRedirect />} />,
+    <Route path="/legal-workflow-engineer/blogs/:blogId" element={<HomeRedirect />} />,
+    <Route path="/endtoend-engineer" element={<HomeRedirect />} />,
+    <Route path="/endtoend-engineer/blogs" element={<HomeRedirect />} />,
+    <Route path="/endtoend-engineer/blogs/:blogId" element={<HomeRedirect />} />,
+    <Route path="/endtoend-engineer/gallery" element={<HomeRedirect />} />,
+    <Route path="/endtoend-engineer/gallery/image/:category/:imageId" element={<HomeRedirect />} />,
+    <Route path="/ai-engineer" element={<HomeRedirect />} />,
+    <Route path="/ai-engineer/blogs" element={<HomeRedirect />} />,
+    <Route path="/ai-engineer/blogs/:blogId" element={<HomeRedirect />} />,
+    <Route path="/forward-deployed-engineer" element={<HomeRedirect />} />,
+    <Route path="/forward-deployed-engineer/blogs" element={<HomeRedirect />} />,
+    <Route path="/forward-deployed-engineer/blogs/:blogId" element={<HomeRedirect />} />,
+    <Route path="/nav/design" element={<HomeRedirect />} />,
+    <Route path="/design" element={<HomeRedirect />} />,
+    <Route key="catch-all" path="*" element={<HomeRedirect />} />,
+  ];
 }
 
 function adminRoutes(): ReactElement[] {
@@ -165,7 +196,7 @@ export default function App() {
         <Routes>
           <Fragment>
             {adminRoutes()}
-            {fullPublicRoutes()}
+            {TEMP_ETE_HOME_ONLY ? tempEtePublicRoutes() : fullPublicRoutes()}
           </Fragment>
         </Routes>
       </Router>
