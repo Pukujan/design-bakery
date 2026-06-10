@@ -14,15 +14,15 @@ import { FlowerCharacter } from "../../../components/FlowerCharacter";
 import { Cupcake, IceCream } from "../../../components/BakeryItems";
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { useBlogCategories, useBlogData } from "@/modules/blog/data/blogData";
+import { blogData, categories } from "@/modules/blog/data/blogData";
 import { usePortfolio } from "../../../portfolios/PortfolioContext";
 
 const ITEMS_PER_PAGE = 3;
 
 export function EngineeringInsights() {
   const { pathTo } = usePortfolio();
-  const categories = useBlogCategories();
-  const { blogs: insights, isLoading } = useBlogData();
+  const insights = blogData;
+  const isLoading = false;
   const [selectedCategory, setSelectedCategory] =
     useState("all");
   const [currentPage, setCurrentPage] = useState(1);
