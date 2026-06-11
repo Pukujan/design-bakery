@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getBlogByNumericId, listBlogPosts } from '../../services/lib/content/blogPosts.js';
 import { listMediaAssets } from '../../services/lib/media/mediaLibrary.js';
-import { getCmsArray } from '../../services/lib/content/cmsDocuments.js';
+import { getCmsArray, getCmsObject } from '../../services/lib/content/cmsDocuments.js';
 import { sendRouteError } from '../middleware/httpErrors.js';
 
 export const publicContentRouter = Router();
@@ -33,6 +33,26 @@ publicContentRouter.get('/blog-categories', async (_req, res) => {
   try {
     const items = await getCmsArray('blog_categories', []);
     res.json({ ok: true, items });
+  } catch (error) {
+    sendRouteError(res, error);
+  }
+});
+
+publicContentRouter.get('/doc/:collectionKey/array', async (req, res) => {
+  try {
+    const key = decodeURIComponent(req.params.collectionKey);
+    const items = await getCmsArray(key, []);
+    res.json({ ok: true, items });
+  } catch (error) {
+    sendRouteError(res, error);
+  }
+});
+
+publicContentRouter.get('/doc/:collectionKey/object', async (req, res) => {
+  try {
+    const key = decodeURIComponent(req.params.collectionKey);
+    const item = await getCmsObject(key, {});
+    res.json({ ok: true, item });
   } catch (error) {
     sendRouteError(res, error);
   }

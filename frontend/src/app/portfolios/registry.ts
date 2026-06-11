@@ -35,7 +35,7 @@ export const PORTFOLIOS: Record<PortfolioId, PortfolioConfig> = {
     label: 'End-to-End Engineer',
     basePath: '',
     defaultBlogCategory: 'all',
-    collectionPrefix: 'ete__',
+    collectionPrefix: '',
   },
   'ai-engineer': {
     id: 'ai-engineer',

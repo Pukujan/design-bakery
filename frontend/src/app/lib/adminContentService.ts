@@ -111,7 +111,7 @@ export async function setArrayDoc(collectionName: string, items: unknown[]) {
 export async function getArrayDoc<T>(collectionName: string, fallback: T[] = []): Promise<T[]> {
   if (!isSupabaseContentEnabled()) return fallback;
   try {
-    const items = await contentApi.fetchContentArray<T>(collectionName);
+    const items = await contentApi.fetchPublicContentArray<T>(collectionName);
     return items.length > 0 ? items : fallback;
   } catch {
     return fallback;
@@ -128,7 +128,7 @@ export async function setObjectDoc(collectionName: string, item: unknown) {
 export async function getObjectDoc<T>(collectionName: string, fallback: T): Promise<T> {
   if (!isSupabaseContentEnabled()) return fallback;
   try {
-    const item = await contentApi.fetchContentObject<T>(collectionName);
+    const item = await contentApi.fetchPublicContentObject<T>(collectionName);
     return hasMeaningfulValue(item) ? item : fallback;
   } catch {
     return fallback;

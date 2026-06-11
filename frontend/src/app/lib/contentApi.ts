@@ -1,6 +1,6 @@
 import { getAuthApiBaseUrl } from './adminToken';
 
-const FETCH_TIMEOUT_MS = 5_000;
+const FETCH_TIMEOUT_MS = 15_000;
 
 async function fetchWithTimeout(url: string, init?: RequestInit): Promise<Response> {
   const controller = new AbortController();
@@ -53,6 +53,12 @@ export async function fetchContentArray<T>(collectionKey: string): Promise<T[]> 
   return data.items ?? [];
 }
 
+export async function fetchPublicContentArray<T>(collectionKey: string): Promise<T[]> {
+  const enc = encodeURIComponent(collectionKey);
+  const data = await fetchPublic<{ items?: T[] }>(`/api/public/doc/${enc}/array`);
+  return data.items ?? [];
+}
+
 export async function saveContentArray(collectionKey: string, items: unknown[]): Promise<void> {
   const enc = encodeURIComponent(collectionKey);
   const res = await authFetch(`/api/content/doc/${enc}/array`, {
@@ -70,6 +76,12 @@ export async function fetchContentObject<T>(collectionKey: string): Promise<T> {
   const res = await authFetch(`/api/content/doc/${enc}/object`);
   const data = (await res.json()) as { item?: T; message?: string };
   if (!res.ok) throw new Error(data.message ?? 'CMS read failed.');
+  return data.item as T;
+}
+
+export async function fetchPublicContentObject<T>(collectionKey: string): Promise<T> {
+  const enc = encodeURIComponent(collectionKey);
+  const data = await fetchPublic<{ item?: T }>(`/api/public/doc/${enc}/object`);
   return data.item as T;
 }
 
