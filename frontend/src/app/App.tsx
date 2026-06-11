@@ -44,9 +44,9 @@ function adminRoutes(): ReactElement[] {
   return [
     <Route key="admin-login" path="/admin/login" element={<AdminLogin />} />,
     <Route key="admin-default" path="/admin" element={<AdminLayoutShell />}>
-      {buildAdminChildRoutes('default').map((route) => (
+      {buildAdminChildRoutes('endtoend-engineer').map((route) => (
         <Route
-          key={route.path ?? 'default-index'}
+          key={route.path ?? 'endtoend-index'}
           index={route.index}
           path={route.path}
           element={route.element}

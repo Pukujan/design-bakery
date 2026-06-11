@@ -35,7 +35,7 @@ export const PORTFOLIOS: Record<PortfolioId, PortfolioConfig> = {
     label: 'End-to-End Engineer',
     basePath: '',
     defaultBlogCategory: 'all',
-    collectionPrefix: '',
+    collectionPrefix: 'ete__',
   },
   'ai-engineer': {
     id: 'ai-engineer',
@@ -83,7 +83,7 @@ export function getPortfolioIdFromAdminPath(pathname: string): PortfolioId {
   if (pathname.startsWith('/admin/forward-deployed-engineer')) {
     return 'forward-deployed-engineer';
   }
-  return 'default';
+  return 'endtoend-engineer';
 }
 
 export function portfolioPath(basePath: string, segment: string): string {
