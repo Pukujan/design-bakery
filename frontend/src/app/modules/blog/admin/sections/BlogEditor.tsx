@@ -89,7 +89,6 @@ export function BlogEditor() {
     DEFAULT_PUBLISH_KIT_EDITOR_DRAFT,
   );
   const newPostSlotRef = useRef(`new-${Date.now()}`);
-  const editPanelRef = useRef<HTMLElement>(null);
 
   const hasUnsavedChanges =
     editPost != null && isBlogEditorDirty(editPost, baselineFingerprint, publishKitDraft);
@@ -148,12 +147,6 @@ export function BlogEditor() {
   }
 
   useEffect(() => { void load(); }, []);
-
-  useEffect(() => {
-    if (editPost && editorExpanded && editPanelRef.current) {
-      editPanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [editPost, editorExpanded]);
 
   function collapseEditor() {
     setEditorExpanded(false);
@@ -401,7 +394,6 @@ export function BlogEditor() {
 
       {editPost && (
         <section
-          ref={editPanelRef}
           className="mb-6 w-full min-w-0 rounded-xl border-2 border-indigo-300/80 bg-white shadow-sm dark:border-indigo-800 dark:bg-gray-900"
           aria-label={editPost.id ? 'Edit blog post' : 'New blog post'}
         >
