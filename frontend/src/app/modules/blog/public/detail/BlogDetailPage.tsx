@@ -1,4 +1,4 @@
-/** Blog motion: guidelines/agent-devlog-blog-motion.md | Mermaid: guidelines/agent-devlog-mermaid.md */
+/** Blog motion: additionals/guidelines/agent-devlog-blog-motion.md | Mermaid: additionals/guidelines/agent-devlog-mermaid.md */
 import { Children, createContext, isValidElement, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, ChevronDown, Clock, Tag, Calendar, User } from 'lucide-react';

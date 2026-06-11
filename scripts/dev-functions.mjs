@@ -56,7 +56,7 @@ const emuArgs = [
   'firebase',
   'emulators:start',
   '--config',
-  'archive/firebase/firebase.json',
+  'additionals/archive/firebase/firebase.json',
   '--only',
   'functions',
   '--log-verbosity',

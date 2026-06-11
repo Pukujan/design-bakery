@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { Link } from 'react-router-dom';
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Badge } from "../../../components/ui/badge";
@@ -283,9 +284,12 @@ export function EngineeringInsights() {
                   ))}
                 </div>
 
-                <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
-                  Blog browsing is disabled on this site.
-                </p>
+                <Link
+                  to={`/blogs/${insight.id}`}
+                  className="inline-flex items-center justify-center rounded-full border-4 border-black bg-yellow-400 px-4 py-2 text-sm font-black text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-0.5 hover:bg-yellow-300"
+                >
+                  Read More
+                </Link>
               </Card>
             </motion.div>
           ))}

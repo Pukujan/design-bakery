@@ -10,4 +10,4 @@ pnpm run build   # builds frontend only
 
 **Vercel:** set project **Root Directory** to `frontend`.
 
-See [doc/env.md](../doc/env.md) and [doc/deploy-vercel-railway.md](../doc/deploy-vercel-railway.md).
+See [additionals/doc/env.md](../additionals/doc/env.md) and [additionals/doc/deploy-vercel-railway.md](../additionals/doc/deploy-vercel-railway.md).

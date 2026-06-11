@@ -5,7 +5,7 @@ import { SECTION_SUBNAV } from './legalWorkflowCaseStudyData';
 
 const TOP_NAV = [
   { href: '/', label: 'Home' },
-  { href: '/endtoend-engineer/blogs', label: 'Blogs' },
+  { href: '/blogs', label: 'Blogs' },
   { href: '/#projects', label: 'Projects' },
   { href: '/#about', label: 'About' },
   { href: '/#contact', label: 'Contact' },

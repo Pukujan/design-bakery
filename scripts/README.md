@@ -12,4 +12,4 @@ Active dev and deploy helpers. Run from repo root (`pnpm run …`).
 | `apply-storage-cors.mjs` | `pnpm run storage:cors` |
 | `migrations/migrate-firestore-to-supabase.ts` | `pnpm run migrate:firestore-to-supabase` |
 
-Legacy / one-off scripts live in [`archive/`](archive/).
+Legacy / one-off scripts live in [`additionals/archive/`](../additionals/archive/).

@@ -48,6 +48,12 @@ export function Navigation() {
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
+            <Link
+              to="/blogs"
+              className="rounded-md px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-800"
+            >
+              Blogs
+            </Link>
             <Button
               type="button"
               variant="ghost"
@@ -99,6 +105,13 @@ export function Navigation() {
             animate={{ opacity: 1, y: 0 }}
             className="md:hidden mt-4 pb-4 flex flex-col gap-2"
           >
+            <Link
+              to="/blogs"
+              className="w-full rounded-md px-3 py-2 text-left text-sm font-semibold text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-800"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Blogs
+            </Link>
             <Button
               type="button"
               variant="ghost"

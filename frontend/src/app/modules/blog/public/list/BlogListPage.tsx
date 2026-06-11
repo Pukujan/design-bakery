@@ -1,4 +1,4 @@
-/** Blog motion: guidelines/agent-devlog-blog-motion.md — decor via BlogPageMotion */
+/** Blog motion: additionals/guidelines/agent-devlog-blog-motion.md — decor via BlogPageMotion */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Search, X } from 'lucide-react';

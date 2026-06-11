@@ -1,5 +1,5 @@
 import { type ReactElement } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { DefaultSiteHead } from './seo/PageSeo';
 import { EngineeringHome } from './modules/engineering/EngineeringHome/EngineeringHome';
 import { BlogListPage } from './modules/blog/public/list/BlogListPage';
@@ -10,74 +10,50 @@ import { PortfolioPublicLayout } from './portfolios/PortfolioPublicLayout';
 import { AdminLayoutShell } from './modules/admin/AdminLayoutShell';
 import { buildAdminChildRoutes } from './modules/admin/adminRoutes';
 import { NotFoundPage } from './components/NotFoundPage';
+import { EkagajpatraCaseStudyPage } from './modules/case-studies/ekagajpatra/EkagajpatraCaseStudyPage';
+import { InvestAiCaseStudyPage } from './modules/case-studies/invest-ai/InvestAiCaseStudyPage';
+import { AiAgentsCaseStudyV3Page } from './modules/case-studies/ai-agents/AiAgentsCaseStudyV3Page';
+import { AiAgentsCaseStudyV4Page } from './modules/case-studies/ai-agents/AiAgentsCaseStudyV4Page';
+import { LegalWorkflowResearchCaseStudyPage } from './modules/case-studies/legal-workflow-research/LegalWorkflowResearchCaseStudyPage';
+import { StaticCaseStudyAssetGuard } from './modules/case-studies/legal-workflow-research/StaticCaseStudyAssetGuard';
 
-function LegacyBlogRedirect() {
-  const { blogId } = useParams<{ blogId?: string }>();
-  return <Navigate to={blogId ? `/blogs/${blogId}` : '/blogs'} replace />;
-}
+const ADMIN_PORTFOLIOS = [
+  'default',
+  'legal-workflow-engineer',
+  'endtoend-engineer',
+  'ai-engineer',
+  'forward-deployed-engineer',
+] as const;
 
-function LegacyHomeRedirect() {
-  return <Navigate to="/" replace />;
+function buildAdminRoutes(portfolioId: (typeof ADMIN_PORTFOLIOS)[number]): ReactElement {
+  return (
+    <Route key={`admin-${portfolioId}`} path={`/admin/${portfolioId}`} element={<AdminLayoutShell />}>
+      {buildAdminChildRoutes(portfolioId).map((route) => (
+        <Route
+          key={route.path ?? `${portfolioId}-index`}
+          index={route.index}
+          path={route.path}
+          element={route.element}
+        />
+      ))}
+    </Route>
+  );
 }
 
 function adminRoutes(): ReactElement[] {
   return [
     <Route key="admin-login" path="/admin/login" element={<AdminLogin />} />,
-
     <Route key="admin-default" path="/admin" element={<AdminLayoutShell />}>
       {buildAdminChildRoutes('default').map((route) => (
         <Route
-          key={route.path ?? 'index'}
+          key={route.path ?? 'default-index'}
           index={route.index}
           path={route.path}
           element={route.element}
         />
       ))}
     </Route>,
-
-    <Route key="admin-lwe" path="/admin/legal-workflow-engineer" element={<AdminLayoutShell />}>
-      {buildAdminChildRoutes('legal-workflow-engineer').map((route) => (
-        <Route
-          key={route.path ?? 'index-lwe'}
-          index={route.index}
-          path={route.path}
-          element={route.element}
-        />
-      ))}
-    </Route>,
-
-    <Route key="admin-ete" path="/admin/endtoend-engineer" element={<AdminLayoutShell />}>
-      {buildAdminChildRoutes('endtoend-engineer').map((route) => (
-        <Route
-          key={route.path ?? 'index-ete'}
-          index={route.index}
-          path={route.path}
-          element={route.element}
-        />
-      ))}
-    </Route>,
-
-    <Route key="admin-aie" path="/admin/ai-engineer" element={<AdminLayoutShell />}>
-      {buildAdminChildRoutes('ai-engineer').map((route) => (
-        <Route
-          key={route.path ?? 'index-aie'}
-          index={route.index}
-          path={route.path}
-          element={route.element}
-        />
-      ))}
-    </Route>,
-
-    <Route key="admin-fde" path="/admin/forward-deployed-engineer" element={<AdminLayoutShell />}>
-      {buildAdminChildRoutes('forward-deployed-engineer').map((route) => (
-        <Route
-          key={route.path ?? 'index-fde'}
-          index={route.index}
-          path={route.path}
-          element={route.element}
-        />
-      ))}
-    </Route>,
+    ...ADMIN_PORTFOLIOS.filter((portfolioId) => portfolioId !== 'default').map(buildAdminRoutes),
   ];
 }
 
@@ -90,34 +66,29 @@ function publicRoutes(): ReactElement[] {
       <Route index element={<BlogListPage />} />
       <Route path=":blogId" element={<BlogDetailPage />} />
     </Route>,
-    <Route path="/legal-workflow-engineer" element={<LegacyHomeRedirect />} />,
-    <Route path="/legal-workflow-engineer/*" element={<LegacyHomeRedirect />} />,
-    <Route path="/endtoend-engineer" element={<LegacyHomeRedirect />} />,
-    <Route path="/endtoend-engineer/*" element={<LegacyHomeRedirect />} />,
-    <Route path="/ai-engineer" element={<LegacyHomeRedirect />} />,
-    <Route path="/ai-engineer/*" element={<LegacyHomeRedirect />} />,
-    <Route path="/forward-deployed-engineer" element={<LegacyHomeRedirect />} />,
-    <Route path="/forward-deployed-engineer/*" element={<LegacyHomeRedirect />} />,
-    <Route path="/nav/design" element={<LegacyHomeRedirect />} />,
-    <Route path="/design" element={<LegacyHomeRedirect />} />,
-    <Route path="/gallery" element={<LegacyHomeRedirect />} />,
-    <Route path="/gallery/*" element={<LegacyHomeRedirect />} />,
-    <Route path="/legal-workflow-engineer/blogs" element={<Navigate to="/blogs" replace />} />,
     <Route
-      path="/legal-workflow-engineer/blogs/:blogId"
-      element={<LegacyBlogRedirect />}
-    />,
-    <Route path="/endtoend-engineer/blogs" element={<Navigate to="/blogs" replace />} />,
-    <Route path="/endtoend-engineer/blogs/:blogId" element={<LegacyBlogRedirect />} />,
-    <Route path="/ai-engineer/blogs" element={<Navigate to="/blogs" replace />} />,
-    <Route path="/ai-engineer/blogs/:blogId" element={<LegacyBlogRedirect />} />,
-    <Route
-      path="/forward-deployed-engineer/blogs"
-      element={<Navigate to="/blogs" replace />}
+      path="/case-studies/ekagajpatra"
+      element={<EkagajpatraCaseStudyPage />}
     />,
     <Route
-      path="/forward-deployed-engineer/blogs/:blogId"
-      element={<LegacyBlogRedirect />}
+      path="/case-studies/invest-ai"
+      element={<InvestAiCaseStudyPage />}
+    />,
+    <Route
+      path="/case-studies/ai-agents/v3"
+      element={<AiAgentsCaseStudyV3Page />}
+    />,
+    <Route
+      path="/case-studies/ai-agents/v4"
+      element={<AiAgentsCaseStudyV4Page />}
+    />,
+    <Route
+      path="/case-studies/legal-workflow-research"
+      element={<LegalWorkflowResearchCaseStudyPage />}
+    />,
+    <Route
+      path="/case-studies/legal-workflow-research/:asset"
+      element={<StaticCaseStudyAssetGuard />}
     />,
     <Route key="catch-all" path="*" element={<NotFoundPage />} />,
   ];

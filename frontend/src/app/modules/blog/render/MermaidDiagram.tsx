@@ -1,6 +1,6 @@
 /**
  * Blog Mermaid render + scroll viewport + zoom controls.
- * guidelines/agent-devlog-mermaid.md
+ * additionals/guidelines/agent-devlog-mermaid.md
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ZoomIn, ZoomOut } from 'lucide-react';

@@ -73,7 +73,7 @@ export function LegalWorkflowCaseStudyApp() {
 
   const confidenceBlogHref =
     studyBlogLinks.find((entry) => entry.title.includes('Extraction Is Easy'))?.href ??
-    '/endtoend-engineer/blogs/23';
+    '/blogs/23';
 
   const activeArbitration = ARBITRATION_TABS.find((tab) => tab.id === arbitrationTab)!;
 

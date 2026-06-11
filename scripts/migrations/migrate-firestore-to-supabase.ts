@@ -14,7 +14,7 @@
  */
 
 import { loadBackendEnv } from '../load-backend-env.mjs';
-import { ensureFirebaseAdminApp, adminFirestore } from '../../archive/firebase/firebaseApp.ts';
+import { ensureFirebaseAdminApp, adminFirestore } from '../../additionals/archive/firebase/firebaseApp.ts';
 import { upsertBlogPost, type BlogPostDto } from '../../backend/services/src/content/blogPosts.ts';
 import { setCmsArray, setCmsObject } from '../../backend/services/src/content/cmsDocuments.ts';
 import {

@@ -340,7 +340,7 @@ Cover Studio is a **2026-05-27 fork** of the blog publish kit (2026-05-22). Full
 
 Normative publish kit behavior in design-bakery:
 
-→ `guidelines/agent-devlog-blog-publish-kit.md`
+→ `additionals/guidelines/agent-devlog-blog-publish-kit.md`
 
 ---
 

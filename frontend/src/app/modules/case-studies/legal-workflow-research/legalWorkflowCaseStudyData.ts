@@ -13,7 +13,7 @@ export const LEGAL_WORKFLOW_INTERACTIVE_DEMO_PATH =
 export const LEGAL_WORKFLOW_TECHNICAL_DEMO_URL =
   'https://litigation-prompt-engineering-v2.vercel.app/demo/ai-ops';
 
-export const BLOGS_INDEX_PATH = '/endtoend-engineer/blogs';
+export const BLOGS_INDEX_PATH = '/blogs';
 
 export const SOURCES_FOOTER =
   'Sources: Anonymized litigation-operations observations; synthetic examples used for public demonstration.';

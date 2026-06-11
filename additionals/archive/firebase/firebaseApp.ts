@@ -12,7 +12,9 @@ const repoRoot = resolve(backendDir, '..');
 
 function readFirebaseProjectId(): string {
   try {
-    const rc = JSON.parse(readFileSync(resolve(repoRoot, 'archive/firebase/.firebaserc'), 'utf8'));
+    const rc = JSON.parse(
+      readFileSync(resolve(repoRoot, 'additionals/archive/firebase/.firebaserc'), 'utf8'),
+    );
     return rc.projects?.default ?? 'auth-system-be464';
   } catch {
     return 'auth-system-be464';

@@ -2,9 +2,9 @@
 
 Blog AI: **publish kit** + **promo agent**. Reuses `functions/` handlers.
 
-**Layout:** [doc/architecture.md](../doc/architecture.md) (MVC-style layers under `src/`)  
-**Deploy:** [doc/deploy-vercel-railway.md](../doc/deploy-vercel-railway.md)  
-**Env:** `backend/.env` — see [doc/env.md](../doc/env.md) and `backend/.env.example`
+**Layout:** [additionals/doc/architecture.md](../additionals/doc/architecture.md) (MVC-style layers under `src/`)  
+**Deploy:** [additionals/doc/deploy-vercel-railway.md](../additionals/doc/deploy-vercel-railway.md)  
+**Env:** `backend/.env` — see [additionals/doc/env.md](../additionals/doc/env.md) and `backend/.env.example`
 
 ## Local
 

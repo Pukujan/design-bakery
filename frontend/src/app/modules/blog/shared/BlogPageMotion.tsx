@@ -1,6 +1,6 @@
 /**
- * Blog list/detail motion — READ FIRST: guidelines/agent-devlog-blog-motion.md
- * Index: guidelines/agent-devlog-index.md | Rule: .cursor/rules/blog-motion.mdc
+ * Blog list/detail motion — READ FIRST: additionals/guidelines/agent-devlog-blog-motion.md
+ * Index: additionals/guidelines/agent-devlog-index.md | Rule: .cursor/rules/blog-motion.mdc
  */
 import { useMemo, type ReactNode } from 'react';
 import { motion, type Transition } from 'motion/react';

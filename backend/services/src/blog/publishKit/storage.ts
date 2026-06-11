@@ -1,4 +1,4 @@
-/** Blog image uploads — Supabase Storage. See guidelines/agent-devlog-supabase-migration.md */
+/** Blog image uploads — Supabase Storage. See additionals/guidelines/agent-devlog-supabase-migration.md */
 import {
   resolveImageStorageBackend,
   supabaseAdmin,

@@ -40,7 +40,7 @@
     "links": [
       { "label": "Case Study", "url": "/case-studies/ai-agents/v3" },
       { "label": "npm Package", "url": "https://www.npmjs.com/package/@pukujan/create-modular-monolith" },
-      { "label": "Study Log", "url": "/endtoend-engineer/blogs/11" },
+      { "label": "Study Log", "url": "/blogs/11" },
       { "label": "Source", "url": "https://github.com/Pukujan/create-modular-monolith" }
     ]
   },

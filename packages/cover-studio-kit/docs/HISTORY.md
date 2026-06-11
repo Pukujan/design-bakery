@@ -14,7 +14,7 @@ Chronological record of how the blog creator and Cover Studio evolved inside **d
 
 - Blog posts stored in Firebase Firestore; images as `data:` URLs in documents.
 - **Failure mode:** Spark plan blocked Firebase Storage; Save pipeline could not upload heroes → posts stuck at ~1 MiB limit.
-- Decision: migrate to **Supabase** (Postgres + Storage + Auth). See design-bakery `guidelines/agent-devlog-supabase-migration.md`.
+- Decision: migrate to **Supabase** (Postgres + Storage + Auth). See design-bakery `additionals/guidelines/agent-devlog-supabase-migration.md`.
 
 ---
 
@@ -136,5 +136,5 @@ Chronological record of how the blog creator and Cover Studio evolved inside **d
 - `README.md` — install & export guide
 - `docs/ROADMAP.md` — cache-first tag/image matching plan
 - `docs/ARCHITECTURE.md` — module boundaries
-- design-bakery `guidelines/agent-devlog-blog-publish-kit.md` — normative publish kit
+- design-bakery `additionals/guidelines/agent-devlog-blog-publish-kit.md` — normative publish kit
 - `backend/services/src/blog/publishKit/imagePrompt.history.md` — prompt changelog

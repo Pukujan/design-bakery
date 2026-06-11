@@ -541,7 +541,7 @@ body::before {
 }
 
 /*
- * Blog Mermaid styles — READ FIRST: guidelines/agent-devlog-mermaid.md
+ * Blog Mermaid styles — READ FIRST: additionals/guidelines/agent-devlog-mermaid.md
  * Do not use theme: base / themeVariables in JS; do not target #mermaid-* IDs.
  * Scoped to .blog-mermaid-chart only (see BlogDetailPage.tsx MermaidDiagram).
  */

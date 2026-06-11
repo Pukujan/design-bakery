@@ -35,5 +35,5 @@ export function resolveStudyBlogHref(
   const numericId = match
     ? resolveBlogNumericId(match)
     : entry.fallbackNumericId;
-  return numericId ? `/endtoend-engineer/blogs/${numericId}` : '/endtoend-engineer/blogs';
+  return numericId ? `/blogs/${numericId}` : '/blogs';
 }
