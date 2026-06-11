@@ -12,7 +12,6 @@ import { resolveCollection } from '../portfolios/collections';
 import {
   blogPostMergeKey,
   invalidateBlogCache,
-  mergeBlogPostsWithFallback,
   nextBlogNumericId,
   resolveBlogNumericId,
   type BlogSeo,
@@ -205,7 +204,12 @@ export async function getBlogs(): Promise<BlogPost[]> {
 
   try {
     const remote = (await contentApi.fetchAdminBlogs()) as BlogPost[];
-    return mergeBlogPostsWithFallback(fallbackBlogs, remote);
+    return remote.length > 0
+      ? remote.map((post, i) => ({
+          ...post,
+          numericId: resolveBlogNumericId(post) || i + 1,
+        }))
+      : fallbackBlogs;
   } catch {
     return fallbackBlogs;
   }
@@ -259,7 +263,6 @@ async function ensureUniqueNumericId(
 
 export async function saveBlog(post: BlogPost): Promise<string> {
   requireCmsApi();
-  await seedMissingFallbackBlogs();
   invalidateBlogCache();
 
   const data = normalizeBlogPostForSave(post);

@@ -5,7 +5,6 @@ import {
   setBlogCategories,
   saveBlog,
   deleteBlog,
-  syncBlogPostsFromSeed,
   type BlogPost,
   type BlogCategory,
 } from '@/lib/adminContentService';
@@ -81,7 +80,6 @@ export function BlogEditor() {
   const [newCategoryLabel, setNewCategoryLabel] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState('#6366f1');
   const [tagInput, setTagInput] = useState('');
-  const [seedSyncNote, setSeedSyncNote] = useState<string | null>(null);
   const [mirrorCoverToOg, setMirrorCoverToOg] = useState(true);
   const [saveWarning, setSaveWarning] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -138,14 +136,6 @@ export function BlogEditor() {
   async function load() {
     setLoading(true);
     try {
-      const seeded = await syncBlogPostsFromSeed();
-      if (seeded > 0) {
-        setSeedSyncNote(
-          `Synced ${seeded} post${seeded === 1 ? '' : 's'} from blog-data.json into Firestore.`,
-        );
-      } else {
-        setSeedSyncNote(null);
-      }
       const [loadedPosts, loadedCategories] = await Promise.all([
         getBlogs(),
         getBlogCategories(),
@@ -408,12 +398,6 @@ export function BlogEditor() {
           <Plus className="mr-2 h-4 w-4" /> New Post
         </Button>
       </div>
-
-      {seedSyncNote && (
-        <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
-          {seedSyncNote}
-        </p>
-      )}
 
       {editPost && (
         <section

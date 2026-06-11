@@ -272,7 +272,7 @@ async function fetchAllBlogsUncached(): Promise<Blog[]> {
       }
       return fallback;
     }
-    return mergeBlogPostsWithFallback(fallback, remote);
+    return sortBlogsByDateDesc(remote);
   } catch {
     const persisted = readPersistedSummaries();
     if (persisted?.summaries.length) {
@@ -331,8 +331,7 @@ export async function getBlogByNumericIdLive(numericId: number): Promise<Blog | 
     const remote = await fetchBlogPostRemote(numericId);
     if (!remote) throw new Error('Blog not found');
     writePersistedPost(remote);
-    if (!fallback) return remote;
-    return mergeBlogPostsWithFallback([fallback], [{ ...remote, numericId: remote.id }])[0];
+    return remote;
   } catch {
     if (memoryHit?.content?.trim() && memoryFresh) return memoryHit;
     if (persisted?.content?.trim()) return persisted;
