@@ -32,8 +32,8 @@ export const PORTFOLIOS: Record<PortfolioId, PortfolioConfig> = {
   },
   'endtoend-engineer': {
     id: 'endtoend-engineer',
-    label: 'AI/ML Engineer',
-    basePath: '/endtoend-engineer',
+    label: 'End-to-End Engineer',
+    basePath: '',
     defaultBlogCategory: 'all',
     collectionPrefix: 'ete__',
   },
@@ -60,25 +60,10 @@ export function getPortfolioConfig(id: PortfolioId): PortfolioConfig {
 }
 
 export function getPortfolioFromPathname(pathname: string): PortfolioId {
-  if (pathname === '/' || pathname === '') {
-    return 'endtoend-engineer';
+  if (pathname.startsWith('/admin')) {
+    return 'default';
   }
-  if (pathname === '/legal-workflow-engineer' || pathname.startsWith('/legal-workflow-engineer/')) {
-    return 'legal-workflow-engineer';
-  }
-  if (pathname === '/endtoend-engineer' || pathname.startsWith('/endtoend-engineer/')) {
-    return 'endtoend-engineer';
-  }
-  if (pathname === '/ai-engineer' || pathname.startsWith('/ai-engineer/')) {
-    return 'ai-engineer';
-  }
-  if (
-    pathname === '/forward-deployed-engineer' ||
-    pathname.startsWith('/forward-deployed-engineer/')
-  ) {
-    return 'forward-deployed-engineer';
-  }
-  return 'default';
+  return 'endtoend-engineer';
 }
 
 export function getAdminBasePath(portfolioId: PortfolioId): string {

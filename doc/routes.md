@@ -12,9 +12,7 @@ Defined in [`src/app/App.tsx`](../src/app/App.tsx) and [`src/app/modules/admin/a
 flowchart LR
   subgraph public [Public]
     root["/"]
-    lwe["/legal-workflow-engineer"]
     blogs["/blogs"]
-    designNav["/nav/design"]
   end
   subgraph admin [Admin auth required]
     login["/admin/login"]
@@ -29,15 +27,17 @@ flowchart LR
 
 ## Public routes
 
-### Engineering — endtoend-engineer homepage
+### Public site
 
 Base path: **none** (`portfolioId: endtoend-engineer`). Includes top [`Navigation`](../src/app/components/Navigation.tsx).
 
 | URL | Component | Description |
 |-----|-----------|-------------|
 | `/` | `EngineeringHome` | End-to-end engineering homepage (hero, projects, community, about, skills, insights, experience, contact, footer) |
+| `/blogs` | `BlogListPage` | Shared blog index |
+| `/blogs/:blogId` | `BlogDetailPage` | Shared blog detail page |
 
-All other public routes redirect to `/`, including legacy blog, gallery, case-study, and design URLs.
+Legacy public portfolio URLs redirect to `/` and are documented in [`routes-archive.md`](./routes-archive.md).
 
 ### Auth
 
@@ -62,20 +62,6 @@ Hash links (`#section-id`) scroll within the current engineering home. Navbar **
 | `#contact` | Let's connect |
 
 `RelevantExperience` is rendered on the page but has no `id` on its `<section>` today, so it is not reachable via navbar hash links.
-
-### Design portfolio (`/nav/design`, `/design`)
-
-| Anchor | Section |
-|--------|---------|
-| `#showcase` | Web design showcase |
-| `#advocacy` | Advocacy |
-| `#about` | About me (includes career timeline pills) |
-| `#gallery` | Art gallery |
-| `#skills` | Design skills |
-| `#blog` | Design blog highlights |
-| `#contact` | Contact (shared component) |
-
----
 
 ## Admin routes
 
@@ -146,9 +132,9 @@ Shown on the homepage only (`PortfolioPublicLayout`):
 | About | `#about` |
 | Contact | `#contact` |
 
-The public site only exposes `/`; every other public route redirects home.
+The public site only exposes `/` and `/blogs`.
 
-**Not in public nav:** Design (`/nav/design`), admin, portfolio switcher.
+**Not in public nav:** Legacy portfolios, design, admin, portfolio switcher.
 
 ---
 
@@ -165,7 +151,7 @@ These files exist but are **not** mounted on a path:
 
 ## Adding a new portfolio (route checklist)
 
-1. Public: add `/your-slug`, `/your-slug/blogs`, `/your-slug/blogs/:blogId` under `PortfolioPublicLayout` in `App.tsx`.
+1. Public: add `/your-slug` plus any blog routes you need under `PortfolioPublicLayout` in `App.tsx`.
 2. Register `your-slug` in [`registry.ts`](../src/app/portfolios/registry.ts).
 3. Admin: add `<Route path="/admin/your-slug" element={<AdminLayoutShell />}>` with `buildAdminChildRoutes('your-slug')`.
 4. Update `getPortfolioFromPathname` and `getPortfolioIdFromAdminPath`.

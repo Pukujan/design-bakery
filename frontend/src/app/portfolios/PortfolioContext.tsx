@@ -26,7 +26,7 @@ export function PortfolioProvider({
 }) {
   const value = useMemo(() => {
     const config = getPortfolioConfig(portfolioId);
-    const basePath = portfolioId === 'endtoend-engineer' ? '' : config.basePath;
+    const basePath = config.basePath;
     return {
       portfolioId,
       config,

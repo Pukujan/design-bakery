@@ -13,7 +13,7 @@ function isExternalHref(href: string): boolean {
 function resolveRoutePath(href: string, pathTo: (segment?: string) => string): string {
   if (href === '/' || href === '') return pathTo('/');
   if (href.startsWith('/') && !href.startsWith('//')) {
-    return pathTo('/');
+    return pathTo(href);
   }
   return href;
 }

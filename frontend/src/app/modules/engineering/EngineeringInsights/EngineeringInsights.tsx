@@ -172,9 +172,12 @@ export function EngineeringInsights() {
           transition={{ duration: 0.5 }}
           className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 items-center mb-12"
         >
-            <div className="rounded-full border-4 border-dashed border-black/30 px-6 py-3 text-sm font-bold text-gray-600 dark:text-gray-300">
-            Blog browsing is disabled on this site.
-          </div>
+          <a
+            href="/blogs"
+            className="rounded-full border-4 border-dashed border-black/30 px-6 py-3 text-sm font-bold text-gray-600 transition-colors hover:border-black hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+          >
+            Browse the full blog on /blogs
+          </a>
 
           {/* Scrollable Category Buttons */}
           <div className="relative overflow-hidden">

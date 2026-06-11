@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Legal Workflow AI · Guided Recruiter Demo</title>
+  <style>
+    :root {
+      --bg: #070a12;
+      --panel: #0d1324;
+      --panel2: #121b31;
+      --panel3: #172238;
+      --line: rgba(255,255,255,.12);
+      --text: #eef4ff;
+      --soft: #c7d2ea;
+      --muted: #94a3b8;
+      --accent: #8be9fd;
+      --accent2: #a78bfa;
+      --good: #34d399;
+      --warn: #fbbf24;
+      --bad: #fb7185;
+      --shadow: 0 24px 80px rgba(0,0,0,.45);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(900px 680px at 85% -10%, rgba(139,233,253,.14), transparent 60%),
+        radial-gradient(920px 720px at 8% 8%, rgba(167,139,250,.16), transparent 55%),
+        var(--bg);
+    }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .global-nav {
+      position: sticky;
+      top: 0;
+      z-index: 70;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      background: rgba(7,10,18,.86);
+      backdrop-filter: blur(16px);
+    }
+    .global-nav-inner {
+      width: min(1320px, 94vw);
+      margin: 0 auto;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .nav-brand {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+    .nav-brand strong { font-size: 14px; letter-spacing: .03em; }
+    .nav-brand span { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .nav-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    .nav-actions .btn { padding: 9px 12px; }
+    .wrap { width: min(1320px, 94vw); margin: 0 auto; }
+    .hero { min-height: 78vh; display: grid; place-items: center; padding: 54px 0; }
+    .hero-grid { display: grid; grid-template-columns: .95fr 1.05fr; gap: 34px; align-items: center; }
+    .eyebrow { color: var(--accent); text-transform: uppercase; letter-spacing: .16em; font-size: 12px; font-weight: 1000; }
+    h1 { font-size: clamp(44px, 6vw, 82px); line-height: .95; letter-spacing: -.07em; margin: 14px 0 18px; }
+    .lede { color: var(--soft); font-size: clamp(18px, 2vw, 23px); max-width: 780px; line-height: 1.45; }
+    .badge-row, .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .badge-row { margin: 24px 0; }
+    .badge { border: 1px solid var(--line); background: rgba(255,255,255,.055); color: #dce7fb; border-radius: 999px; padding: 8px 12px; font-size: 13px; font-weight: 800; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.065); color: #fff;
+      padding: 11px 14px; border-radius: 999px; font-weight: 900; font-size: 13px;
+      text-decoration: none; transition: transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+    .btn:hover { transform: translateY(-1px); border-color: rgba(139,233,253,.45); background: rgba(139,233,253,.10); }
+    .btn-primary { background: linear-gradient(135deg, rgba(139,233,253,.2), rgba(167,139,250,.2)); border-color: rgba(139,233,253,.44); }
+    .btn-good { background: rgba(52,211,153,.14); border-color: rgba(52,211,153,.38); }
+    .btn-warn { background: rgba(251,191,36,.14); border-color: rgba(251,191,36,.36); }
+    .btn[disabled] { opacity: .48; cursor: not-allowed; transform: none; }
+    .hero-card, .demo-shell, .panel, .card {
+      border: 1px solid var(--line); border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.035));
+      box-shadow: var(--shadow);
+    }
+    .hero-card { padding: 20px; }
+    .mini-window { border: 1px solid rgba(255,255,255,.1); border-radius: 20px; background: rgba(0,0,0,.23); overflow: hidden; }
+    .window-top { height: 42px; padding: 0 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.09); color: var(--muted); font-size: 12px; }
+    .dots { display:flex; gap:6px; }
+    .dot { width:10px; height:10px; border-radius:50%; background:var(--bad); opacity:.85; }
+    .dot:nth-child(2){ background:var(--warn); } .dot:nth-child(3){ background:var(--good); }
+    .task-preview { display:grid; gap:12px; padding:18px; }
+    .preview-row { display:grid; grid-template-columns:38px 1fr auto; gap:12px; align-items:center; padding:13px; border-radius:17px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); }
+    .icon { width:38px; height:38px; display:grid; place-items:center; border-radius:14px; background:rgba(139,233,253,.12); border:1px solid rgba(139,233,253,.22); }
+    .preview-title { font-weight:1000; } .preview-sub { color:var(--muted); font-size:13px; }
+    .pill { color:var(--soft); border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:5px 8px; font-size:11px; font-weight:1000; white-space:nowrap; background: rgba(255,255,255,.04); }
+    .pill.good { color:#bdf7dc; border-color:rgba(52,211,153,.35); background:rgba(52,211,153,.11); }
+    .pill.warn { color:#ffe7a3; border-color:rgba(251,191,36,.35); background:rgba(251,191,36,.11); }
+    .pill.bad { color:#ffd0d8; border-color:rgba(251,113,133,.35); background:rgba(251,113,133,.11); }
+
+    .demo { display:none; min-height: 100vh; padding: 16px 0; }
+    .demo.is-open { display:block; }
+    .demo-shell { height: calc(100vh - 32px); padding: 14px; overflow: hidden; }
+    .demo-topbar { height: 72px; display:flex; align-items:center; justify-content:space-between; gap:14px; padding: 4px 4px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .case-title { min-width:0; }
+    .case-title strong { display:block; font-size: clamp(16px, 1.6vw, 21px); letter-spacing:-.035em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .case-title span { color: var(--muted); font-size: 12px; }
+    .top-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+    .top-actions .btn { padding: 9px 12px; }
+    .demo-grid { height: calc(100% - 84px); display:grid; grid-template-columns: 320px 1fr; gap:14px; min-height: 0; }
+    .panel { padding: 14px; box-shadow:none; min-height:0; overflow:auto; }
+    .profile { display:flex; gap:12px; align-items:center; padding-bottom:12px; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,.08); }
+    .avatar { width:44px; height:44px; border-radius:16px; display:grid; place-items:center; background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#07101b; font-weight:1000; }
+    .profile h3 { margin:0; font-size:15px; letter-spacing:-.02em; }
+    .profile p { color:var(--muted); margin:2px 0 0; font-size:12px; }
+    .metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .metric { border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.045); border-radius:15px; padding:10px; }
+    .metric small { color:var(--muted); display:block; font-size:11px; }
+    .metric strong { display:block; font-size:15px; margin-top:2px; }
+    .section-label { color:var(--accent); text-transform:uppercase; letter-spacing:.14em; font-size:11px; font-weight:1000; margin:14px 0 8px; }
+    .task-list, .checklist { display:grid; gap:8px; }
+    .task-card { border:1px solid rgba(255,255,255,.09); background:rgba(255,255,255,.045); border-radius:16px; padding:11px; cursor:pointer; transition:.18s ease; }
+    .task-card:hover, .task-card.active { border-color: rgba(139,233,253,.45); background: rgba(139,233,253,.09); }
+    .task-card strong { display:block; font-size:13px; }
+    .task-card span { color:var(--muted); font-size:12px; }
+    .check { display:grid; grid-template-columns:22px 1fr auto; gap:8px; align-items:center; border:1px solid rgba(255,255,255,.07); background:rgba(0,0,0,.16); border-radius:14px; padding:9px; font-size:12px; }
+    .check-dot { width:21px; height:21px; border-radius:50%; display:grid; place-items:center; background:rgba(255,255,255,.07); color:var(--muted); font-size:11px; font-weight:1000; }
+    .check.done .check-dot { background:rgba(52,211,153,.16); color:var(--good); }
+    .check.pending .check-dot { background:rgba(251,191,36,.14); color:var(--warn); }
+    .complete-banner { display:none; margin-top:12px; padding:14px; border-radius:18px; background:linear-gradient(135deg, rgba(52,211,153,.18), rgba(139,233,253,.10)); border:1px solid rgba(52,211,153,.34); }
+    .complete-banner.show { display:block; }
+    .complete-banner strong { display:block; } .complete-banner p { margin:4px 0 0; color:var(--soft); font-size:12px; }
+    .progressbar { height:8px; background:rgba(255,255,255,.07); border-radius:999px; overflow:hidden; margin:11px 0 0; }
+    .progressbar span { display:block; width:35%; height:100%; border-radius:999px; background:linear-gradient(90deg, var(--accent), var(--good)); transition:width .45s ease; }
+
+    .main-work { min-height:0; overflow:hidden; display:grid; grid-template-rows:auto auto 1fr; gap:10px; }
+    .tabs { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .tab { border:1px solid rgba(255,255,255,.10); color:var(--soft); background:rgba(255,255,255,.045); padding:9px 13px; border-radius:999px; font-size:13px; font-weight:1000; }
+    .tab.active { color:#fff; border-color:rgba(139,233,253,.45); background:rgba(139,233,253,.12); }
+    .guide-strip { display:flex; gap:8px; align-items:center; overflow:auto; padding-bottom:3px; }
+    .guide-step { display:inline-flex; align-items:center; gap:7px; white-space:nowrap; border:1px solid rgba(255,255,255,.09); background:rgba(255,255,255,.045); color:var(--muted); border-radius:999px; padding:8px 10px; font-size:12px; font-weight:900; }
+    .guide-step.active { color:#dcf8ff; background:rgba(139,233,253,.12); border-color:rgba(139,233,253,.36); }
+    .guide-step.done { color:#c6f6dd; background:rgba(52,211,153,.11); border-color:rgba(52,211,153,.3); }
+    .stage-wrap { min-height:0; overflow:auto; }
+    .stage { display:none; }
+    .stage.active { display:block; }
+    .work-card { border:1px solid var(--line); border-radius:22px; background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.035)); padding:14px; min-height: 100%; }
+    .work-card h2 { margin:0 0 5px; letter-spacing:-.04em; }
+    .work-card .hint { margin:0 0 12px; color:var(--muted); font-size:13px; }
+    .email-card, .bop-sheet, .source-card { background:#f8fbff; color:#162033; border-radius:18px; box-shadow:inset 0 0 0 1px rgba(7,10,18,.1); overflow:hidden; }
+    .email-card { min-height: 430px; }
+    .email-toolbar { height:44px; background:#eaf1fb; color:#475569; display:flex; align-items:center; justify-content:space-between; padding:0 15px; font-size:13px; font-weight:900; }
+    .email-fields { border-bottom:1px solid #d7e0ef; }
+    .email-field { display:grid; grid-template-columns:72px 1fr; gap:10px; padding:9px 15px; border-top:1px solid #e5edf7; }
+    .email-field label { color:#64748b; font-size:12px; font-weight:900; }
+    .email-field input { color:#0f172a; border:none; outline:none; background:transparent; }
+    .email-body { min-height:220px; padding:16px; color:#0f172a; white-space:pre-wrap; outline:none; line-height:1.52; }
+    .doc-actions { display:flex; gap:10px; flex-wrap:wrap; padding:0 16px 16px; }
+    .email-card .btn, .bop-sheet .btn, .source-card .btn { color:#0f172a; background:#eef6ff; border-color:#b8c7df; box-shadow:none; }
+    .email-card .btn:hover, .bop-sheet .btn:hover, .source-card .btn:hover { background:#dbeafe; border-color:#60a5fa; }
+    .email-card .btn-primary, .bop-sheet .btn-primary, .source-card .btn-primary { color:#082f49; background:#cffafe; border-color:#67e8f9; }
+    .email-card .btn-good, .bop-sheet .btn-good, .source-card .btn-good { color:#064e3b; background:#d1fae5; border-color:#6ee7b7; }
+    .email-card .btn-warn, .bop-sheet .btn-warn, .source-card .btn-warn { color:#713f12; background:#fef3c7; border-color:#fbbf24; }
+    .email-card .btn[disabled], .bop-sheet .btn[disabled], .source-card .btn[disabled] { color:#64748b; background:#e5e7eb; border-color:#cbd5e1; }
+    .bop-sheet { padding:18px; }
+    .bop-sheet h3 { color:#07101b; margin:0 0 3px; text-align:center; }
+    .bop-sheet .sub { text-align:center; color:#475569; font-size:12px; margin-bottom:12px; }
+    .field-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+    .field { border:1px solid #d7e0ef; background:white; border-radius:13px; padding:9px; }
+    .field.full { grid-column:1 / -1; }
+    .field small { display:block; color:#64748b; font-size:10px; text-transform:uppercase; letter-spacing:.08em; font-weight:1000; }
+    .field strong, .field span { display:block; color:#0f172a; margin-top:3px; font-size:13px; }
+    .empty { color:#94a3b8 !important; font-style:italic; }
+    .source-grid { display:grid; gap:10px; padding:16px; }
+    .source-item { border:1px solid #d7e0ef; background:#fff; color:#0f172a; border-radius:14px; padding:12px; }
+    .source-item small { color:#64748b; font-weight:1000; text-transform:uppercase; letter-spacing:.08em; }
+    .source-item strong { display:block; margin:3px 0; }
+    .source-item span { color:#334155; font-size:13px; }
+
+    .floating-controls { position:fixed; right:18px; bottom:18px; display:flex; flex-direction:column; gap:10px; z-index:50; }
+    .float-btn { border:1px solid rgba(139,233,253,.36); color:#eaf8ff; background:rgba(13,19,36,.94); box-shadow:var(--shadow); border-radius:999px; padding:12px 14px; font-weight:1000; }
+    .float-btn:hover { background:rgba(139,233,253,.14); }
+    .drawer { position:fixed; right:18px; bottom:116px; width:min(440px, calc(100vw - 36px)); max-height:62vh; display:none; z-index:55; border:1px solid rgba(139,233,253,.28); background:rgba(13,19,36,.97); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; }
+    .drawer.open { display:block; animation:enter .18s ease both; }
+    .drawer-head { display:flex; align-items:center; justify-content:space-between; padding:13px 14px; border-bottom:1px solid rgba(255,255,255,.08); }
+    .drawer-head strong { letter-spacing:-.02em; }
+    .drawer-body { padding:12px; max-height:52vh; overflow:auto; }
+    .chat { display:grid; gap:10px; }
+    .bubble { border-radius:15px; padding:11px; font-size:13px; line-height:1.45; }
+    .bubble.ai { background:rgba(139,233,253,.10); border:1px solid rgba(139,233,253,.22); color:#def8ff; }
+    .bubble.user { background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.24); color:#efe9ff; }
+    .log-list { display:grid; gap:8px; }
+    .log-line { border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.045); border-radius:14px; padding:10px; color:var(--soft); font-size:12px; }
+    .log-line b { color:var(--accent); } .log-line.good b { color:var(--good); } .log-line.warn b { color:var(--warn); } .log-line.bad b { color:var(--bad); }
+    .toast { position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:70; max-width:min(560px, 92vw); display:none; padding:14px 16px; border-radius:18px; background:rgba(13,19,36,.98); border:1px solid rgba(139,233,253,.35); box-shadow:var(--shadow); }
+    .toast.show { display:block; animation:enter .2s ease both; }
+    .pulse-target { animation:pulse 1.15s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { box-shadow:0 0 0 0 rgba(139,233,253,.0); } 50% { box-shadow:0 0 0 6px rgba(139,233,253,.28); } }
+    @keyframes enter { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+
+    .completion-overlay { position:fixed; inset:0; display:none; place-items:center; z-index:90; background:rgba(7,10,18,.68); backdrop-filter: blur(8px); padding:22px; }
+    .completion-overlay.show { display:grid; }
+    .completion-card { width:min(640px, 94vw); border:1px solid rgba(52,211,153,.36); border-radius:30px; background:linear-gradient(180deg, rgba(13,19,36,.98), rgba(18,27,49,.98)); box-shadow:var(--shadow); padding:28px; text-align:center; }
+    .completion-check { width:96px; height:96px; margin:0 auto 18px; display:grid; place-items:center; border-radius:50%; background:rgba(52,211,153,.14); border:1px solid rgba(52,211,153,.45); color:#bdf7dc; font-size:54px; font-weight:1000; transform:scale(.72); opacity:0; }
+    .completion-overlay.show .completion-check { animation:popCheck .55s ease forwards; }
+    .completion-card h2 { margin:0 0 8px; font-size:34px; letter-spacing:-.04em; }
+    .completion-card p { color:var(--soft); margin:0 auto 16px; max-width:520px; line-height:1.5; }
+    .next-action-box { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:16px 0 20px; }
+    .next-action-box div { border:1px solid rgba(255,255,255,.10); border-radius:18px; background:rgba(255,255,255,.05); padding:13px; text-align:left; }
+    .next-action-box small { color:var(--muted); display:block; font-size:11px; text-transform:uppercase; letter-spacing:.12em; font-weight:1000; }
+    .next-action-box strong { display:block; margin-top:4px; color:#fff; }
+    @keyframes popCheck { 0% { transform:scale(.72); opacity:0; } 70% { transform:scale(1.08); opacity:1; } 100% { transform:scale(1); opacity:1; } }
+
+    @media (max-width: 1120px) {
+      .hero-grid { grid-template-columns:1fr; }
+      .demo-shell { height:auto; min-height:100vh; overflow:visible; }
+      .demo-grid { height:auto; grid-template-columns:1fr; }
+      .main-work { overflow:visible; }
+      .stage-wrap, .panel { overflow:visible; }
+    }
+    @media (max-width: 720px) {
+      .hero { min-height:auto; }
+      h1 { font-size:44px; }
+      .field-grid, .metric-grid { grid-template-columns:1fr; }
+      .demo-topbar { height:auto; align-items:flex-start; flex-direction:column; }
+      .email-field { grid-template-columns:1fr; gap:2px; }
+      .global-nav-inner { align-items:flex-start; flex-direction:column; padding:12px 0; }
+      .nav-actions { justify-content:flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="global-nav" aria-label="Demo navigation">
+    <div class="global-nav-inner">
+      <div class="nav-brand">
+        <strong>Legal Workflow Case OS</strong>
+        <span>Interactive recruiter demo</span>
+      </div>
+      <div class="nav-actions">
+        <a class="btn" href="https://litigation-prompt-engineering-v2.vercel.app/demo/ai-ops" target="_blank" rel="noopener">Go to Technical Demo</a>
+        <a class="btn" href="https://github.com/Pukujan/litigation-prompt-engineering-v2" target="_blank" rel="noopener">GitHub</a>
+        <button id="backCaseStudyBtn" class="btn">Back to Case Study</button>
+      </div>
+    </div>
+  </nav>
+  <main>
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <div class="eyebrow">Interactive Recruiter Demo · Synthetic Case Data</div>
+          <h1>Daily litigation work, prepared from the case file.</h1>
+          <p class="lede">A paralegal opens one case dashboard, sees the pending Bill of Particulars workflow, asks the AI assistant what is blocking it, drafts an OPA authorization email, reviews sources, finalizes the BOP, and ends the day with the task queue cleared.</p>
+          <div class="badge-row">
+            <span class="badge">Bill of Particulars</span>
+            <span class="badge">OPA Authorization</span>
+            <span class="badge">Editable Email Draft</span>
+            <span class="badge">Source Evidence</span>
+            <span class="badge">Work Log</span>
+          </div>
+          <div class="btn-row">
+            <button id="openDemoBtn" class="btn btn-primary">View Presentation →</button>
+            <button id="quickRunBtn" class="btn">Run Guided Workflow</button>
+          </div>
+        </div>
+        <div class="hero-card">
+          <div class="mini-window">
+            <div class="window-top">
+              <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+              <span>Case Workspace Preview</span>
+            </div>
+            <div class="task-preview">
+              <div class="preview-row"><div class="icon">📄</div><div><div class="preview-title">Bill of Particulars</div><div class="preview-sub">4 requirements ready · 1 dependency blocking final filing</div></div><span class="pill warn">Pending</span></div>
+              <div class="preview-row"><div class="icon">✉️</div><div><div class="preview-title">OPA authorization email</div><div class="preview-sub">AI can draft an editable request from the case record</div></div><span class="pill bad">Action</span></div>
+              <div class="preview-row"><div class="icon">✅</div><div><div class="preview-title">Today’s queue</div><div class="preview-sub">Clears after authorization response + filing simulation</div></div><span class="pill">Waiting</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo" class="demo">
+      <div class="wrap demo-shell">
+        <div class="demo-topbar">
+          <div class="case-title">
+            <strong>Santos v. Metropolitan City Health and Hospitals Corporation</strong>
+            <span>Queens Supreme Court · Index No. 905421/2027 · Civil Term Part 10 · Synthetic case repository</span>
+          </div>
+          <div class="top-actions">
+            <button id="topWorkLogBtn" class="btn">Work Log ▾</button>
+            <button id="topAiBtn" class="btn btn-primary">AI Assistant</button>
+            <button id="resetBtn" class="btn">Reset</button>
+          </div>
+        </div>
+
+        <div class="demo-grid">
+          <aside class="panel" id="dashboardPanel">
+            <div class="profile">
+              <div class="avatar">PB</div>
+              <div><h3>Welcome, Pujan Bajracharya</h3><p>Paralegal workspace · Today’s case queue</p></div>
+            </div>
+            <div class="metric-grid">
+              <div class="metric"><small>Pending tasks</small><strong id="pendingCount">3</strong></div>
+              <div class="metric"><small>Case status</small><strong id="caseStatus">BOP blocked</strong></div>
+              <div class="metric"><small>Source docs</small><strong>16</strong></div>
+              <div class="metric"><small>Next action</small><strong id="nextAction">Ask AI</strong></div>
+            </div>
+            <div class="progressbar"><span id="dayProgress"></span></div>
+
+            <div class="section-label">Pending on this case</div>
+            <div class="task-list">
+              <div class="task-card active" id="taskBop"><strong>Bill of Particulars</strong><span id="bopSub">Some requirements complete · authorization still pending</span></div>
+              <div class="task-card" id="taskEmail"><strong>Request medical authorization from OPA</strong><span id="emailSub">Needed before finalizing BOP support packet</span></div>
+              <div class="task-card" id="taskFile"><strong>Finalize and e-file BOP packet</strong><span id="fileSub">Locked until OPA responds</span></div>
+            </div>
+
+            <div class="section-label">BOP requirements</div>
+            <div class="checklist">
+              <div class="check done"><div class="check-dot">✓</div><div>Caption, court, index, parties</div><span class="pill good">Done</span></div>
+              <div class="check done"><div class="check-dot">✓</div><div>Complaint allegations linked</div><span class="pill good">Done</span></div>
+              <div class="check done"><div class="check-dot">✓</div><div>Treatment summary extracted</div><span class="pill good">Done</span></div>
+              <div class="check pending" id="authCheck"><div class="check-dot">!</div><div>OPA authorization for updated records</div><span class="pill warn" id="authPill">Pending</span></div>
+              <div class="check pending" id="fileCheck"><div class="check-dot">!</div><div>Final review and court filing</div><span class="pill" id="filePill">Waiting</span></div>
+            </div>
+
+            <div id="doneBanner" class="complete-banner"><strong>All pending tasks done for today.</strong><p>Next action: wait for court response. Expected time: 1 day.</p></div>
+          </aside>
+
+          <section class="main-work" id="workspacePanel">
+            <div class="tabs">
+              <button class="tab active" data-tab="email">1 · Email Draft</button>
+              <button class="tab" data-tab="sources">2 · Sources Used</button>
+              <button class="tab" data-tab="bop">3 · BOP Draft</button>
+            </div>
+            <div class="guide-strip">
+              <div id="guideAsk" class="guide-step active">1 Ask AI what is pending</div>
+              <div id="guideEmail" class="guide-step">2 Draft OPA email</div>
+              <div id="guideSend" class="guide-step">3 Send + wait</div>
+              <div id="guideSources" class="guide-step">4 Review sources</div>
+              <div id="guideBop" class="guide-step">5 Finalize BOP</div>
+              <div id="guideCourt" class="guide-step">6 Send to court</div>
+            </div>
+
+            <div class="stage-wrap">
+              <div id="stage-email" class="stage active">
+                <div class="work-card">
+                  <h2>OPA authorization request</h2>
+                  <p class="hint">The AI assistant found this is the blocking task for the Bill of Particulars workflow.</p>
+                  <div class="email-card">
+                    <div class="email-toolbar"><span>Draft message · editable before send</span><span id="emailStatus">Waiting for draft</span></div>
+                    <div class="email-fields">
+                      <div class="email-field"><label>To</label><input id="emailTo" value="opa.records@metropolitan-city.example" /></div>
+                      <div class="email-field"><label>Cc</label><input id="emailCc" value="litigationclerk@design-bakery-law.example" /></div>
+                      <div class="email-field"><label>Subject</label><input id="emailSubject" value="Request for medical authorization · Santos v. Metropolitan City HHC" /></div>
+                    </div>
+                    <div id="emailBody" class="email-body" contenteditable="true">Click “Draft Email” after opening the BOP task or asking the AI assistant what is pending.</div>
+                    <div class="doc-actions">
+                      <button id="draftEmailBtn" class="btn btn-primary">Draft Email →</button>
+                      <button id="sendEmailBtn" class="btn btn-good" disabled>Send Email</button>
+                      <button id="toSourcesBtn" class="btn" disabled>Next: Review Sources →</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="stage-sources" class="stage">
+                <div class="work-card">
+                  <h2>Sources used before finalizing</h2>
+                  <p class="hint">This is the technical proof layer: the user sees what the assistant relied on before the draft moves forward.</p>
+                  <div class="source-card">
+                    <div class="source-grid">
+                      <div class="source-item"><small>NYSCEF Doc. 9</small><strong>Bill of Particulars · Filed 2027-10-25</strong><span>Used to confirm the BOP exists and enrich case facts.</span></div>
+                      <div class="source-item"><small>NYSCEF Doc. 12</small><strong>Compliance Conference Order</strong><span>Used to identify the next workflow dependency and request timing.</span></div>
+                      <div class="source-item"><small>Case repository</small><strong>Complaint, certificate of merit, exhibits, medical summary, OPA contact directory</strong><span>Used to draft the email and populate the review checklist.</span></div>
+                      <div class="source-item"><small>Guardrail</small><strong>No duplicate BOP task if the bill has already been served/filed.</strong><span>Signature/date visual review remains human-review required.</span></div>
+                    </div>
+                    <div class="doc-actions"><button id="toBopBtn" class="btn btn-primary">Next: Review BOP Draft →</button></div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="stage-bop" class="stage">
+                <div class="work-card">
+                  <h2>Bill of Particulars draft</h2>
+                  <p class="hint">After OPA response, the BOP fields can be finalized and the simulated court filing can be completed.</p>
+                  <div class="bop-sheet">
+                    <h3>SUPREME COURT OF THE STATE OF NEW YORK</h3>
+                    <div class="sub">COUNTY OF QUEENS · BILL OF PARTICULARS · SYNTHETIC DEMO</div>
+                    <div class="field-grid">
+                      <div class="field"><small>Plaintiff</small><strong>Maria Santos as Parent and Natural Guardian of A.M.S., an Infant</strong></div>
+                      <div class="field"><small>Defendant</small><strong>Metropolitan City Health and Hospitals Corporation</strong></div>
+                      <div class="field"><small>Index No.</small><strong>905421/2027</strong></div>
+                      <div class="field"><small>Judge / Part</small><strong>Hon. Kevin J. Kerrigan · Civil Term Part 10</strong></div>
+                      <div class="field full"><small>Nature of action</small><span id="natureField" class="empty">Waiting for AI-assisted population…</span></div>
+                      <div class="field full"><small>Alleged departures / negligence</small><span id="departuresField" class="empty">Waiting for complaint + medical summary review…</span></div>
+                      <div class="field full"><small>Injuries and treatment</small><span id="injuriesField" class="empty">Waiting for authorization status…</span></div>
+                      <div class="field"><small>Special damages</small><span id="damagesField" class="empty">Pending review</span></div>
+                      <div class="field"><small>Verification</small><span id="verifyField" class="empty">Visual review required</span></div>
+                    </div>
+                    <div class="doc-actions" style="padding:16px 0 0;">
+                      <button id="populateBopBtn" class="btn btn-primary">Auto-populate BOP fields</button>
+                      <button id="finalizeBopBtn" class="btn btn-good" disabled>Finalize BOP</button>
+                      <button id="efileBtn" class="btn btn-warn" disabled>Send to Court</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="floating-controls">
+    <button id="floatAiBtn" class="float-btn">🤖 AI Assistant</button>
+    <button id="floatLogBtn" class="float-btn">📋 Work Log</button>
+  </div>
+
+  <div id="aiDrawer" class="drawer">
+    <div class="drawer-head"><strong>AI litigation assistant</strong><button id="closeAiBtn" class="btn">Close</button></div>
+    <div class="drawer-body"><div class="chat" id="chatBox"><div class="bubble ai">Open the BOP task. I will guide you to the blocking email draft, source review, and final BOP filing.</div></div></div>
+  </div>
+
+  <div id="logDrawer" class="drawer">
+    <div class="drawer-head"><strong>Workflow log</strong><button id="closeLogBtn" class="btn">Close</button></div>
+    <div class="drawer-body"><div id="logList" class="log-list"><div class="log-line"><b>Ready</b> Demo loaded with synthetic case data.</div></div></div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <div id="completionOverlay" class="completion-overlay" aria-hidden="true">
+    <div class="completion-card">
+      <div class="completion-check">✓</div>
+      <h2>All tasks done for today.</h2>
+      <p>The BOP packet was finalized and sent to court in the simulated workflow.</p>
+      <div class="next-action-box">
+        <div><small>Next action</small><strong>Wait for court response</strong></div>
+        <div><small>Expected time</small><strong>1 day</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const demo = $('demo');
+    const toast = $('toast');
+    let authorizationReceived = false;
+    let bopPopulated = false;
+    let bopFinalized = false;
+
+    const logSeed = [
+      ['Source', 'Opened Santos case workspace · Queens Supreme Court · Part 10.', 'good'],
+      ['Repository', 'Found 16 synthetic documents in the case file.', 'good'],
+      ['BOP', 'Detected Bill of Particulars workflow and requirement checklist.', 'good'],
+      ['NYSCEF 9', 'Synthetic Bill of Particulars exists; avoid duplicate open BP task.', 'good'],
+      ['NYSCEF 12', 'Compliance conference order references upcoming BOP/follow-up dependency.', 'warn'],
+      ['Blocked', 'Updated medical authorization is needed before requesting final records from OPA.', 'bad'],
+      ['Next action', 'Prepare authorization request email to OPA with clerk copied.', 'warn']
+    ];
+
+    function showToast(html) { toast.innerHTML = html; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 4300); }
+    function openDemo() { demo.classList.add('is-open'); demo.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    function addLog(label, text, type='') {
+      const line = document.createElement('div');
+      line.className = `log-line ${type}`;
+      line.innerHTML = `<b>${label}</b> ${text}`;
+      $('logList').prepend(line);
+    }
+    function addChat(text, who='ai') {
+      const bubble = document.createElement('div');
+      bubble.className = `bubble ${who}`;
+      bubble.textContent = text;
+      $('chatBox').appendChild(bubble);
+      $('chatBox').scrollTop = $('chatBox').scrollHeight;
+    }
+    function openDrawer(which) {
+      if (which === 'ai') { $('aiDrawer').classList.add('open'); $('logDrawer').classList.remove('open'); }
+      if (which === 'log') { $('logDrawer').classList.add('open'); $('aiDrawer').classList.remove('open'); }
+    }
+    function setTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+      document.querySelectorAll('.stage').forEach(s => s.classList.remove('active'));
+      $(`stage-${tab}`).classList.add('active');
+    }
+    function setTaskActive(id) { document.querySelectorAll('.task-card').forEach(t => t.classList.toggle('active', t.id === id)); }
+    function setGuide(active, done=[]) {
+      ['guideAsk','guideEmail','guideSend','guideSources','guideBop','guideCourt'].forEach(id => {
+        $(id).classList.toggle('active', id === active);
+        $(id).classList.toggle('done', done.includes(id));
+      });
+    }
+    function highlightDraftButton() {
+      $('draftEmailBtn').classList.add('pulse-target');
+      setTimeout(() => $('draftEmailBtn').classList.remove('pulse-target'), 7000);
+    }
+    function runInitialAnalysis() {
+      openDrawer('ai');
+      setTab('email');
+      setTaskActive('taskBop');
+      setGuide('guideEmail', ['guideAsk']);
+      $('nextAction').textContent = 'Draft email';
+      addChat('I reviewed the BOP requirements. The blocking task is an OPA authorization request for updated medical records. I highlighted the Draft Email button.', 'ai');
+      logSeed.forEach((entry, i) => setTimeout(() => addLog(entry[0], entry[1], entry[2]), i * 220));
+      highlightDraftButton();
+      showToast('<strong>AI assistant opened.</strong><br>The Draft Email button is highlighted because authorization is blocking the BOP workflow.');
+    }
+    function draftEmail() {
+      setTab('email');
+      openDrawer('ai');
+      $('draftEmailBtn').classList.remove('pulse-target');
+      $('emailStatus').textContent = 'Draft ready';
+      $('emailBody').textContent = `Good afternoon,\n\nWe are requesting the medical authorization needed to obtain updated records for Maria Santos as parent and natural guardian of A.M.S. in Santos v. Metropolitan City Health and Hospitals Corporation, Index No. 905421/2027.\n\nOur review of the synthetic case repository shows this authorization is needed to support the Bill of Particulars workflow and the next compliance conference order requirement. The current case note references NYSCEF Doc. No. 12 as the source for the pending follow-up.\n\nPlease send the signed authorization or confirm the next step for obtaining it.\n\nThank you,\nPujan Bajracharya\nParalegal · Synthetic Demo Law Firm`;
+      $('sendEmailBtn').disabled = false;
+      setTaskActive('taskEmail');
+      setGuide('guideSend', ['guideAsk','guideEmail']);
+      $('nextAction').textContent = 'Send email';
+      addLog('Email', 'Drafted editable OPA authorization request using case name, index number, CC order reference, and pending BOP dependency.', 'good');
+      addChat('The authorization email is drafted and editable. Review the body, then click Send Email.', 'ai');
+    }
+    function sendEmail() {
+      $('sendEmailBtn').disabled = true;
+      $('emailStatus').textContent = 'Sending…';
+      addLog('Email sent', 'Authorization request sent to OPA; firm clerk copied.', 'good');
+      addChat('Email sent. Waiting for simulated OPA response…', 'ai');
+      showToast('<strong>Email sent.</strong><br>Waiting for OPA response…');
+      setTimeout(() => {
+        authorizationReceived = true;
+        $('emailStatus').textContent = 'OPA responded';
+        $('toSourcesBtn').disabled = false;
+        $('authCheck').classList.remove('pending'); $('authCheck').classList.add('done');
+        $('authCheck').querySelector('.check-dot').textContent = '✓';
+        $('authPill').textContent = 'Received'; $('authPill').className = 'pill good';
+        $('bopSub').textContent = 'All source requirements complete · ready for final review';
+        $('emailSub').textContent = 'OPA responded with authorization/document confirmation';
+        $('fileSub').textContent = 'Ready for source review and final BOP packet';
+        $('pendingCount').textContent = '2'; $('caseStatus').textContent = 'Review sources'; $('nextAction').textContent = 'Sources'; $('dayProgress').style.width = '58%';
+        setGuide('guideSources', ['guideAsk','guideEmail','guideSend']);
+        addLog('OPA response', 'OPA responded and sent authorization / final document confirmation.', 'good');
+        addChat('OPA responded. Next, review the sources used, then move to the BOP draft.', 'ai');
+        showToast('<strong>OPA responded.</strong><br>Authorization/document confirmation received. Review sources next.');
+      }, 3000);
+    }
+    function gotoSources() {
+      setTab('sources');
+      setGuide('guideSources', ['guideAsk','guideEmail','guideSend']);
+      $('nextAction').textContent = 'Review BOP';
+      addLog('Sources opened', 'User reviewed source evidence before finalizing the BOP packet.', 'good');
+    }
+    function gotoBop() {
+      setTab('bop');
+      setTaskActive('taskFile');
+      setGuide('guideBop', ['guideAsk','guideEmail','guideSend','guideSources']);
+      addChat('Sources reviewed. Now auto-populate the remaining BOP draft fields and finalize.', 'ai');
+      addLog('BOP opened', 'BOP draft opened after email and source review.', 'good');
+    }
+    function populateBop() {
+      bopPopulated = true;
+      $('natureField').className = ''; $('natureField').textContent = 'Medical malpractice action involving alleged departures from accepted standards of care at Queens Metropolitan Hospital Center.';
+      setTimeout(() => { $('departuresField').className = ''; $('departuresField').textContent = 'Alleged failure to timely evaluate, monitor, escalate, and respond to clinical signs requiring further medical review. Final wording remains subject to attorney review.'; addLog('BOP fields', 'Nature of action and alleged departures populated from complaint + supporting exhibits.', 'good'); }, 350);
+      setTimeout(() => { $('injuriesField').className = ''; $('injuriesField').textContent = 'Infant plaintiff treatment timeline and injury summary populated from synthetic medical summary; updated records authorization has been received.'; $('damagesField').className = ''; $('damagesField').textContent = 'Medical expenses and related damages flagged for attorney review after updated provider records.'; addLog('BOP fields', 'Injury/treatment and damages sections populated with review flags.', 'warn'); }, 700);
+      setTimeout(() => { $('verifyField').className = ''; $('verifyField').textContent = 'Verification/signature/date requires final human review before filing.'; $('finalizeBopBtn').disabled = false; $('pendingCount').textContent = '1'; $('caseStatus').textContent = 'Ready to finalize'; $('nextAction').textContent = 'Finalize'; $('dayProgress').style.width = '78%'; addLog('Review flag', 'Verification/signature/date remains human-review required.', 'warn'); addChat('BOP fields are populated. Finalize after review, then send to court.', 'ai'); }, 1100);
+    }
+    function finalizeBop() {
+      if (!authorizationReceived) { showToast('<strong>Still blocked.</strong><br>Send the OPA email and wait for the response first.'); return; }
+      if (!bopPopulated) { populateBop(); return; }
+      bopFinalized = true;
+      $('finalizeBopBtn').disabled = true; $('efileBtn').disabled = false;
+      $('verifyField').textContent = 'Human review complete · ready for simulated filing.';
+      $('caseStatus').textContent = 'Ready to file'; $('nextAction').textContent = 'Send to court'; $('dayProgress').style.width = '88%';
+      setGuide('guideCourt', ['guideAsk','guideEmail','guideSend','guideSources','guideBop']);
+      addLog('Finalized', 'BOP packet finalized after authorization response and human review flag cleared.', 'good');
+      addChat('The BOP packet is finalized. Click Send to Court to complete the simulated filing.', 'ai');
+    }
+    function showCompletionOverlay() {
+      const overlay = $('completionOverlay');
+      overlay.classList.add('show');
+      overlay.setAttribute('aria-hidden', 'false');
+    }
+    function goBackToCaseStudy() {
+      if (document.referrer) { window.history.back(); return; }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function efile() {
+      if (!bopFinalized) return;
+      $('efileBtn').disabled = true;
+      $('fileCheck').classList.remove('pending'); $('fileCheck').classList.add('done');
+      $('fileCheck').querySelector('.check-dot').textContent = '✓';
+      $('filePill').textContent = 'Filed'; $('filePill').className = 'pill good';
+      $('pendingCount').textContent = '0'; $('caseStatus').textContent = 'Filed'; $('nextAction').textContent = 'Wait for court response'; $('dayProgress').style.width = '100%';
+      $('doneBanner').classList.add('show');
+      setGuide('', ['guideAsk','guideEmail','guideSend','guideSources','guideBop','guideCourt']);
+      addLog('Court filing', 'Simulated e-filing complete. Next action is to wait for court response. Expected time: 1 day.', 'good');
+      addChat('All pending tasks for this case are complete for today. Next action: wait for court response. Expected time: 1 day.', 'ai');
+      showToast('<strong>All pending tasks done.</strong><br>Next action: wait for court response. Expected time: 1 day.');
+      setTimeout(showCompletionOverlay, 450);
+    }
+
+    $('openDemoBtn').addEventListener('click', openDemo);
+    $('backCaseStudyBtn').addEventListener('click', goBackToCaseStudy);
+    $('completionOverlay').addEventListener('click', (event) => { if (event.target === $('completionOverlay')) { $('completionOverlay').classList.remove('show'); $('completionOverlay').setAttribute('aria-hidden', 'true'); } });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { $('completionOverlay').classList.remove('show'); $('completionOverlay').setAttribute('aria-hidden', 'true'); } });
+    $('quickRunBtn').addEventListener('click', () => {
+      openDemo();
+      setTimeout(runInitialAnalysis, 500);
+      setTimeout(draftEmail, 2500);
+      setTimeout(sendEmail, 4200);
+      setTimeout(gotoSources, 7800);
+      setTimeout(gotoBop, 9000);
+      setTimeout(populateBop, 10000);
+      setTimeout(finalizeBop, 11600);
+      setTimeout(efile, 12800);
+    });
+    $('resetBtn').addEventListener('click', () => location.reload());
+    $('topAiBtn').addEventListener('click', () => { openDrawer('ai'); if (demo.classList.contains('is-open')) runInitialAnalysis(); });
+    $('topWorkLogBtn').addEventListener('click', () => openDrawer('log'));
+    $('floatAiBtn').addEventListener('click', () => { openDemo(); openDrawer('ai'); highlightDraftButton(); });
+    $('floatLogBtn').addEventListener('click', () => { openDemo(); openDrawer('log'); });
+    $('closeAiBtn').addEventListener('click', () => $('aiDrawer').classList.remove('open'));
+    $('closeLogBtn').addEventListener('click', () => $('logDrawer').classList.remove('open'));
+    $('taskBop').addEventListener('click', runInitialAnalysis);
+    $('taskEmail').addEventListener('click', () => { setTaskActive('taskEmail'); setTab('email'); openDrawer('ai'); highlightDraftButton(); addChat('Click Draft Email to generate the OPA authorization request.', 'ai'); });
+    $('taskFile').addEventListener('click', () => { setTaskActive('taskFile'); setTab('bop'); if (!authorizationReceived) showToast('<strong>Still blocked.</strong><br>OPA authorization is needed before final filing.'); });
+    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setTab(t.dataset.tab)));
+    $('draftEmailBtn').addEventListener('click', draftEmail);
+    $('sendEmailBtn').addEventListener('click', sendEmail);
+    $('toSourcesBtn').addEventListener('click', gotoSources);
+    $('toBopBtn').addEventListener('click', gotoBop);
+    $('populateBopBtn').addEventListener('click', populateBop);
+    $('finalizeBopBtn').addEventListener('click', finalizeBop);
+    $('efileBtn').addEventListener('click', efile);
+  </script>
+</body>
+</html>

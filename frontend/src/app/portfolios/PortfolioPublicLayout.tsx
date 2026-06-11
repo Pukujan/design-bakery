@@ -1,11 +1,9 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { Navigation } from '../components/Navigation';
 import { PortfolioProvider } from './PortfolioContext';
-import { getPortfolioFromPathname } from './registry';
 
 export function PortfolioPublicLayout() {
-  const { pathname } = useLocation();
-  const portfolioId = getPortfolioFromPathname(pathname);
+  const portfolioId = 'endtoend-engineer' as const;
 
   return (
     <PortfolioProvider portfolioId={portfolioId}>

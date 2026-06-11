@@ -1,12 +1,24 @@
-import { Fragment, type ReactElement } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { type ReactElement } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { DefaultSiteHead } from './seo/PageSeo';
 import { EngineeringHome } from './modules/engineering/EngineeringHome/EngineeringHome';
+import { BlogListPage } from './modules/blog/public/list/BlogListPage';
+import { BlogDetailPage } from './modules/blog/public/detail/BlogDetailPage';
 import { AdminAuthProvider } from './lib/adminAuth';
 import { AdminLogin } from './modules/admin/AdminLogin';
 import { PortfolioPublicLayout } from './portfolios/PortfolioPublicLayout';
 import { AdminLayoutShell } from './modules/admin/AdminLayoutShell';
 import { buildAdminChildRoutes } from './modules/admin/adminRoutes';
+import { NotFoundPage } from './components/NotFoundPage';
+
+function LegacyBlogRedirect() {
+  const { blogId } = useParams<{ blogId?: string }>();
+  return <Navigate to={blogId ? `/blogs/${blogId}` : '/blogs'} replace />;
+}
+
+function LegacyHomeRedirect() {
+  return <Navigate to="/" replace />;
+}
 
 function adminRoutes(): ReactElement[] {
   return [
@@ -71,30 +83,43 @@ function adminRoutes(): ReactElement[] {
 
 function publicRoutes(): ReactElement[] {
   return [
-    <Route key="home" path="/" element={<PortfolioPublicLayout />}>
+    <Route key="public-shell" path="/" element={<PortfolioPublicLayout />}>
       <Route index element={<EngineeringHome />} />
     </Route>,
-    <Route path="/blogs" element={<Navigate to="/" replace />} />,
-    <Route path="/blogs/:blogId" element={<Navigate to="/" replace />} />,
-    <Route path="/gallery" element={<Navigate to="/" replace />} />,
-    <Route path="/gallery/image/:category/:imageId" element={<Navigate to="/" replace />} />,
-    <Route path="/legal-workflow-engineer" element={<Navigate to="/" replace />} />,
-    <Route path="/legal-workflow-engineer/blogs" element={<Navigate to="/" replace />} />,
-    <Route path="/legal-workflow-engineer/blogs/:blogId" element={<Navigate to="/" replace />} />,
-    <Route path="/endtoend-engineer" element={<Navigate to="/" replace />} />,
-    <Route path="/endtoend-engineer/blogs" element={<Navigate to="/" replace />} />,
-    <Route path="/endtoend-engineer/blogs/:blogId" element={<Navigate to="/" replace />} />,
-    <Route path="/endtoend-engineer/gallery" element={<Navigate to="/" replace />} />,
-    <Route path="/endtoend-engineer/gallery/image/:category/:imageId" element={<Navigate to="/" replace />} />,
-    <Route path="/ai-engineer" element={<Navigate to="/" replace />} />,
-    <Route path="/ai-engineer/blogs" element={<Navigate to="/" replace />} />,
-    <Route path="/ai-engineer/blogs/:blogId" element={<Navigate to="/" replace />} />,
-    <Route path="/forward-deployed-engineer" element={<Navigate to="/" replace />} />,
-    <Route path="/forward-deployed-engineer/blogs" element={<Navigate to="/" replace />} />,
-    <Route path="/forward-deployed-engineer/blogs/:blogId" element={<Navigate to="/" replace />} />,
-    <Route path="/nav/design" element={<Navigate to="/" replace />} />,
-    <Route path="/design" element={<Navigate to="/" replace />} />,
-    <Route key="catch-all" path="*" element={<Navigate to="/" replace />} />,
+    <Route key="blog-shell" path="/blogs" element={<PortfolioPublicLayout />}>
+      <Route index element={<BlogListPage />} />
+      <Route path=":blogId" element={<BlogDetailPage />} />
+    </Route>,
+    <Route path="/legal-workflow-engineer" element={<LegacyHomeRedirect />} />,
+    <Route path="/legal-workflow-engineer/*" element={<LegacyHomeRedirect />} />,
+    <Route path="/endtoend-engineer" element={<LegacyHomeRedirect />} />,
+    <Route path="/endtoend-engineer/*" element={<LegacyHomeRedirect />} />,
+    <Route path="/ai-engineer" element={<LegacyHomeRedirect />} />,
+    <Route path="/ai-engineer/*" element={<LegacyHomeRedirect />} />,
+    <Route path="/forward-deployed-engineer" element={<LegacyHomeRedirect />} />,
+    <Route path="/forward-deployed-engineer/*" element={<LegacyHomeRedirect />} />,
+    <Route path="/nav/design" element={<LegacyHomeRedirect />} />,
+    <Route path="/design" element={<LegacyHomeRedirect />} />,
+    <Route path="/gallery" element={<LegacyHomeRedirect />} />,
+    <Route path="/gallery/*" element={<LegacyHomeRedirect />} />,
+    <Route path="/legal-workflow-engineer/blogs" element={<Navigate to="/blogs" replace />} />,
+    <Route
+      path="/legal-workflow-engineer/blogs/:blogId"
+      element={<LegacyBlogRedirect />}
+    />,
+    <Route path="/endtoend-engineer/blogs" element={<Navigate to="/blogs" replace />} />,
+    <Route path="/endtoend-engineer/blogs/:blogId" element={<LegacyBlogRedirect />} />,
+    <Route path="/ai-engineer/blogs" element={<Navigate to="/blogs" replace />} />,
+    <Route path="/ai-engineer/blogs/:blogId" element={<LegacyBlogRedirect />} />,
+    <Route
+      path="/forward-deployed-engineer/blogs"
+      element={<Navigate to="/blogs" replace />}
+    />,
+    <Route
+      path="/forward-deployed-engineer/blogs/:blogId"
+      element={<LegacyBlogRedirect />}
+    />,
+    <Route key="catch-all" path="*" element={<NotFoundPage />} />,
   ];
 }
 
@@ -104,10 +129,8 @@ export default function App() {
       <Router>
         <DefaultSiteHead />
         <Routes>
-          <Fragment>
-            {adminRoutes()}
-            {publicRoutes()}
-          </Fragment>
+          {adminRoutes()}
+          {publicRoutes()}
         </Routes>
       </Router>
     </AdminAuthProvider>

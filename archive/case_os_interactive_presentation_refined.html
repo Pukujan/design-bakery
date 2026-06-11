@@ -1,0 +1,1164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Case OS Interactive Presentation</title>
+  <style>
+    :root {
+      --bg: #070a12;
+      --panel: #0d1324;
+      --panel-2: #111a2e;
+      --panel-3: #16223a;
+      --text: #eef4ff;
+      --soft: #c8d5f0;
+      --muted: #8ea0bf;
+      --line: rgba(255,255,255,0.12);
+      --accent: #8be9fd;
+      --accent-2: #a78bfa;
+      --good: #34d399;
+      --warn: #fbbf24;
+      --bad: #fb7185;
+      --paper: #f8fbff;
+      --paper-text: #0f172a;
+      --shadow: 0 24px 90px rgba(0,0,0,0.45);
+      --radius: 26px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background:
+        radial-gradient(900px 620px at 90% -10%, rgba(139,233,253,0.14), transparent 60%),
+        radial-gradient(760px 560px at 8% 8%, rgba(167,139,250,0.16), transparent 58%),
+        radial-gradient(740px 520px at 50% 112%, rgba(52,211,153,0.08), transparent 62%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+
+    .deck {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: 70px 1fr 64px;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .topbar {
+      min-height: 70px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(13, 19, 36, 0.72);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.24);
+      backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 12px 14px 12px 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #07111d;
+      font-weight: 1000;
+      box-shadow: 0 0 34px rgba(139,233,253,0.2);
+      flex: 0 0 auto;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -0.045em;
+      line-height: 1;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 52vw;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.065);
+      color: white;
+      padding: 10px 13px;
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 12px;
+      transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      background: rgba(139,233,253,0.12);
+      border-color: rgba(139,233,253,0.44);
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, rgba(139,233,253,0.20), rgba(167,139,250,0.20));
+      border-color: rgba(139,233,253,0.46);
+    }
+
+    .btn.good {
+      background: rgba(52,211,153,0.14);
+      border-color: rgba(52,211,153,0.38);
+    }
+
+    .viewport {
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.032));
+      box-shadow: var(--shadow);
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      opacity: 0;
+      overflow: auto;
+      padding: clamp(24px, 3vw, 44px);
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      transform: translateY(8px);
+    }
+
+    .slide.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+      animation: enter 0.24s ease both;
+    }
+
+    @keyframes enter {
+      from { opacity: 0.15; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slide-grid {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 0.92fr 1.08fr;
+      gap: 28px;
+      align-items: center;
+      min-height: 520px;
+    }
+
+    .slide-grid.wide-left {
+      grid-template-columns: 1.08fr 0.92fr;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent);
+      font-weight: 1000;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      border: 1px solid rgba(139,233,253,0.28);
+      border-radius: 999px;
+      padding: 8px 11px;
+      background: rgba(139,233,253,0.08);
+      margin-bottom: 18px;
+    }
+
+    .kicker .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(139,233,253,0.72);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(36px, 5.7vw, 72px);
+      line-height: 0.92;
+      letter-spacing: -0.075em;
+      max-width: 980px;
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      letter-spacing: -0.03em;
+    }
+
+    .lead {
+      margin: 22px 0 0;
+      max-width: 760px;
+      font-size: clamp(17px, 1.7vw, 23px);
+      line-height: 1.48;
+      color: var(--soft);
+      font-weight: 550;
+    }
+
+    .mini-note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      max-width: 700px;
+    }
+
+    .visual-card {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.085), rgba(255,255,255,0.035)),
+        rgba(13,19,36,0.58);
+      box-shadow: 0 20px 70px rgba(0,0,0,0.34);
+      padding: 18px;
+      min-height: 420px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .visual-card::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      pointer-events: none;
+      background:
+        radial-gradient(420px 220px at 80% 0%, rgba(139,233,253,0.12), transparent 60%),
+        radial-gradient(420px 240px at 0% 100%, rgba(167,139,250,0.13), transparent 62%);
+    }
+
+    .visual-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .mock-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .mock-title {
+      font-weight: 1000;
+      letter-spacing: -0.03em;
+      color: #fff;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(52,211,153,0.11);
+      border: 1px solid rgba(52,211,153,0.28);
+      color: #b7f7dc;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .status-pill.warn {
+      background: rgba(251,191,36,0.12);
+      border-color: rgba(251,191,36,0.32);
+      color: #fde68a;
+    }
+
+    .status-pill.ai {
+      background: rgba(139,233,253,0.10);
+      border-color: rgba(139,233,253,0.35);
+      color: #bdf5ff;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .tile {
+      border: 1px solid rgba(255,255,255,0.11);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.055);
+      padding: 14px;
+      min-height: 88px;
+    }
+
+    .tile strong {
+      display: block;
+      font-size: 14px;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .tile span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.42;
+    }
+
+    .tile.good {
+      background: rgba(52,211,153,0.09);
+      border-color: rgba(52,211,153,0.22);
+    }
+
+    .tile.warn {
+      background: rgba(251,191,36,0.09);
+      border-color: rgba(251,191,36,0.22);
+    }
+
+    .tile.bad {
+      background: rgba(251,113,133,0.08);
+      border-color: rgba(251,113,133,0.22);
+    }
+
+    .task-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .task {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.055);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .task .icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(139,233,253,0.18), rgba(167,139,250,0.18));
+      border: 1px solid rgba(139,233,253,0.24);
+      flex: 0 0 auto;
+    }
+
+    .task b {
+      display: block;
+      font-size: 13px;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    .task small {
+      display: block;
+      color: var(--muted);
+      margin-top: 3px;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .flow {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .flow-step {
+      display: grid;
+      grid-template-columns: 38px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 17px;
+      background: rgba(255,255,255,0.055);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .num {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #06131c;
+      font-weight: 1000;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+
+    .flow-step b {
+      display: block;
+      font-size: 13px;
+      color: #fff;
+    }
+
+    .flow-step small {
+      display: block;
+      color: var(--muted);
+      margin-top: 3px;
+      font-size: 11px;
+    }
+
+    .check {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(52,211,153,0.16);
+      border: 1px solid rgba(52,211,153,0.34);
+      color: #bbf7d0;
+      font-size: 13px;
+      font-weight: 1000;
+    }
+
+    .paper {
+      background: var(--paper);
+      color: var(--paper-text);
+      border-radius: 22px;
+      box-shadow: 0 16px 55px rgba(0,0,0,0.28);
+      border: 1px solid rgba(15,23,42,0.08);
+      padding: 18px;
+    }
+
+    .paper-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid rgba(15,23,42,0.10);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+
+    .paper-head b {
+      display: block;
+      color: #0f172a;
+      font-size: 14px;
+      letter-spacing: -0.02em;
+    }
+
+    .paper-head span {
+      display: block;
+      color: #64748b;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .field {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(15,23,42,0.08);
+      font-size: 12px;
+    }
+
+    .field label {
+      color: #64748b;
+      font-weight: 900;
+    }
+
+    .field div {
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .source-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,0.11);
+      background: rgba(255,255,255,0.052);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .source-row b {
+      display: block;
+      font-size: 13px;
+    }
+
+    .source-row small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .compare-col {
+      border: 1px solid rgba(255,255,255,0.11);
+      border-radius: 20px;
+      padding: 14px;
+      background: rgba(255,255,255,0.045);
+    }
+
+    .compare-col h3 {
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .compare-col ul {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .compare-col li {
+      color: var(--soft);
+      font-size: 13px;
+      line-height: 1.4;
+      padding: 10px 10px 10px 32px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.045);
+      position: relative;
+    }
+
+    .compare-col li::before {
+      content: "•";
+      position: absolute;
+      left: 13px;
+      top: 9px;
+      color: var(--accent);
+      font-weight: 1000;
+    }
+
+    .system-map {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 11px;
+      margin-top: 14px;
+    }
+
+    .node {
+      min-height: 82px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.058);
+      border-radius: 18px;
+      padding: 12px;
+      position: relative;
+    }
+
+    .node b {
+      display: block;
+      font-size: 13px;
+      color: #fff;
+    }
+
+    .node span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+      margin-top: 5px;
+    }
+
+    .node.highlight {
+      background: linear-gradient(135deg, rgba(139,233,253,0.16), rgba(167,139,250,0.12));
+      border-color: rgba(139,233,253,0.32);
+    }
+
+    .footer {
+      min-height: 64px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slide-count {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+    }
+
+    .ctrl {
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.13);
+      background: rgba(255,255,255,0.06);
+      color: white;
+      font-weight: 1000;
+      cursor: pointer;
+    }
+
+    .ctrl:hover {
+      background: rgba(139,233,253,0.12);
+      border-color: rgba(139,233,253,0.42);
+    }
+
+    .dots {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 5px;
+    }
+
+    .dot-btn {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(255,255,255,0.22);
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .dot-btn.active {
+      width: 24px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+
+    .cta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+      max-width: 720px;
+    }
+
+    .cta-card {
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      background: rgba(255,255,255,0.055);
+      padding: 16px;
+      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    }
+
+    .cta-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(139,233,253,0.42);
+      background: rgba(139,233,253,0.08);
+    }
+
+    .cta-card b {
+      display: block;
+      font-size: 15px;
+      color: #fff;
+    }
+
+    .cta-card span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .tagline {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.055);
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 900;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 980px) {
+      body { overflow: auto; }
+      .deck {
+        height: auto;
+        min-height: 100vh;
+        grid-template-rows: auto 78vh auto;
+        padding: 12px;
+      }
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .brand p { max-width: 82vw; white-space: normal; }
+      .slide-grid, .slide-grid.wide-left {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+      h2 { font-size: 42px; }
+      .visual-card { min-height: auto; }
+      .grid-3, .system-map { grid-template-columns: 1fr; }
+      .comparison, .cta-grid { grid-template-columns: 1fr; }
+      .footer { grid-template-columns: 1fr; }
+      .dots { justify-content: center; flex-wrap: wrap; }
+      .slide-count { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">OS</div>
+        <div>
+          <h1>Case OS</h1>
+          <p>Interactive product presentation for AI-assisted daily litigation workflows</p>
+        </div>
+      </div>
+      <nav class="nav-actions">
+        <a class="btn primary" href="legal_workflow_interactive_demo_v5.html">Try Workflow Demo</a>
+        <a class="btn" href="https://litigation-prompt-engineering-v2.vercel.app/demo/ai-ops" target="_blank" rel="noreferrer">Technical Demo</a>
+        <a class="btn" href="https://github.com/Pukujan/litigation-prompt-engineering-v2" target="_blank" rel="noreferrer">GitHub</a>
+        <a class="btn" href="./">Back to Case Study</a>
+      </nav>
+    </header>
+
+    <section class="viewport" aria-live="polite">
+      <article class="slide active">
+        <div class="slide-grid">
+          <div>
+            <div class="kicker"><span class="dot"></span> Opening thesis</div>
+            <h2>Case OS for daily litigation work</h2>
+            <p class="lead">Legal teams do not just need AI search. They need a case workspace that helps them finish daily litigation tasks faster, with source support and human review.</p>
+            <p class="mini-note">Case OS turns scattered case information into guided daily action.</p>
+            <div class="tagline">Assist legal teams, leave judgment to professionals</div>
+          </div>
+          <div class="visual-card">
+            <div class="visual-inner">
+              <div class="mock-header">
+                <div class="mock-title">Santos v. Metropolitan City HHC</div>
+                <span class="status-pill ai">AI workspace active</span>
+              </div>
+              <div class="grid-2">
+                <div class="tile warn"><strong>Today's tasks</strong><span>BOP, authorization, CC follow-up, court response watch</span></div>
+                <div class="tile"><strong>Case repository</strong><span>Filings, orders, records, emails, notes</span></div>
+                <div class="tile good"><strong>AI assistant</strong><span>Guides the next safe action</span></div>
+                <div class="tile"><strong>Work log</strong><span>Tracks sources, decisions, drafts, and review states</span></div>
+              </div>
+              <div class="flow">
+                <div class="flow-step"><div class="num">1</div><div><b>Open case</b><small>Staff sees today’s work in one place</small></div><span class="check">✓</span></div>
+                <div class="flow-step"><div class="num">2</div><div><b>Run guided task</b><small>AI prepares draft and checks source support</small></div><span class="check">✓</span></div>
+                <div class="flow-step"><div class="num">3</div><div><b>Human review</b><small>Paralegal or attorney edits, approves, and files</small></div><span class="check">✓</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide">
+        <div class="slide-grid wide-left">
+          <div>
+            <div class="kicker"><span class="dot"></span> The real problem</div>
+            <h2>Daily litigation work is fragmented</h2>
+            <p class="lead">A simple task often requires checking filings, orders, emails, calendars, rules, notes, prior appearances, and document repositories.</p>
+            <p class="mini-note">The bottleneck is not one task. It is the constant switching between systems and memory.</p>
+          </div>
+          <div class="visual-card">
+            <div class="visual-inner">
+              <div class="mock-header">
+                <div class="mock-title">One task becomes many checks</div>
+                <span class="status-pill warn">context scattered</span>
+              </div>
+              <div class="task-list">
+                <div class="task"><div class="icon">📄</div><div><b>Draft Bill of Particulars</b><small>Requires complaint, medical facts, injuries, deadlines, source checks</small></div></div>
+                <div class="task"><div class="icon">✉️</div><div><b>Request medical authorization</b><small>Requires OPA contact, reason, plaintiff, deadline, order reference</small></div></div>
+                <div class="task"><div class="icon">📅</div><div><b>Follow up on EBT dates</b><small>Requires prior emails, witness availability, orders, assigned attorney preference</small></div></div>
+                <div class="task"><div class="icon">⚖️</div><div><b>Check court rules</b><small>Requires part rules, judge history, appearance rules, prior outcomes</small></div></div>
+                <div class="task"><div class="icon">🧾</div><div><b>Prepare e-filing</b><small>Requires final draft, source documents, service status, and docketing update</small></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide">
+        <div class="slide-grid">
+          <div>
+            <div class="kicker"><span class="dot"></span> Why current tools fall short</div>
+            <h2>Search, chat, and calendars do not solve the full workflow</h2>
+            <p class="lead">A legal team needs more than answers. They need task context, source checking, draft preparation, rule awareness, and a work log.</p>
+            <p class="mini-note">The system should help complete the work, not just answer questions.</p>
+          </div>
+          <div class="visual-card">
+            <div class="visual-inner">
+              <div class="comparison">
+                <div class="compare-col">
+                  <h3>Current workflow</h3>
+                  <ul>
+                    <li>Staff searches manually</li>
+                    <li>Rules checked in separate places</li>
+                    <li>Drafts built from scratch</li>
+                    <li>Follow-ups tracked manually</li>
+                    <li>Knowledge stays in memory</li>
+                  </ul>
+                </div>
+                <div class="compare-col">
+                  <h3>Case OS workflow</h3>
+                  <ul>
+                    <li>AI surfaces relevant files</li>
+                    <li>Court and part rules are attached to tasks</li>
+                    <li>Editable drafts are prepared</li>
+                    <li>Next actions are guided</li>
+                    <li>Work log captures what happened</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide">
+        <div class="slide-grid wide-left">
+          <div>
+            <div class="kicker"><span class="dot"></span> The solution</div>
+            <h2>One case workspace for tasks, documents, rules, and drafts</h2>
+            <p class="lead">Case OS organizes litigation work around the case, not around scattered tools.</p>
+            <p class="mini-note">Everything connects back to the case file and the current task.</p>
+          </div>
+          <div class="visual-card">
+            <div class="visual-inner">
+              <div class="grid-3">
+                <div class="tile"><strong>Case Dashboard</strong><span>Daily tasks, status, deadlines</span></div>
+                <div class="tile"><strong>Document Repository</strong><span>Filings, records, orders, emails</span></div>
+                <div class="tile"><strong>AI Task Assistant</strong><span>Guides task completion</span></div>
+                <div class="tile"><strong>E-filing Prep</strong><span>Source-ready filing workflow</span></div>
+                <div class="tile"><strong>Calendar and Docketing</strong><span>Deadlines and appearance context</span></div>
+                <div class="tile"><strong>Court Rule Engine</strong><span>Part rules, court rules, prior outcomes</span></div>
+                <div class="tile"><strong>Email Follow-up</strong><span>Guided drafting and response tracking</span></div>
+                <div class="tile"><strong>Work Log</strong><span>Audit trail for every task</span></div>
+                <div class="tile"><strong>Human Review</strong><span>Staff and attorneys approve final action</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide">
+        <div class="slide-grid">
+          <div>
+            <div class="kicker"><span class="dot"></span> Daily assistant workflows</div>
+            <h2>AI assistants for practical legal operations</h2>
+            <p class="lead">Each assistant handles a specific daily workflow while leaving legal judgment to professionals.</p>
+            <p class="mini-note">The AI prepares, checks, organizes, and suggests. Attorneys and staff review, approve, and decide.</p>
+          </div>
+          <div class="visual-card">
+            <div class="visual-inner">
+              <div class="grid-2">
+                <div class="tile good"><strong>E-drafting Assistant</strong><span>Drafts forms, letters, and routine legal work product</span></div>
+                <div class="tile good"><strong>E-filing Assistant</strong><span>Prepares filing checklist and source references</span></div>
+                <div class="tile"><strong>EBT Coordination Assistant</strong><span>Tracks dates, witnesses, responses, and follow-ups</span></div>
+                <div class="tile"><strong>Medical Records Assistant</strong><span>Tracks authorization, requests, and missing documents</span></div>
+                <div class="tile"><strong>Client Follow-up Assistant</strong><span>Prepares messages and tracks response status</span></div>
+                <div class="tile"><strong>Insurance File Assistant</strong><span>Summarizes claims, coverage, and file status</span></div>
+                <div class="tile"><strong>BOP Assistant</strong><span>Guides requirements, sources, and ready-to-file review</span></div>
+                <div class="tile"><strong>Court Rules Assistant</strong><span>Applies part rules, court rules, and prior case history</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide">
+        <div class="slide-grid wide-left">
+          <div>
+            <div class="kicker"><span class="dot"></span> Example workflow</div>
+            <h2>From pending BOP task to ready-to-file draft</h2>
+            <p class="lead">A paralegal opens the case dashboard and sees a pending Bill of Particulars task. Case OS guides the missing steps.</p>
+            <p class="mini-note">The demo should feel like a paralegal getting guided through the work.</p>
+          </div>
+          <div class="visual-card">
+            <div class="visual-inner">
+              <div class="mock-header">
+                <div class="mock-title">Guided workflow</div>
+                <span class="status-pill warn">BOP pending</span>
+              </div>
+              <div class="flow">
+                <div class="flow-step"><div class="num">1</div><div><b>Check requirements</b><small>AI reads case repository and BOP checklist</small></div><span class="check">✓</span></div>
+                <div class="flow-step"><div class="num">2</div><div><b>Request missing authorization</b><small>Email to OPA is drafted from case facts</small></div><span class="check">✓</span></div>
+                <div class="flow-step"><div class="num">3</div><div><b>Track response</b><small>OPA response updates task status</small></div><span class="check">✓</span></div>
+                <div class="flow-step"><div class="num">4</div><div><b>Review sources</b><small>Complaint, CC order, medical tracker, BOP template</small></div><span class="check">✓</span></div>
+                <div class="flow-step"><div class="num">5</div><div><b>Finalize BOP</b><small>Human reviews and approves draft</small></div><span class="check">✓</span></div>
+                <div class="flow-step"><div class="num">6</div><div><b>Send to court</b><small>Task marked complete and next action is set</small></div><span class="check">✓</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide">
+        <div class="slide-grid">
+          <div>
+            <div class="kicker"><span class="dot"></span> Source-aware review</div>
+            <h2>Every AI action is tied to source documents</h2>
+            <p class="lead">Case OS reduces AI risk by showing what the system used, what it found, and what still needs review.</p>
+            <p class="mini-note">The system is not blind AI generation. It is source-grounded workflow assistance.</p>
+          </div>
+          <div class="visual-card">
+            <div class="visual-inner">
+              <div class="source-row"><div><b>NYSCEF Doc. 9: Bill of Particulars</b><small>Used for document type, case identity, workflow status</small></div><span class="status-pill">source supported</span></div>
+              <div class="source-row"><div><b>NYSCEF Doc. 12: Compliance Conference Order</b><small>Used for deadline and next required action</small></div><span class="status-pill">rule linked</span></div>
+              <div class="source-row"><div><b>Medical authorization tracker</b><small>Used to identify missing authorization before BOP filing</small></div><span class="status-pill warn">needs follow-up</span></div>
+              <div class="source-row"><div><b>OPA email thread</b><small>Used for contact, response history, and pending request</small></div><span class="status-pill ai">draft ready</span></div>
+              <div class="source-row"><div><b>Part 10 court rules</b><small>Used for court-specific workflow context</small></div><span class="status-pill">verified</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide">
+        <div class="slide-grid wide-left">
+          <div>
+            <div class="kicker"><span class="dot"></span> Court and case intelligence</div>
+            <h2>Case OS learns from rules, orders, and prior case activity</h2>
+            <p class="lead">The system can help staff understand procedural patterns based on court rules, judge behavior, prior appearances, and internal history.</p>
+            <p class="mini-note">The app gives practical procedural context, but leaves final judgment to legal professionals.</p>
+          </div>
+          <div class="visual-card">
+            <div class="visual-inner">
+              <div class="task-list">
+                <div class="task"><div class="icon">⚖️</div><div><b>How does this court handle late adjournments?</b><small>Checks rules, prior appearances, and actual case history</small></div></div>
+                <div class="task"><div class="icon">🕒</div><div><b>Did this judge accept a delayed request last time?</b><small>Finds prior outcomes and work log notes</small></div></div>
+                <div class="task"><div class="icon">📌</div><div><b>What happened at the last two appearances?</b><small>Summarizes appearance notes and resulting orders</small></div></div>
+                <div class="task"><div class="icon">📚</div><div><b>Which part rules apply?</b><small>Connects judge, part, court, and case type</small></div></div>
+                <div class="task"><div class="icon">🏥</div><div><b>How long does this medical record request usually take?</b><small>Uses internal pattern history and task duration logs</small></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide">
+        <div class="slide-grid">
+          <div>
+            <div class="kicker"><span class="dot"></span> Productivity impact</div>
+            <h2>Save time while improving consistency</h2>
+            <p class="lead">Case OS helps legal teams reduce repeated checking, speed up routine drafting, and make handoffs easier.</p>
+            <p class="mini-note">The goal is not replacement. The goal is making staff faster, safer, and more organized.</p>
+          </div>
+          <div class="visual-card">
+            <div class="visual-inner">
+              <div class="grid-2">
+                <div class="tile good"><strong>Less time searching</strong><span>Relevant filings, orders, and emails are surfaced by task</span></div>
+                <div class="tile good"><strong>Faster routine drafts</strong><span>Emails, forms, and summaries start with source-backed context</span></div>
+                <div class="tile"><strong>Cleaner follow-up tracking</strong><span>Requests, responses, and pending items stay visible</span></div>
+                <div class="tile"><strong>Better deadline visibility</strong><span>Calendar, docketing, and court orders connect to tasks</span></div>
+                <div class="tile"><strong>More consistent work logs</strong><span>Every action records source, status, and review state</span></div>
+                <div class="tile"><strong>Easier handoffs</strong><span>New staff can see what happened and what comes next</span></div>
+              </div>
+              <div class="tagline">Designed to reduce repetitive case admin work</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide">
+        <div class="slide-grid wide-left">
+          <div>
+            <div class="kicker"><span class="dot"></span> Engineering reliability</div>
+            <h2>Built like a legal AI workflow system, not a chatbot</h2>
+            <p class="lead">Behind the simple interface is an engineering layer for safer, testable, reviewable AI workflows.</p>
+            <p class="mini-note">The user sees a simple dashboard, but the backend is designed around reliability, traceability, and review.</p>
+          </div>
+          <div class="visual-card">
+            <div class="visual-inner">
+              <div class="grid-3">
+                <div class="tile"><strong>Prompt versioning</strong><span>Tracks which prompt produced which result</span></div>
+                <div class="tile"><strong>Eval scripts</strong><span>Tests outputs against expected cases</span></div>
+                <div class="tile"><strong>Regression tests</strong><span>Prevents fixes from breaking older workflows</span></div>
+                <div class="tile"><strong>Audit logs</strong><span>Records action, source, model, and reviewer state</span></div>
+                <div class="tile"><strong>Source verification</strong><span>Checks facts against filings, orders, and rules</span></div>
+                <div class="tile"><strong>Human review</strong><span>Final approval stays with legal professionals</span></div>
+                <div class="tile"><strong>Workflow state</strong><span>Tracks pending, blocked, drafted, sent, completed</span></div>
+                <div class="tile"><strong>Extraction confidence</strong><span>Flags low confidence fields for review</span></div>
+                <div class="tile"><strong>Rollback-ready outputs</strong><span>Supports safer edits and review history</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide">
+        <div class="slide-grid">
+          <div>
+            <div class="kicker"><span class="dot"></span> Connected system</div>
+            <h2>The full Case OS loop</h2>
+            <p class="lead">Documents, rules, tasks, drafts, emails, calendar events, and work logs all connect into one operating system for litigation workflows.</p>
+            <p class="mini-note">Every completed task improves the case record and helps the next workflow.</p>
+          </div>
+          <div class="visual-card">
+            <div class="visual-inner">
+              <div class="system-map">
+                <div class="node highlight"><b>Case Repository</b><span>Filings, records, orders, emails, notes</span></div>
+                <div class="node"><b>Source Checking</b><span>Verifies where facts came from</span></div>
+                <div class="node"><b>Rule Engine</b><span>Court, part, judge, order, and prior case context</span></div>
+                <div class="node"><b>AI Assistants</b><span>Task-specific drafting and guidance</span></div>
+                <div class="node highlight"><b>Drafts and Emails</b><span>Editable outputs for human review</span></div>
+                <div class="node"><b>Calendar and Docketing</b><span>Deadlines, appearances, follow-ups</span></div>
+                <div class="node"><b>Human Review</b><span>Professionals approve the action</span></div>
+                <div class="node"><b>Work Log</b><span>Captures sources, status, and decisions</span></div>
+                <div class="node highlight"><b>Completed Tasks</b><span>Feeds prior case knowledge for the next task</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide">
+        <div class="slide-grid wide-left">
+          <div>
+            <div class="kicker"><span class="dot"></span> Closing</div>
+            <h2>Try the workflow demo</h2>
+            <p class="lead">The demo shows how a daily litigation task can move from pending to complete with guided AI assistance, source review, editable drafts, and a work log.</p>
+            <p class="mini-note">Case OS helps legal teams turn case knowledge into completed daily work.</p>
+            <div class="cta-grid">
+              <a class="cta-card" href="legal_workflow_interactive_demo_v5.html"><b>Try Workflow Demo</b><span>Open the guided BOP and OPA email workflow.</span></a>
+              <a class="cta-card" href="https://litigation-prompt-engineering-v2.vercel.app/demo/ai-ops" target="_blank" rel="noreferrer"><b>Go to Technical Demo</b><span>View the technical AI Ops dashboard.</span></a>
+              <a class="cta-card" href="https://github.com/Pukujan/litigation-prompt-engineering-v2" target="_blank" rel="noreferrer"><b>View GitHub</b><span>Open the project repository.</span></a>
+              <a class="cta-card" href="./"><b>Back to Case Study</b><span>Return to the legal workflow research page.</span></a>
+            </div>
+          </div>
+          <div class="visual-card">
+            <div class="visual-inner">
+              <div class="paper">
+                <div class="paper-head">
+                  <div>
+                    <b>Case OS Demo Status</b>
+                    <span>Recruiter-facing synthetic workflow</span>
+                  </div>
+                  <span class="status-pill" style="color:#065f46;background:#dcfce7;border-color:#bbf7d0;">ready</span>
+                </div>
+                <div class="field"><label>Workflow</label><div>Bill of Particulars and OPA authorization</div></div>
+                <div class="field"><label>AI role</label><div>Prepare, check, draft, guide, log</div></div>
+                <div class="field"><label>Human role</label><div>Review, edit, approve, decide</div></div>
+                <div class="field"><label>Technical proof</label><div>Prompt versioning, evals, source verification, work logs</div></div>
+                <div class="field"><label>Project thesis</label><div>Daily litigation work should be guided from case knowledge to completed action</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <footer class="footer">
+      <div class="slide-count" id="slideCount">Slide 1 of 12</div>
+      <div class="controls">
+        <button class="ctrl" id="prevBtn" aria-label="Previous slide">‹</button>
+        <button class="btn primary" id="nextBtn">Next</button>
+        <button class="ctrl" id="nextArrowBtn" aria-label="Next slide">›</button>
+      </div>
+      <div class="dots" id="dots" aria-label="Slide navigation"></div>
+    </footer>
+  </main>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const dotsWrap = document.getElementById("dots");
+    const count = document.getElementById("slideCount");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const nextArrowBtn = document.getElementById("nextArrowBtn");
+    let current = 0;
+
+    function renderDots() {
+      dotsWrap.innerHTML = "";
+      slides.forEach((_, i) => {
+        const dot = document.createElement("button");
+        dot.className = "dot-btn" + (i === current ? " active" : "");
+        dot.setAttribute("aria-label", "Go to slide " + (i + 1));
+        dot.addEventListener("click", () => goTo(i));
+        dotsWrap.appendChild(dot);
+      });
+    }
+
+    function goTo(index) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+      count.textContent = "Slide " + (current + 1) + " of " + slides.length;
+      nextBtn.textContent = current === slides.length - 1 ? "Start Over" : "Next";
+      renderDots();
+    }
+
+    function next() {
+      if (current === slides.length - 1) {
+        goTo(0);
+      } else {
+        goTo(current + 1);
+      }
+    }
+
+    function prev() {
+      goTo(current - 1);
+    }
+
+    prevBtn.addEventListener("click", prev);
+    nextBtn.addEventListener("click", next);
+    nextArrowBtn.addEventListener("click", next);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === " ") next();
+      if (event.key === "ArrowLeft") prev();
+      if (event.key === "Home") goTo(0);
+      if (event.key === "End") goTo(slides.length - 1);
+    });
+
+    renderDots();
+  </script>
+</body>
+</html>
