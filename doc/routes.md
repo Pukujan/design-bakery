@@ -31,24 +31,13 @@ flowchart LR
 
 ### Engineering — endtoend-engineer homepage
 
-Base path: **none** (`portfolioId: endtoend-engineer` in generation mode). Includes top [`Navigation`](../src/app/components/Navigation.tsx).
+Base path: **none** (`portfolioId: endtoend-engineer`). Includes top [`Navigation`](../src/app/components/Navigation.tsx).
 
 | URL | Component | Description |
 |-----|-----------|-------------|
 | `/` | `EngineeringHome` | End-to-end engineering homepage (hero, projects, community, about, skills, insights, experience, contact, footer) |
 
-All other public routes redirect to `/` in generation mode.
-
-### Design portfolio
-
-No shared engineering nav. Design page does not use `PortfolioPublicLayout`.
-
-| URL | Component | Description |
-|-----|-----------|-------------|
-| `/nav/design` | `DesignPortfolio` | **Canonical** design portfolio URL (not linked from main nav) |
-| `/design` | `DesignPortfolio` | Legacy alias; same page as `/nav/design` |
-
-**Design-only UI state (not separate URLs):** Choosing a gallery from `ArtGallery` or `Advocacy` swaps the view to `GalleryPage` in React state (`currentGallery`). Browser URL stays `/nav/design` or `/design`.
+All other public routes redirect to `/`, including legacy blog, gallery, case-study, and design URLs.
 
 ### Auth
 
@@ -62,7 +51,7 @@ No shared engineering nav. Design page does not use `PortfolioPublicLayout`.
 
 Hash links (`#section-id`) scroll within the current engineering home. Navbar **Projects**, **About**, and **Contact** use these on `/`.
 
-### Generation-mode engineering home
+### Engineering home
 
 | Anchor | Section |
 |--------|---------|
@@ -150,15 +139,14 @@ Blog editors on both admins edit the **same** shared `blog_posts` / `blog_catego
 
 Shown on the homepage only (`PortfolioPublicLayout`):
 
-| Nav control | Generation-mode target |
-|-------------|------------------------|
+| Nav control | Target |
+|-------------|--------|
 | Logo / brand | `/` |
-| Blogs | hidden |
 | Projects | `#projects` |
 | About | `#about` |
 | Contact | `#contact` |
 
-In generation mode, the public site only exposes `/`; every other public route redirects home.
+The public site only exposes `/`; every other public route redirects home.
 
 **Not in public nav:** Design (`/nav/design`), admin, portfolio switcher.
 

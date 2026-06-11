@@ -1,6 +1,5 @@
 import { motion } from "motion/react";
 import {
-  ArrowRight,
   Clock,
   Tag,
   ChevronLeft,
@@ -13,15 +12,11 @@ import { Squiggle, Star, BlobShape } from "../../../components/GraphicElements";
 import { FlowerCharacter } from "../../../components/FlowerCharacter";
 import { Cupcake, IceCream } from "../../../components/BakeryItems";
 import { useState, useRef } from "react";
-import { Link } from "react-router-dom";
 import { blogData, categories } from "@/modules/blog/data/blogData";
-import { usePortfolio } from "../../../portfolios/PortfolioContext";
-import { TEMP_ETE_HOME_ONLY } from "@/lib/siteMode";
 
 const ITEMS_PER_PAGE = 3;
 
 export function EngineeringInsights() {
-  const { pathTo } = usePortfolio();
   const insights = blogData;
   const isLoading = false;
   const [selectedCategory, setSelectedCategory] =
@@ -177,19 +172,9 @@ export function EngineeringInsights() {
           transition={{ duration: 0.5 }}
           className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 items-center mb-12"
         >
-          {!TEMP_ETE_HOME_ONLY && (
-            <Link to={pathTo('/blogs')}>
-              <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button className="text-white px-6 py-3 bg-purple-400 hover:bg-purple-500 rounded-full border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all font-black text-md group w-full lg:w-auto whitespace-nowrap">
-                  View All Blogs
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </motion.div>
-            </Link>
-          )}
+            <div className="rounded-full border-4 border-dashed border-black/30 px-6 py-3 text-sm font-bold text-gray-600 dark:text-gray-300">
+            Blog browsing is disabled on this site.
+          </div>
 
           {/* Scrollable Category Buttons */}
           <div className="relative overflow-hidden">
@@ -295,21 +280,9 @@ export function EngineeringInsights() {
                   ))}
                 </div>
 
-                {!TEMP_ETE_HOME_ONLY ? (
-                  <Link to={pathTo(`/blogs/${insight.id}`)}>
-                    <Button
-                      variant="ghost"
-                      className="group/btn p-0 h-auto font-bold text-blue-600 dark:text-blue-400 hover:bg-transparent"
-                    >
-                      Read More
-                      <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                ) : (
-                  <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
-                    Blog browsing is disabled in generation mode.
-                  </p>
-                )}
+                <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                  Blog browsing is disabled on this site.
+                </p>
               </Card>
             </motion.div>
           ))}
