@@ -39,6 +39,13 @@ import _socialLinksJson from '../components/social-links.json';
 
 const SOCIAL_LINKS_FALLBACK = _socialLinksJson as SocialLink[];
 const CMS_CACHE_PREFIX = 'design-bakery:cms-content:v1:';
+const CMS_TRACE_ENABLED =
+  import.meta.env.DEV || import.meta.env.VITE_DEBUG_CMS_CONTENT === 'true';
+
+function traceCms(source: string, payload: Record<string, unknown>): void {
+  if (!CMS_TRACE_ENABLED) return;
+  console.log(`[cms:${source}]`, payload);
+}
 
 function readCachedContent<T>(cacheKey: string): T | null {
   if (typeof window === 'undefined') return null;
@@ -66,8 +73,19 @@ function useAsyncContent<T>(
   cacheKey: string
 ): T {
   const fallback = useMemo(fallbackFactory, [portfolioId, fallbackFactory]);
-  const [data, setData] = useState<T>(() => readCachedContent<T>(cacheKey) ?? fallback);
+  const initialCached = readCachedContent<T>(cacheKey);
+  const [data, setData] = useState<T>(initialCached ?? fallback);
   const [reloadToken, setReloadToken] = useState(0);
+
+  useEffect(() => {
+    traceCms('init', {
+      portfolioId,
+      cacheKey,
+      hadCache: initialCached != null,
+      fallbackPreview: typeof fallback === 'object' ? Object.keys(fallback as object).slice(0, 5) : typeof fallback,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [portfolioId, cacheKey]);
 
   useEffect(() => {
     const onPushed = () => setReloadToken((value) => value + 1);
@@ -78,15 +96,33 @@ function useAsyncContent<T>(
   useEffect(() => {
     const cached = readCachedContent<T>(cacheKey);
     if (cached) setData(cached);
+    traceCms('load:start', {
+      portfolioId,
+      cacheKey,
+      usingCachedValue: cached != null,
+    });
     let active = true;
     void loader()
       .then((next) => {
         if (!active) return;
         setData(next);
         writeCachedContent(cacheKey, next);
+        traceCms('load:success', {
+          portfolioId,
+          cacheKey,
+          source: cached != null ? 'cached+remote-refresh' : 'remote',
+          preview: typeof next === 'object' ? Object.keys(next as object).slice(0, 5) : typeof next,
+        });
       })
       .catch(() => {
-        if (active && !cached) setData(fallback);
+        if (active && !cached) {
+          setData(fallback);
+        }
+        traceCms('load:error', {
+          portfolioId,
+          cacheKey,
+          usedFallback: cached == null,
+        });
       });
 
     return () => {

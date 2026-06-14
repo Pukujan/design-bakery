@@ -1,13 +1,25 @@
+import { useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, Code, Terminal, Cpu } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { BlobShape, Star } from '../../../components/GraphicElements';
 import { useEngineeringHeroSection } from '../../../lib/contentHooks';
+import { usePortfolio } from '../../../portfolios/PortfolioContext';
 import { openExperience } from '../../../lib/openExperience';
 import { openFeaturedProject } from '../../../lib/openFeaturedProject';
 
 export function EngineeringHero() {
   const content = useEngineeringHeroSection();
+  const { portfolioId } = usePortfolio();
+
+  useEffect(() => {
+    console.log('[hero:render]', {
+      portfolioId,
+      badge: content.badge,
+      titleLine1: content.titleLine1,
+      titleLine2: content.titleLine2,
+    });
+  }, [content.badge, content.titleLine1, content.titleLine2, portfolioId]);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 pt-20">
