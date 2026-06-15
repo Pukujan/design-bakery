@@ -44,7 +44,7 @@ const CMS_TRACE_ENABLED =
 
 function traceCms(source: string, payload: Record<string, unknown>): void {
   if (!CMS_TRACE_ENABLED) return;
-  console.log(`[cms:${source}]`, payload);
+  console.log(`[cms:${source}] ${JSON.stringify(payload)}`);
 }
 
 function readCachedContent<T>(cacheKey: string): T | null {

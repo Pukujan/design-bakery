@@ -13,12 +13,14 @@ export function EngineeringHero() {
   const { portfolioId } = usePortfolio();
 
   useEffect(() => {
-    console.log('[hero:render]', {
-      portfolioId,
-      badge: content.badge,
-      titleLine1: content.titleLine1,
-      titleLine2: content.titleLine2,
-    });
+    console.log(
+      `[hero:render] ${JSON.stringify({
+        portfolioId,
+        badge: content.badge,
+        titleLine1: content.titleLine1,
+        titleLine2: content.titleLine2,
+      })}`,
+    );
   }, [content.badge, content.titleLine1, content.titleLine2, portfolioId]);
 
   return (
