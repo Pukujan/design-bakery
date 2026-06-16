@@ -42,6 +42,10 @@ const communitySource = await readFile(
   new URL('./frontend/src/app/lib/adminContentService.ts', root),
   'utf8',
 );
+const insightsSource = await readFile(
+  new URL('./frontend/src/app/modules/engineering/EngineeringInsights/EngineeringInsights.tsx', root),
+  'utf8',
+);
 
 assert.equal(
   about.roleTitle,
@@ -53,6 +57,18 @@ assert.equal(skillMeta.headingRight, 'SYSTEMS');
 assert.ok(
   communitySource.includes('AI workflow mentorship'),
   'community content should stay aligned with the current AI/ML portfolio',
+);
+assert.ok(
+  insightsSource.includes('useBlogData'),
+  'homepage blog section should read from the live blog store',
+);
+assert.ok(
+  insightsSource.includes('useBlogCategories'),
+  'homepage blog section should read live blog categories',
+);
+assert.ok(
+  !insightsSource.includes('blogData, categories'),
+  'homepage blog section should not import the static blog JSON directly',
 );
 
 console.log('Homepage content stability checks passed.');
