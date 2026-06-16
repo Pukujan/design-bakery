@@ -521,14 +521,14 @@ export const ENGINEERING_COMMUNITY_DEFAULT: EngineeringCommunityContent = {
   headingLeft: 'COMMUNITY &',
   headingRight: 'ADVISORY',
   subtitle:
-    'Engineering mentorship, advocacy, and AI product enablement beyond commercial work',
+    'AI workflow mentorship, advocacy, and product enablement beyond commercial work',
   orgs: [
     {
       icon: 'Users',
       name: 'Women Devs SG',
-      role: 'Volunteer Advocate — Engineering & Product Enablement',
+      role: 'Volunteer Advocate — Engineering & AI Product Enablement',
       description:
-        'Contributed as a volunteer advocate supporting women in technology through engineering mentorship, product thinking, and AI enablement. Work focused on helping participants understand real-world product development, engineering workflows, and system thinking.',
+        'Contributed as a volunteer advocate supporting women in technology through engineering mentorship, product thinking, and AI enablement. Work focused on helping participants understand real-world product development, AI workflows, and system thinking.',
       buttonLabel: 'Visit Women Devs SG',
       buttonUrl: 'https://www.linkedin.com/company/women-devs-sg/',
       buttonColorClass: 'bg-cyan-600 hover:bg-cyan-700',

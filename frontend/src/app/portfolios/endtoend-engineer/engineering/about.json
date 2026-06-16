@@ -2,32 +2,36 @@
   "headingLeft": "ABOUT",
   "headingRight": "ME",
   "portraitUrl": "https://i.imgur.com/umGE4Kd.jpeg",
-  "brandLine": "Design Baker",
-  "roleTitle": "AI/ML Engineer · LLM Systems",
+  "roleTitle": "I build AI agents that improve through data, testing, and human feedback.",
   "paragraphs": [
-    "I work across AI/ML engineering, document intelligence, LLM systems, product engineering, and workflow automation.",
-    "From 0→1, I turn ambiguous workflows into usable prototypes, structured data flows, eval pipelines, and testable AI-assisted systems.",
-    "From 1→+, I strengthen systems through backend integration, model evaluation, validation logic, human review, and reliability improvements."
+    "I'm Pujan Bajracharya, an AI-focused engineer working across legal datasets, agentic workflows, prompt systems, RAG, eval pipelines, LLM distillation, data analytics, and human review.",
+    "I care about AI systems that can retrieve context, follow constraints, produce structured outputs, measure performance against ground truth, and improve through data-driven prompt optimization."
   ],
   "highlights": [
     {
-      "icon": "Code",
-      "title": "AI/ML Workflow Systems",
-      "desc": "Building RAG, OCR, LLM, and multi-agent systems for document-heavy domains",
+      "icon": "Shield",
+      "title": "Legal Dataset Testing",
+      "desc": "I create golden datasets, ground-truth labels, edge cases, and evaluation sets for legal AI workflows.",
       "color": "#4169E1"
     },
     {
       "icon": "Zap",
-      "title": "Eval + Data Correctness",
-      "desc": "Ground truth, validation, error handling, and human-review workflows",
+      "title": "Prompt Standard Optimization",
+      "desc": "I use eval results, failure patterns, and output scoring to improve prompts, schemas, and AI behavior.",
       "color": "#9B6DD6"
     },
     {
-      "icon": "Shield",
-      "title": "Legal Workflow Grounding",
-      "desc": "Connecting AI systems with source authority, procedural context, and paralegal-style review",
-      "color": "#FF8C42"
+      "icon": "Code",
+      "title": "Data + AI Insights",
+      "desc": "I combine data analytics and AI output analysis to identify what works, what fails, and what should improve.",
+      "color": "#0D9488"
+    },
+    {
+      "icon": "Layers",
+      "title": "Product Engineering",
+      "desc": "I turn AI insights into usable product workflows, review systems, dashboards, and human-in-the-loop pipelines.",
+      "color": "#F97316"
     }
   ],
-  "callout": "Every system I build combines AI/ML engineering, product thinking, frontend architecture, supporting backend APIs, and human-reviewable workflows, written with reliability, maintainability, and real-world impact in mind."
+  "callout": "The goal is simple: make AI agents measurable, useful, and continuously improvable."
 }
