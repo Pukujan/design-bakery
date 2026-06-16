@@ -6,8 +6,8 @@
   "primaryCtaLabel": "View Engineering Projects",
   "stats": [
     { "label": "Awards Won", "value": "6", "projectId": 2 },
-    { "label": "AI/ML + LLM Systems", "value": "1.5 YRS", "experienceId": 2 },
-    { "label": "Legal Workflow Grounding", "value": "4 MOS", "experienceId": 1 },
+    { "label": "AI/ML + LLM Systems", "value": "2 YRS", "experienceId": 2 },
+    { "label": "Legal Workflow Grounding", "value": "3 YRS", "experienceId": 1 },
     { "label": "Software + Product Systems", "value": "8", "experienceId": 5 }
   ]
 }
