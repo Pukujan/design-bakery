@@ -1,6 +1,45 @@
 [
-  {
+    {
     "id": 1,
+    "title": "Cortex",
+    "tagline": "A reliability kernel for AI agents",
+    "description": "Coding agents are capable, but you can't trust their output without reviewing it, and reviewing costs about what the work did. So I inverted the usual bet: instead of a smarter agent, build the machinery around it. A deny-by-default reference monitor, unforgeable content-bound receipts, trust-graded sandboxes, and deterministic oracle gates let interchangeable models do real work on a codebase you never have to read to trust. It composes decades-proven OS-security patterns (reference monitors, privilege separation, capability tokens) into a trust kernel for agent software production, built contract-first and self-hosting: every module ships through the same gates it will one day enforce.",
+    "tech": [
+      "AI Agents",
+      "Reliability Kernel",
+      "Reference Monitor",
+      "Deny-by-default",
+      "Sandboxing",
+      "Formal Invariants",
+      "Contract-first"
+    ],
+    "color": "#C98A14",
+    "accentColor": "#F5B640",
+    "stats": [
+      {
+        "label": "Deny-by-default kernel",
+        "icon": "Sparkles"
+      },
+      {
+        "label": "Unforgeable receipts",
+        "icon": "Award"
+      },
+      {
+        "label": "Evidence-gated \u00b7 0 judges",
+        "icon": "TrendingUp"
+      }
+    ],
+    "links": [
+      {
+        "label": "Case Study",
+        "url": "/case-studies/cortex"
+      },
+      {
+        "label": "Technical Spec",
+        "url": "/case-studies/cortex/specs"
+      },
+  {
+    "id": 2,
     "title": "ONI vs My Agent Ready Architecture",
     "tagline": "@pukujan/create-modular-monolith",
     "description": "Software architecture has not caught up with agent-first coding yet. I built an npm package so repos keep agent speed without losing planning time, audit trails, or architecture shape \u2014 modular boundaries, contracts, versioned dev logs, agent-readable JSON audits, prompt versioning, evals, and patch/rollback context stronger than git alone. Inspired by Oxygen Not Included systems thinking; tested with multi-agent pipelines up to 500 agents and designed to grow naturally toward microservices.",
@@ -48,7 +87,7 @@
     ]
   },
   {
-    "id": 2,
+    "id": 3,
     "title": "Ekagajpatra",
     "tagline": "Civic-Tech Workflow Platform",
     "description": "Built a civic-tech product that turned complex government and legal-documentation processes into guided workflows for real users.",
@@ -87,7 +126,7 @@
     ]
   },
   {
-    "id": 3,
+    "id": 4,
     "title": "SaaS Dashboard Systems",
     "tagline": "Client Operations Tools",
     "description": "Built dashboards, analytics views, workflow prototypes, and client-specific tools for legal, financial, and business operations teams.",
@@ -127,7 +166,7 @@
     ]
   },
   {
-    "id": 4,
+    "id": 5,
     "title": "Legal Workflow Research",
     "tagline": "AI-Assisted Litigation & Document Intelligence",
     "description": "Independent research into safer AI-assisted legal workflows using document intelligence, confidence routing, source authority, human review, and procedural memory.",
@@ -164,46 +203,7 @@
         "url": "https://github.com/Pukujan/litigation-prompt-engineering-v2"
       }
     ]
-  },
-  {
-    "id": 5,
-    "title": "Cortex",
-    "tagline": "A reliability kernel for AI agents",
-    "description": "Coding agents are capable, but you can't trust their output without reviewing it, and reviewing costs about what the work did. So I inverted the usual bet: instead of a smarter agent, build the machinery around it. A deny-by-default reference monitor, unforgeable content-bound receipts, trust-graded sandboxes, and deterministic oracle gates let interchangeable models do real work on a codebase you never have to read to trust. It composes decades-proven OS-security patterns (reference monitors, privilege separation, capability tokens) into a trust kernel for agent software production, built contract-first and self-hosting: every module ships through the same gates it will one day enforce.",
-    "tech": [
-      "AI Agents",
-      "Reliability Kernel",
-      "Reference Monitor",
-      "Deny-by-default",
-      "Sandboxing",
-      "Formal Invariants",
-      "Contract-first"
-    ],
-    "color": "#C98A14",
-    "accentColor": "#F5B640",
-    "stats": [
-      {
-        "label": "Deny-by-default kernel",
-        "icon": "Sparkles"
-      },
-      {
-        "label": "Unforgeable receipts",
-        "icon": "Award"
-      },
-      {
-        "label": "Evidence-gated \u00b7 0 judges",
-        "icon": "TrendingUp"
-      }
-    ],
-    "links": [
-      {
-        "label": "Case Study",
-        "url": "/case-studies/cortex"
-      },
-      {
-        "label": "Technical Spec",
-        "url": "/case-studies/cortex/specs"
-      }
+  }
     ]
   }
 ]
