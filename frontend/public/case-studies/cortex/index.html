@@ -55,7 +55,7 @@
   }
 
   *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
+  html{scroll-behavior:smooth; overflow-x:clip;}
   @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} }
   body{
     margin:0; background:var(--ink); color:var(--text);
@@ -96,7 +96,17 @@
     color:var(--muted); background:transparent; border:1px solid var(--line);
     padding:7px 12px; border-radius:8px; cursor:pointer; transition:all .18s;}
   .theme-btn:hover{color:var(--text-strong); border-color:var(--seal);}
-  @media (max-width:720px){ nav.links a:not(.cta){display:none;} }
+  @media (max-width:720px){ nav.links a:not(.cta){display:none;} nav.links{gap:16px;} }
+  @media (max-width:480px){
+    .wrap{padding:0 20px;}
+    nav.links{gap:10px;}
+    .cta-long{display:none;}           /* header CTA collapses to "specs →" */
+    .theme-btn{padding:7px 10px;}
+    section{padding:56px 0;}
+    .hero{padding:56px 0 40px;}
+    .truth{padding:22px;}
+    .status-grid{gap:12px;}
+  }
 
   /* ---- hero ---- */
   .hero{position:relative; padding:88px 0 52px; overflow:hidden;}
@@ -132,6 +142,26 @@
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
   @media (prefers-reduced-motion:reduce){ .instrument .cap .live::before{animation:none;} }
   canvas#gate{display:block; width:100%; height:300px;}
+
+  /* CRT face : scanlines + a slow phosphor sweep over the instrument.
+     dark themes only; light theme gets the clean panel. */
+  .instrument .crt{position:absolute; inset:0; pointer-events:none; z-index:2;
+    border-radius:inherit; overflow:hidden;}
+  .instrument .crt::before{content:""; position:absolute; inset:0;
+    background:
+      radial-gradient(120% 95% at 50% 8%, transparent 62%, rgba(0,0,0,0.28)),
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.20) 0 1px, transparent 1px 3px);
+    opacity:.45;}
+  .instrument .crt::after{content:""; position:absolute; left:0; right:0; top:-30%;
+    height:26%;
+    background:linear-gradient(180deg, transparent,
+      rgba(245,182,64,0.04) 42%, rgba(245,182,64,0.09) 50%,
+      rgba(245,182,64,0.04) 58%, transparent);
+    animation:crt-sweep 8s linear infinite;}
+  @keyframes crt-sweep{ 0%{top:-30%;} 100%{top:128%;} }
+  @media (prefers-reduced-motion:reduce){ .instrument .crt::after{display:none;} }
+  @media (prefers-color-scheme:light){ :root:not([data-theme="dark"]) .instrument .crt{display:none;} }
+  :root[data-theme="light"] .instrument .crt{display:none;}
 
   /* ---- section frame ---- */
   section{padding:78px 0; border-top:1px solid var(--line-soft);}
@@ -214,6 +244,21 @@
     letter-spacing:.06em; color:var(--muted-2); display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
   .fine .sep{opacity:.4;}
 
+  /* receipt-print reveal : cards print in as they enter the viewport.
+     the .reveal class is added by JS only (and stripped after it plays),
+     so no-JS keeps everything visible and hover transitions stay snappy.
+     kept last in the sheet so it wins the transition tie against .mod. */
+  .reveal{opacity:0; transform:translateY(16px);
+    transition:opacity .55s cubic-bezier(.2,.6,.2,1), transform .55s cubic-bezier(.2,.6,.2,1),
+      clip-path .6s cubic-bezier(.2,.6,.2,1);}
+  .reveal.in{opacity:1; transform:none;}
+  .stat.reveal{clip-path:inset(-1px -1px 100% -1px round 12px);}
+  .stat.reveal.in{clip-path:inset(-1px -1px -1px -1px round 12px);}
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1 !important; transform:none !important;
+      clip-path:none !important; transition:none !important;}
+  }
+
   :focus-visible{outline:2px solid var(--seal); outline-offset:3px; border-radius:4px;}
 </style>
 </head>
@@ -227,7 +272,7 @@
       <a href="#kernel">Kernel</a>
       <a href="#compare">Field</a>
       <a href="#evidence">Evidence</a>
-      <a class="cta theme-btn" href="specs.html">Technical&nbsp;specs&nbsp;→</a>
+      <a class="cta theme-btn" href="specs.html"><span class="cta-long">Technical&nbsp;</span>specs&nbsp;→</a>
       <button class="theme-btn" id="themeToggle" aria-label="Toggle colour theme">◐ theme</button>
     </nav>
   </div>
@@ -251,6 +296,7 @@
     <div class="instrument" aria-hidden="true">
       <div class="cap"><span>reference-monitor · live trace</span><span class="live">deny-by-default</span></div>
       <canvas id="gate" width="520" height="300"></canvas>
+      <div class="crt"></div>
     </div>
   </div>
 </section>
@@ -293,7 +339,7 @@
         programs and the hardware that makes it impossible. Cortex is that kernel for an
         agent acting on a repository. Three commitments follow.</p>
     </div>
-    <div class="panel-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="panel-grid">
       <div class="mod"><div class="idx">01 · before</div><h3>Contract-first</h3>
         <p>The agent researches, asks the questions that actually matter, and a frozen
           contract (goal, exact write-set, acceptance test) is agreed before any code gets
@@ -491,6 +537,33 @@
     apply(next); try{localStorage.setItem('cortex-theme',next);}catch(e){}
   });
 
+  /* receipt-print scroll reveal : cards print in as they enter the viewport.
+     classes are added here (not in the HTML) so no-JS renders everything,
+     and reduced-motion skips the whole thing. */
+  var noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!noMotion && 'IntersectionObserver' in window){
+    var cards=document.querySelectorAll('.truth,.mod,.ref,.stat');
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){
+          var el=en.target;
+          el.classList.add('in'); io.unobserve(el);
+          /* strip the reveal machinery once it has played, so the card's own
+             hover transitions come back untouched */
+          setTimeout(function(){
+            el.classList.remove('reveal','in'); el.style.transitionDelay='';
+          },1200);
+        }
+      });
+    },{threshold:0.15, rootMargin:'0px 0px -36px 0px'});
+    cards.forEach(function(el){
+      var sib=Array.prototype.indexOf.call(el.parentNode.children, el);
+      el.classList.add('reveal');
+      el.style.transitionDelay=((sib%4)*70)+'ms';
+      io.observe(el);
+    });
+  }
+
   /* hero instrument: proposals flow to a reference-monitor gate that stamps
      ALLOW / DENY and mints a receipt. subject-true motion; reduced-motion safe. */
   var canvas=document.getElementById('gate');
@@ -503,10 +576,20 @@
     var r=canvas.getBoundingClientRect(); W=r.width; H=r.height;
     canvas.width=W*DPR; canvas.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
   }
-  size(); window.addEventListener('resize',size);
+  size();
+  window.addEventListener('resize',function(){ size(); if(reduce) draw(); });
 
   var gateX=function(){return W*0.62;}, laneY=function(){return H*0.5;};
   var particles=[], receipts=[], t=0;
+  /* gate latch state : >0 while the monitor is stamping a verdict */
+  var latch=0, latchDeny=false;
+  /* boot sequence : typed once, then it just sits there like a good terminal */
+  var BOOT=[
+    '> cortex.monitor  v0 · deny-by-default',
+    '> contract  frozen · write-set locked',
+    '> trace: live'
+  ];
+  var bootChars=0, bootTotal=BOOT.join('').length;
   function spawn(){
     var deny = Math.random()<0.28;
     particles.push({x:-20, y:laneY()+(Math.random()*54-27), v:0.9+Math.random()*0.5,
@@ -527,34 +610,92 @@
     ctx.clearRect(0,0,W,H);
 
     var gx=gateX(), ly=laneY();
+
+    /* oscilloscope graticule : a faint dot grid */
+    ctx.globalAlpha=0.14; ctx.fillStyle=COL.muted;
+    for(var dx=13; dx<W; dx+=26){
+      for(var dy=13; dy<H; dy+=26){ ctx.fillRect(dx,dy,1,1); }
+    }
+    ctx.globalAlpha=1;
+
+    /* radar-style sweep : one soft amber line crossing left to right */
+    if(!reduce){
+      var sx=((t*1.1)%(W+160))-80;
+      var sg=ctx.createLinearGradient(sx-46,0,sx+4,0);
+      sg.addColorStop(0,'rgba(245,182,64,0)');
+      sg.addColorStop(1,'rgba(245,182,64,0.10)');
+      ctx.fillStyle=sg; ctx.fillRect(sx-46,0,50,H);
+    }
+
+    /* boot sequence : typed once at power-on */
+    var shown = reduce ? bootTotal : Math.min(bootTotal, Math.floor(t/1.4));
+    var used=0;
+    ctx.font='500 9.5px "IBM Plex Mono",monospace'; ctx.fillStyle=COL.muted;
+    ctx.globalAlpha=0.85;
+    for(var b=0;b<BOOT.length;b++){
+      var take=Math.max(0, Math.min(BOOT[b].length, shown-used));
+      if(take>0) ctx.fillText(BOOT[b].slice(0,take), 14, 20+b*14);
+      used+=BOOT[b].length;
+    }
+    /* block cursor while typing, slow blink after */
+    if(!reduce && (shown<bootTotal || Math.floor(t/38)%2===0)){
+      var bl=0, bacc=0;
+      for(var b2=0;b2<BOOT.length;b2++){
+        if(shown-bacc<=BOOT[b2].length){ bl=b2; break; }
+        bacc+=BOOT[b2].length;
+      }
+      var lineTake=Math.min(BOOT[bl].length, shown-bacc);
+      var cw=ctx.measureText(BOOT[bl].slice(0,lineTake)).width;
+      ctx.fillStyle=COL.seal; ctx.fillRect(16+cw, 12+bl*14, 5, 10);
+    }
+    ctx.globalAlpha=1;
+
     /* lane */
     ctx.strokeStyle=COL.line; ctx.lineWidth=1; ctx.setLineDash([4,6]);
     ctx.beginPath(); ctx.moveTo(0,ly); ctx.lineTo(W,ly); ctx.stroke(); ctx.setLineDash([]);
 
-    /* the gate : a vertical bar (the reference monitor) */
-    var grd=ctx.createLinearGradient(gx-2,0,gx+2,0);
-    grd.addColorStop(0,'rgba(245,182,64,0)'); grd.addColorStop(.5,COL.seal); grd.addColorStop(1,'rgba(245,182,64,0)');
-    ctx.strokeStyle=COL.seal; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(gx,H*0.2); ctx.lineTo(gx,H*0.8); ctx.stroke();
+    /* the gate : a vertical bar (the reference monitor).
+       latched shut by default; the shutter opens only on ALLOW. */
+    var gateCol = latch>0 ? (latchDeny?COL.deny:COL.allow) : COL.seal;
+    var shutter = (latch>0 && !latchDeny) ? (latch*1.4) : 0;   /* px of open gap */
+    ctx.save();
+    ctx.shadowColor=gateCol; ctx.shadowBlur= latch>0 ? 10 : 5;
+    ctx.strokeStyle=gateCol; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(gx,H*0.2); ctx.lineTo(gx,ly-9-shutter); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(gx,ly+9+shutter); ctx.lineTo(gx,H*0.8); ctx.stroke();
+    ctx.restore();
     ctx.fillStyle=COL.seal; ctx.font='600 10px "IBM Plex Mono",monospace';
     ctx.globalAlpha=.8; ctx.fillText('authorize()',gx-30,H*0.2-10); ctx.globalAlpha=1;
-    /* diamond node on the gate */
+    /* diamond node on the gate : flashes with the verdict */
     ctx.save(); ctx.translate(gx,ly); ctx.rotate(Math.PI/4);
-    ctx.strokeStyle=COL.seal; ctx.lineWidth=1.5; ctx.strokeRect(-7,-7,14,14); ctx.restore();
+    ctx.strokeStyle=gateCol; ctx.lineWidth= latch>0 ? 2 : 1.5;
+    ctx.shadowColor=gateCol; ctx.shadowBlur= latch>0 ? 12 : 0;
+    ctx.strokeRect(-7,-7,14,14); ctx.restore();
+    /* verdict stamp beside the gate while latched */
+    if(latch>0){
+      ctx.font='600 9px "IBM Plex Mono",monospace';
+      ctx.fillStyle=gateCol; ctx.globalAlpha=Math.min(latch/8,1)*0.95;
+      ctx.fillText(latchDeny?'DENY':'ALLOW', gx+14, ly-14);
+      ctx.globalAlpha=1;
+      if(!reduce) latch--;
+    }
 
     for(var i=particles.length-1;i>=0;i--){
       var p=particles[i];
       if(!reduce) p.x+=p.v;
       if(!p.decided && p.x>=gx){
         p.decided=true;
+        latch=16; latchDeny=p.deny;
         if(p.deny){ p.v=0; }
         else { receipts.push({x:gx, y:ly, life:0}); }
       }
-      /* draw proposal token */
+      /* draw proposal token : a phosphor dot */
       var c = p.decided ? (p.deny?COL.deny:COL.allow) : COL.muted;
       ctx.globalAlpha=p.alpha;
+      ctx.save(); ctx.shadowColor=c; ctx.shadowBlur=7;
       ctx.fillStyle=c;
       ctx.beginPath(); ctx.arc(p.x,p.y,3.4,0,Math.PI*2); ctx.fill();
+      ctx.restore();
       /* trailing line */
       ctx.strokeStyle=c; ctx.globalAlpha=p.alpha*0.35; ctx.lineWidth=1.4;
       ctx.beginPath(); ctx.moveTo(p.x-14,p.y); ctx.lineTo(p.x,p.y); ctx.stroke();
@@ -577,7 +718,7 @@
       ctx.globalAlpha=1;
       if(rc.life>60) receipts.splice(r,1);
     }
-    requestAnimationFrame(draw);
+    if(!reduce) requestAnimationFrame(draw);
   }
   if(reduce){
     /* static frame: a couple of tokens, the gate, one receipt */
