@@ -1,5 +1,5 @@
 [
-    {
+  {
     "id": 1,
     "title": "Cortex",
     "tagline": "A reliability kernel for AI agents",
@@ -25,7 +25,7 @@
         "icon": "Award"
       },
       {
-        "label": "Evidence-gated \u00b7 0 judges",
+        "label": "Evidence-gated · 0 judges",
         "icon": "TrendingUp"
       }
     ],
@@ -37,12 +37,14 @@
       {
         "label": "Technical Spec",
         "url": "/case-studies/cortex/specs"
-      },
+      }
+    ]
+  },
   {
     "id": 2,
     "title": "ONI vs My Agent Ready Architecture",
     "tagline": "@pukujan/create-modular-monolith",
-    "description": "Software architecture has not caught up with agent-first coding yet. I built an npm package so repos keep agent speed without losing planning time, audit trails, or architecture shape \u2014 modular boundaries, contracts, versioned dev logs, agent-readable JSON audits, prompt versioning, evals, and patch/rollback context stronger than git alone. Inspired by Oxygen Not Included systems thinking; tested with multi-agent pipelines up to 500 agents and designed to grow naturally toward microservices.",
+    "description": "Software architecture has not caught up with agent-first coding yet. I built an npm package so repos keep agent speed without losing planning time, audit trails, or architecture shape — modular boundaries, contracts, versioned dev logs, agent-readable JSON audits, prompt versioning, evals, and patch/rollback context stronger than git alone. Inspired by Oxygen Not Included systems thinking; tested with multi-agent pipelines up to 500 agents and designed to grow naturally toward microservices.",
     "tech": [
       "AI Agents",
       "Modular Monolith",
@@ -202,8 +204,6 @@
         "label": "GitHub",
         "url": "https://github.com/Pukujan/litigation-prompt-engineering-v2"
       }
-    ]
-  }
     ]
   }
 ]
