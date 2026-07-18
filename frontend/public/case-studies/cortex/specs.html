@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cortex — Technical Specification</title>
+<meta name="description" content="Technical specification for Cortex: the reliability kernel for AI agents — system model, the eleven invariants, module contracts, the trust-critical build lane, verification and threat model." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#0A0D13; --ink-2:#0E121B; --panel:#121826; --panel-2:#161D2D;
+    --line:#222b3d; --line-soft:#1a2231; --text:#ced6e3; --text-strong:#f2f5fa;
+    --muted:#7c8698; --muted-2:#5c6577; --seal:#f5b640; --seal-deep:#c98a14;
+    --allow:#37b8a4; --deny:#e0563e; --seal-glow:rgba(245,182,64,0.14);
+    --shadow:0 30px 80px rgba(0,0,0,0.5); --maxw:1080px;
+  }
+  @media (prefers-color-scheme:light){
+    :root{ --ink:#eef1f6; --ink-2:#e7ebf2; --panel:#ffffff; --panel-2:#f4f6fa;
+      --line:#d6dce6; --line-soft:#e2e7ee; --text:#333d4e; --text-strong:#0d1220;
+      --muted:#5c6577; --muted-2:#8a93a3; --seal:#b6790c; --seal-deep:#8a5b06;
+      --allow:#0f8a79; --deny:#c1432c; --seal-glow:rgba(182,121,12,0.10);
+      --shadow:0 24px 60px rgba(20,30,55,0.12);}
+  }
+  :root[data-theme="dark"]{ --ink:#0A0D13; --ink-2:#0E121B; --panel:#121826; --panel-2:#161D2D;
+    --line:#222b3d; --line-soft:#1a2231; --text:#ced6e3; --text-strong:#f2f5fa; --muted:#7c8698;
+    --muted-2:#5c6577; --seal:#f5b640; --seal-deep:#c98a14; --allow:#37b8a4; --deny:#e0563e;
+    --seal-glow:rgba(245,182,64,0.14); --shadow:0 30px 80px rgba(0,0,0,0.5);}
+  :root[data-theme="light"]{ --ink:#eef1f6; --ink-2:#e7ebf2; --panel:#ffffff; --panel-2:#f4f6fa;
+    --line:#d6dce6; --line-soft:#e2e7ee; --text:#333d4e; --text-strong:#0d1220; --muted:#5c6577;
+    --muted-2:#8a93a3; --seal:#b6790c; --seal-deep:#8a5b06; --allow:#0f8a79; --deny:#c1432c;
+    --seal-glow:rgba(182,121,12,0.10); --shadow:0 24px 60px rgba(20,30,55,0.12);}
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+  body{margin:0; background:var(--ink); color:var(--text);
+    font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif; font-size:16.5px; line-height:1.62;
+    -webkit-font-smoothing:antialiased;}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;}
+  a{color:inherit; text-decoration:none;}
+  h1,h2,h3,h4{color:var(--text-strong); margin:0; text-wrap:balance;}
+  ::selection{background:var(--seal); color:#0A0D13;}
+  :focus-visible{outline:2px solid var(--seal); outline-offset:3px; border-radius:4px;}
+
+  header.bar{position:sticky; top:0; z-index:40; backdrop-filter:blur(14px);
+    background:color-mix(in srgb,var(--ink) 82%,transparent); border-bottom:1px solid var(--line-soft);}
+  .bar-in{max-width:var(--maxw); margin:0 auto; padding:0 28px; height:62px;
+    display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:11px; font-family:"IBM Plex Mono",monospace;
+    font-weight:600; letter-spacing:.04em; color:var(--text-strong); font-size:14.5px;}
+  .brand .dot{width:9px; height:9px; border-radius:2px; background:var(--seal); box-shadow:0 0 0 4px var(--seal-glow);}
+  .bar-in nav{display:flex; gap:22px; align-items:center;}
+  .bar-in nav a{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--muted); letter-spacing:.03em;}
+  .bar-in nav a:hover{color:var(--text-strong);}
+  .theme-btn{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.06em; color:var(--muted);
+    background:transparent; border:1px solid var(--line); padding:6px 11px; border-radius:8px; cursor:pointer;}
+  .theme-btn:hover{color:var(--text-strong); border-color:var(--seal);}
+
+  .doc{max-width:var(--maxw); margin:0 auto; padding:0 28px;}
+  .titleblock{padding:64px 0 34px; border-bottom:1px solid var(--line);}
+  .eyebrow{font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--seal); display:inline-flex; gap:10px; align-items:center;}
+  .eyebrow::before{content:""; width:26px; height:1px; background:var(--seal); opacity:.7;}
+  .titleblock h1{font-size:clamp(30px,5vw,50px); line-height:1.05; letter-spacing:-0.02em; margin:18px 0 0; font-weight:700;}
+  .titleblock p{color:var(--muted); font-size:18px; max-width:64ch; margin:18px 0 0;}
+  .meta{display:flex; gap:26px; flex-wrap:wrap; margin-top:26px; font-family:"IBM Plex Mono",monospace; font-size:12.5px;}
+  .meta div{color:var(--muted);} .meta b{color:var(--text-strong); font-weight:600;}
+
+  /* layout: sticky mini-TOC + content */
+  .body-grid{display:grid; grid-template-columns:210px 1fr; gap:50px; padding:42px 0 90px; align-items:start;}
+  @media (max-width:880px){ .body-grid{grid-template-columns:1fr; gap:0;} .toc{display:none;} }
+  .toc{position:sticky; top:90px;}
+  .toc ol{list-style:none; margin:0; padding:0; counter-reset:s;}
+  .toc li{margin:0 0 3px;}
+  .toc a{display:block; font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--muted);
+    padding:6px 0 6px 26px; position:relative; letter-spacing:.02em; transition:color .16s;}
+  .toc a::before{counter-increment:s; content:counter(s,decimal-leading-zero);
+    position:absolute; left:0; color:var(--muted-2); font-size:11px;}
+  .toc a:hover{color:var(--text-strong);}
+
+  .content > section{padding:8px 0 40px; border-bottom:1px solid var(--line-soft); margin-bottom:36px;}
+  .content > section:last-child{border-bottom:none;}
+  .content h2{font-size:25px; letter-spacing:-0.015em; margin:0 0 4px; scroll-margin-top:88px;}
+  .content h2 .sec{font-family:"IBM Plex Mono",monospace; color:var(--seal); font-size:15px; margin-right:12px;}
+  .content h3{font-size:16.5px; margin:26px 0 8px; color:var(--text-strong);}
+  .content p{margin:12px 0; max-width:70ch;}
+  .content p.lead{color:var(--muted); font-size:17px;}
+  .content strong{color:var(--text-strong); font-weight:600;}
+  code{font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--panel-2);
+    border:1px solid var(--line-soft); border-radius:5px; padding:1px 6px; color:var(--seal-deep);}
+  :root[data-theme="dark"] code, :root:not([data-theme]) code{color:var(--seal);}
+  @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) code{color:var(--seal);} }
+
+  /* invariants list */
+  .inv{list-style:none; margin:20px 0 0; padding:0; display:grid; gap:10px;}
+  .inv li{display:grid; grid-template-columns:52px 1fr; gap:16px; align-items:start;
+    border:1px solid var(--line); border-radius:10px; padding:15px 18px; background:var(--panel);}
+  .inv .id{font-family:"IBM Plex Mono",monospace; color:var(--seal); font-weight:600; font-size:14px;}
+  .inv b{color:var(--text-strong);} .inv span{color:var(--muted); font-size:14.5px;}
+
+  /* module table */
+  .tbl{margin:22px 0 0; border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  .tbl-scroll{overflow-x:auto;}
+  table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px;}
+  th,td{text-align:left; padding:12px 15px; border-bottom:1px solid var(--line-soft);}
+  th{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--muted); background:var(--panel-2); font-weight:500;}
+  td.m{font-family:"IBM Plex Mono",monospace; color:var(--text-strong); font-size:13px;}
+  tr:last-child td{border-bottom:none;}
+  .pill{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.05em; text-transform:uppercase;
+    padding:3px 9px; border-radius:20px; white-space:nowrap;}
+  .pill.built{color:var(--allow); background:color-mix(in srgb,var(--allow) 15%,transparent);}
+  .pill.wip{color:var(--seal); background:var(--seal-glow);}
+  .pill.frozen{color:var(--muted); background:color-mix(in srgb,var(--muted) 15%,transparent);}
+
+  /* step flow */
+  .steps{counter-reset:st; margin:20px 0 0; padding:0; list-style:none; display:grid; gap:12px;}
+  .steps li{position:relative; padding:16px 18px 16px 58px; border:1px solid var(--line);
+    border-radius:10px; background:var(--panel);}
+  .steps li::before{counter-increment:st; content:counter(st); position:absolute; left:18px; top:16px;
+    font-family:"IBM Plex Mono",monospace; color:var(--seal); font-weight:600; font-size:15px;}
+  .steps b{color:var(--text-strong);} .steps p{margin:4px 0 0; color:var(--muted); font-size:14px;}
+
+  .callout{border-left:2px solid var(--seal); padding:6px 0 6px 20px; margin:24px 0; color:var(--muted);
+    font-size:15.5px; max-width:72ch;}
+  .callout b{color:var(--text-strong);}
+
+  footer{border-top:1px solid var(--line); padding:44px 0 64px;}
+  .foot{max-width:var(--maxw); margin:0 auto; padding:0 28px; display:flex; justify-content:space-between;
+    align-items:center; gap:20px; flex-wrap:wrap;}
+  .foot .fine{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--muted-2); letter-spacing:.05em;}
+  .foot a.back{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--seal); border:1px solid var(--line);
+    padding:10px 16px; border-radius:9px;}
+  .foot a.back:hover{border-color:var(--seal);}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-in">
+    <a href="index.html" class="brand"><span class="dot"></span>CORTEX</a>
+    <nav>
+      <a href="index.html">← Overview</a>
+      <button class="theme-btn" id="themeToggle" aria-label="Toggle colour theme">◐ theme</button>
+    </nav>
+  </div>
+</header>
+
+<div class="doc titleblock">
+  <span class="eyebrow">Technical specification</span>
+  <h1>Cortex — the reliability kernel</h1>
+  <p>The system model, the enforced invariants, the module contracts, and the method by
+    which every part is built and proven. Architecture-level: enough to evaluate the
+    design, not a build manual.</p>
+  <div class="meta">
+    <div>version <b>Phase 0 · kernel</b></div>
+    <div>threat model <b>reliability-now, security-ready</b></div>
+    <div>verdict path <b>0 judges</b></div>
+    <div>updated <b>2026-07-18</b></div>
+  </div>
+</div>
+
+<div class="doc body-grid">
+  <aside class="toc">
+    <ol>
+      <li><a href="#model">System model</a></li>
+      <li><a href="#monitor">Reference monitor</a></li>
+      <li><a href="#invariants">The invariants</a></li>
+      <li><a href="#contracts">Module contracts</a></li>
+      <li><a href="#lane">Build lane</a></li>
+      <li><a href="#verify">Verification</a></li>
+      <li><a href="#threat">Threat model</a></li>
+    </ol>
+  </aside>
+
+  <div class="content">
+    <section id="model">
+      <h2><span class="sec">01</span>System model</h2>
+      <p class="lead">Cortex is organized as planes of modules, each governed by a frozen
+        contract. The kernel is the trust root every later plane stands on.</p>
+      <p>Nothing an agent proposes reaches the repository directly. An agent runs in a
+        sealed container holding <strong>zero credentials</strong> and submits a typed
+        proposal over one mediated channel. A single privileged process — the
+        <strong>broker</strong> — is the only writer: it loads the owner-frozen contract for
+        that work-unit, passes the proposal through the reference monitor, materializes an
+        approved change only through the monitor's canonical mapping, and opens a pull
+        request. Merge is gated on a deterministic verdict from a separate identity.</p>
+      <p>The kernel itself is the one acknowledged exception to contract-first
+        construction: the machinery that enforces contracts cannot enforce its own
+        creation, so Phase&nbsp;0 is built by hand under a declared temporary mode with the
+        human as manual contract authority. From Phase&nbsp;A onward, contract-first applies
+        with no exceptions.</p>
+    </section>
+
+    <section id="monitor">
+      <h2><span class="sec">02</span>The reference monitor</h2>
+      <p class="lead"><code>authorize()</code> is a pure, deny-by-default function — the
+        single gate every mediated request and every worktree pull passes.</p>
+      <p>It takes a proposal and the frozen contract, and answers exactly one question:
+        <em>may the broker materialize this change?</em> No model, no judge, no I/O touches
+        the verdict — the broker performs filesystem resolution and hands in the resolved
+        paths; the monitor is pure judgment over strings. It canonicalizes every proposed
+        path (Unicode normalization, separator and verbatim-prefix handling, lexical
+        traversal collapse) and cross-checks it against the broker-resolved form, then
+        admits a write only if it lands inside the contract's frozen write-set and clears a
+        set of never-exempt forbidden prefixes. A proposal carrying unresolved unknowns is
+        denied outright — guessing is not a legal transition.</p>
+      <p>The monitor is exercised against a frozen corpus of adversarial path forms —
+        directory traversal, symlink escape, case-fold collisions, Windows reserved device
+        names, alternate-data-stream targets — that grows every time an adversarial pass
+        finds a new one.</p>
+    </section>
+
+    <section id="invariants">
+      <h2><span class="sec">03</span>The invariants</h2>
+      <p class="lead">Eleven mechanically-testable properties. Together they are the
+        acceptance checklist and the daily self-test's assertion list.</p>
+      <ol class="inv">
+        <li><span class="id">I1</span><span><b>No agent credentials.</b> No repo, API, or signing credential is ever in an agent container's filesystem, environment, or reachable network.</span></li>
+        <li><span class="id">I2</span><span><b>Sole writer.</b> Only the broker writes the repo; agents cannot push, and the broker only opens pull requests — never direct pushes to protected branches.</span></li>
+        <li><span class="id">I3</span><span><b>No self-assigned privilege.</b> Trust label, tier, and code-origin are derived from path and the broker's own dispatch record — never from agent-supplied metadata.</span></li>
+        <li><span class="id">I4</span><span><b>Verdicts verify themselves.</b> The required merge check re-fetches and hash-verifies the evidence against the exact commit; verdict identity is distinct from PR-author identity, and neither can approve.</span></li>
+        <li><span class="id">I5</span><span><b>Boundary paths need a human.</b> Any diff touching the contract, kernel, or CI paths requires owner review; in-scope diffs auto-merge on a green verified check only.</span></li>
+        <li><span class="id">I6</span><span><b>Out-of-write-set never becomes a PR.</b> Denied at receive; widening scope is a new owner-frozen plan.</span></li>
+        <li><span class="id">I7</span><span><b>Isolation never degrades.</b> A workload that cannot run at its assigned grade fails visibly; it is never demoted to a weaker sandbox.</span></li>
+        <li><span class="id">I8</span><span><b>Read-back is the only truth.</b> No inbound webhook listener exists; any future event is a hint that triggers an API read-back, never a fact.</span></li>
+        <li><span class="id">I9</span><span><b>Keys off the execution host.</b> No key material ever resides where untrusted code runs.</span></li>
+        <li><span class="id">I10</span><span><b>Unresolved unknowns block mutation.</b> A mutating proposal with open unknowns is denied — enforced by sequencing, not by appeal to intent.</span></li>
+        <li><span class="id">I11</span><span><b>Every privileged event leaves a receipt.</b> Freezes, approvals, PR opens, verdicts, merges, denials, worktree lifecycle events — each minted only by the broker or oracle process.</span></li>
+      </ol>
+    </section>
+
+    <section id="contracts">
+      <h2><span class="sec">04</span>Module contracts</h2>
+      <p class="lead">The full control and runtime design is frozen as a master contract
+        plus thirteen module sub-contracts. Kernel modules and their state:</p>
+      <div class="tbl"><div class="tbl-scroll">
+        <table>
+          <thead><tr><th>Module</th><th>Role</th><th>State</th></tr></thead>
+          <tbody>
+            <tr><td class="m">authorize()</td><td>Deny-by-default reference monitor</td><td><span class="pill built">built · hardened</span></td></tr>
+            <tr><td class="m">receipts</td><td>Diff-bound single-use receipt mint</td><td><span class="pill built">built · hardened</span></td></tr>
+            <tr><td class="m">state_engine</td><td>Durable leases, ledger, fencing</td><td><span class="pill built">imported · verified</span></td></tr>
+            <tr><td class="m">worktree_registry</td><td>Sandbox lifecycle + per-worktree tokens</td><td><span class="pill built">built</span></td></tr>
+            <tr><td class="m">tool_broker</td><td>Sole writer + mediated channel</td><td><span class="pill wip">wiring</span></td></tr>
+            <tr><td class="m">contract_engine</td><td>Freeze / hash / plan-freeze</td><td><span class="pill frozen">frozen spec</span></td></tr>
+            <tr><td class="m">human_control</td><td>Diff-bound approval surface</td><td><span class="pill frozen">frozen spec</span></td></tr>
+            <tr><td class="m">oracles</td><td>Deterministic verdict lanes + evidence</td><td><span class="pill frozen">frozen spec</span></td></tr>
+          </tbody>
+        </table>
+      </div></div>
+      <p style="margin-top:16px; color:var(--muted); font-size:14px;">A frozen contract is
+        binding: any change is a new owner-approved version with a logged diff, verified by
+        content hash — never an in-flight edit.</p>
+    </section>
+
+    <section id="lane">
+      <h2><span class="sec">05</span>The trust-critical build lane</h2>
+      <p class="lead">How a kernel module is built so that an independent adversary — plus
+        the owner reviewing the boundary — could not find a gap.</p>
+      <ol class="steps">
+        <li><b>Two independent authors.</b><p>A non-implementer writes the tests and an adversarial input corpus; a separate implementer writes the code. Neither sees the other's work — both work from the frozen contract. High first-contact convergence is the trust signal.</p></li>
+        <li><b>Adjudicate, don't assume.</b><p>The orchestrator verifies the strongest claims against source and classifies each disagreement: real defect, hardening, or a contract ambiguity that needs reconciliation. A frozen-behavior change is an owner decision.</p></li>
+        <li><b>Sealed-holdout ratchet.</b><p>A third model authors an adversarial holdout kept outside the repository — no agent can study it. It must kill 100% of seeded regression probes and surface gaps the visible tests missed. Every gap becomes a permanent open test; the module only ever gets stronger.</p></li>
+        <li><b>Ship through the real gates.</b><p>The change lands as a pull request authored by the broker's own identity, reviewed and approved by the owner. The system governs its own construction — code, tests, contract, and receipt move together.</p></li>
+      </ol>
+    </section>
+
+    <section id="verify">
+      <h2><span class="sec">06</span>Verification &amp; evidence</h2>
+      <p class="lead">Deterministic where possible; a judge only where syntax genuinely
+        cannot decide.</p>
+      <p>Every verdict emits a universal evidence bundle — exact model id, commit, image
+        digest, dataset and oracle version, artifact hashes, verdict, and abstention —
+        stored on a dedicated branch by the broker and hash-attested by a separate oracle
+        identity, then independently re-verified by a required CI action. A daily canary
+        exercises the whole path through the real machinery and pages the owner if any gate
+        has gone soft; a module is not "done" until the canary runs green for three
+        consecutive days.</p>
+      <div class="callout">On this project the sealed-holdout ratchet has already found a
+        receipt-replay hole and nine path-handling gaps in code that had passed every
+        visible test and merged. <b>The slow adversarial verification is not overhead — it
+        is the product.</b></div>
+    </section>
+
+    <section id="threat">
+      <h2><span class="sec">07</span>Threat model &amp; honest residuals</h2>
+      <p class="lead">The current posture is <strong>reliability-now, security-ready</strong>:
+        the modelled adversary is a faulty or lazy agent — accidental reach — not a
+        determined attacker.</p>
+      <p>Some residuals are accepted for now and recorded rather than hidden, each with a
+        named hardening step on the ladder to a stronger posture: a determined sandbox
+        escape could tamper with a sibling worktree on the same host (bounded by isolation
+        grade and canary detection); channel authentication is boring bearer tokens behind
+        a swap-ready seam; the broker and canary live on the owner's machine, so work queues
+        while it is off. The receipt mint is tamper-<em>evident</em>, keyed by a local
+        secret — honestly not tamper-<em>proof</em> against a party who also holds the key.</p>
+      <p>Later planes — execution, knowledge, oracles, learning, comms — are designed at the
+        master-contract level but not yet fully sub-contracted; their scope is not yet
+        claimed as known. The value of the whole system is exactly proportional to whether
+        the contracts capture true intent and the gates catch true failures — the rigor has
+        to stay real, or it is only overhead.</p>
+    </section>
+  </div>
+</div>
+
+<footer>
+  <div class="foot">
+    <span class="fine">CORTEX · technical specification · reliability-now, security-ready</span>
+    <a class="back" href="index.html">← Back to overview</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeToggle');
+  function apply(t){ if(t) root.setAttribute('data-theme',t); }
+  try{ apply(localStorage.getItem('cortex-theme')); }catch(e){}
+  btn && btn.addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme');
+    var next = cur==='light' ? 'dark' : (cur==='dark' ? 'light'
+      : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light':'dark'));
+    apply(next); try{localStorage.setItem('cortex-theme',next);}catch(e){}
+  });
+})();
+</script>
+</body>
+</html>
