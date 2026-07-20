@@ -34,7 +34,8 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 
 | Date | Log |
 |------|-----|
-| 2026-05-22 | [dev-log-2026-05-22.md](dev-log-2026-05-22.md) — publish kit Tier 2, inline blog editor, agents nav |
+| 2026-07-20 | [dev-log-2026-07-20.md](dev-log-2026-07-20.md) - Cortex case-study redesign and composition-status corrections |
+| 2026-05-22 | [dev-log-2026-05-22.md](dev-log-2026-05-22.md) - publish kit Tier 2, inline blog editor, agents nav |
 | 2026-05-21 | [dev-log-2026-05-21.md](dev-log-2026-05-21.md) |
 | 2026-05-20 | [dev-log-2026-05-20-regulatory-blog-investai.md](dev-log-2026-05-20-regulatory-blog-investai.md) — post id 8, InvestAI scroll fixes |
 | 2026-05-20 | [dev-log-2026-05-20-blog-agents.md](dev-log-2026-05-20-blog-agents.md) — Blog agents hub, OpenRouter, SEO audit |

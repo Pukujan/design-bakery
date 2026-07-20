@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Cortex · a reliability kernel for AI agents</title>
-<meta name="description" content="Cortex is not a smarter agent. It is a reliability kernel that lets interchangeable AI agents produce software you can trust without reading the code. Deny-by-default enforcement, unforgeable receipts, trust-graded sandboxes, evidence-gated merges." />
+<title>Cortex · reliability infrastructure for AI agents</title>
+<meta name="description" content="A case study of Cortex: contract-first reliability infrastructure for AI agents, with deny-by-default boundaries, content-bound receipts, independent verification, and explicit human authority." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
@@ -109,16 +109,16 @@
   }
 
   /* ---- hero ---- */
-  .hero{position:relative; padding:88px 0 52px; overflow:hidden;}
-  .hero-grid{display:grid; grid-template-columns:1.15fr 0.85fr; gap:56px; align-items:center;}
-  @media (max-width:900px){ .hero-grid{grid-template-columns:1fr; gap:36px;} }
-  .hero h1{font-size:clamp(38px,6vw,68px); line-height:1.02; font-weight:700;
-    letter-spacing:-0.02em; margin:22px 0 0;}
-  .hero h1 .thru{color:var(--muted-2); position:relative; white-space:nowrap;}
-  .hero h1 .thru::after{content:""; position:absolute; left:-2%; right:-2%; top:52%;
-    height:3px; background:var(--deny); transform:rotate(-3deg);}
-  .hero h1 em{font-style:normal; color:var(--seal);}
-  .lede{font-size:19px; line-height:1.6; color:var(--text); max-width:34ch; margin:24px 0 0;}
+  .hero{position:relative; min-height:min(760px,calc(100vh - 64px)); padding:84px 0 72px;
+    overflow:hidden; display:flex; align-items:center; isolation:isolate;}
+  .hero-grid{position:relative; z-index:3; width:100%;}
+  .hero-copy{max-width:720px;}
+  .hero h1{font-family:"IBM Plex Mono",monospace; font-size:clamp(64px,12vw,148px);
+    line-height:.84; font-weight:600; letter-spacing:0; margin:28px 0 0; color:var(--text-strong);
+    text-shadow:0 0 42px var(--seal-glow);}
+  .hero-kicker{font-family:"IBM Plex Mono",monospace; font-size:clamp(17px,2.2vw,25px);
+    color:var(--seal); margin:24px 0 0; max-width:32ch; line-height:1.35;}
+  .lede{font-size:18px; line-height:1.65; color:var(--text); max-width:56ch; margin:20px 0 0;}
   .hero-cta{display:flex; gap:14px; margin-top:32px; flex-wrap:wrap;}
   .btn{font-family:"IBM Plex Mono",monospace; font-size:13.5px; letter-spacing:.03em;
     padding:13px 20px; border-radius:10px; cursor:pointer; transition:all .2s;
@@ -128,20 +128,18 @@
   .btn.ghost{border-color:var(--line); color:var(--text-strong);}
   .btn.ghost:hover{border-color:var(--seal); color:var(--seal);}
 
-  /* hero instrument (canvas) */
-  .instrument{position:relative; border:1px solid var(--line); border-radius:16px;
-    background:linear-gradient(180deg,var(--panel),var(--ink-2)); box-shadow:var(--shadow);
-    overflow:hidden; min-height:340px;}
-  .instrument .cap{display:flex; align-items:center; justify-content:space-between;
-    padding:12px 16px; border-bottom:1px solid var(--line-soft);
-    font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.08em; color:var(--muted);}
+  /* full-bleed checkpoint display */
+  .instrument{position:absolute; inset:0; z-index:1; overflow:hidden; pointer-events:none;}
+  .instrument .cap{position:absolute; right:28px; top:24px; z-index:3; display:flex;
+    align-items:center; gap:18px; padding:0; font-family:"IBM Plex Mono",monospace;
+    font-size:11px; letter-spacing:.08em; color:var(--muted);}
   .instrument .cap .live{display:inline-flex; align-items:center; gap:7px; color:var(--allow);}
   .instrument .cap .live::before{content:""; width:7px; height:7px; border-radius:50%;
     background:var(--allow); box-shadow:0 0 0 3px color-mix(in srgb,var(--allow) 26%,transparent);
     animation:pulse 2.4s ease-in-out infinite;}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
   @media (prefers-reduced-motion:reduce){ .instrument .cap .live::before{animation:none;} }
-  canvas#gate{display:block; width:100%; height:300px;}
+  canvas#gate{display:block; width:100%; height:100%; opacity:.9;}
 
   /* CRT face : scanlines + a slow phosphor sweep over the instrument.
      dark themes only; light theme gets the clean panel. */
@@ -149,9 +147,8 @@
     border-radius:inherit; overflow:hidden;}
   .instrument .crt::before{content:""; position:absolute; inset:0;
     background:
-      radial-gradient(120% 95% at 50% 8%, transparent 62%, rgba(0,0,0,0.28)),
-      repeating-linear-gradient(0deg, rgba(0,0,0,0.20) 0 1px, transparent 1px 3px);
-    opacity:.45;}
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 4px);
+    opacity:.38;}
   .instrument .crt::after{content:""; position:absolute; left:0; right:0; top:-30%;
     height:26%;
     background:linear-gradient(180deg, transparent,
@@ -162,6 +159,12 @@
   @media (prefers-reduced-motion:reduce){ .instrument .crt::after{display:none;} }
   @media (prefers-color-scheme:light){ :root:not([data-theme="dark"]) .instrument .crt{display:none;} }
   :root[data-theme="light"] .instrument .crt{display:none;}
+  @media (max-width:720px){
+    .hero{min-height:690px; align-items:flex-start; padding-top:62px;}
+    .hero h1{font-size:clamp(58px,20vw,92px);}
+    .hero-copy{max-width:100%;}
+    .instrument .cap{right:20px; top:auto; bottom:18px; left:20px; justify-content:space-between;}
+  }
 
   /* ---- section frame ---- */
   section{padding:78px 0; border-top:1px solid var(--line-soft);}
@@ -226,14 +229,51 @@
     padding:4px 0 4px 20px; max-width:70ch;}
   .note b{color:var(--text-strong); font-weight:600;}
 
+  /* real project review replay */
+  .replay{margin-top:46px; display:grid; grid-template-columns:minmax(220px,.7fr) minmax(0,1.3fr);
+    gap:48px; align-items:start;}
+  .replay-intro{position:sticky; top:96px;}
+  .replay-intro .run-id{font-family:"IBM Plex Mono",monospace; color:var(--seal);
+    font-size:12px; letter-spacing:.08em;}
+  .replay-intro h3{font-size:24px; margin-top:14px;}
+  .replay-intro p{font-size:15px; color:var(--muted); margin:12px 0 0;}
+  .replay-track{position:relative; padding-left:34px; margin:0; list-style:none;}
+  .replay-track::before{content:""; position:absolute; left:7px; top:8px; bottom:8px;
+    width:2px; background:var(--line);}
+  .replay-step{position:relative; padding:0 0 30px; border-bottom:1px solid var(--line-soft);
+    margin-bottom:26px;}
+  .replay-step:last-child{margin-bottom:0; padding-bottom:0; border-bottom:0;}
+  .replay-step::before{content:""; position:absolute; left:-33px; top:5px; width:12px; height:12px;
+    background:var(--ink); border:2px solid var(--muted-2); box-shadow:0 0 0 4px var(--ink);}
+  .replay-step.deny::before{border-color:var(--deny); box-shadow:0 0 14px color-mix(in srgb,var(--deny) 45%,transparent);}
+  .replay-step.pass::before{border-color:var(--allow); box-shadow:0 0 14px color-mix(in srgb,var(--allow) 45%,transparent);}
+  .replay-step .step-tag{font-family:"IBM Plex Mono",monospace; font-size:11px;
+    letter-spacing:.1em; color:var(--muted); text-transform:uppercase;}
+  .replay-step.deny .step-tag{color:var(--deny);}
+  .replay-step.pass .step-tag{color:var(--allow);}
+  .replay-step h4{font-size:18px; color:var(--text-strong); margin:8px 0 5px;}
+  .replay-step p{font-size:14.5px; color:var(--muted); margin:0; max-width:65ch;}
+  .receipt-line{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--text);
+    margin-top:10px; padding:9px 12px; border-left:2px solid var(--line); background:var(--ink-2);}
+  @media (max-width:760px){
+    .replay{grid-template-columns:1fr; gap:30px;}
+    .replay-intro{position:static;}
+  }
+
   /* status */
-  .status-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:40px;}
+  .status-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:0; margin-top:40px;
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
   @media (max-width:760px){ .status-grid{grid-template-columns:1fr 1fr;} }
-  .stat{border:1px solid var(--line); border-radius:12px; padding:22px; background:var(--panel);}
+  .stat{padding:24px 20px; border-right:1px solid var(--line);}
+  .stat:last-child{border-right:0;}
   .stat .n{font-family:"IBM Plex Mono",monospace; font-size:30px; color:var(--text-strong);
     font-weight:600; font-variant-numeric:tabular-nums; letter-spacing:-0.02em;}
   .stat .l{font-size:13px; color:var(--muted); margin-top:6px; line-height:1.4;}
   .stat .n .u{font-size:16px; color:var(--seal);}
+  @media (max-width:760px){
+    .stat:nth-child(2){border-right:0;}
+    .stat:nth-child(-n+2){border-bottom:1px solid var(--line);}
+  }
 
   /* footer */
   footer{border-top:1px solid var(--line-soft); padding:56px 0 70px; margin-top:30px;}
@@ -252,8 +292,8 @@
     transition:opacity .55s cubic-bezier(.2,.6,.2,1), transform .55s cubic-bezier(.2,.6,.2,1),
       clip-path .6s cubic-bezier(.2,.6,.2,1);}
   .reveal.in{opacity:1; transform:none;}
-  .stat.reveal{clip-path:inset(-1px -1px 100% -1px round 12px);}
-  .stat.reveal.in{clip-path:inset(-1px -1px -1px -1px round 12px);}
+  .stat.reveal{clip-path:inset(-1px -1px 100% -1px);}
+  .stat.reveal.in{clip-path:inset(-1px -1px -1px -1px);}
   @media (prefers-reduced-motion:reduce){
     .reveal{opacity:1 !important; transform:none !important;
       clip-path:none !important; transition:none !important;}
@@ -278,25 +318,26 @@
   </div>
 </header>
 
+<main>
 <a id="top"></a>
 <section class="hero" style="border-top:none;">
+  <div class="instrument" aria-hidden="true">
+    <div class="cap"><span>CHECKPOINT REPLAY // SCC-V2</span><span class="live">component build</span></div>
+    <canvas id="gate" width="1440" height="700"></canvas>
+    <div class="crt"></div>
+  </div>
   <div class="wrap hero-grid">
-    <div>
-      <span class="eyebrow">Reliability kernel · AI agents</span>
-      <h1>Don't trust the&nbsp;<span class="thru">agent</span>.<br />Trust the&nbsp;<em>kernel</em>.</h1>
-      <p class="lede">Cortex is not a smarter agent. It is the machinery around the agent.
-        A deny-by-default gate. An unforgeable receipt of exactly what got approved. Proof
-        before anything ships. Put those in place and interchangeable models can do real
-        work on a codebase you never have to read to trust.</p>
+    <div class="hero-copy">
+      <span class="eyebrow">Case study · reliability infrastructure</span>
+      <h1>CORTEX</h1>
+      <p class="hero-kicker">A control plane for fallible AI agents.</p>
+      <p class="lede">Cortex makes scope, evidence, approvals, and failure states explicit.
+        Models can change; the contract and verification path stay fixed. The result is
+        lower-risk delegation with a human still owning intent and completion.</p>
       <div class="hero-cta">
-        <a class="btn primary" href="specs.html">Read the technical spec →</a>
-        <a class="btn ghost" href="#kernel">See the kernel</a>
+        <a class="btn primary" href="#replay">Replay a real review →</a>
+        <a class="btn ghost" href="specs.html">Technical architecture</a>
       </div>
-    </div>
-    <div class="instrument" aria-hidden="true">
-      <div class="cap"><span>reference-monitor · live trace</span><span class="live">deny-by-default</span></div>
-      <canvas id="gate" width="520" height="300"></canvas>
-      <div class="crt"></div>
     </div>
   </div>
 </section>
@@ -306,25 +347,25 @@
     <div class="sec-head">
       <span class="eyebrow">The problem</span>
       <h2>Capable is not the same as trustworthy.</h2>
-      <p>AI coding agents are good and getting better. But you still can't trust the
-        output without checking it, and checking costs about what the work did. The usual
-        answer is "make the agent smarter." That lowers the error rate. It never gives you
-        a guarantee. For software that ships, "usually correct" isn't trustworthy at all.</p>
+      <p>AI coding agents remain probabilistic, so consequential output still requires
+        verification proportionate to its risk. A stronger model can reduce errors, but it
+        does not establish correctness or authority.</p>
     </div>
     <div class="truths">
       <div class="truth bad">
-        <div class="k">Everyone else</div>
+        <div class="k">Ungoverned agent path</div>
         <h3>A better driver</h3>
-        <p>Stronger models, richer prompts, more tools. The agent is still the thing being
-          trusted, so a wrong decision is a wrong action you find out about later. A
-          probabilistic system gives you a probability. Never a proof.</p>
+        <p>A stronger model, richer prompt, or larger toolset may reduce errors, but without
+          an independent control path the model's proposal can still become an action before
+          an external authority verifies it.</p>
       </div>
       <div class="truth good">
         <div class="k">Cortex</div>
-        <h3>The seatbelt, the crumple zone, the guardrail</h3>
-        <p>Assume the agent is fallible by default. Put the trust in a kernel that sits
-          between the agent and the codebase and <em>mechanically</em> forbids anything the
-          contract didn't allow. Now any driver is safe enough.</p>
+        <h3>A control plane around the driver</h3>
+        <p>Assume the agent is fallible. Put enforceable boundaries between proposals and
+          consequential actions, bind approvals to exact artifacts, and keep independent
+          evaluation outside the builder. The controls reduce risk; they do not certify
+          the product by themselves.</p>
       </div>
     </div>
   </div>
@@ -335,23 +376,78 @@
     <div class="sec-head">
       <span class="eyebrow">The inversion</span>
       <h2>The move operating systems made fifty years ago, applied to AI agents.</h2>
-      <p>You don't trust every program not to corrupt memory; you put a kernel between
-        programs and the hardware that makes it impossible. Cortex is that kernel for an
-        agent acting on a repository. Three commitments follow.</p>
+      <p>You do not rely on every program to avoid corrupting memory; you put enforceable
+        boundaries between programs and hardware. The target architecture applies that
+        reference-monitor pattern to an agent acting on a repository. Cortex has
+        component-tested kernel mechanisms, but the production agent path does not yet run
+        through the composed kernel. Three commitments follow.</p>
     </div>
     <div class="panel-grid">
       <div class="mod"><div class="idx">01 · before</div><h3>Contract-first</h3>
-        <p>The agent researches, asks the questions that actually matter, and a frozen
-          contract (goal, exact write-set, acceptance test) is agreed before any code gets
-          written. The target stops moving mid-build.</p></div>
+        <p>Outside the declared manual Phase 0 bootstrap, the target process freezes the
+          goal, write-set, and acceptance oracle before implementation. The reviewed
+          composition path has not demonstrated a durable owner-frozen plan receipt.</p></div>
       <div class="mod"><div class="idx">02 · during</div><h3>Deny-by-default</h3>
-        <p>Every action is checked against the frozen contract by a reference monitor with
-          no model in the verdict. Guessing is not a legal move; unresolved unknowns are a
-          denial, not a coin-flip.</p></div>
+        <p>In the target path, every write, execution, or network action passes through the
+          broker after deny-by-default authorization; only provably pure reads may run
+          directly. Current OpenCode and agent-runtime paths are not yet behind that gate.</p></div>
       <div class="mod"><div class="idx">03 · after</div><h3>Proof, not vibes</h3>
-        <p>Nothing merges without a deterministic verdict from an identity the agent can't
-          impersonate, and a receipt of exactly what was approved. Past failures become
-          permanent gates.</p></div>
+        <p>The target release path requires deterministic evidence verified outside the
+          builder and receipts bound to the approved artifact. Verified failures may become
+          durable gates after review and human promotion; neither the production merge path
+          nor that learning loop is live end to end.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="replay">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">An independent composition review</span>
+      <h2>Eight visible tests passed. The release was still blocked.</h2>
+      <p>Eight focused tests passed, but an independent contract review traced the persistence
+        and recovery code and found that the visible park test never invoked resume. This is
+        the project in miniature: component tests are evidence, not release authority.</p>
+    </div>
+    <div class="replay">
+      <div class="replay-intro">
+        <div class="run-id">REVIEW // COMPOSITION-RECOVERY</div>
+        <h3>Exact-diff approval after restart</h3>
+        <p>The recorded v1.4 decision requires an approved run to recover its exact diff hash
+          from one durable record. A receipt may report that event, but it cannot become a
+          second source of truth.</p>
+      </div>
+      <ol class="replay-track" aria-label="Composition recovery review timeline">
+        <li class="replay-step">
+          <div class="step-tag">01 · recorded decision</div>
+          <h4>Embed the invariant in storage</h4>
+          <p><code>APPROVED</code> and a non-null <code>diff_hash</code> must be committed
+            atomically. Storage must make the invalid state unrepresentable.</p>
+          <div class="receipt-line">RECORDED DECISION // master amendment v1.4 + freeze record</div>
+        </li>
+        <li class="replay-step">
+          <div class="step-tag">02 · builder claim</div>
+          <h4>Run the visible suite</h4>
+          <p>The composition entrypoint reached its expected states and all eight focused
+            tests passed. Useful evidence, but only for the paths those tests exercised.</p>
+          <div class="receipt-line">OBSERVED // 8 passed</div>
+        </li>
+        <li class="replay-step deny">
+          <div class="step-tag">03 · independent review · blocked</div>
+          <h4>Trace the restart path</h4>
+          <p>The projection permitted <code>APPROVED</code> without a hash, and recovery
+            joined receipt data back into the run. That violated the recorded v1.4 recovery
+            decision, even though the amendment itself was frozen.</p>
+          <div class="receipt-line">VERDICT // FAIL · release remains blocked</div>
+        </li>
+        <li class="replay-step pass">
+          <div class="step-tag">04 · acceptance target</div>
+          <h4>Make the failure impossible</h4>
+          <p>The repair must atomically store status and hash, recover without receipt
+            joins, and pass a restart test written outside the builder lane.</p>
+          <div class="receipt-line">NEXT // builder repair → independent holdout → owner review</div>
+        </li>
+      </ol>
     </div>
   </div>
 </section>
@@ -359,57 +455,60 @@
 <section id="kernel">
   <div class="wrap">
     <div class="sec-head">
-      <span class="eyebrow">The kernel · Phase 0</span>
-      <h2>Seven mechanisms. Each one a proven idea, none of them a language model.</h2>
-      <p>The trust root every later capability stands on. None of these are new
-        inventions. They're the load-bearing patterns of operating-system security,
-        borrowed for a new domain. The evidence is further down.</p>
+      <span class="eyebrow">The kernel · component progress</span>
+      <h2>Six mechanisms, with their integration state shown honestly.</h2>
+      <p>Many kernel components are merged and component-tested. The reviewed composition
+        branch remains blocked and is not ready for a pull request; production authority
+        services and a live end-to-end canary are also incomplete.</p>
     </div>
     <div class="panel-grid">
       <div class="mod"><span class="state built">built</span><div class="idx">authorize()</div>
         <h3>Reference monitor</h3>
-        <p>A pure, deny-by-default gate. Canonicalizes every path against an adversarial
-          corpus and admits only writes inside the frozen contract. No credentials, no
-          model, no I/O in the verdict.</p></div>
-      <div class="mod"><span class="state wip">wiring</span><div class="idx">tool_broker</div>
+        <p>The standalone component is a pure, deny-by-default path gate tested against
+          difficult path forms. Current OpenCode and agent-runtime paths do not call it,
+          and the reviewed composition calls it directly without a broker-mediated apply
+          path.</p></div>
+      <div class="mod"><span class="state wip">partial</span><div class="idx">tool_broker</div>
         <h3>Sole writer</h3>
-        <p>The only process that can touch the repo. Holds all credentials, runs as its own
-          user, polls rather than listens, opens pull requests. Agents hold nothing and
-          cannot push.</p></div>
-      <div class="mod"><span class="state built">built</span><div class="idx">receipts</div>
-        <h3>Unforgeable receipts</h3>
-        <p>Every approval mints a single-use receipt bound to the exact content hash.
-          "Approve, then swap the diff" becomes mechanically detectable. Tamper-evident and
-          spent-once, atomically.</p></div>
-      <div class="mod"><span class="state next">next</span><div class="idx">isolation</div>
+        <p>Target sole-writer process: it owns mutation credentials, authorizes at receive and
+          use, applies approved patches, and opens pull requests. The reviewed composition
+          path does not construct a broker envelope, call its proposal handler, or apply the
+          patch.</p></div>
+      <div class="mod"><span class="state built">merged</span><div class="idx">receipts</div>
+        <h3>Content-bound receipts</h3>
+        <p>Receipt components are merged and tested, but the reviewed composition path accepts
+          an arbitrary callback result as its approval receipt and does not verify an
+          exact-diff-bound human-control authority receipt.</p></div>
+      <div class="mod"><span class="state next">designed</span><div class="idx">isolation</div>
         <h3>Trust-graded sandboxes</h3>
-        <p>Untrusted free-fleet code runs under stronger isolation, the owner's
-          strong-model code under lighter. A workload that can't run at its grade fails
-          loudly. It never gets quietly downgraded to a weaker one.</p></div>
-      <div class="mod"><span class="state next">next</span><div class="idx">human_control</div>
+        <p>The target assigns isolation by workload risk and fails visibly when the assigned
+          grade is unavailable; it must never silently weaken isolation. Production
+          trust-graded sandbox execution is designed but not live.</p></div>
+      <div class="mod"><span class="state built">merged</span><div class="idx">human_control</div>
         <h3>Approval bound to the diff</h3>
-        <p>You approve on a faithful summary from an independent path, and the server binds
-          it to the exact diff underneath. A bad summary can mislead judgment; it can never
-          change what was approved.</p></div>
-      <div class="mod"><span class="state next">next</span><div class="idx">oracles</div>
+        <p>The human-control component is intended to bind an approval based on an independent
+          summary and observed output to the exact diff. The reviewed composition path does
+          not call that authority flow and instead accepts a local callback result.</p></div>
+      <div class="mod"><span class="state next">not live</span><div class="idx">oracles</div>
         <h3>Evidence, not assertion</h3>
-        <p>Deterministic checkers decide pass/fail; a separate identity attests; a verifying
-          action re-checks the evidence hash. No judge where a checker can decide. Every
-          result carries a bundle.</p></div>
+        <p>The contract requires deterministic checkers where possible, independent
+          attestation, evidence-hash verification, and a universal evidence bundle. No live
+          end-to-end evaluator path currently demonstrates those requirements.</p></div>
     </div>
-    <div class="note">The learning loop closes it. Failures get fingerprinted, and the
-      ones that recur become new gates once a human signs off, so the same class of bug
-      <b>never ships twice</b>. Every cycle leaves the kernel a little harder to fool.</div>
+    <div class="note">The target learning loop fingerprints verified failures and drafts gate
+      or oracle proposals. Promotion requires review and human approval; the end-to-end
+      learning loop is not live.</div>
   </div>
 </section>
 
 <section id="compare">
   <div class="wrap">
     <div class="sec-head">
-      <span class="eyebrow">The field</span>
-      <h2>Everyone else orchestrates the agent. Cortex enforces against it.</h2>
-      <p>Some of these are excellent. The difference isn't quality. It's architecture.
-        Look across the field and the enforcement half sits empty.</p>
+      <span class="eyebrow">Architecture comparison</span>
+      <h2>Generation, orchestration, and enforcement solve different problems.</h2>
+      <p>This scoped comparison separates common product categories rather than ranking
+        individual tools. Cortex is designed to add contract enforcement and independent
+        evidence around the model and orchestrator layers.</p>
     </div>
     <div class="cmp"><div class="cmp-inner">
       <div class="cmp-row head">
@@ -417,30 +516,29 @@
         <div>Orchestrators</div><div>Frontier model</div>
       </div>
       <div class="cmp-row">
-        <div class="cap">Deny-by-default monitor</div>
-        <div class="cx-col yes">yes</div><div class="no">no</div><div class="no">no</div><div class="no">n/a</div>
+        <div class="cap">Frozen write-set enforcement</div>
+        <div class="cx-col no">component built; runtime unwired</div><div class="no">varies</div><div class="no">varies</div><div class="no">n/a</div>
       </div>
       <div class="cmp-row">
-        <div class="cap">Unforgeable receipts</div>
-        <div class="cx-col yes">yes</div><div class="no">no</div><div class="no">no</div><div class="no">no</div>
+        <div class="cap">Content-bound authority receipts</div>
+        <div class="cx-col no">component built; binding unwired</div><div class="no">varies</div><div class="no">varies</div><div class="no">no</div>
       </div>
       <div class="cmp-row">
         <div class="cap">Sole-writer broker</div>
-        <div class="cx-col yes">yes</div><div class="no">no</div><div class="no">no</div><div class="no">no</div>
+        <div class="cx-col no">component exists; no apply path</div><div class="no">varies</div><div class="no">varies</div><div class="no">no</div>
       </div>
       <div class="cmp-row">
         <div class="cap">Trust-graded sandbox</div>
-        <div class="cx-col yes">yes</div><div class="no">partial</div><div class="no">partial</div><div class="no">no</div>
+        <div class="cx-col no">designed</div><div class="no">varies</div><div class="no">varies</div><div class="no">no</div>
       </div>
       <div class="cmp-row">
-        <div class="cap">Produces a guarantee</div>
-        <div class="cx-col yes">yes</div><div class="no">no</div><div class="no">no</div><div class="no">no</div>
+        <div class="cap">Independent final evaluation</div>
+        <div class="cx-col no">not live</div><div class="no">varies</div><div class="no">varies</div><div class="no">no</div>
       </div>
     </div></div>
-    <div class="note">Several projects arrived at the same workflow layer on their own:
-      decompose a goal, run parallel workers, track evidence. But every one of them
-      <b>trusts the agent to do the right thing</b>. None has the reference monitor, the
-      content-bound receipts, or the sole-writer broker. That's the half Cortex adds.</div>
+    <div class="note">Cortex does not replace a model or an orchestrator. It adds a
+      separate control plane: <b>frozen intent, mediated actions, durable evidence, and
+      authority outside the builder</b>.</div>
   </div>
 </section>
 
@@ -448,17 +546,17 @@
   <div class="wrap">
     <div class="sec-head">
       <span class="eyebrow">Why this isn't a leap in the dark</span>
-      <h2>Every mechanism is decades-proven. The novelty is the composition.</h2>
-      <p>Each part of the kernel is a battle-tested pattern with production and literature
-        behind it. This stands on named, cited work. It doesn't invent new security
-        primitives.</p>
+      <h2>Established mechanisms, recomposed for agent reliability.</h2>
+      <p>The architecture draws from named reference-monitor, privilege-separation,
+        content-binding, and workload-isolation patterns. The case study does not claim
+        that precedent alone proves this implementation.</p>
     </div>
     <div class="refs">
       <div class="ref"><span class="yr">1972</span><div>
         <h4>The reference monitor</h4>
-        <p>Anderson's study, then Saltzer &amp; Schroeder (1975): least privilege, complete
-          mediation, fail-safe defaults. It's how SELinux, seccomp, and every OS kernel
-          work. <em>authorize()</em> is this.</p></div></div>
+        <p>Anderson's study, then Saltzer &amp; Schroeder (1975), established principles such
+          as least privilege, complete mediation, and fail-safe defaults. Those principles
+          influenced <em>authorize()</em>; they do not prove this implementation.</p></div></div>
       <div class="ref"><span class="yr">2003</span><div>
         <h4>Privilege separation</h4>
         <p>OpenSSH's tiny privileged monitor with unprivileged workers that hold nothing
@@ -470,47 +568,45 @@
           The receipt is this.</p></div></div>
       <div class="ref"><span class="yr">2020</span><div>
         <h4>Trust-graded isolation</h4>
-        <p>Firecracker microVMs run every AWS Lambda (Agache et al., NSDI); gVisor runs
-          Google Cloud Run. Grading untrusted code into stronger sandboxes is how all
-          serverless works.</p></div></div>
+        <p>Firecracker and gVisor provide established examples of stronger workload
+          isolation. Cortex's proposed risk grading is its own composition of those
+          patterns, and production execution is not live.</p></div></div>
     </div>
-    <div class="note">Eight in-house prior-art studies and two independent cross-vendor
-      critique rounds went in before the kernel was designed. Off-the-shelf parts were
-      adopted where they fit and rejected, with reasons, where they didn't. <b>What's
-      genuinely new is that composition, applied to AI agents.</b> The verification floors
-      de-risk it, and on this project they've already caught real defects in code that had
-      passed every visible test.</div>
+    <div class="note">The design followed prior-art studies and independent critique before
+      implementation. Existing parts were adopted where they fit and rejected with recorded
+      reasons where they did not. <b>The project claim is the composition and the evidence
+      trail, not the invention of new primitives.</b></div>
   </div>
 </section>
 
 <section id="status">
   <div class="wrap">
     <div class="sec-head">
-      <span class="eyebrow">Status · self-hosting</span>
-      <h2>The kernel is being built by its own rules.</h2>
-      <p>Every module ships as a pull request authored by the broker's own identity,
-        reviewed and approved through the same gates it will use in production. The thing
-        that will build trustworthy software is, right now, building itself that way.</p>
+      <span class="eyebrow">Progress · recorded 2026-07-20</span>
+      <h2>The substrate is substantial. The product path is not finished.</h2>
+      <p>Phase 0 uses a declared manual bootstrap process modeled on the target controls.
+        Component and contract work has landed through reviewed pull requests, but the
+        current composition branch remains blocked. The recorded v1.4 recovery decision is
+        frozen; the implementation still needs conformance repair and independent holdout.</p>
     </div>
     <div class="status-grid">
-      <div class="stat"><div class="n">13<span class="u">+1</span></div><div class="l">frozen contracts (the full control &amp; runtime design)</div></div>
-      <div class="stat"><div class="n">7</div><div class="l">kernel modules built, hardened &amp; merged</div></div>
-      <div class="stat"><div class="n">6<span class="u">/6</span></div><div class="l">adversarial mutants killed per module, the hard gate</div></div>
-      <div class="stat"><div class="n">0</div><div class="l">judges in any verdict path (checkers only)</div></div>
+      <div class="stat"><div class="n">v1.4</div><div class="l">owner-frozen recovery invariant: APPROVED carries its diff hash in one durable record</div></div>
+      <div class="stat"><div class="n">845<span class="u">+1s</span></div><div class="l">full-suite result on the reviewed composition branch</div></div>
+      <div class="stat"><div class="n">8<span class="u">/8</span></div><div class="l">focused tests passed, while contract review still blocked release</div></div>
+      <div class="stat"><div class="n">0</div><div class="l">live Cortex-governed production runs claimed today</div></div>
     </div>
-    <div class="note">Adversarial "sealed holdouts," a third model that never sees the
-      implementation, have already found a receipt-replay hole and eleven path-and-authz
-      gaps in code that was already merged. <b>The slow verification isn't overhead. It's
-      the product.</b></div>
+    <div class="note">Independent sealed holdouts and contract traces have found replay,
+      path, authorization, and recovery defects after visible tests were green.
+      <b>The refusal to convert green tests into an automatic release claim is the product.</b></div>
   </div>
 </section>
+</main>
 
 <footer>
   <div class="wrap foot-in">
     <div>
-      <h3>Cortex turns "hope the agent got it right" into "know it did."</h3>
-      <p>A reliability kernel and contract-first process for trustworthy delegation at
-        scale.</p>
+      <h3>Know what was allowed, what was checked, and who decided.</h3>
+      <p>Contract-first reliability infrastructure for accountable AI delegation.</p>
     </div>
     <a class="btn primary" href="specs.html">Technical specification →</a>
   </div>
@@ -519,7 +615,7 @@
       <span>CORTEX · reliability kernel</span><span class="sep">/</span>
       <span>deny-by-default</span><span class="sep">/</span>
       <span>evidence-gated</span><span class="sep">/</span>
-      <span>self-hosting</span>
+      <span>self-hosting pending</span>
     </div>
   </div>
 </footer>
@@ -586,8 +682,8 @@
   /* boot sequence : typed once, then it just sits there like a good terminal */
   var BOOT=[
     '> cortex.monitor  v0 · deny-by-default',
-    '> contract  frozen · write-set locked',
-    '> trace: live'
+     '> contract target · write-set specified',
+     '> trace: illustrative'
   ];
   var bootChars=0, bootTotal=BOOT.join('').length;
   function spawn(){

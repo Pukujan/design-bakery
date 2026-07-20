@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Cortex · Technical Specification</title>
-<meta name="description" content="Technical specification for Cortex, the reliability kernel for AI agents. System model, the eleven invariants, module contracts, the trust-critical build lane, verification, and the threat model." />
+<meta name="description" content="Technical case study for Cortex: the contracted architecture, target invariants, component state, blocked composition path, verification method, and current residuals." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
@@ -14,6 +14,7 @@
     --line:#222b3d; --line-soft:#1a2231; --text:#ced6e3; --text-strong:#f2f5fa;
     --muted:#7c8698; --muted-2:#5c6577; --seal:#f5b640; --seal-deep:#c98a14;
     --allow:#37b8a4; --deny:#e0563e; --seal-glow:rgba(245,182,64,0.14);
+    --lifecycle-deny:#e0563e; --lifecycle-allow:#37b8a4;
     --shadow:0 30px 80px rgba(0,0,0,0.5); --maxw:1080px;
   }
   @media (prefers-color-scheme:light){
@@ -21,16 +22,19 @@
       --line:#d6dce6; --line-soft:#e2e7ee; --text:#333d4e; --text-strong:#0d1220;
       --muted:#5c6577; --muted-2:#8a93a3; --seal:#b6790c; --seal-deep:#8a5b06;
       --allow:#0f8a79; --deny:#c1432c; --seal-glow:rgba(182,121,12,0.10);
+      --lifecycle-deny:#a93622; --lifecycle-allow:#087565;
       --shadow:0 24px 60px rgba(20,30,55,0.12);}
   }
   :root[data-theme="dark"]{ --ink:#0A0D13; --ink-2:#0E121B; --panel:#121826; --panel-2:#161D2D;
     --line:#222b3d; --line-soft:#1a2231; --text:#ced6e3; --text-strong:#f2f5fa; --muted:#7c8698;
     --muted-2:#5c6577; --seal:#f5b640; --seal-deep:#c98a14; --allow:#37b8a4; --deny:#e0563e;
-    --seal-glow:rgba(245,182,64,0.14); --shadow:0 30px 80px rgba(0,0,0,0.5);}
+    --seal-glow:rgba(245,182,64,0.14); --lifecycle-deny:#e0563e; --lifecycle-allow:#37b8a4;
+    --shadow:0 30px 80px rgba(0,0,0,0.5);}
   :root[data-theme="light"]{ --ink:#eef1f6; --ink-2:#e7ebf2; --panel:#ffffff; --panel-2:#f4f6fa;
     --line:#d6dce6; --line-soft:#e2e7ee; --text:#333d4e; --text-strong:#0d1220; --muted:#5c6577;
     --muted-2:#8a93a3; --seal:#b6790c; --seal-deep:#8a5b06; --allow:#0f8a79; --deny:#c1432c;
-    --seal-glow:rgba(182,121,12,0.10); --shadow:0 24px 60px rgba(20,30,55,0.12);}
+    --seal-glow:rgba(182,121,12,0.10); --lifecycle-deny:#a93622; --lifecycle-allow:#087565;
+    --shadow:0 24px 60px rgba(20,30,55,0.12);}
 
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth; overflow-x:clip;}
@@ -143,53 +147,45 @@
   .codeblock .ok{color:var(--allow);}            /* allow / terminal */
   .caption{font-size:13px; color:var(--muted); margin:8px 0 0;}
 
-  /* gate flowchart : mermaid-style directed graph, inline SVG.
-     scrolls horizontally inside its own frame on narrow screens. */
+  /* target lifecycle : vertical and semantic so the full path fits a phone. */
   .fc-wrap{margin:26px 0 4px; border:1px solid var(--line); border-radius:12px;
     background:var(--ink-2); overflow:hidden;}
   .fc-head{display:flex; align-items:center; justify-content:space-between; gap:12px;
     padding:10px 14px; border-bottom:1px solid var(--line-soft);
     font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em; color:var(--muted);}
   .fc-head .tag{color:var(--seal); white-space:nowrap;}
-  .fc-scroll{overflow-x:auto; padding:18px 10px 10px;}
-  svg.fc{display:block; width:100%; min-width:560px; max-width:700px;
-    margin:0 auto; height:auto;}
-  .fc text{font-family:"IBM Plex Mono",ui-monospace,monospace;}
-  .fc .n-box{fill:var(--panel); stroke:var(--line); stroke-width:1.2;}
-  .fc .n-title{fill:var(--text-strong); font-size:13px; font-weight:600;}
-  .fc .n-sub{fill:var(--muted); font-size:10.5px;}
-  .fc .gate .n-box{stroke:var(--seal);}
-  .fc .io .n-box{stroke-dasharray:5 4;}
-  .fc .start .n-box{fill:color-mix(in srgb,var(--seal) 10%,var(--panel)); stroke:var(--seal);}
-  .fc .term .n-box{fill:color-mix(in srgb,var(--allow) 12%,var(--panel)); stroke:var(--allow);}
-  .fc .term .n-title{fill:var(--allow);}
-  .fc .deny-term .n-box{fill:color-mix(in srgb,var(--deny) 10%,var(--panel)); stroke:var(--deny);}
-  .fc .deny-term .n-title{fill:var(--deny);}
-  .fc .gate-dia{fill:none; stroke:var(--seal); stroke-width:1.2;}
-  .fc .edge{stroke:var(--muted); stroke-width:1.4; fill:none;}
-  .fc .edge-deny{stroke:var(--deny); stroke-width:1.2; fill:none;
-    stroke-dasharray:4 4; opacity:.85;}
-  .fc .rail{stroke:var(--deny); stroke-width:1.2; fill:none; stroke-dasharray:4 4; opacity:.7;}
-  .fc .e-label{fill:var(--muted-2); font-size:9.5px; letter-spacing:.04em;}
-  .fc .e-label.ok{fill:var(--allow);}
-  .fc .e-label.deny{fill:var(--deny);}
-  /* trace-in : nodes and edges light up in gate order when scrolled into view.
-     .prep is added by JS only, so no-JS renders the finished diagram. */
-  .fc .fc-node, .fc .edge, .fc .fc-rail{
-    transition:opacity .5s ease, transform .5s ease; transition-delay:var(--d,0ms);}
-  .fc-wrap.prep .fc-node{opacity:0; transform:translateY(6px);}
-  .fc-wrap.prep .edge, .fc-wrap.prep .fc-rail{opacity:0;}
-  .fc-wrap.prep.play .fc-node{opacity:1; transform:none;}
-  .fc-wrap.prep.play .edge{opacity:1;}
-  .fc-wrap.prep.play .fc-rail{opacity:1;}
-  @media (prefers-reduced-motion:reduce){
-    .fc .fc-node,.fc .edge,.fc .fc-rail{transition:none !important;
-      opacity:1 !important; transform:none !important;}
-  }
+  .lifecycle{list-style:none; margin:0; padding:22px 22px 24px 68px; counter-reset:gate;}
+  .lifecycle li{position:relative; min-height:82px; padding:0 0 26px; counter-increment:gate;}
+  .lifecycle li:last-child{min-height:0; padding-bottom:0;}
+   .lifecycle li::before{content:counter(gate,decimal-leading-zero); position:absolute; left:-48px; top:0;
+     width:28px; height:28px; display:grid; place-items:center; background:var(--seal-deep);
+     color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:600;
+     clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);}
+  .lifecycle li::after{content:""; position:absolute; left:-35px; top:36px; bottom:7px;
+    width:1px; background:var(--line);}
+  .lifecycle li:last-child::after{display:none;}
+  .lifecycle .checkpoint{display:flex; align-items:baseline; justify-content:space-between;
+    gap:18px; border-bottom:1px solid var(--line-soft); padding:0 0 8px;}
+  .lifecycle h4{font-size:15.5px; color:var(--text-strong);}
+  .lifecycle .owner{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--muted);
+    white-space:nowrap; text-transform:uppercase; letter-spacing:.06em;}
+  .lifecycle p{font-size:14px; color:var(--muted); margin:8px 0 0; max-width:none;}
+   .lifecycle .deny{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--lifecycle-deny); font-weight:600;}
+   .lifecycle .terminal::before{background:var(--lifecycle-allow); color:var(--ink);}
+  .current-stop{margin:0 22px 24px; padding:16px 18px; border-left:2px solid var(--deny);
+    background:color-mix(in srgb,var(--deny) 7%,var(--panel));}
+  .current-stop b{display:block; color:var(--deny); font-family:"IBM Plex Mono",monospace;
+    font-size:11px; letter-spacing:.07em; text-transform:uppercase;}
+  .current-stop p{margin:7px 0 0; color:var(--text); font-size:14px; max-width:none;}
 
   @media (max-width:480px){
     .doc,.bar-in,.foot{padding-left:20px; padding-right:20px;}
     .titleblock{padding:48px 0 30px;}
+    .fc-head{align-items:flex-start; flex-direction:column;}
+    .lifecycle{padding:20px 16px 22px 57px;}
+    .lifecycle .checkpoint{display:block;}
+    .lifecycle .owner{display:block; margin-top:4px; white-space:normal;}
+    .current-stop{margin:0 16px 20px;}
   }
 
   footer{border-top:1px solid var(--line); padding:44px 0 64px;}
@@ -213,17 +209,18 @@
   </div>
 </header>
 
+<main>
 <div class="doc titleblock">
   <span class="eyebrow">Technical specification</span>
   <h1>Cortex, the reliability kernel</h1>
-  <p>The system model, the enforced invariants, the module contracts, and the method by
-    which every part is built and proven. Architecture-level: enough to evaluate the
-    design, not a build manual.</p>
+  <p>The system model, contracted invariants, module contracts, and target verification
+    method. This page distinguishes component-tested mechanisms from the blocked
+    composition and production paths.</p>
   <div class="meta">
-    <div>version <b>Phase 0 · kernel</b></div>
-    <div>threat model <b>reliability-now, security-ready</b></div>
-    <div>verdict path <b>0 judges</b></div>
-    <div>updated <b>2026-07-18</b></div>
+    <div>state <b>component substrate · composition BLOCKED</b></div>
+    <div>scope <b>accidental failures · production enforcement not live</b></div>
+    <div>authority <b>model-free gates + independent evaluation</b></div>
+    <div>updated <b>2026-07-20</b></div>
   </div>
 </div>
 
@@ -243,26 +240,26 @@
   <div class="content">
     <section id="model">
       <h2><span class="sec">01</span>System model</h2>
-      <p class="lead">Cortex is organized as planes of modules, each governed by a frozen
-        contract. The kernel is the trust root every later plane stands on.</p>
-      <p>Nothing an agent proposes reaches the repository directly. An agent runs in a
-        sealed container holding <strong>zero credentials</strong> and submits a typed
-        proposal over one mediated channel. One privileged process, the
-        <strong>broker</strong>, is the only writer. It loads the owner-frozen contract for
-        that work-unit, runs the proposal through the reference monitor, materializes an
-        approved change only through the monitor's canonical mapping, and opens a pull
-        request. Merge waits on a deterministic verdict from a separate identity.</p>
-      <p>The kernel itself is the one acknowledged exception to contract-first
-        construction: the machinery that enforces contracts cannot enforce its own
-        creation, so Phase&nbsp;0 is built by hand under a declared temporary mode with the
-        human as manual contract authority. From Phase&nbsp;A onward, contract-first applies
-        with no exceptions.</p>
+      <p class="lead">The frozen master defines the target control and runtime spine. Its
+        A–D modules have contracts; later execution, knowledge, oracle, learning, and
+        communications planes remain staged for later freezes.</p>
+      <p>In the target system, a credential-free worker submits a typed proposal to a
+        sole-writer <strong>broker</strong>. The broker loads the owner-frozen plan,
+        authorizes the declared and resolved paths, materializes an approved change, and
+        opens a pull request. Independent evidence and the required human authority then
+        decide whether that exact artifact may merge.</p>
+      <p>The inspected reality is narrower. OpenCode and <code>agent_runtime</code> run
+        beside the kernel, not through it. The reviewed composition calls the reference
+        monitor directly, does not use the broker apply path, and stops after local
+        approval. Phase&nbsp;0 therefore remains a declared manual bootstrap rather than a
+        self-governing production path.</p>
     </section>
 
     <section id="monitor">
       <h2><span class="sec">02</span>The reference monitor</h2>
-      <p class="lead"><code>authorize()</code> is a pure, deny-by-default function. It's the
-        single gate every mediated request and every worktree pull has to pass.</p>
+      <p class="lead"><code>authorize()</code> is the pure, deny-by-default gate required by
+        the target broker path. It is component-tested, but it is not yet the sole gate
+        around current OpenCode, agent-runtime, or composition mutations.</p>
       <p>It takes a proposal and the frozen contract and answers one question:
         <em>may the broker materialize this change?</em> No model, no judge, no I/O touches
         the verdict. The broker does the filesystem resolution and hands in the resolved
@@ -272,143 +269,41 @@
         write only if it lands inside the contract's frozen write-set and clears a set of
         never-exempt forbidden prefixes. A proposal carrying unresolved unknowns is denied
         outright. Guessing is not a legal move.</p>
-      <p>The monitor runs against a frozen corpus of nasty path forms: directory traversal,
+      <p>The standalone monitor runs against a frozen corpus of path forms: directory traversal,
         symlink escape, case-fold collisions, Windows reserved device names,
-        alternate-data-stream targets. That corpus grows every time an adversarial pass
-        finds a new one.</p>
+        alternate-data-stream targets. In the target integration, the broker supplies
+        resolved paths and invokes the same gate at receive and use time. The reviewed
+        composition does not execute that broker sequence.</p>
 
-      <h3>Where the gate sits: the path a change takes</h3>
-      <p>Every arrow down is a step that produces a receipt. Every branch to the right is a
-        fail-closed exit. A change only reaches merge by clearing all of them.</p>
+      <h3>Where the gate belongs: the contracted change path</h3>
+      <p>This is the target sequence, not the current production path. Each privileged
+        transition requires authority-owned evidence, and each failed gate blocks the
+        mutation without converting missing evidence into a pass.</p>
       <div class="fc-wrap" id="gateflow">
-        <div class="fc-head"><span>proposal → merge · gate sequence</span><span class="tag">any gate can DENY</span></div>
-        <div class="fc-scroll">
-        <svg class="fc" viewBox="0 0 640 940" role="img"
-          aria-label="Flowchart: a model proposal passes schema validation, authorize at receive, pull into sandbox, authorize at use, content-hash verify, materialize, open pull request, and human approval bound to the diff hash, then merges. Any gate can deny, which blocks the change and feeds the curriculum.">
-          <defs>
-            <marker id="fa" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
-              <path d="M0,0 L10,5 L0,10 Z" style="fill:var(--muted)"/></marker>
-            <marker id="fd" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
-              <path d="M0,0 L10,5 L0,10 Z" style="fill:var(--deny)"/></marker>
-          </defs>
-
-          <!-- spine edges -->
-          <path class="edge" style="--d:60ms"  d="M230,86  V118" marker-end="url(#fa)"/>
-          <path class="edge" style="--d:170ms" d="M230,178 V210" marker-end="url(#fa)"/>
-          <path class="edge" style="--d:280ms" d="M230,270 V302" marker-end="url(#fa)"/>
-          <path class="edge" style="--d:390ms" d="M230,362 V394" marker-end="url(#fa)"/>
-          <path class="edge" style="--d:500ms" d="M230,454 V486" marker-end="url(#fa)"/>
-          <path class="edge" style="--d:610ms" d="M230,546 V578" marker-end="url(#fa)"/>
-          <path class="edge" style="--d:720ms" d="M230,638 V670" marker-end="url(#fa)"/>
-          <path class="edge" style="--d:830ms" d="M230,730 V762" marker-end="url(#fa)"/>
-          <path class="edge" style="--d:940ms" d="M230,822 V854" marker-end="url(#fa)"/>
-          <!-- ok labels out of each gate -->
-          <g class="fc-rail" style="--d:990ms">
-            <text class="e-label ok" x="240" y="200">ok</text>
-            <text class="e-label ok" x="240" y="292">ok</text>
-            <text class="e-label ok" x="240" y="476">ok</text>
-            <text class="e-label ok" x="240" y="568">ok</text>
-            <text class="e-label ok" x="240" y="844">ok</text>
-          </g>
-
-          <!-- deny rail -->
-          <g class="fc-rail" style="--d:1080ms">
-            <path class="rail" d="M520,150 V852" marker-end="url(#fd)"/>
-          </g>
-
-          <!-- 01 proposal -->
-          <g class="fc-node start" style="--d:0ms">
-            <rect class="n-box" x="60" y="30" width="340" height="56" rx="12"/>
-            <text class="n-title" x="230" y="54"  text-anchor="middle">model proposal</text>
-            <text class="n-sub"   x="230" y="71"  text-anchor="middle">agent · sealed sandbox · zero credentials</text>
-          </g>
-
-          <!-- 02 schema validation -->
-          <g class="fc-node gate" style="--d:110ms">
-            <rect class="n-box" x="60" y="122" width="340" height="56" rx="10"/>
-            <rect class="gate-dia" x="-5" y="-5" width="10" height="10" transform="translate(84,150) rotate(45)"/>
-            <text class="n-title" x="230" y="146" text-anchor="middle">schema validation</text>
-            <text class="n-sub"   x="230" y="163" text-anchor="middle">typed, well-formed proposal only</text>
-            <path class="edge-deny" d="M400,150 H510" marker-end="url(#fd)"/>
-            <text class="e-label deny" x="458" y="143" text-anchor="middle">MALFORMED</text>
-          </g>
-
-          <!-- 03 authorize #1 -->
-          <g class="fc-node gate" style="--d:220ms">
-            <rect class="n-box" x="60" y="214" width="340" height="56" rx="10"/>
-            <rect class="gate-dia" x="-5" y="-5" width="10" height="10" transform="translate(84,242) rotate(45)"/>
-            <text class="n-title" x="230" y="238" text-anchor="middle">authorize() · #1 at receive</text>
-            <text class="n-sub"   x="230" y="255" text-anchor="middle">declared paths inside the frozen write-set</text>
-            <path class="edge-deny" d="M400,242 H510" marker-end="url(#fd)"/>
-            <text class="e-label deny" x="458" y="235" text-anchor="middle">OUT_OF_WRITE_SET</text>
-          </g>
-
-          <!-- 04 pull -->
-          <g class="fc-node io" style="--d:330ms">
-            <rect class="n-box" x="60" y="306" width="340" height="56" rx="10"/>
-            <text class="n-title" x="230" y="330" text-anchor="middle">pull into sandbox</text>
-            <text class="n-sub"   x="230" y="347" text-anchor="middle">the broker fetches the proposed bytes</text>
-          </g>
-
-          <!-- 05 authorize #2 -->
-          <g class="fc-node gate" style="--d:440ms">
-            <rect class="n-box" x="60" y="398" width="340" height="56" rx="10"/>
-            <rect class="gate-dia" x="-5" y="-5" width="10" height="10" transform="translate(84,426) rotate(45)"/>
-            <text class="n-title" x="230" y="422" text-anchor="middle">authorize() · #2 at use</text>
-            <text class="n-sub"   x="230" y="439" text-anchor="middle">re-checks the pulled realpath · catches a swap</text>
-            <path class="edge-deny" d="M400,426 H510" marker-end="url(#fd)"/>
-            <text class="e-label deny" x="458" y="419" text-anchor="middle">USE_TIME_SWAP</text>
-          </g>
-
-          <!-- 06 content-hash verify -->
-          <g class="fc-node gate" style="--d:550ms">
-            <rect class="n-box" x="60" y="490" width="340" height="56" rx="10"/>
-            <rect class="gate-dia" x="-5" y="-5" width="10" height="10" transform="translate(84,518) rotate(45)"/>
-            <text class="n-title" x="230" y="514" text-anchor="middle">content-hash verify</text>
-            <text class="n-sub"   x="230" y="531" text-anchor="middle">pulled bytes match the committed bytes</text>
-            <path class="edge-deny" d="M400,518 H510" marker-end="url(#fd)"/>
-            <text class="e-label deny" x="458" y="511" text-anchor="middle">HASH_MISMATCH</text>
-          </g>
-
-          <!-- 07 materialize -->
-          <g class="fc-node io" style="--d:660ms">
-            <rect class="n-box" x="60" y="582" width="340" height="56" rx="10"/>
-            <text class="n-title" x="230" y="606" text-anchor="middle">materialize</text>
-            <text class="n-sub"   x="230" y="623" text-anchor="middle">via the canonical mapping only</text>
-          </g>
-
-          <!-- 08 open PR -->
-          <g class="fc-node io" style="--d:770ms">
-            <rect class="n-box" x="60" y="674" width="340" height="56" rx="10"/>
-            <text class="n-title" x="230" y="698" text-anchor="middle">open pull request</text>
-            <text class="n-sub"   x="230" y="715" text-anchor="middle">broker identity · agents cannot push</text>
-          </g>
-
-          <!-- 09 human approval -->
-          <g class="fc-node gate" style="--d:880ms">
-            <rect class="n-box" x="60" y="766" width="340" height="56" rx="10"/>
-            <rect class="gate-dia" x="-5" y="-5" width="10" height="10" transform="translate(84,794) rotate(45)"/>
-            <text class="n-title" x="230" y="790" text-anchor="middle">human approval</text>
-            <text class="n-sub"   x="230" y="807" text-anchor="middle">bound to the exact diff hash</text>
-            <path class="edge-deny" d="M400,794 H510" marker-end="url(#fd)"/>
-            <text class="e-label deny" x="458" y="787" text-anchor="middle">REJECTED</text>
-          </g>
-
-          <!-- 10 merge -->
-          <g class="fc-node term" style="--d:990ms">
-            <rect class="n-box" x="60" y="858" width="340" height="56" rx="12"/>
-            <text class="n-title" x="230" y="882" text-anchor="middle">merge</text>
-            <text class="n-sub"   x="230" y="899" text-anchor="middle">a receipt left at every step</text>
-          </g>
-
-          <!-- deny terminal -->
-          <g class="fc-node deny-term" style="--d:1080ms">
-            <rect class="n-box" x="430" y="858" width="180" height="64" rx="10"/>
-            <text class="n-title" x="520" y="880" text-anchor="middle">DENY</text>
-            <text class="n-sub"   x="520" y="896" text-anchor="middle">blocked · fingerprinted</text>
-            <text class="n-sub"   x="520" y="910" text-anchor="middle">→ curriculum gate</text>
-          </g>
-        </svg>
+        <div class="fc-head"><span>target brokered change path</span><span class="tag">any failed gate blocks</span></div>
+        <ol class="lifecycle" aria-label="Contracted target sequence for a mutating proposal">
+          <li><div class="checkpoint"><h4>Validate the proposal</h4><span class="owner">proposal validator</span></div>
+            <p>Accept only a typed, well-formed envelope. <span class="deny">Malformed → DENY</span></p></li>
+          <li><div class="checkpoint"><h4>Authorize declared intent</h4><span class="owner">reference monitor</span></div>
+            <p>Check proposed paths against the owner-frozen write-set. <span class="deny">Out of scope → DENY</span></p></li>
+          <li><div class="checkpoint"><h4>Pull and resolve</h4><span class="owner">sole-writer broker</span></div>
+            <p>The broker fetches the bytes and resolves their actual destination without granting the worker repository credentials.</p></li>
+          <li><div class="checkpoint"><h4>Authorize at use time</h4><span class="owner">reference monitor</span></div>
+            <p>Re-check resolved paths and content identity before mutation. <span class="deny">Swap or mismatch → DENY</span></p></li>
+          <li><div class="checkpoint"><h4>Materialize and open a pull request</h4><span class="owner">sole-writer broker</span></div>
+            <p>Apply only the canonical authorized mapping and bind evidence to the resulting commit and diff.</p></li>
+          <li><div class="checkpoint"><h4>Verify the artifact</h4><span class="owner">independent oracle</span></div>
+            <p>Re-fetch and verify the required evidence for the exact commit. <span class="deny">Missing or failed evidence → BLOCKED</span></p></li>
+          <li><div class="checkpoint"><h4>Apply human authority where required</h4><span class="owner">human control</span></div>
+            <p>Boundary and irreversible changes require approval bound to the exact diff, informed by independent evidence.</p></li>
+          <li class="terminal"><div class="checkpoint"><h4>Merge the verified artifact</h4><span class="owner">repository authority</span></div>
+            <p>Completion is available only after all required gates and authority-owned evidence are present.</p></li>
+        </ol>
+        <div class="current-stop">
+          <b>Current reviewed stop · BLOCKED</b>
+          <p>The composition entrypoint validates locally and reaches an approval callback,
+            but it does not execute the broker apply path, exact-diff human-control flow,
+            independent oracle gate, pull-request creation, or merge.</p>
         </div>
       </div>
 
@@ -436,47 +331,50 @@
     <span class="kw">return</span> <span class="ok">broker.open_pr(...)</span>             <span class="cm"># merge waits on a verdict</span>
     <span class="cm"># every branch above leaves a receipt (I11)</span></pre>
       </div>
-      <p class="caption">Simplified for reading. The real module is pure (no I/O in the
-        verdict), the receipt write is atomic with each branch, and the two
-        <code>authorize</code> calls are the same function over declared then resolved
-        paths.</p>
+      <p class="caption">Illustrative target shape. The standalone monitor is pure, but
+        the reviewed composition does not yet execute the broker pull/materialize path,
+        two-point authorization, or authority-owned receipt sequence shown above.</p>
     </section>
 
     <section id="invariants">
       <h2><span class="sec">03</span>The invariants</h2>
-      <p class="lead">Eleven mechanically-testable properties. Together they are the
-        acceptance checklist and the daily self-test's assertion list.</p>
+      <p class="lead">Eleven frozen target invariants. Individual components have tests,
+        but end-to-end enforcement is not active around the current coding path.</p>
+      <div class="callout"><b>Target-state requirements:</b> the list describes what the
+        composed system must enforce. It is not a claim that the current runtime already
+        enforces every item.</div>
       <ol class="inv">
         <li><span class="id">I1</span><span><b>No agent credentials.</b> No repo, API, or signing credential is ever in an agent container's filesystem, environment, or reachable network.</span></li>
-        <li><span class="id">I2</span><span><b>Sole writer.</b> Only the broker writes the repo. Agents cannot push, and the broker only opens pull requests, never direct pushes to protected branches.</span></li>
+        <li><span class="id">I2</span><span><b>Sole writer.</b> The broker must be the sole repository writer. Agents cannot push, and the broker only opens pull requests, never direct pushes to protected branches.</span></li>
         <li><span class="id">I3</span><span><b>No self-assigned privilege.</b> Trust label, tier, and code-origin come from the path and the broker's own dispatch record, never from agent-supplied metadata.</span></li>
-        <li><span class="id">I4</span><span><b>Verdicts verify themselves.</b> The required merge check re-fetches and hash-verifies the evidence against the exact commit; verdict identity is distinct from PR-author identity, and neither can approve.</span></li>
+        <li><span class="id">I4</span><span><b>Verdicts verify themselves.</b> The required merge check must re-fetch and hash-verify evidence against the exact commit; verdict identity is distinct from PR-author identity, and neither can approve.</span></li>
         <li><span class="id">I5</span><span><b>Boundary paths need a human.</b> Any diff touching the contract, kernel, or CI paths requires owner review; in-scope diffs auto-merge on a green verified check only.</span></li>
         <li><span class="id">I6</span><span><b>Out-of-write-set never becomes a PR.</b> Denied at receive; widening scope is a new owner-frozen plan.</span></li>
         <li><span class="id">I7</span><span><b>Isolation never degrades.</b> A workload that cannot run at its assigned grade fails visibly; it is never demoted to a weaker sandbox.</span></li>
         <li><span class="id">I8</span><span><b>Read-back is the only truth.</b> No inbound webhook listener exists; any future event is a hint that triggers an API read-back, never a fact.</span></li>
         <li><span class="id">I9</span><span><b>Keys off the execution host.</b> No key material ever resides where untrusted code runs.</span></li>
-        <li><span class="id">I10</span><span><b>Unresolved unknowns block mutation.</b> A mutating proposal with open unknowns is denied. That's enforced by sequencing, not by appeal to the model's intent.</span></li>
-        <li><span class="id">I11</span><span><b>Every privileged event leaves a receipt.</b> Freezes, approvals, PR opens, verdicts, merges, denials, worktree lifecycle events. Each one is minted only by the broker or oracle process.</span></li>
+        <li><span class="id">I10</span><span><b>Unresolved unknowns block mutation.</b> In the target path, a mutating proposal with open unknowns must be denied. That is enforced by sequencing, not by appeal to model intent.</span></li>
+        <li><span class="id">I11</span><span><b>Every privileged event leaves a receipt.</b> Freezes, approvals, PR opens, verdicts, merges, denials, and worktree lifecycle events must leave authority-owned evidence. The current composition has not demonstrated that obligation end to end.</span></li>
       </ol>
     </section>
 
     <section id="contracts">
       <h2><span class="sec">04</span>Module contracts</h2>
-      <p class="lead">The full control and runtime design is frozen as a master contract
-        plus thirteen module sub-contracts. Kernel modules and their state:</p>
+      <p class="lead">The master contract and the A–D control/runtime module contracts are
+        frozen. Later planes remain staged. The table separates component state from
+        composition conformance.</p>
       <div class="tbl"><div class="tbl-scroll">
         <table>
           <thead><tr><th>Module</th><th>Role</th><th>State</th></tr></thead>
           <tbody>
-            <tr><td class="m">authorize()</td><td>Deny-by-default reference monitor</td><td><span class="pill built">built · hardened</span></td></tr>
-            <tr><td class="m">receipts</td><td>Diff-bound single-use receipt mint</td><td><span class="pill built">built · hardened</span></td></tr>
-            <tr><td class="m">state_engine</td><td>Durable leases, ledger, fencing</td><td><span class="pill built">imported · verified</span></td></tr>
+            <tr><td class="m">authorize()</td><td>Deny-by-default reference monitor</td><td><span class="pill wip">component built; runtime unwired</span></td></tr>
+            <tr><td class="m">receipts</td><td>Diff-bound single-use receipt mint</td><td><span class="pill wip">component built; approval binding blocked</span></td></tr>
+            <tr><td class="m">state_engine</td><td>Durable leases, ledger, fencing</td><td><span class="pill wip">component-tested; recovery nonconformant</span></td></tr>
             <tr><td class="m">worktree_registry</td><td>Sandbox lifecycle + per-worktree tokens</td><td><span class="pill built">built</span></td></tr>
-            <tr><td class="m">tool_broker</td><td>Sole writer + mediated channel</td><td><span class="pill wip">wiring</span></td></tr>
-            <tr><td class="m">contract_engine</td><td>Freeze / hash / plan-freeze</td><td><span class="pill frozen">frozen spec</span></td></tr>
-            <tr><td class="m">human_control</td><td>Diff-bound approval surface</td><td><span class="pill frozen">frozen spec</span></td></tr>
-            <tr><td class="m">oracles</td><td>Deterministic verdict lanes + evidence</td><td><span class="pill frozen">frozen spec</span></td></tr>
+            <tr><td class="m">tool_broker</td><td>Sole writer + mediated channel</td><td><span class="pill wip">component exists; no apply path</span></td></tr>
+            <tr><td class="m">contract_engine</td><td>Freeze / hash / plan-freeze</td><td><span class="pill frozen">target contract; plan receipt absent</span></td></tr>
+            <tr><td class="m">human_control</td><td>Diff-bound approval surface</td><td><span class="pill wip">component exists; authority flow unwired</span></td></tr>
+            <tr><td class="m">oracles</td><td>Deterministic verdict lanes + evidence</td><td><span class="pill frozen">target contract; no live final evaluator</span></td></tr>
           </tbody>
         </table>
       </div></div>
@@ -486,45 +384,41 @@
     </section>
 
     <section id="lane">
-      <h2><span class="sec">05</span>The trust-critical build lane</h2>
-      <p class="lead">How a kernel module gets built so that an independent adversary, plus
-        the owner reviewing the boundary, couldn't find a gap in it.</p>
+      <h2><span class="sec">05</span>The target trust-critical build lane</h2>
+      <p class="lead">The intended construction procedure. Component and module evidence
+        exists, but the current composition does not govern its own construction end to end.</p>
       <ol class="steps">
-        <li><b>Two independent authors.</b><p>One model writes the tests and an adversarial input corpus. A separate model writes the code. Neither sees the other's work, and both work only from the frozen contract. When they agree on first contact, that's the trust signal.</p></li>
+        <li><b>Two independent authors.</b><p>One model writes the tests and a difficult input corpus. A separate model writes the code. Neither sees the other's work, and both work only from the frozen contract. First-contact agreement is a convergence observation; trust still requires independent evidence and the applicable authority decision.</p></li>
         <li><b>Adjudicate, don't assume.</b><p>The orchestrator checks the strongest claims against the source and sorts each disagreement into one of three buckets: a real defect, a hardening, or a contract ambiguity to reconcile. Changing frozen behavior is the owner's call.</p></li>
-        <li><b>Sealed-holdout ratchet.</b><p>A third model writes an adversarial holdout that lives outside the repository, where no agent can study it. It has to kill 100% of seeded regression probes and surface gaps the visible tests missed. Every gap it finds becomes a permanent open test, so the module only ever gets stronger.</p></li>
-        <li><b>Ship through the real gates.</b><p>The change lands as a pull request authored by the broker's own identity, reviewed and approved by the owner. The system governs its own construction. Code, tests, contract, and receipt move together.</p></li>
+        <li><b>Independent holdout.</b><p>The target lane uses a separately authored holdout outside the builder's view and records its catch rate. Current holdout evidence is scoped to component and module runs; composition-level holdout verification remains pending.</p></li>
+        <li><b>Ship through the real gates.</b><p>Once the broker, exact-diff human-control path, independent verification, and repository integration are wired, a change must move through a broker-authored pull request. The current composition has not demonstrated this path.</p></li>
       </ol>
     </section>
 
     <section id="verify">
       <h2><span class="sec">06</span>Verification &amp; evidence</h2>
-      <p class="lead">Deterministic where possible; a judge only where syntax genuinely
-        cannot decide.</p>
-      <p>Every verdict emits a universal evidence bundle (exact model id, commit, image
-        digest, dataset and oracle version, artifact hashes, verdict, abstention). The
-        broker stores it on a dedicated branch, a separate oracle identity hash-attests it,
-        and a required CI action re-verifies it independently. A daily canary runs the whole
-        path through the real machinery and pages the owner if any gate has gone soft. A
-        module isn't "done" until that canary runs green three days straight.</p>
-      <div class="callout">On this project the sealed-holdout ratchet has already found a
-        receipt-replay hole and eleven path-and-authz gaps in code that had passed every
-        visible test and merged. <b>The slow adversarial verification isn't overhead. It's
-        the product.</b></div>
+      <p class="lead">The target verification contract is deterministic where possible and
+        reserves model judgment for cases where a checker cannot decide.</p>
+      <p>The completed system must emit an artifact-bound evidence bundle, have a separate
+        oracle identity attest it, and independently re-verify the evidence before release.
+        It must also pass the defined end-to-end canary schedule. Current evidence covers
+        component and lane-level checks; the complete composition path and sustained canary
+        criterion are not yet demonstrated.</p>
+      <div class="callout">Prior scoped component and module verification identified receipt,
+        path, and authorization defects after visible tests were green. Those results do not
+        establish end-to-end composition correctness; composition holdout verification is
+        still required. <b>Evidence stays bounded to what a run actually checked.</b></div>
     </section>
 
     <section id="threat">
       <h2><span class="sec">07</span>Threat model &amp; honest residuals</h2>
-      <p class="lead">The current posture is <strong>reliability-now, security-ready</strong>.
-        The adversary we model is a faulty or lazy agent reaching somewhere by accident, not
-        a determined attacker.</p>
-      <p>A few residuals are accepted for now and written down rather than hidden, each with
-        a named hardening step on the ladder to a stronger posture. A determined sandbox
-        escape could tamper with a sibling worktree on the same host (bounded by isolation
-        grade and canary detection). Channel authentication is plain bearer tokens behind a
-        swap-ready seam. The broker and canary live on the owner's machine, so work queues
-        while it's off. The receipt mint is tamper-<em>evident</em>, keyed by a local secret.
-        It is honestly not tamper-<em>proof</em> against someone who also holds that key.</p>
+      <p class="lead">The documented target prioritizes accidental reliability failures;
+        the current composition is blocked and does not claim a production security posture.</p>
+      <p>The contract records accepted residuals and planned hardening steps rather than
+        hiding them. These include stronger workload isolation, channel authentication,
+        operational availability, and receipt-key protection. Live enforcement of the
+        isolation, broker, canary, and receipt paths has not been demonstrated for the
+        current composition.</p>
       <p>The later planes (execution, knowledge, oracles, learning, comms) are designed at
         the master-contract level but not yet fully sub-contracted, so their scope isn't
         claimed as known. And the value of the whole thing is exactly proportional to
@@ -533,10 +427,11 @@
     </section>
   </div>
 </div>
+</main>
 
 <footer>
   <div class="foot">
-    <span class="fine">CORTEX · technical specification · reliability-now, security-ready</span>
+    <span class="fine">CORTEX · technical specification · reliability target · composition BLOCKED</span>
     <a class="back" href="index.html">← Back to overview</a>
   </div>
 </footer>
@@ -553,21 +448,6 @@
     apply(next); try{localStorage.setItem('cortex-theme',next);}catch(e){}
   });
 
-  /* flowchart trace-in : the gate sequence lights up top-to-bottom when it
-     scrolls into view. .prep is only added here, so no-JS and
-     reduced-motion both get the finished diagram. */
-  var fw=document.getElementById('gateflow');
-  var noMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(fw && !noMotion && 'IntersectionObserver' in window){
-    fw.classList.add('prep');
-    var io=new IntersectionObserver(function(entries){
-      if(entries[0].isIntersecting){
-        requestAnimationFrame(function(){ fw.classList.add('play'); });
-        io.disconnect();
-      }
-    },{threshold:0.18});
-    io.observe(fw);
-  }
 })();
 </script>
 </body>
