@@ -17,6 +17,7 @@ import { AiAgentsCaseStudyV4Page } from './modules/case-studies/ai-agents/AiAgen
 import { LegalWorkflowResearchCaseStudyPage } from './modules/case-studies/legal-workflow-research/LegalWorkflowResearchCaseStudyPage';
 import { StaticCaseStudyAssetGuard } from './modules/case-studies/legal-workflow-research/StaticCaseStudyAssetGuard';
 import { CortexCaseStudyRedirect } from './modules/case-studies/cortex/CortexCaseStudyRedirect';
+import { ResearchRedirect } from './modules/research/ResearchRedirect';
 
 const ADMIN_PORTFOLIOS = [
   'default',
@@ -99,6 +100,16 @@ function publicRoutes(): ReactElement[] {
       path="/case-studies/cortex/specs"
       element={<CortexCaseStudyRedirect />}
     />,
+    <Route
+      path="/case-studies/cortex/:ver"
+      element={<CortexCaseStudyRedirect />}
+    />,
+    <Route
+      path="/case-studies/cortex/:ver/specs"
+      element={<CortexCaseStudyRedirect />}
+    />,
+    <Route path="/research" element={<ResearchRedirect />} />,
+    <Route path="/research/*" element={<ResearchRedirect />} />,
     <Route key="catch-all" path="*" element={<NotFoundPage />} />,
   ];
 }

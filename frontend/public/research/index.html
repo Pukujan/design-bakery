@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Research · Design Bakery</title>
+<meta name="description" content="arXiv-style research notes from Design Bakery: methods, citations, and owner-approved benchmarks from Cortex and related work." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f7f6f2; --paper:#fff; --ink:#1a1a1a; --muted:#5a5a5a;
+    --line:#d8d4c8; --link:#1a4a8a; --link-h:#0d2f5c; --tag:#e8e4d8;
+    --ok:#1b6b3a; --pend:#8a6a12; --focus:#1a4a8a; --max:920px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#12141a; --paper:#1a1d26; --ink:#e8e6df; --muted:#9a968c;
+      --line:#2c3040; --link:#7eb0e8; --link-h:#a8c8f0; --tag:#252a38; --focus:#7eb0e8; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Source Serif 4",Georgia,"Times New Roman",serif;
+    font-size:17px; line-height:1.55; -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;}
+  a{color:var(--link); text-decoration:none}
+  a:hover{color:var(--link-h); text-decoration:underline}
+  a:focus-visible, .toolbar select:focus-visible, .toolbar input:focus-visible{
+    outline:2px solid var(--focus); outline-offset:2px}
+  .skip{position:absolute; left:-9999px; top:0; z-index:100;
+    background:var(--paper); color:var(--ink); border:1px solid var(--line);
+    padding:8px 14px; border-radius:0 0 6px 0;
+    font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px}
+  .skip:focus{left:0}
+  .count{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
+    margin:4px 0 0}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;
+    overflow-wrap:anywhere; word-break:break-word}
+  .wrap{max-width:var(--max); margin:0 auto; padding:0 22px}
+  header.top{border-bottom:1px solid var(--line); background:var(--paper);
+    position:sticky; top:0; z-index:10}
+  .top-in{display:flex; align-items:center; justify-content:space-between;
+    height:56px; gap:16px}
+  .brand{font-family:"IBM Plex Sans",system-ui,sans-serif; font-weight:700;
+    letter-spacing:.02em; color:var(--ink); font-size:15px}
+  .brand span{color:var(--muted); font-weight:500}
+  nav.links{display:flex; gap:18px; font-family:"IBM Plex Sans",system-ui,sans-serif;
+    font-size:13px; font-weight:500; flex-wrap:wrap}
+  nav.links a{color:var(--muted)}
+  nav.links a:hover{color:var(--ink)}
+  .hero{padding:40px 0 18px}
+  .hero h1{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:28px;
+    font-weight:700; margin:0 0 10px; letter-spacing:-.02em}
+  .hero p{margin:0; color:var(--muted); max-width:62ch; font-size:16px}
+  .policy{margin:22px 0; padding:14px 16px; border:1px solid var(--line);
+    background:var(--paper); border-radius:6px; font-size:14px; color:var(--muted)}
+  .policy b{color:var(--ink); font-weight:600}
+  .toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    margin:18px 0 8px; font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px}
+  .toolbar label{color:var(--muted)}
+  .toolbar select, .toolbar input{
+    border:1px solid var(--line); background:var(--paper); color:var(--ink);
+    border-radius:4px; padding:6px 10px; font:inherit; max-width:100%}
+  .list{list-style:none; margin:0; padding:0}
+  .item{padding:22px 0; border-bottom:1px solid var(--line)}
+  .item:first-child{border-top:1px solid var(--line)}
+  .meta{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
+    display:flex; flex-wrap:wrap; gap:8px 14px; margin-bottom:6px}
+  .badge{display:inline-block; padding:1px 8px; border-radius:999px;
+    background:var(--tag); font-size:11px; letter-spacing:.04em; text-transform:uppercase}
+  .badge.approved{color:var(--ok)}
+  .badge.pending{color:var(--pend)}
+  .title{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:18px;
+    font-weight:600; margin:0 0 6px; line-height:1.35; overflow-wrap:break-word}
+  .title a{color:var(--ink)}
+  .title a:hover{color:var(--link)}
+  .authors{font-size:14px; color:var(--muted); margin:0 0 8px}
+  .abs{margin:0; font-size:15px; color:var(--ink); max-width:72ch}
+  .links{margin-top:10px; font-family:"IBM Plex Sans",system-ui,sans-serif;
+    font-size:13px; display:flex; flex-wrap:wrap; gap:12px}
+  footer{margin:48px 0 40px; padding-top:20px; border-top:1px solid var(--line);
+    font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px; color:var(--muted)}
+  .empty{padding:32px 0; color:var(--muted); font-style:italic}
+  @media (max-width:560px){
+    .top-in{height:auto; min-height:56px; padding:10px 0; flex-wrap:wrap}
+    .hero{padding:28px 0 14px}
+    .hero h1{font-size:24px}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to papers</a>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="/">Design Bakery <span>· Research</span></a>
+    <nav class="links" aria-label="Site">
+      <a href="/">Home</a>
+      <a href="/blogs">Blogs</a>
+      <a href="/case-studies/cortex/">Cortex</a>
+      <a href="/research/">Research</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+  <div class="hero">
+    <h1>Research</h1>
+    <p>Working notes and technical reports in an arXiv-style layout: abstract, citations,
+      methods, and benchmarks. Papers appear as <b>published</b> only after owner approval;
+      drafts stay marked pending and are not presented as established findings.</p>
+  </div>
+
+  <div class="policy">
+    <b>Publication gate.</b> Status <span class="badge approved">approved</span> means the
+    owner accepted the write-up and any claimed numbers for public display.
+    <span class="badge pending">pending</span> means draft or awaiting approval — read as
+    provisional. Benchmark tables must cite method, date, and artifact path; no silent
+    promotion from green tests to product claims.
+  </div>
+
+  <div class="toolbar">
+    <label for="filter">Show</label>
+    <select id="filter" aria-label="Filter by status">
+      <option value="all" selected>All</option>
+      <option value="approved">Approved only</option>
+      <option value="pending">Pending / draft</option>
+    </select>
+    <label for="q">Search</label>
+    <input id="q" type="search" placeholder="title, tag, id…" style="min-width:180px" />
+  </div>
+
+  <p class="count" id="count" role="status" aria-live="polite"></p>
+  <ul class="list" id="paperList"></ul>
+  <p class="empty" id="empty" hidden>No papers match this filter.</p>
+</main>
+
+<footer class="wrap">
+  <p>Design Bakery Research · citation-first documentation · not a journal of record.</p>
+  <p>Related: <a href="/case-studies/cortex/">Cortex case study</a> ·
+    <a href="/case-studies/cortex/a/">A</a> ·
+    <a href="/case-studies/cortex/b/">B</a> ·
+    <a href="/case-studies/cortex/c/">C</a> ·
+    <a href="/case-studies/legal-workflow-research">Legal workflow research</a></p>
+</footer>
+
+<script src="catalog.js"></script>
+<script>
+(function(){
+  var list = document.getElementById('paperList');
+  var empty = document.getElementById('empty');
+  var count = document.getElementById('count');
+  var filter = document.getElementById('filter');
+  var q = document.getElementById('q');
+  var papers = (window.DB_RESEARCH && window.DB_RESEARCH.papers) || [];
+
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function render(){
+    var status = filter.value;
+    var query = (q.value || '').trim().toLowerCase();
+    var shown = papers.filter(function(p){
+      if (status !== 'all' && p.status !== status) return false;
+      if (!query) return true;
+      var hay = [p.id, p.title, p.abstract, (p.tags||[]).join(' '), (p.authors||[]).join(' ')].join(' ').toLowerCase();
+      return hay.indexOf(query) !== -1;
+    });
+    list.innerHTML = '';
+    empty.hidden = shown.length > 0;
+    var total = papers.length;
+    count.textContent = shown.length === total
+      ? 'Showing ' + total + ' paper' + (total === 1 ? '' : 's')
+      : 'Showing ' + shown.length + ' of ' + total + ' paper' + (total === 1 ? '' : 's');
+    shown.forEach(function(p){
+      var li = document.createElement('li');
+      li.className = 'item';
+      var status = (p.status === 'approved') ? 'approved' : 'pending';
+      var tags = (p.tags||[]).map(function(t){ return '<span class="badge">'+esc(t)+'</span>'; }).join(' ');
+      var abs = status === 'approved' ? (p.abstract || '') : (p.abstract || 'Draft abstract — not owner-approved.');
+      li.innerHTML =
+        '<div class="meta">' +
+          '<span class="mono">'+esc(p.id)+'</span>' +
+          '<span>'+ esc(p.submitted || '') +'</span>' +
+          '<span class="badge '+status+'">'+esc(status)+'</span>' +
+          tags +
+        '</div>' +
+        '<h2 class="title"><a href="'+esc(p.href)+'">'+esc(p.title)+'</a></h2>' +
+        '<p class="authors">'+esc((p.authors||[]).join(', '))+'</p>' +
+        '<p class="abs">'+esc(abs)+'</p>' +
+        '<div class="links">' +
+          '<a href="'+esc(p.href)+'">HTML</a>' +
+          (p.pdf ? '<a href="'+esc(p.pdf)+'">PDF</a>' : '') +
+          (p.bib ? '<a href="'+esc(p.bib)+'">BibTeX</a>' : '') +
+        '</div>';
+      list.appendChild(li);
+    });
+  }
+  filter.addEventListener('change', render);
+  q.addEventListener('input', render);
+  render();
+})();
+</script>
+</body>
+</html>

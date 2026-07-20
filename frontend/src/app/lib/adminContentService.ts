@@ -713,7 +713,7 @@ export const FOOTER_CONTENT_DEFAULT: FooterContent = {
   navigationLinks: [
     { label: 'AI/ML', href: '/', type: 'route' },
     { label: 'Projects', href: '#projects', type: 'anchor' },
-    { label: 'Research', href: '/case-studies/legal-workflow-research', type: 'route' },
+    { label: 'Research', href: '/research', type: 'route' },
     { label: 'Blogs', href: '/blogs', type: 'route' },
     { label: 'Contact', href: '#contact', type: 'anchor' },
   ],

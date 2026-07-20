@@ -2,26 +2,36 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 /**
- * The Cortex case study is a static HTML page pair under
- * `public/case-studies/cortex/` (`index.html` + `specs.html`). The portfolio
- * renders internal links with React Router `<Link>`, which would hijack the path
- * client-side and fall through to the catch-all instead of letting Vercel's
- * `.html` rewrite serve the static file. Force a full-document navigation so the
- * static page loads — the same approach as `StaticCaseStudyAssetGuard` for the
- * legal-workflow case study.
+ * The Cortex case study is static HTML under `public/case-studies/cortex/`.
+ * Layout versions: A (quiet instrument), B (current redesign), C (declutter).
+ * Force full-document navigation so static files load (not SPA catch-all).
  *
  * Routes:
- *   /case-studies/cortex        -> /case-studies/cortex/index.html
- *   /case-studies/cortex/specs  -> /case-studies/cortex/specs.html
+ *   /case-studies/cortex           -> index.html (picks last A/B/C via localStorage)
+ *   /case-studies/cortex/specs     -> specs.html
+ *   /case-studies/cortex/{a|b|c}   -> {ver}/index.html
+ *   /case-studies/cortex/{a|b|c}/specs -> {ver}/specs.html
  */
 export function CortexCaseStudyRedirect() {
   const { pathname } = useLocation();
 
   useEffect(() => {
     const clean = pathname.replace(/\/+$/, '');
-    const file = clean.endsWith('/specs') ? 'specs.html' : 'index.html';
+    const base = '/case-studies/cortex';
+    const rest = clean.startsWith(base) ? clean.slice(base.length) : '';
+    const parts = rest.split('/').filter(Boolean);
+    let target = `${base}/index.html`;
+
+    if (parts[0] === 'a' || parts[0] === 'b' || parts[0] === 'c') {
+      const ver = parts[0];
+      const isSpecs = parts[1] === 'specs';
+      target = `${base}/${ver}/${isSpecs ? 'specs.html' : 'index.html'}`;
+    } else if (parts[0] === 'specs') {
+      target = `${base}/specs.html`;
+    }
+
     window.location.replace(
-      `/case-studies/cortex/${file}${window.location.search}${window.location.hash}`,
+      `${target}${window.location.search}${window.location.hash}`,
     );
   }, [pathname]);
 

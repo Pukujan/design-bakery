@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cortex · reliability ledger for AI agents</title>
+<meta name="description" content="A case study of Cortex read as an audit ledger: each reliability claim carries an honest status stamp — built, partial, blocked, or target — with content-bound receipts, independent verification, and human authority outside the builder." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     LAYOUT C · "the receipt ledger"
+     A deliberate departure from B (dark cool instrument magazine).
+     C is a light-first, warm-paper AUDIT LEDGER: one reading column,
+     every claim printed as a ledger line with an honest status stamp,
+     perforated receipt edges, and one accent: the ochre authority seal.
+     Same product truth as B; different hierarchy, rhythm, and surface.
+     ============================================================ */
+  :root{
+    /* light-first warm paper (default) */
+    --paper:#f1eee4; --paper-2:#e8e3d6; --card:#faf8f1; --card-2:#f4f1e7;
+    --ink:#1b1913; --text:#3b382e; --muted:#6f6c5e; --muted-2:#928d7c;
+    --line:#d8d1c0; --line-soft:#e4ded0; --rule:#c7bfab;
+    --seal:#a25a12; --seal-deep:#7c4409; --seal-glow:rgba(162,90,18,0.12);
+    --built:#2f6f4f; --partial:#9a6a10; --blocked:#a3342a; --target:#6f6c5e;
+    --shadow:0 22px 55px rgba(60,50,25,0.12);
+    --readw:720px; --maxw:1040px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#16140d; --paper-2:#1d1a11; --card:#201d13; --card-2:#191610;
+      --ink:#f4f0e4; --text:#d7d2c2; --muted:#948f7d; --muted-2:#6e6a5a;
+      --line:#332e20; --line-soft:#282317; --rule:#3a3423;
+      --seal:#e3a63c; --seal-deep:#c9871f; --seal-glow:rgba(227,166,60,0.15);
+      --built:#5bb98f; --partial:#e0b24a; --blocked:#e07a63; --target:#948f7d;
+      --shadow:0 26px 70px rgba(0,0,0,0.55);
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#f1eee4; --paper-2:#e8e3d6; --card:#faf8f1; --card-2:#f4f1e7;
+    --ink:#1b1913; --text:#3b382e; --muted:#6f6c5e; --muted-2:#928d7c;
+    --line:#d8d1c0; --line-soft:#e4ded0; --rule:#c7bfab;
+    --seal:#a25a12; --seal-deep:#7c4409; --seal-glow:rgba(162,90,18,0.12);
+    --built:#2f6f4f; --partial:#9a6a10; --blocked:#a3342a; --target:#6f6c5e;
+    --shadow:0 22px 55px rgba(60,50,25,0.12);
+  }
+  :root[data-theme="dark"]{
+    --paper:#16140d; --paper-2:#1d1a11; --card:#201d13; --card-2:#191610;
+    --ink:#f4f0e4; --text:#d7d2c2; --muted:#948f7d; --muted-2:#6e6a5a;
+    --line:#332e20; --line-soft:#282317; --rule:#3a3423;
+    --seal:#e3a63c; --seal-deep:#c9871f; --seal-glow:rgba(227,166,60,0.15);
+    --built:#5bb98f; --partial:#e0b24a; --blocked:#e07a63; --target:#948f7d;
+    --shadow:0 26px 70px rgba(0,0,0,0.55);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth; overflow-x:clip;}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} }
+  body{
+    margin:0; background:var(--paper); color:var(--text);
+    font-family:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,sans-serif;
+    font-size:17px; line-height:1.68; -webkit-font-smoothing:antialiased;
+    /* faint ledger tint so paper reads as a physical roll, not a flat page */
+    background-image:linear-gradient(var(--paper-2) 0 0);
+    background-blend-mode:normal;
+  }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;}
+  a{color:inherit; text-decoration:none;}
+  h1,h2,h3,h4{color:var(--ink); margin:0; text-wrap:balance;}
+  ::selection{background:var(--seal); color:var(--paper);}
+  :focus-visible{outline:2px solid var(--seal); outline-offset:3px; border-radius:3px;}
+
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 26px;}
+  .col{max-width:var(--readw); margin:0 auto;}
+
+  /* skip link */
+  .skip{position:absolute; left:-999px; top:0; z-index:100;
+    background:var(--seal); color:var(--paper); padding:10px 16px; border-radius:0 0 8px 0;
+    font-family:"IBM Plex Mono",monospace; font-size:13px;}
+  .skip:focus{left:0;}
+
+  /* eyebrow / small-caps mono labels */
+  .eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:500;
+    letter-spacing:.24em; text-transform:uppercase; color:var(--seal);
+    display:inline-flex; align-items:center; gap:10px;}
+  .eyebrow::before{content:""; width:22px; height:1px; background:var(--seal); opacity:.7;}
+
+  /* ---------- top bar ---------- */
+  header.bar{position:sticky; top:0; z-index:40;
+    backdrop-filter:blur(12px);
+    background:color-mix(in srgb, var(--paper) 84%, transparent);
+    border-bottom:1px solid var(--line);}
+  .bar-in{display:flex; align-items:center; justify-content:space-between; height:60px;}
+  .brand{display:flex; align-items:center; gap:11px; font-family:"IBM Plex Mono",monospace;
+    font-weight:600; letter-spacing:.05em; color:var(--ink); font-size:14.5px;}
+  .brand .mark{width:15px; height:15px; border-radius:50%;
+    border:2px solid var(--seal); position:relative;}
+  .brand .mark::after{content:""; position:absolute; inset:3px; border-radius:50%;
+    background:var(--seal); opacity:.55;}
+  .brand .tag{font-size:10px; letter-spacing:.18em; color:var(--muted-2);
+    border:1px solid var(--line); padding:2px 7px; border-radius:20px; text-transform:uppercase;}
+  nav.links{display:flex; gap:20px; align-items:center;}
+  nav.links a{font-family:"IBM Plex Mono",monospace; font-size:12.5px; letter-spacing:.03em;
+    color:var(--muted); transition:color .18s;}
+  nav.links a:hover{color:var(--ink);}
+  .theme-btn{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.06em;
+    color:var(--muted); background:transparent; border:1px solid var(--line);
+    padding:6px 11px; border-radius:7px; cursor:pointer; transition:all .18s;}
+  .theme-btn:hover{color:var(--ink); border-color:var(--seal);}
+  @media (max-width:640px){ nav.links a.nav-hide{display:none;} .brand .tag{display:none;} }
+
+  /* ---------- perforated receipt edge ---------- */
+  .perf{height:12px; width:100%;
+    background:
+      radial-gradient(circle at 8px 12px, transparent 0 6px, var(--paper) 6px) 0 0/16px 12px repeat-x;
+    filter:drop-shadow(0 1px 0 var(--line));}
+  .perf.top{background:
+      radial-gradient(circle at 8px 0px, transparent 0 6px, var(--card) 6px) 0 0/16px 12px repeat-x;}
+
+  /* ---------- masthead ---------- */
+  .masthead{background:var(--card); border-bottom:1px solid var(--line);
+    box-shadow:var(--shadow);}
+  .masthead-in{padding:40px 0 44px; display:grid; grid-template-columns:1fr auto; gap:40px; align-items:start;}
+  @media (max-width:760px){ .masthead-in{grid-template-columns:1fr; gap:30px;} }
+  .doc-title{font-size:clamp(40px,7vw,70px); line-height:.98; letter-spacing:-0.03em;
+    font-weight:700; margin:16px 0 0;}
+  .doc-sub{font-family:"IBM Plex Mono",monospace; font-size:clamp(15px,2vw,19px);
+    color:var(--seal); margin:14px 0 0;}
+  .doc-lede{font-size:17.5px; color:var(--text); max-width:56ch; margin:18px 0 0;}
+  .doc-meta{display:flex; flex-wrap:wrap; gap:8px 22px; margin-top:24px;
+    font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);}
+  .doc-meta b{color:var(--ink); font-weight:600;}
+  .mast-cta{display:flex; gap:12px; margin-top:26px; flex-wrap:wrap;}
+  .btn{font-family:"IBM Plex Mono",monospace; font-size:13px; letter-spacing:.03em;
+    padding:12px 18px; border-radius:9px; cursor:pointer; transition:all .18s;
+    display:inline-flex; align-items:center; gap:9px; border:1px solid transparent;}
+  .btn.primary{background:var(--seal); color:var(--paper); font-weight:600;}
+  .btn.primary:hover{transform:translateY(-2px); box-shadow:0 12px 26px var(--seal-glow);}
+  .btn.ghost{border-color:var(--line); color:var(--ink);}
+  .btn.ghost:hover{border-color:var(--seal); color:var(--seal);}
+
+  /* the one accent: a physical authority seal */
+  .seal-block{display:flex; flex-direction:column; align-items:center; gap:10px;
+    justify-self:end;}
+  .seal-svg{width:132px; height:132px; color:var(--seal);}
+  .seal-svg text{fill:var(--seal); font-family:"IBM Plex Mono",monospace;}
+  .seal-cap{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--muted-2); text-align:center;}
+  @media (max-width:760px){ .seal-block{flex-direction:row; justify-self:start; gap:16px; align-items:center;} .seal-svg{width:96px; height:96px;} }
+  @media (prefers-reduced-motion:no-preference){
+    .seal-svg{animation:sealset .9s cubic-bezier(.2,.7,.2,1) both;}
+    @keyframes sealset{0%{opacity:0; transform:rotate(-7deg) scale(1.14);}100%{opacity:1; transform:none;}}
+  }
+
+  /* ---------- status legend ---------- */
+  .legend{border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    background:var(--card-2);}
+  .legend-in{display:grid; grid-template-columns:repeat(4,1fr); gap:0;}
+  @media (max-width:680px){ .legend-in{grid-template-columns:1fr 1fr;} }
+  .legend-item{padding:18px 20px; border-right:1px solid var(--line);}
+  .legend-item:last-child{border-right:none;}
+  @media (max-width:680px){
+    .legend-item:nth-child(2){border-right:none;}
+    .legend-item:nth-child(-n+2){border-bottom:1px solid var(--line);}
+  }
+  .legend-item .l{font-size:13px; color:var(--muted); margin-top:9px; line-height:1.45; max-width:26ch;}
+
+  /* ---------- the status stamp (the ledger's core mark) ---------- */
+  .stamp{display:inline-flex; align-items:center; gap:6px;
+    font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:600;
+    letter-spacing:.1em; text-transform:uppercase; padding:4px 9px; border-radius:4px;
+    border:1.5px solid currentColor; white-space:nowrap; line-height:1;}
+  .stamp::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor;}
+  .stamp.built{color:var(--built);}
+  .stamp.partial{color:var(--partial);}
+  .stamp.blocked{color:var(--blocked);}
+  .stamp.target{color:var(--target);}
+
+  /* ---------- ledger entry (single-column section) ---------- */
+  main{display:block;}
+  .entry{padding:50px 0; border-bottom:1px dashed var(--rule);}
+  .entry:last-of-type{border-bottom:none;}
+  .entry-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px;}
+  .entry-no{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
+    color:var(--seal); letter-spacing:.06em;}
+  .entry h2{font-size:clamp(24px,3.6vw,33px); line-height:1.12; letter-spacing:-0.02em; font-weight:700;}
+  .entry .lead{color:var(--muted); font-size:17.5px; margin:14px 0 0; max-width:64ch;}
+  .entry p{margin:14px 0 0;}
+  .entry p.body{max-width:66ch;}
+  .entry strong{color:var(--ink); font-weight:600;}
+  code{font-family:"IBM Plex Mono",monospace; font-size:.88em; background:var(--card-2);
+    border:1px solid var(--line-soft); border-radius:5px; padding:1px 6px; color:var(--seal-deep);}
+  :root[data-theme="dark"] code{color:var(--seal);}
+  @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) code{color:var(--seal);} }
+
+  /* two-truths as stacked ledger lines (not side-by-side cards like B) */
+  .truthrow{margin-top:28px; border-left:3px solid var(--line); padding:2px 0 2px 20px;}
+  .truthrow + .truthrow{margin-top:18px;}
+  .truthrow.bad{border-left-color:var(--blocked);}
+  .truthrow.good{border-left-color:var(--seal);}
+  .truthrow .k{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--muted-2);}
+  .truthrow h3{font-size:19px; margin:6px 0 6px;}
+  .truthrow p{margin:0; color:var(--muted); font-size:15.5px; max-width:64ch;}
+
+  /* commitment ledger rows */
+  .commit{margin-top:26px; display:grid; gap:0; border:1px solid var(--line); border-radius:12px;
+    overflow:hidden; background:var(--card);}
+  .commit-row{display:grid; grid-template-columns:60px 1fr auto; gap:18px; align-items:start;
+    padding:18px 20px; border-bottom:1px solid var(--line-soft);}
+  .commit-row:last-child{border-bottom:none;}
+  .commit-row .ph{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--seal);
+    letter-spacing:.06em; padding-top:3px;}
+  .commit-row h3{font-size:17px; margin:0 0 5px;}
+  .commit-row p{margin:0; font-size:14.5px; color:var(--muted); max-width:58ch;}
+  .commit-row .stamp{align-self:start; margin-top:2px;}
+  @media (max-width:600px){
+    .commit-row{grid-template-columns:1fr auto; gap:10px;}
+    .commit-row .ph{grid-column:1 / -1; padding-top:0;}
+  }
+
+  /* kernel ledger : dotted-leader invoice lines with a stamp + disclosure */
+  .kledger{margin-top:26px; border:1px solid var(--line); border-radius:12px; overflow:hidden;
+    background:var(--card);}
+  .kline{border-bottom:1px solid var(--line-soft);}
+  .kline:last-child{border-bottom:none;}
+  .kline > summary{list-style:none; cursor:pointer; padding:16px 20px;
+    display:grid; grid-template-columns:auto 1fr auto auto; gap:14px; align-items:center;}
+  .kline > summary::-webkit-details-marker{display:none;}
+  .kline .kid{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--ink); font-weight:600;}
+  .kline .kname{color:var(--muted); font-size:14px;}
+  .kline .kname b{color:var(--ink); font-weight:600;}
+  .kline .dots{display:none;}
+  .kline .kbody{padding:0 20px 18px 20px; color:var(--muted); font-size:14.5px; max-width:64ch;}
+  .kline .kbody .disc{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--seal);
+    letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px;}
+  .kline[open] > summary{background:var(--card-2);}
+  .kline > summary .chev{color:var(--muted-2); font-family:"IBM Plex Mono",monospace; font-size:12px;
+    transition:transform .18s;}
+  .kline[open] > summary .chev{transform:rotate(90deg);}
+  @media (max-width:560px){
+    .kline > summary{grid-template-columns:auto 1fr; gap:10px;}
+    .kline > summary .stamp{grid-column:2; justify-self:start; margin-top:2px;}
+    .kline > summary .chev{display:none;}
+  }
+  .note{margin-top:24px; font-size:15px; color:var(--muted); border-left:3px solid var(--seal);
+    padding:4px 0 4px 18px; max-width:70ch;}
+  .note b{color:var(--ink); font-weight:600;}
+
+  /* recovery replay : single-column stamped ledger of events */
+  .replay{margin-top:28px; list-style:none; padding:0; position:relative;}
+  .replay::before{content:""; position:absolute; left:8px; top:10px; bottom:10px; width:2px; background:var(--line);}
+  .rstep{position:relative; padding:0 0 26px 40px;}
+  .rstep:last-child{padding-bottom:0;}
+  .rstep::before{content:""; position:absolute; left:2px; top:5px; width:14px; height:14px;
+    border-radius:50%; background:var(--paper); border:2px solid var(--muted-2);}
+  .rstep.frozen::before{border-color:var(--seal); box-shadow:0 0 0 4px var(--seal-glow);}
+  .rstep.deny::before{border-color:var(--blocked); box-shadow:0 0 0 4px color-mix(in srgb,var(--blocked) 22%,transparent);}
+  .rstep.pass::before{border-color:var(--built); box-shadow:0 0 0 4px color-mix(in srgb,var(--built) 22%,transparent);}
+  .rstep .rtag{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted);}
+  .rstep.frozen .rtag{color:var(--seal);}
+  .rstep.deny .rtag{color:var(--blocked);}
+  .rstep.pass .rtag{color:var(--built);}
+  .rstep h3{font-size:18px; margin:7px 0 5px;}
+  .rstep p{margin:0; font-size:14.5px; color:var(--muted); max-width:62ch;}
+  .receipt-line{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--text);
+    margin-top:10px; padding:9px 12px; border-left:2px solid var(--line); background:var(--card-2);
+    border-radius:0 5px 5px 0; overflow-wrap:anywhere;}
+
+  /* status stat lines (ledger totals) */
+  .totals{margin-top:26px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--card);}
+  .trow{display:grid; grid-template-columns:auto 1fr; gap:20px; align-items:baseline;
+    padding:16px 20px; border-bottom:1px solid var(--line-soft);}
+  .trow:last-child{border-bottom:none;}
+  .trow .tn{font-family:"IBM Plex Mono",monospace; font-size:24px; font-weight:600; color:var(--ink);
+    font-variant-numeric:tabular-nums; letter-spacing:-0.02em; min-width:88px;}
+  .trow .tn .u{font-size:14px; color:var(--seal);}
+  .trow .tl{font-size:14.5px; color:var(--muted); max-width:60ch;}
+
+  /* condensed lineage list (replaces B's 4 evidence cards + 5-col table) */
+  .lineage{margin-top:24px; list-style:none; padding:0; display:grid; gap:12px;}
+  .lineage li{display:grid; grid-template-columns:56px 1fr; gap:16px; align-items:baseline;
+    border-bottom:1px dotted var(--rule); padding-bottom:12px;}
+  .lineage li:last-child{border-bottom:none;}
+  .lineage .yr{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--seal); font-weight:600;}
+  .lineage b{color:var(--ink);} .lineage span{color:var(--muted); font-size:14.5px;}
+
+  /* ---------- footer ---------- */
+  footer{background:var(--card); border-top:1px solid var(--line); box-shadow:var(--shadow);}
+  .foot-in{padding:46px 0 40px; display:flex; justify-content:space-between; align-items:flex-end;
+    gap:28px; flex-wrap:wrap;}
+  .foot-in h3{font-size:23px; letter-spacing:-0.01em; max-width:24ch;}
+  .foot-in p{color:var(--muted); font-size:14px; margin:8px 0 0; max-width:44ch;}
+  .fine{padding:0 0 34px; font-family:"IBM Plex Mono",monospace; font-size:11px;
+    letter-spacing:.06em; color:var(--muted-2); display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  .fine .sep{opacity:.4;}
+
+  /* gentle reveal (reduced-motion safe; no-JS shows everything) */
+  .reveal{opacity:0; transform:translateY(12px);
+    transition:opacity .5s ease, transform .5s ease;}
+  .reveal.in{opacity:1; transform:none;}
+  @media (prefers-reduced-motion:reduce){ .reveal{opacity:1 !important; transform:none !important; transition:none !important;} }
+
+  /* version switcher A/B/C */
+  .ver-switch{position:fixed; right:16px; bottom:16px; z-index:60;
+    display:flex; flex-direction:column; gap:8px; align-items:flex-end;
+    font-family:"IBM Plex Mono",monospace; pointer-events:none;}
+  .ver-switch .ver-panel{pointer-events:auto; background:color-mix(in srgb, var(--card) 94%, transparent);
+    border:1px solid var(--line); border-radius:12px; padding:10px 12px;
+    box-shadow:var(--shadow); min-width:220px;}
+  .ver-switch .ver-label{font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:8px;}
+  .ver-switch .ver-btns{display:flex; gap:6px;}
+  .ver-switch a.ver-btn{flex:1; text-align:center; font-size:12px; letter-spacing:.04em;
+    padding:8px 6px; border-radius:8px; border:1px solid var(--line);
+    color:var(--muted); background:transparent; transition:all .15s; text-decoration:none;}
+  .ver-switch a.ver-btn:hover{color:var(--ink); border-color:var(--seal);}
+  .ver-switch a.ver-btn.is-active{color:var(--paper); background:var(--seal); border-color:var(--seal); font-weight:600;}
+  .ver-switch .ver-hint{font-size:10px; color:var(--muted-2); margin-top:8px; line-height:1.4; max-width:220px;}
+  @media (max-width:520px){
+    .ver-switch{right:10px; bottom:10px; left:10px; align-items:stretch;}
+    .ver-switch .ver-panel{min-width:0;}
+  }
+</style>
+</head>
+<body>
+
+<a class="skip" href="#ledger">Skip to the ledger</a>
+
+<header class="bar">
+  <div class="wrap bar-in">
+    <a href="#top" class="brand"><span class="mark"></span>CORTEX <span class="tag">ledger</span></a>
+    <nav class="links" aria-label="Section navigation">
+      <a class="nav-hide" href="#problem">Problem</a>
+      <a class="nav-hide" href="#kernel">Kernel</a>
+      <a class="nav-hide" href="#replay">Recovery</a>
+      <a href="specs.html">Specs&nbsp;→</a>
+      <button class="theme-btn" id="themeToggle" aria-label="Toggle colour theme">◐ theme</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+<a id="top"></a>
+
+<!-- ===================== MASTHEAD ===================== -->
+<div class="perf top" aria-hidden="true"></div>
+<div class="masthead">
+  <div class="wrap masthead-in">
+    <div>
+      <span class="eyebrow">Case study · reliability ledger</span>
+      <h1 class="doc-title">Cortex</h1>
+      <p class="doc-sub">A control plane for fallible AI agents.</p>
+      <p class="doc-lede">Read this as an audit ledger, not a launch page. Every reliability
+        claim below carries an honest status stamp: what is <strong>built</strong> as a tested
+        component, what is only <strong>partial</strong>, what is <strong>blocked</strong> in the
+        reviewed composition, and what is still a <strong>target</strong>. No line claims
+        production it hasn't earned.</p>
+      <div class="doc-meta">
+        <div>recorded <b>2026-07-20</b></div>
+        <div>authority <b>outside the builder</b></div>
+        <div>scope <b>accidental failures</b></div>
+      </div>
+      <div class="mast-cta">
+        <a class="btn primary" href="#replay">Read the recovery replay →</a>
+        <a class="btn ghost" href="specs.html">Technical specification</a>
+      </div>
+    </div>
+    <div class="seal-block">
+      <svg class="seal-svg" viewBox="0 0 120 120" role="img" aria-label="Authority seal: evidence outside the builder">
+        <defs>
+          <path id="sealArc" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" fill="none"/>
+        </defs>
+        <circle cx="60" cy="60" r="55" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
+        <circle cx="60" cy="60" r="48" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <circle cx="60" cy="60" r="26" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.7"/>
+        <text font-size="8.2" letter-spacing="2.4" font-weight="600">
+          <textPath href="#sealArc" startOffset="2%">· AUTHORITY · OUTSIDE · THE · BUILDER ·</textPath>
+        </text>
+        <!-- ticks -->
+        <g stroke="currentColor" stroke-width="1.4" opacity="0.7">
+          <line x1="60" y1="14" x2="60" y2="20"/><line x1="60" y1="100" x2="60" y2="106"/>
+          <line x1="14" y1="60" x2="20" y2="60"/><line x1="100" y1="60" x2="106" y2="60"/>
+        </g>
+        <!-- center check -->
+        <path d="M50,60 l7,8 l14,-17" fill="none" stroke="currentColor" stroke-width="3"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="seal-cap">receipt seal · illustrative</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== STATUS LEGEND ===================== -->
+<div class="legend" id="ledger">
+  <div class="wrap legend-in">
+    <div class="legend-item"><span class="stamp built">Built</span>
+      <div class="l">A component that exists and is tested on its own path.</div></div>
+    <div class="legend-item"><span class="stamp partial">Partial</span>
+      <div class="l">A mechanism exists, but its composition or binding is incomplete.</div></div>
+    <div class="legend-item"><span class="stamp blocked">Blocked</span>
+      <div class="l">The reviewed composition fails a recorded decision and cannot ship.</div></div>
+    <div class="legend-item"><span class="stamp target">Target</span>
+      <div class="l">Contracted or designed, not yet implemented or live in production.</div></div>
+  </div>
+</div>
+
+<div class="wrap"><div class="col">
+
+  <!-- 01 PROBLEM -->
+  <section class="entry" id="problem">
+    <div class="entry-head"><span class="entry-no">01</span>
+      <h2>Capable is not the same as trustworthy.</h2></div>
+    <p class="lead">AI coding agents remain probabilistic, so consequential output still needs
+      verification proportionate to its risk. A stronger model can reduce errors; it does not
+      establish correctness or authority.</p>
+    <div class="truthrow bad">
+      <div class="k">Ungoverned agent path</div>
+      <h3>A better driver</h3>
+      <p>A stronger model, richer prompt, or larger toolset may reduce errors. Without an
+        independent control path, the model's proposal can still become an action before an
+        external authority verifies it.</p>
+    </div>
+    <div class="truthrow good">
+      <div class="k">Cortex</div>
+      <h3>A control plane around the driver</h3>
+      <p>Assume the agent is fallible. Put enforceable boundaries between proposals and
+        consequential actions, bind approvals to exact artifacts, and keep independent
+        evaluation outside the builder. The controls reduce risk; they do not certify the
+        product by themselves.</p>
+    </div>
+  </section>
+
+  <!-- 02 THE MOVE -->
+  <section class="entry" id="move">
+    <div class="entry-head"><span class="entry-no">02</span>
+      <h2>The move operating systems made fifty years ago.</h2></div>
+    <p class="lead">You do not trust every program to avoid corrupting memory; you put
+      enforceable boundaries between programs and hardware. The target architecture applies that
+      reference-monitor pattern to an agent acting on a repository. Cortex has component-tested
+      kernel mechanisms, but the production agent path does not yet run through the composed
+      kernel. Three commitments follow — each stamped at its real state.</p>
+    <div class="commit">
+      <div class="commit-row">
+        <div class="ph">before</div>
+        <div><h3>Contract-first</h3>
+          <p>Outside the declared manual Phase&nbsp;0 bootstrap, the target process freezes the
+            goal, write-set, and acceptance oracle before implementation. The reviewed
+            composition path has not demonstrated a durable owner-frozen plan receipt.</p></div>
+        <span class="stamp partial">Partial</span>
+      </div>
+      <div class="commit-row">
+        <div class="ph">during</div>
+        <div><h3>Deny-by-default</h3>
+          <p>In the target path, every write, execution, or network action passes through the
+            broker after deny-by-default authorization; only provably pure reads run directly.
+            Current OpenCode and agent-runtime paths are not yet behind that gate.</p></div>
+        <span class="stamp partial">Partial</span>
+      </div>
+      <div class="commit-row">
+        <div class="ph">after</div>
+        <div><h3>Proof, not vibes</h3>
+          <p>The target release path requires deterministic evidence verified outside the
+            builder and receipts bound to the approved artifact. Neither the production merge
+            path nor the learning loop that promotes verified failures into gates is live end
+            to end.</p></div>
+        <span class="stamp target">Target</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 KERNEL LEDGER -->
+  <section class="entry" id="kernel">
+    <div class="entry-head"><span class="entry-no">03</span>
+      <h2>Six mechanisms, each stamped at its integration state.</h2></div>
+    <p class="lead">Many kernel components are merged and component-tested. The reviewed
+      composition branch remains blocked and is not ready for a pull request; production
+      authority services and a live end-to-end canary are also incomplete. Open a line for the
+      honest caveat behind each stamp.</p>
+
+    <div class="kledger">
+      <details class="kline">
+        <summary>
+          <span class="kid">authorize()</span>
+          <span class="kname"><b>Reference monitor</b> · deny-by-default path gate</span>
+          <span class="stamp built">Built</span><span class="chev">›</span>
+        </summary>
+        <div class="kbody"><div class="disc">honest caveat</div>
+          The standalone component is a pure, deny-by-default path gate tested against difficult
+          path forms. Current OpenCode and agent-runtime paths do not call it, and the reviewed
+          composition calls it directly without a broker-mediated apply path.</div>
+      </details>
+      <details class="kline">
+        <summary>
+          <span class="kid">tool_broker</span>
+          <span class="kname"><b>Sole writer</b> · owns mutation credentials, opens PRs</span>
+          <span class="stamp partial">Partial</span><span class="chev">›</span>
+        </summary>
+        <div class="kbody"><div class="disc">honest caveat</div>
+          Target sole-writer process: it owns mutation credentials, authorizes at receive and
+          use, applies approved patches, and opens pull requests. The reviewed composition path
+          does not construct a broker envelope, call its proposal handler, or apply the patch.</div>
+      </details>
+      <details class="kline">
+        <summary>
+          <span class="kid">receipts</span>
+          <span class="kname"><b>Content-bound receipts</b> · diff-bound authority evidence</span>
+          <span class="stamp partial">Partial</span><span class="chev">›</span>
+        </summary>
+        <div class="kbody"><div class="disc">honest caveat</div>
+          Receipt components are merged and tested, but the reviewed composition path accepts an
+          arbitrary callback result as its approval receipt and does not verify an
+          exact-diff-bound human-control authority receipt.</div>
+      </details>
+      <details class="kline">
+        <summary>
+          <span class="kid">human_control</span>
+          <span class="kname"><b>Approval bound to the diff</b> · authority outside the builder</span>
+          <span class="stamp partial">Partial</span><span class="chev">›</span>
+        </summary>
+        <div class="kbody"><div class="disc">honest caveat</div>
+          The human-control component is intended to bind an approval — based on an independent
+          summary and observed output — to the exact diff. The reviewed composition path does not
+          call that authority flow and instead accepts a local callback result.</div>
+      </details>
+      <details class="kline">
+        <summary>
+          <span class="kid">isolation</span>
+          <span class="kname"><b>Trust-graded sandboxes</b> · isolation by workload risk</span>
+          <span class="stamp target">Target</span><span class="chev">›</span>
+        </summary>
+        <div class="kbody"><div class="disc">honest caveat</div>
+          The target assigns isolation by workload risk and fails visibly when the assigned grade
+          is unavailable; it must never silently weaken isolation. Production trust-graded sandbox
+          execution is designed but not live.</div>
+      </details>
+      <details class="kline">
+        <summary>
+          <span class="kid">oracles</span>
+          <span class="kname"><b>Evidence, not assertion</b> · deterministic checkers + attestation</span>
+          <span class="stamp target">Target</span><span class="chev">›</span>
+        </summary>
+        <div class="kbody"><div class="disc">honest caveat</div>
+          The contract requires deterministic checkers where possible, independent attestation,
+          evidence-hash verification, and a universal evidence bundle. No live end-to-end
+          evaluator path currently demonstrates those requirements.</div>
+      </details>
+    </div>
+    <div class="note">The target learning loop fingerprints verified failures and drafts gate or
+      oracle proposals. Promotion requires review and human approval; the end-to-end learning
+      loop is not live.</div>
+  </section>
+
+  <!-- 04 RECOVERY REPLAY -->
+  <section class="entry" id="replay">
+    <div class="entry-head"><span class="entry-no">04</span>
+      <h2>Eight visible tests passed. The release was still blocked.</h2></div>
+    <p class="lead">A recorded decision, a green suite, and an independent review that stopped the
+      release anyway. The frozen <code>v1.4</code> recovery decision is kept separate from the
+      nonconformant composition that failed to honor it — that separation is the point.</p>
+    <ol class="replay" aria-label="Composition recovery review timeline">
+      <li class="rstep frozen">
+        <div class="rtag">01 · recorded decision · frozen</div>
+        <h3>Embed the invariant in storage</h3>
+        <p>The recorded <code>v1.4</code> decision requires that <code>APPROVED</code> and a
+          non-null <code>diff_hash</code> commit atomically, and that an approved run recover its
+          exact diff hash from one durable record. A receipt may report that event; it cannot
+          become a second source of truth. The amendment itself is frozen.</p>
+        <div class="receipt-line">RECORDED // master amendment v1.4 + freeze record</div>
+      </li>
+      <li class="rstep">
+        <div class="rtag">02 · builder claim</div>
+        <h3>Run the visible suite</h3>
+        <p>The composition entrypoint reached its expected states and all eight focused tests
+          passed. Useful evidence — but only for the paths those tests exercised.</p>
+        <div class="receipt-line">OBSERVED // 8 passed</div>
+      </li>
+      <li class="rstep deny">
+        <div class="rtag">03 · independent review · blocked</div>
+        <h3>Trace the restart path</h3>
+        <p>The projection permitted <code>APPROVED</code> without a hash, and recovery joined
+          receipt data back into the run. That violated the recorded <code>v1.4</code> recovery
+          decision — the nonconformance is in the composition, not in the frozen amendment.</p>
+        <div class="receipt-line">VERDICT // FAIL · release remains blocked</div>
+      </li>
+      <li class="rstep pass">
+        <div class="rtag">04 · acceptance target</div>
+        <h3>Make the failure impossible</h3>
+        <p>The repair must atomically store status and hash, recover without receipt joins, and
+          pass a restart test written outside the builder lane.</p>
+        <div class="receipt-line">NEXT // builder repair → independent holdout → owner review</div>
+      </li>
+    </ol>
+    <div class="note">Component tests are evidence, not release authority. <b>The refusal to
+      convert green tests into an automatic release claim is the product.</b></div>
+  </section>
+
+  <!-- 05 STATUS TRUTH -->
+  <section class="entry" id="status">
+    <div class="entry-head"><span class="entry-no">05</span>
+      <h2>The substrate is substantial. The product path is not finished.</h2></div>
+    <p class="lead">Phase&nbsp;0 uses a declared manual bootstrap modeled on the target controls.
+      Component and contract work has landed through reviewed pull requests, but the current
+      composition branch remains blocked pending conformance repair and independent holdout.</p>
+    <div class="totals">
+      <div class="trow"><div class="tn">v1.4</div>
+        <div class="tl">owner-frozen recovery invariant: <code>APPROVED</code> carries its diff
+          hash in one durable record</div></div>
+      <div class="trow"><div class="tn">845<span class="u">+1s</span></div>
+        <div class="tl">full-suite result on the reviewed composition branch (skipped tests
+          marked, not hidden)</div></div>
+      <div class="trow"><div class="tn">8<span class="u">/8</span></div>
+        <div class="tl">focused tests passed, while contract review still blocked the release</div></div>
+      <div class="trow"><div class="tn">0</div>
+        <div class="tl">live Cortex-governed production runs claimed today</div></div>
+    </div>
+    <div class="note">Independent sealed holdouts and contract traces have found replay, path,
+      authorization, and recovery defects <b>after</b> visible tests were green. Cortex is not a
+      model or an orchestrator; it adds a separate control plane — frozen intent, mediated
+      actions, durable evidence, and authority outside the builder.</div>
+  </section>
+
+  <!-- 06 LINEAGE -->
+  <section class="entry" id="lineage">
+    <div class="entry-head"><span class="entry-no">06</span>
+      <h2>Established mechanisms, recomposed for agent reliability.</h2></div>
+    <p class="lead">The architecture draws on named reference-monitor, privilege-separation,
+      content-binding, and workload-isolation patterns. Precedent informs the design; it does not
+      prove this implementation.</p>
+    <ul class="lineage">
+      <li><span class="yr">1972</span><span><b>The reference monitor.</b> Anderson's study, then
+        Saltzer &amp; Schroeder (1975): least privilege, complete mediation, fail-safe defaults.
+        Those principles influenced <code>authorize()</code>.</span></li>
+      <li><span class="yr">2003</span><span><b>Privilege separation.</b> OpenSSH's tiny
+        privileged monitor with unprivileged workers that hold nothing (Provos, Friedl,
+        Honeyman). The broker is this pattern.</span></li>
+      <li><span class="yr">2009</span><span><b>Capability &amp; content binding.</b> seL4's
+        verified capability microkernel; Macaroons (2014); Merkle hashing that binds a token to an
+        exact hash as git and Sigstore do. The receipt is this.</span></li>
+      <li><span class="yr">2020</span><span><b>Trust-graded isolation.</b> Firecracker and gVisor
+        as established workload isolation. Cortex's risk grading is its own composition, and
+        production execution is not live.</span></li>
+    </ul>
+    <div class="note">Prior-art studies and independent critique came before implementation. Parts
+      were adopted where they fit and rejected with recorded reasons where they did not. <b>The
+      claim is the composition and the evidence trail, not new primitives.</b></div>
+  </section>
+
+</div></div>
+</main>
+
+<footer>
+  <div class="perf" aria-hidden="true"></div>
+  <div class="wrap foot-in">
+    <div>
+      <h3>Know what was allowed, what was checked, and who decided.</h3>
+      <p>Contract-first reliability infrastructure for accountable AI delegation.</p>
+    </div>
+    <a class="btn primary" href="specs.html">Technical specification →</a>
+  </div>
+  <div class="wrap fine">
+    <span>CORTEX · reliability ledger</span><span class="sep">/</span>
+    <span>deny-by-default</span><span class="sep">/</span>
+    <span>evidence-gated</span><span class="sep">/</span>
+    <span>self-hosting pending</span>
+  </div>
+</footer>
+
+<div class="ver-switch" role="navigation" aria-label="Case study layout version">
+  <div class="ver-panel">
+    <div class="ver-label">Layout version</div>
+    <div class="ver-btns">
+      <a class="ver-btn" data-ver="a" href="/case-studies/cortex/a/index.html" title="Quiet instrument">A</a>
+      <a class="ver-btn" data-ver="b" href="/case-studies/cortex/b/index.html" title="Current full redesign">B</a>
+      <a class="ver-btn" data-ver="c" href="/case-studies/cortex/c/index.html" title="Receipt ledger">C</a>
+    </div>
+    <div class="ver-hint" id="verHint">A quiet · B dense · C ledger</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* theme toggle : stamps data-theme, overrides the media query both ways.
+     shares the 'cortex-theme' key with layouts A and B so the choice persists. */
+  var root=document.documentElement, btn=document.getElementById('themeToggle');
+  function apply(t){ if(t){root.setAttribute('data-theme',t);} }
+  try{ apply(localStorage.getItem('cortex-theme')); }catch(e){}
+  btn && btn.addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme');
+    var next = cur==='light' ? 'dark' : (cur==='dark' ? 'light'
+      : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light':'dark'));
+    apply(next); try{localStorage.setItem('cortex-theme',next);}catch(e){}
+  });
+
+  /* gentle scroll reveal; no-JS keeps everything visible, reduced-motion skips it. */
+  var noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!noMotion && 'IntersectionObserver' in window){
+    var els=document.querySelectorAll('.entry, .legend-item');
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    },{threshold:0.08, rootMargin:'0px 0px -40px 0px'});
+    els.forEach(function(el){ el.classList.add('reveal'); io.observe(el); });
+  }
+
+  /* layout switcher : record current version, mark active, set hint. */
+  var m = location.pathname.match(/\/case-studies\/cortex\/(a|b|c)\//i);
+  var ver = m ? m[1].toLowerCase() : 'c';
+  try { localStorage.setItem('cortex-case-ver', ver); } catch(e){}
+  var hints = {
+    a: 'A · quiet instrument',
+    b: 'B · dense redesign',
+    c: 'C · receipt ledger'
+  };
+  document.querySelectorAll('.ver-switch a.ver-btn').forEach(function(el){
+    if (el.getAttribute('data-ver') === ver) el.classList.add('is-active');
+  });
+  var h = document.getElementById('verHint');
+  if (h) h.textContent = hints[ver] || hints.c;
+})();
+</script>
+</body>
+</html>

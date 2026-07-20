@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cortex · Technical Specification (ledger)</title>
+<meta name="description" content="Technical specification for Cortex as an audit ledger: the contracted architecture, target invariants, module contracts with honest state, the blocked composition path, verification method, and current residuals." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* LAYOUT C · technical spec, same "receipt ledger" language as c/index.html */
+  :root{
+    --paper:#f1eee4; --paper-2:#e8e3d6; --card:#faf8f1; --card-2:#f4f1e7;
+    --ink:#1b1913; --text:#3b382e; --muted:#6f6c5e; --muted-2:#928d7c;
+    --line:#d8d1c0; --line-soft:#e4ded0; --rule:#c7bfab;
+    --seal:#a25a12; --seal-deep:#7c4409; --seal-glow:rgba(162,90,18,0.12);
+    --built:#2f6f4f; --partial:#9a6a10; --blocked:#a3342a; --target:#6f6c5e;
+    --shadow:0 22px 55px rgba(60,50,25,0.12);
+    --readw:760px; --maxw:1040px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#16140d; --paper-2:#1d1a11; --card:#201d13; --card-2:#191610;
+      --ink:#f4f0e4; --text:#d7d2c2; --muted:#948f7d; --muted-2:#6e6a5a;
+      --line:#332e20; --line-soft:#282317; --rule:#3a3423;
+      --seal:#e3a63c; --seal-deep:#c9871f; --seal-glow:rgba(227,166,60,0.15);
+      --built:#5bb98f; --partial:#e0b24a; --blocked:#e07a63; --target:#948f7d;
+      --shadow:0 26px 70px rgba(0,0,0,0.55);
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#f1eee4; --paper-2:#e8e3d6; --card:#faf8f1; --card-2:#f4f1e7;
+    --ink:#1b1913; --text:#3b382e; --muted:#6f6c5e; --muted-2:#928d7c;
+    --line:#d8d1c0; --line-soft:#e4ded0; --rule:#c7bfab;
+    --seal:#a25a12; --seal-deep:#7c4409; --seal-glow:rgba(162,90,18,0.12);
+    --built:#2f6f4f; --partial:#9a6a10; --blocked:#a3342a; --target:#6f6c5e;
+    --shadow:0 22px 55px rgba(60,50,25,0.12);
+  }
+  :root[data-theme="dark"]{
+    --paper:#16140d; --paper-2:#1d1a11; --card:#201d13; --card-2:#191610;
+    --ink:#f4f0e4; --text:#d7d2c2; --muted:#948f7d; --muted-2:#6e6a5a;
+    --line:#332e20; --line-soft:#282317; --rule:#3a3423;
+    --seal:#e3a63c; --seal-deep:#c9871f; --seal-glow:rgba(227,166,60,0.15);
+    --built:#5bb98f; --partial:#e0b24a; --blocked:#e07a63; --target:#948f7d;
+    --shadow:0 26px 70px rgba(0,0,0,0.55);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth; overflow-x:clip;}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} }
+  body{margin:0; background:var(--paper); color:var(--text);
+    font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif; font-size:16.5px; line-height:1.66;
+    -webkit-font-smoothing:antialiased;}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;}
+  a{color:inherit; text-decoration:none;}
+  h1,h2,h3,h4{color:var(--ink); margin:0; text-wrap:balance;}
+  ::selection{background:var(--seal); color:var(--paper);}
+  :focus-visible{outline:2px solid var(--seal); outline-offset:3px; border-radius:3px;}
+
+  .skip{position:absolute; left:-999px; top:0; z-index:100;
+    background:var(--seal); color:var(--paper); padding:10px 16px; border-radius:0 0 8px 0;
+    font-family:"IBM Plex Mono",monospace; font-size:13px;}
+  .skip:focus{left:0;}
+
+  header.bar{position:sticky; top:0; z-index:40; backdrop-filter:blur(12px);
+    background:color-mix(in srgb,var(--paper) 84%,transparent); border-bottom:1px solid var(--line);}
+  .bar-in{max-width:var(--maxw); margin:0 auto; padding:0 26px; height:60px;
+    display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:11px; font-family:"IBM Plex Mono",monospace;
+    font-weight:600; letter-spacing:.05em; color:var(--ink); font-size:14.5px;}
+  .brand .mark{width:15px; height:15px; border-radius:50%; border:2px solid var(--seal); position:relative;}
+  .brand .mark::after{content:""; position:absolute; inset:3px; border-radius:50%; background:var(--seal); opacity:.55;}
+  .bar-in nav{display:flex; gap:18px; align-items:center;}
+  .bar-in nav a{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--muted); letter-spacing:.03em;}
+  .bar-in nav a:hover{color:var(--ink);}
+  .theme-btn{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.06em; color:var(--muted);
+    background:transparent; border:1px solid var(--line); padding:6px 11px; border-radius:7px; cursor:pointer;}
+  .theme-btn:hover{color:var(--ink); border-color:var(--seal);}
+
+  .doc{max-width:var(--maxw); margin:0 auto; padding:0 26px;}
+  .perf{height:12px; width:100%;
+    background:radial-gradient(circle at 8px 12px, transparent 0 6px, var(--card) 6px) 0 0/16px 12px repeat-x;}
+
+  /* title block */
+  .titleblock{background:var(--card); border-bottom:1px solid var(--line); box-shadow:var(--shadow);}
+  .titleblock-in{padding:46px 0 34px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.24em; text-transform:uppercase;
+    color:var(--seal); display:inline-flex; gap:10px; align-items:center;}
+  .eyebrow::before{content:""; width:22px; height:1px; background:var(--seal); opacity:.7;}
+  .titleblock h1{font-size:clamp(30px,5vw,48px); line-height:1.05; letter-spacing:-0.02em; margin:16px 0 0; font-weight:700;}
+  .titleblock p.sub{color:var(--muted); font-size:17.5px; max-width:64ch; margin:16px 0 0;}
+  .meta{display:flex; gap:10px 24px; flex-wrap:wrap; margin-top:22px; font-family:"IBM Plex Mono",monospace; font-size:12px;}
+  .meta div{color:var(--muted);} .meta b{color:var(--ink); font-weight:600;}
+
+  /* status stamp (shared vocabulary with the overview) */
+  .stamp{display:inline-flex; align-items:center; gap:6px; font-family:"IBM Plex Mono",monospace;
+    font-size:10.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase;
+    padding:3px 8px; border-radius:4px; border:1.5px solid currentColor; white-space:nowrap; line-height:1;}
+  .stamp::before{content:""; width:5px; height:5px; border-radius:50%; background:currentColor;}
+  .stamp.built{color:var(--built);}
+  .stamp.partial{color:var(--partial);}
+  .stamp.blocked{color:var(--blocked);}
+  .stamp.target{color:var(--target);}
+
+  /* sticky chip index (distinct from B's vertical left TOC) */
+  .chipnav{position:sticky; top:60px; z-index:30; background:color-mix(in srgb,var(--paper) 90%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--line);}
+  .chipnav-in{max-width:var(--maxw); margin:0 auto; padding:11px 26px; display:flex; gap:8px;
+    overflow-x:auto; scrollbar-width:none;}
+  .chipnav-in::-webkit-scrollbar{display:none;}
+  .chipnav a{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
+    border:1px solid var(--line); border-radius:20px; padding:6px 13px; white-space:nowrap; transition:all .15s;}
+  .chipnav a:hover{color:var(--ink); border-color:var(--seal);}
+
+  /* content : single reading column */
+  .content{max-width:var(--readw); margin:0 auto; padding:34px 0 80px;}
+  .content > section{padding:14px 0 34px; border-bottom:1px dashed var(--rule); margin-bottom:30px;}
+  .content > section:last-child{border-bottom:none;}
+  .content h2{font-size:24px; letter-spacing:-0.015em; margin:0 0 4px; scroll-margin-top:120px;
+    display:flex; align-items:baseline; gap:12px;}
+  .content h2 .sec{font-family:"IBM Plex Mono",monospace; color:var(--seal); font-size:14px;}
+  .content h3{font-size:16.5px; margin:26px 0 8px; color:var(--ink);}
+  .content p{margin:12px 0; max-width:70ch;}
+  .content p.lead{color:var(--muted); font-size:17px;}
+  .content strong{color:var(--ink); font-weight:600;}
+  code{font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--card-2);
+    border:1px solid var(--line-soft); border-radius:5px; padding:1px 6px; color:var(--seal-deep);}
+  :root[data-theme="dark"] code{color:var(--seal);}
+  @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) code{color:var(--seal);} }
+
+  /* invariants */
+  .inv{list-style:none; margin:20px 0 0; padding:0; display:grid; gap:10px;}
+  .inv li{display:grid; grid-template-columns:48px 1fr; gap:16px; align-items:start;
+    border:1px solid var(--line); border-radius:10px; padding:14px 18px; background:var(--card);}
+  .inv .id{font-family:"IBM Plex Mono",monospace; color:var(--seal); font-weight:600; font-size:14px;}
+  .inv b{color:var(--ink);} .inv span{color:var(--muted); font-size:14.5px;}
+
+  /* module table (captioned + scoped) */
+  .tbl{margin:22px 0 0; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--card);}
+  .tbl-scroll{overflow-x:auto;}
+  table{border-collapse:collapse; width:100%; min-width:560px; font-size:14px;}
+  caption{caption-side:top; text-align:left; padding:12px 15px; font-size:13px; color:var(--muted);
+    background:var(--card-2); border-bottom:1px solid var(--line-soft);}
+  th,td{text-align:left; padding:12px 15px; border-bottom:1px solid var(--line-soft); vertical-align:top;}
+  th{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--muted); background:var(--card-2); font-weight:500;}
+  td.m{font-family:"IBM Plex Mono",monospace; color:var(--ink); font-size:13px;}
+  th[scope="row"]{background:transparent;}
+  tr:last-child td{border-bottom:none;}
+  td small{font-size:12px;}
+
+  /* step flow */
+  .steps{counter-reset:st; margin:20px 0 0; padding:0; list-style:none; display:grid; gap:12px;}
+  .steps li{position:relative; padding:16px 18px 16px 56px; border:1px solid var(--line);
+    border-radius:10px; background:var(--card);}
+  .steps li::before{counter-increment:st; content:counter(st); position:absolute; left:18px; top:16px;
+    font-family:"IBM Plex Mono",monospace; color:var(--seal); font-weight:600; font-size:15px;}
+  .steps b{color:var(--ink);} .steps p{margin:4px 0 0; color:var(--muted); font-size:14px; max-width:none;}
+
+  .callout{border-left:3px solid var(--seal); padding:6px 0 6px 18px; margin:22px 0; color:var(--muted);
+    font-size:15px; max-width:72ch;}
+  .callout b{color:var(--ink);}
+
+  /* illustrative code block */
+  .codeblock{margin:22px 0 4px; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--card-2);}
+  .codeblock .cbhead{display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:9px 14px; border-bottom:1px solid var(--line-soft);
+    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em; color:var(--muted);}
+  .codeblock .cbhead .tag{color:var(--seal);}
+  .codeblock pre{margin:0; padding:16px 18px; overflow-x:auto;
+    font-family:"IBM Plex Mono",monospace; font-size:12.5px; line-height:1.7; color:var(--text);}
+  .codeblock .cm{color:var(--muted-2);}
+  .codeblock .kw{color:var(--seal);}
+  .codeblock .dn{color:var(--blocked);}
+  .codeblock .ok{color:var(--built);}
+  .caption{font-size:13px; color:var(--muted); margin:8px 0 0;}
+
+  /* lifecycle : responsive vertical ledger (no horizontal-only SVG) */
+  .fc-wrap{margin:24px 0 4px; border:1px solid var(--line); border-radius:12px; background:var(--card); overflow:hidden;}
+  .fc-head{display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:10px 14px; border-bottom:1px solid var(--line-soft);
+    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em; color:var(--muted);}
+  .fc-head .tag{color:var(--seal); white-space:nowrap;}
+  .lifecycle{list-style:none; margin:0; padding:22px 22px 24px 62px; counter-reset:gate;}
+  .lifecycle li{position:relative; min-height:78px; padding:0 0 24px; counter-increment:gate;}
+  .lifecycle li:last-child{min-height:0; padding-bottom:0;}
+  .lifecycle li::before{content:counter(gate,decimal-leading-zero); position:absolute; left:-46px; top:0;
+    width:28px; height:28px; display:grid; place-items:center; background:var(--seal-deep);
+    color:var(--paper); font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:600;
+    clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);}
+  .lifecycle li::after{content:""; position:absolute; left:-33px; top:34px; bottom:6px; width:1px; background:var(--line);}
+  .lifecycle li:last-child::after{display:none;}
+  .lifecycle .checkpoint{display:flex; align-items:baseline; justify-content:space-between; gap:16px;
+    border-bottom:1px solid var(--line-soft); padding:0 0 8px;}
+  .lifecycle h4{font-size:15.5px; color:var(--ink);}
+  .lifecycle .owner{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--muted);
+    white-space:nowrap; text-transform:uppercase; letter-spacing:.06em;}
+  .lifecycle p{font-size:14px; color:var(--muted); margin:8px 0 0; max-width:none;}
+  .lifecycle .deny{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--blocked); font-weight:600;}
+  .lifecycle .terminal::before{background:var(--built); color:var(--paper);}
+  .current-stop{margin:0 22px 24px; padding:15px 18px; border-left:3px solid var(--blocked);
+    background:color-mix(in srgb,var(--blocked) 7%,var(--card));}
+  .current-stop b{display:block; color:var(--blocked); font-family:"IBM Plex Mono",monospace;
+    font-size:11px; letter-spacing:.07em; text-transform:uppercase;}
+  .current-stop p{margin:7px 0 0; color:var(--text); font-size:14px; max-width:none;}
+
+  @media (max-width:480px){
+    .lifecycle{padding:20px 16px 22px 54px;}
+    .lifecycle .checkpoint{display:block;}
+    .lifecycle .owner{display:block; margin-top:4px; white-space:normal;}
+    .current-stop{margin:0 16px 20px;}
+    .fc-head{align-items:flex-start; flex-direction:column;}
+  }
+
+  footer{background:var(--card); border-top:1px solid var(--line); box-shadow:var(--shadow);}
+  .foot{max-width:var(--maxw); margin:0 auto; padding:34px 26px 40px; display:flex; justify-content:space-between;
+    align-items:center; gap:20px; flex-wrap:wrap;}
+  .foot .fine{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted-2); letter-spacing:.05em;}
+  .foot a.back{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--seal); border:1px solid var(--line);
+    padding:10px 16px; border-radius:9px;}
+  .foot a.back:hover{border-color:var(--seal);}
+
+  /* version switcher A/B/C */
+  .ver-switch{position:fixed; right:16px; bottom:16px; z-index:60;
+    display:flex; flex-direction:column; gap:8px; align-items:flex-end;
+    font-family:"IBM Plex Mono",monospace; pointer-events:none;}
+  .ver-switch .ver-panel{pointer-events:auto; background:color-mix(in srgb, var(--card) 94%, transparent);
+    border:1px solid var(--line); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); min-width:220px;}
+  .ver-switch .ver-label{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:8px;}
+  .ver-switch .ver-btns{display:flex; gap:6px;}
+  .ver-switch a.ver-btn{flex:1; text-align:center; font-size:12px; letter-spacing:.04em;
+    padding:8px 6px; border-radius:8px; border:1px solid var(--line);
+    color:var(--muted); background:transparent; transition:all .15s; text-decoration:none;}
+  .ver-switch a.ver-btn:hover{color:var(--ink); border-color:var(--seal);}
+  .ver-switch a.ver-btn.is-active{color:var(--paper); background:var(--seal); border-color:var(--seal); font-weight:600;}
+  .ver-switch .ver-hint{font-size:10px; color:var(--muted-2); margin-top:8px; line-height:1.4; max-width:220px;}
+  @media (max-width:520px){
+    .ver-switch{right:10px; bottom:10px; left:10px; align-items:stretch;}
+    .ver-switch .ver-panel{min-width:0;}
+  }
+</style>
+</head>
+<body>
+
+<a class="skip" href="#model">Skip to the specification</a>
+
+<header class="bar">
+  <div class="bar-in">
+    <a href="index.html" class="brand"><span class="mark"></span>CORTEX</a>
+    <nav aria-label="Document navigation">
+      <a href="index.html">← Overview</a>
+      <button class="theme-btn" id="themeToggle" aria-label="Toggle colour theme">◐ theme</button>
+    </nav>
+  </div>
+</header>
+
+<div class="perf" aria-hidden="true"></div>
+<div class="titleblock">
+  <div class="doc titleblock-in">
+    <span class="eyebrow">Technical specification · ledger</span>
+    <h1>Cortex, the reliability kernel</h1>
+    <p class="sub">The system model, contracted invariants, module contracts, and target
+      verification method — each stamped so component-tested mechanisms are never confused with
+      the blocked composition or the unbuilt production path.</p>
+    <div class="meta">
+      <div>state <b>component substrate · composition BLOCKED</b></div>
+      <div>scope <b>accidental failures · production enforcement not live</b></div>
+      <div>authority <b>model-free gates + independent evaluation</b></div>
+      <div>updated <b>2026-07-20</b></div>
+    </div>
+  </div>
+</div>
+
+<nav class="chipnav" aria-label="Specification sections">
+  <div class="chipnav-in">
+    <a href="#model">01 · System model</a>
+    <a href="#monitor">02 · Reference monitor</a>
+    <a href="#invariants">03 · Invariants</a>
+    <a href="#contracts">04 · Module contracts</a>
+    <a href="#lane">05 · Build lane</a>
+    <a href="#verify">06 · Verification</a>
+    <a href="#threat">07 · Residuals</a>
+  </div>
+</nav>
+
+<main>
+<div class="doc">
+  <div class="content">
+
+    <section id="model">
+      <h2><span class="sec">01</span>System model</h2>
+      <p class="lead">The frozen master defines the target control and runtime spine. Its A–D
+        modules have contracts; later execution, knowledge, oracle, learning, and communications
+        planes remain staged for later freezes.</p>
+      <p>In the target system, a credential-free worker submits a typed proposal to a sole-writer
+        <strong>broker</strong>. The broker loads the owner-frozen plan, authorizes the declared
+        and resolved paths, materializes an approved change, and opens a pull request. Independent
+        evidence and the required human authority then decide whether that exact artifact may
+        merge.</p>
+      <p>The inspected reality is narrower. OpenCode and <code>agent_runtime</code> run beside
+        the kernel, not through it. The reviewed composition calls the reference monitor directly,
+        does not use the broker apply path, and stops after local approval. Phase&nbsp;0 therefore
+        remains a declared manual bootstrap rather than a self-governing production path.</p>
+    </section>
+
+    <section id="monitor">
+      <h2><span class="sec">02</span>The reference monitor</h2>
+      <p class="lead"><code>authorize()</code> is the pure, deny-by-default gate required by the
+        target broker path. It is component-tested, but it is not yet the sole gate around
+        current OpenCode, agent-runtime, or composition mutations.</p>
+      <p>It takes a proposal and the frozen contract and answers one question: <em>may the broker
+        materialize this change?</em> No model, no judge, no I/O touches the verdict. The broker
+        does the filesystem resolution and hands in the resolved paths, so the monitor is pure
+        judgment over strings. It canonicalizes every proposed path (Unicode normalization,
+        separator and verbatim-prefix handling, lexical traversal collapse), cross-checks it
+        against the broker-resolved form, and admits a write only if it lands inside the
+        contract's frozen write-set and clears a set of never-exempt forbidden prefixes. A
+        proposal carrying unresolved unknowns is denied outright. Guessing is not a legal move.</p>
+      <p>The standalone monitor runs against a frozen corpus of path forms: directory traversal,
+        symlink escape, case-fold collisions, reserved device names, alternate-data-stream
+        targets. In the target integration, the broker supplies resolved paths and invokes the
+        same gate at receive and use time. The reviewed composition does not execute that broker
+        sequence.</p>
+
+      <h3>Where the gate belongs: the contracted change path</h3>
+      <p>This is the target sequence, not the current production path. Each privileged transition
+        requires authority-owned evidence, and each failed gate blocks the mutation without
+        converting missing evidence into a pass.</p>
+      <div class="fc-wrap" id="gateflow">
+        <div class="fc-head"><span>target brokered change path</span><span class="tag">any failed gate blocks</span></div>
+        <ol class="lifecycle" aria-label="Contracted target sequence for a mutating proposal">
+          <li><div class="checkpoint"><h4>Validate the proposal</h4><span class="owner">proposal validator</span></div>
+            <p>Accept only a typed, well-formed envelope. <span class="deny">Malformed → DENY</span></p></li>
+          <li><div class="checkpoint"><h4>Authorize declared intent</h4><span class="owner">reference monitor</span></div>
+            <p>Check proposed paths against the owner-frozen write-set. <span class="deny">Out of scope → DENY</span></p></li>
+          <li><div class="checkpoint"><h4>Pull and resolve</h4><span class="owner">sole-writer broker</span></div>
+            <p>The broker fetches the bytes and resolves their actual destination without granting the worker repository credentials.</p></li>
+          <li><div class="checkpoint"><h4>Authorize at use time</h4><span class="owner">reference monitor</span></div>
+            <p>Re-check resolved paths and content identity before mutation. <span class="deny">Swap or mismatch → DENY</span></p></li>
+          <li><div class="checkpoint"><h4>Materialize and open a pull request</h4><span class="owner">sole-writer broker</span></div>
+            <p>Apply only the canonical authorized mapping and bind evidence to the resulting commit and diff.</p></li>
+          <li><div class="checkpoint"><h4>Verify the artifact</h4><span class="owner">independent oracle</span></div>
+            <p>Re-fetch and verify the required evidence for the exact commit. <span class="deny">Missing or failed evidence → BLOCKED</span></p></li>
+          <li><div class="checkpoint"><h4>Apply human authority where required</h4><span class="owner">human control</span></div>
+            <p>Boundary and irreversible changes require approval bound to the exact diff, informed by independent evidence.</p></li>
+          <li class="terminal"><div class="checkpoint"><h4>Merge the verified artifact</h4><span class="owner">repository authority</span></div>
+            <p>Completion is available only after all required gates and authority-owned evidence are present.</p></li>
+        </ol>
+        <div class="current-stop">
+          <b>Current reviewed stop · BLOCKED</b>
+          <p>The composition entrypoint validates locally and reaches an approval callback, but it
+            does not execute the broker apply path, exact-diff human-control flow, independent
+            oracle gate, pull-request creation, or merge.</p>
+        </div>
+      </div>
+
+      <h3>The core of that flow, in shape</h3>
+      <div class="codeblock">
+        <div class="cbhead"><span>on_proposal</span><span class="tag">illustrative · not the implementation</span></div>
+<pre><span class="cm"># the gate every agent proposal passes. deny by default.</span>
+<span class="kw">def</span> on_proposal(env):
+    <span class="kw">if not</span> registry.valid_token(env.worktree, env.token):
+        <span class="kw">return</span> <span class="dn">deny</span>(<span class="dn">"TOKEN_INVALID"</span>)         <span class="cm"># not your sandbox</span>
+    <span class="kw">if</span> registry.work_unit(env.worktree) != env.work_unit:
+        <span class="kw">return</span> <span class="dn">deny</span>(<span class="dn">"WORKTREE_MISMATCH"</span>)     <span class="cm"># not your work-unit</span>
+    plan = contracts.frozen_plan(env.work_unit)
+    <span class="kw">if</span> plan <span class="kw">is None</span>:
+        <span class="kw">return</span> <span class="dn">deny</span>(<span class="dn">"PLAN_NOT_FROZEN"</span>)       <span class="cm"># no freeze, no work</span>
+
+    v = authorize(env.paths, plan)           <span class="cm"># declared intent</span>
+    <span class="kw">if</span> v.denied: <span class="kw">return</span> <span class="dn">deny</span>(<span class="dn">"AT_RECEIVE"</span>, v)
+
+    resolved = broker.pull(env.worktree, env.paths)
+    v = authorize(resolved, plan)            <span class="cm"># use-time: catch a swap</span>
+    <span class="kw">if</span> v.denied: <span class="kw">return</span> <span class="dn">deny</span>(<span class="dn">"AT_PULL"</span>, v)      <span class="cm"># symlink / repath escape</span>
+
+    broker.materialize(v.canonical_map)      <span class="cm"># only via the monitor's map</span>
+    <span class="kw">return</span> <span class="ok">broker.open_pr(...)</span>             <span class="cm"># merge waits on a verdict</span>
+    <span class="cm"># every branch above leaves a receipt (I11)</span></pre>
+      </div>
+      <p class="caption">Illustrative target shape. The standalone monitor is pure, but the
+        reviewed composition does not yet execute the broker pull/materialize path, two-point
+        authorization, or authority-owned receipt sequence shown above.</p>
+    </section>
+
+    <section id="invariants">
+      <h2><span class="sec">03</span>The invariants</h2>
+      <p class="lead">Eleven frozen target invariants. Individual components have tests, but
+        end-to-end enforcement is not active around the current coding path.</p>
+      <div class="callout"><b>Target-state requirements:</b> the list describes what the composed
+        system must enforce. It is not a claim that the current runtime already enforces every
+        item.</div>
+      <ol class="inv">
+        <li><span class="id">I1</span><span><b>No agent credentials.</b> No repo, API, or signing credential is ever in an agent container's filesystem, environment, or reachable network.</span></li>
+        <li><span class="id">I2</span><span><b>Sole writer.</b> The broker must be the sole repository writer. Agents cannot push, and the broker only opens pull requests, never direct pushes to protected branches.</span></li>
+        <li><span class="id">I3</span><span><b>No self-assigned privilege.</b> Trust label, tier, and code-origin come from the path and the broker's own dispatch record, never from agent-supplied metadata.</span></li>
+        <li><span class="id">I4</span><span><b>Verdicts verify themselves.</b> The required merge check must re-fetch and hash-verify evidence against the exact commit; verdict identity is distinct from PR-author identity, and neither can approve.</span></li>
+        <li><span class="id">I5</span><span><b>Boundary paths need a human.</b> Any diff touching the contract, kernel, or CI paths requires owner review; in-scope diffs auto-merge on a green verified check only.</span></li>
+        <li><span class="id">I6</span><span><b>Out-of-write-set never becomes a PR.</b> Denied at receive; widening scope is a new owner-frozen plan.</span></li>
+        <li><span class="id">I7</span><span><b>Isolation never degrades.</b> A workload that cannot run at its assigned grade fails visibly; it is never demoted to a weaker sandbox.</span></li>
+        <li><span class="id">I8</span><span><b>Read-back is the only truth.</b> No inbound webhook listener exists; any future event is a hint that triggers an API read-back, never a fact.</span></li>
+        <li><span class="id">I9</span><span><b>Keys off the execution host.</b> No key material ever resides where untrusted code runs.</span></li>
+        <li><span class="id">I10</span><span><b>Unresolved unknowns block mutation.</b> In the target path, a mutating proposal with open unknowns must be denied. That is enforced by sequencing, not by appeal to model intent.</span></li>
+        <li><span class="id">I11</span><span><b>Every privileged event leaves a receipt.</b> Freezes, approvals, PR opens, verdicts, merges, denials, and worktree lifecycle events must leave authority-owned evidence. The current composition has not demonstrated that obligation end to end.</span></li>
+      </ol>
+    </section>
+
+    <section id="contracts">
+      <h2><span class="sec">04</span>Module contracts</h2>
+      <p class="lead">The master contract and the A–D control/runtime module contracts are frozen.
+        Later planes remain staged. The table separates component state from composition
+        conformance, using the same stamp vocabulary as the overview.</p>
+      <div class="tbl"><div class="tbl-scroll">
+        <table>
+          <caption>Module contract state, recorded 2026-07-20. Scope: control/runtime modules A–D; later planes staged. Stamp reflects composition conformance, not standalone component tests.</caption>
+          <thead><tr>
+            <th scope="col">Module</th><th scope="col">Role</th><th scope="col">State</th>
+          </tr></thead>
+          <tbody>
+            <tr><th class="m" scope="row">authorize()</th><td>Deny-by-default reference monitor</td><td><span class="stamp built">Built</span><br><small style="color:var(--muted)">component built; runtime unwired</small></td></tr>
+            <tr><th class="m" scope="row">receipts</th><td>Diff-bound single-use receipt mint</td><td><span class="stamp partial">Partial</span><br><small style="color:var(--muted)">component built; approval binding blocked</small></td></tr>
+            <tr><th class="m" scope="row">state_engine</th><td>Durable leases, ledger, fencing</td><td><span class="stamp blocked">Blocked</span><br><small style="color:var(--muted)">component-tested; recovery nonconformant</small></td></tr>
+            <tr><th class="m" scope="row">worktree_registry</th><td>Sandbox lifecycle + per-worktree tokens</td><td><span class="stamp built">Built</span></td></tr>
+            <tr><th class="m" scope="row">tool_broker</th><td>Sole writer + mediated channel</td><td><span class="stamp partial">Partial</span><br><small style="color:var(--muted)">component exists; no apply path</small></td></tr>
+            <tr><th class="m" scope="row">contract_engine</th><td>Freeze / hash / plan-freeze</td><td><span class="stamp target">Target</span><br><small style="color:var(--muted)">target contract; plan receipt absent</small></td></tr>
+            <tr><th class="m" scope="row">human_control</th><td>Diff-bound approval surface</td><td><span class="stamp partial">Partial</span><br><small style="color:var(--muted)">component exists; authority flow unwired</small></td></tr>
+            <tr><th class="m" scope="row">oracles</th><td>Deterministic verdict lanes + evidence</td><td><span class="stamp target">Target</span><br><small style="color:var(--muted)">target contract; no live final evaluator</small></td></tr>
+          </tbody>
+        </table>
+      </div></div>
+      <p style="margin-top:16px; color:var(--muted); font-size:14px;">A frozen contract is binding.
+        Any change is a new owner-approved version with a logged diff, verified by content hash.
+        There is no such thing as an in-flight edit.</p>
+    </section>
+
+    <section id="lane">
+      <h2><span class="sec">05</span>The target trust-critical build lane</h2>
+      <p class="lead">The intended construction procedure. Component and module evidence exists,
+        but the current composition does not govern its own construction end to end.</p>
+      <ol class="steps">
+        <li><b>Two independent authors.</b><p>One model writes the tests and a difficult input corpus. A separate model writes the code. Neither sees the other's work, and both work only from the frozen contract. First-contact agreement is a convergence observation; trust still requires independent evidence and the applicable authority decision.</p></li>
+        <li><b>Adjudicate, don't assume.</b><p>The orchestrator checks the strongest claims against the source and sorts each disagreement into one of three buckets: a real defect, a hardening, or a contract ambiguity to reconcile. Changing frozen behavior is the owner's call.</p></li>
+        <li><b>Independent holdout.</b><p>The target lane uses a separately authored holdout outside the builder's view and records its catch rate. Current holdout evidence is scoped to component and module runs; composition-level holdout verification remains pending.</p></li>
+        <li><b>Ship through the real gates.</b><p>Once the broker, exact-diff human-control path, independent verification, and repository integration are wired, a change must move through a broker-authored pull request. The current composition has not demonstrated this path.</p></li>
+      </ol>
+    </section>
+
+    <section id="verify">
+      <h2><span class="sec">06</span>Verification &amp; evidence</h2>
+      <p class="lead">The target verification contract is deterministic where possible and reserves
+        model judgment for cases where a checker cannot decide.</p>
+      <p>The completed system must emit an artifact-bound evidence bundle, have a separate oracle
+        identity attest it, and independently re-verify the evidence before release. It must also
+        pass the defined end-to-end canary schedule. Current evidence covers component and
+        lane-level checks; the complete composition path and sustained canary criterion are not
+        yet demonstrated.</p>
+      <div class="callout">Prior scoped component and module verification identified receipt, path,
+        and authorization defects after visible tests were green. Those results do not establish
+        end-to-end composition correctness; composition holdout verification is still required.
+        <b>Evidence stays bounded to what a run actually checked.</b></div>
+    </section>
+
+    <section id="threat">
+      <h2><span class="sec">07</span>Residuals &amp; honest gaps</h2>
+      <p class="lead">The documented target prioritizes accidental reliability failures; the
+        current composition is blocked and does not claim a production posture.</p>
+      <p>The contract records accepted residuals and planned hardening steps rather than hiding
+        them. These include stronger workload isolation, channel authentication, operational
+        availability, and receipt-key protection. Live enforcement of the isolation, broker,
+        canary, and receipt paths has not been demonstrated for the current composition.</p>
+      <p>The later planes (execution, knowledge, oracles, learning, comms) are designed at the
+        master-contract level but not yet fully sub-contracted, so their scope isn't claimed as
+        known. And the value of the whole thing is exactly proportional to whether the contracts
+        capture real intent and the gates catch real failures. The rigor has to stay real, or
+        it's just overhead.</p>
+    </section>
+
+  </div>
+</div>
+</main>
+
+<footer>
+  <div class="foot">
+    <span class="fine">CORTEX · technical specification · reliability target · composition BLOCKED</span>
+    <a class="back" href="index.html">← Back to overview</a>
+  </div>
+</footer>
+
+<div class="ver-switch" role="navigation" aria-label="Case study layout version">
+  <div class="ver-panel">
+    <div class="ver-label">Layout version</div>
+    <div class="ver-btns">
+      <a class="ver-btn" data-ver="a" href="/case-studies/cortex/a/specs.html" title="Quiet instrument">A</a>
+      <a class="ver-btn" data-ver="b" href="/case-studies/cortex/b/specs.html" title="Current full redesign">B</a>
+      <a class="ver-btn" data-ver="c" href="/case-studies/cortex/c/specs.html" title="Receipt ledger">C</a>
+    </div>
+    <div class="ver-hint" id="verHint">A quiet · B dense · C ledger</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeToggle');
+  function apply(t){ if(t) root.setAttribute('data-theme',t); }
+  try{ apply(localStorage.getItem('cortex-theme')); }catch(e){}
+  btn && btn.addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme');
+    var next = cur==='light' ? 'dark' : (cur==='dark' ? 'light'
+      : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light':'dark'));
+    apply(next); try{localStorage.setItem('cortex-theme',next);}catch(e){}
+  });
+
+  var m = location.pathname.match(/\/case-studies\/cortex\/(a|b|c)\//i);
+  var ver = m ? m[1].toLowerCase() : 'c';
+  try { localStorage.setItem('cortex-case-ver', ver); } catch(e){}
+  var hints = { a:'A · quiet instrument', b:'B · dense redesign', c:'C · receipt ledger' };
+  document.querySelectorAll('.ver-switch a.ver-btn').forEach(function(el){
+    if (el.getAttribute('data-ver') === ver) el.classList.add('is-active');
+  });
+  var h = document.getElementById('verHint');
+  if (h) h.textContent = hints[ver] || hints.c;
+})();
+</script>
+</body>
+</html>
