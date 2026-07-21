@@ -193,6 +193,23 @@
     .ver-switch .ver-panel{min-width:0;}
   }
 
+  /* mobile responsive polish — layout only, no content changes */
+  @media (max-width:720px){
+    .bar-in{padding:0 16px; height:56px;}
+    .doc{padding-left:16px; padding-right:16px;}
+    .titleblock h1{font-size:clamp(26px,8vw,36px);}
+    .meta{grid-template-columns:1fr 1fr; gap:10px;}
+    .content section{padding-bottom:36px;}
+    .flow{padding:16px;}
+    .codeblock{font-size:12px; overflow-x:auto;}
+    .tbl-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+    footer{padding:36px 0 96px;}
+    .foot{padding:0 16px;}
+  }
+  @media (max-width:420px){
+    .meta{grid-template-columns:1fr;}
+  }
+
 </style>
 </head>
 <body>
@@ -446,10 +463,10 @@
     <div class="ver-label">Layout version</div>
     <div class="ver-btns">
       <a class="ver-btn" data-ver="a" href="/case-studies/cortex/a/index.html" title="Quiet instrument">A</a>
-      <a class="ver-btn" data-ver="b" href="/case-studies/cortex/b/index.html" title="Current full redesign">B</a>
-      <a class="ver-btn" data-ver="c" href="/case-studies/cortex/c/index.html" title="Declutter redesign">C</a>
+      <a class="ver-btn" data-ver="b" href="/case-studies/cortex/b/index.html" title="Refined editorial">B</a>
+      <a class="ver-btn" data-ver="c" href="/case-studies/cortex/c/index.html" title="Kernel motion">C</a>
     </div>
-    <div class="ver-hint" id="verHint">A quiet · B current · C declutter</div>
+    <div class="ver-hint" id="verHint">A quiet · B refined · C motion</div>
   </div>
 </div>
 
@@ -460,9 +477,9 @@
   var ver = m ? m[1].toLowerCase() : 'b';
   try { localStorage.setItem('cortex-case-ver', ver); } catch(e){}
   var hints = {
-    a: 'A · quiet instrument (pre CRT)',
-    b: 'B · current full redesign',
-    c: 'C · declutter redesign'
+    a: 'A · quiet instrument',
+    b: 'B · refined editorial',
+    c: 'C · kernel motion'
   };
   document.querySelectorAll('.ver-switch a.ver-btn').forEach(function(el){
     if (el.getAttribute('data-ver') === ver) el.classList.add('is-active');

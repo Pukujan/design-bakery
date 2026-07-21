@@ -237,6 +237,44 @@
     .ver-switch .ver-panel{min-width:0;}
   }
 
+  /* mobile responsive polish — layout only, no content changes */
+  @media (max-width:720px){
+    .wrap{padding:0 16px;}
+    .bar-in{height:56px; gap:10px;}
+    .brand{font-size:13px; gap:8px;}
+    nav.links{gap:8px;}
+    .theme-btn{padding:6px 10px; font-size:11px;}
+    .hero{padding:48px 0 36px;}
+    .hero h1{font-size:clamp(30px,9vw,42px); line-height:1.08;}
+    .lede{font-size:16px; max-width:none; margin-top:18px;}
+    .hero-cta{margin-top:22px; gap:10px;}
+    .btn{padding:12px 16px; font-size:12.5px; width:100%; justify-content:center;}
+    .instrument{min-height:260px; border-radius:12px;}
+    canvas#gate{height:220px;}
+    section{padding:48px 0;}
+    .sec-head h2{font-size:clamp(22px,6.5vw,30px);}
+    .sec-head p{font-size:15.5px; margin-top:12px;}
+    .truths,.panel-grid,.refs,.status-grid{margin-top:28px;}
+    .truth,.mod,.stat,.ref{padding:18px;}
+    .mod:hover{transform:none;}
+    .truth h3{font-size:18px;}
+    .stat .n{font-size:24px;}
+    .status-grid{grid-template-columns:1fr;}
+    .cmp-row{font-size:13px;}
+    .cmp-row > div{padding:12px 10px;}
+    footer{padding:40px 0 96px;}
+    .foot-in h3{font-size:20px;}
+    .fine{font-size:10.5px; gap:6px;}
+  }
+  @media (max-width:900px){
+    .panel-grid[style*="grid-template-columns"]{grid-template-columns:1fr !important;}
+  }
+  @media (max-width:380px){
+    .wrap{padding:0 12px;}
+    .hero h1{font-size:28px;}
+    nav.links a.cta{display:none;}
+  }
+
 </style>
 </head>
 <body>
@@ -616,10 +654,10 @@
     <div class="ver-label">Layout version</div>
     <div class="ver-btns">
       <a class="ver-btn" data-ver="a" href="/case-studies/cortex/a/index.html" title="Quiet instrument">A</a>
-      <a class="ver-btn" data-ver="b" href="/case-studies/cortex/b/index.html" title="Current full redesign">B</a>
-      <a class="ver-btn" data-ver="c" href="/case-studies/cortex/c/index.html" title="Declutter redesign">C</a>
+      <a class="ver-btn" data-ver="b" href="/case-studies/cortex/b/index.html" title="Refined editorial">B</a>
+      <a class="ver-btn" data-ver="c" href="/case-studies/cortex/c/index.html" title="Kernel motion">C</a>
     </div>
-    <div class="ver-hint" id="verHint">A quiet · B current · C declutter</div>
+    <div class="ver-hint" id="verHint">A quiet · B refined · C motion</div>
   </div>
 </div>
 
@@ -630,9 +668,9 @@
   var ver = m ? m[1].toLowerCase() : 'b';
   try { localStorage.setItem('cortex-case-ver', ver); } catch(e){}
   var hints = {
-    a: 'A · quiet instrument (pre CRT)',
-    b: 'B · current full redesign',
-    c: 'C · declutter redesign'
+    a: 'A · quiet instrument',
+    b: 'B · refined editorial',
+    c: 'C · kernel motion'
   };
   document.querySelectorAll('.ver-switch a.ver-btn').forEach(function(el){
     if (el.getAttribute('data-ver') === ver) el.classList.add('is-active');
