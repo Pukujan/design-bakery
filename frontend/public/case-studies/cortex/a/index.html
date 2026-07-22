@@ -132,13 +132,14 @@
     }
 
     .nav-link {
-      display: none;
-      padding: 7px 10px;
+      display: block;
+      padding: 7px 8px;
       border-radius: 4px;
       text-decoration: none;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
+      white-space: nowrap;
     }
 
     .nav-link[aria-current="page"] {
@@ -967,8 +968,8 @@
         <span>Cortex</span>
       </a>
       <div class="nav-links">
-        <a class="nav-link" href="index.html" aria-current="page">Case study</a>
-        <a class="nav-link" href="specs.html">Technical specs</a>
+        <a class="nav-link" href="index.html" aria-current="page">Overview</a>
+        <a class="nav-link" href="specs.html">Specs</a>
         <a class="nav-link" href="flowchart.html">Flow</a>
         <button class="theme-toggle" type="button" aria-label="Switch color theme" title="Switch color theme">
           <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
