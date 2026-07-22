@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>db-r-2026-004 · Black-box and grey-box validation of autonomous agent work</title>
-<meta name="description" content="Working paper (pending owner approval): validating autonomous agent output without trusting the agent — outcome and process oracles, grey-box holdouts, and deterministic evidence." />
+<meta name="description" content="Working paper (pending owner approval): validating autonomous agent output without trusting the agent — outcome and process oracles, circularity risks, benchmarks, and an anti-circular evaluation protocol." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet" />
@@ -48,13 +48,11 @@
   p{margin:.75em 0}
   ul,ol{padding-left:1.25em}
   li{margin:.3em 0}
-  table{width:100%; border-collapse:collapse; font-size:14px; margin:1em 0;
-    font-family:"IBM Plex Sans",system-ui,sans-serif; display:block; overflow-x:auto}
-  th,td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
-  th{background:var(--paper); font-weight:600}
-  caption.cap{caption-side:top; text-align:left; color:var(--muted);
-    font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:12.5px;
-    padding:0 0 6px}
+  blockquote{margin:1.2em 0; padding:2px 0 2px 16px; border-left:3px solid var(--line);
+    color:var(--ink); font-style:italic}
+  pre{margin:1em 0; padding:14px 16px; background:var(--paper); border:1px solid var(--line);
+    border-radius:6px; overflow-x:auto; font-family:"IBM Plex Mono",monospace;
+    font-size:12.5px; line-height:1.5}
   .cite{font-size:14px}
   .cite li{margin:.4em 0}
   .paths{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:14px;
@@ -80,88 +78,363 @@
   <p class="idline">db-r-2026-004 · submitted 2026-07-22 · status pending</p>
 
   <div class="warn">
-    <strong>Owner gate.</strong> Design-descriptive working paper. It states a validation method and its
-    test plan; it makes no benchmark claim. Cited concepts are established software-testing ideas; empirical
-    cells stay empty until the owner marks the paper <span class="mono">approved</span>.
+    <strong>Owner gate &amp; provenance note.</strong> Technical survey and position paper. It asserts no
+    benchmark result for any Cortex deployment; quoted figures are other authors' published results,
+    attributed by reference. Citations were AI-suggested and have <b>not</b> yet been independently
+    verified; several carry 2026 arXiv identifiers and must be confirmed before this paper is marked
+    <span class="mono">approved</span>.
   </div>
 
   <h2>Abstract</h2>
   <p>
-    If an autonomous agent produces work, who checks it? Not the agent, and not — when the checker shares
-    the agent's model family — an unconstrained model judge. This paper separates two validation modes for
-    agent output. <em>Black-box</em> validation asks only whether the observable outcome is correct: an
-    <b>outcome oracle</b> over external state. <em>Grey-box</em> validation additionally checks how the work
-    was done against invariants it should never violate: a <b>process oracle</b>. The organising rule is
-    that a deterministic checker, never a model vote, decides pass or fail; models only advise. We also
-    describe why a fully blind holdout is the wrong tool for validating <em>existing</em> code, and how a
-    grey-box holdout — given real signatures but not implementations — fixes it.
+    AI agents are difficult to evaluate because their behaviour emerges from multi-turn interaction, tool
+    use, external state, retrieval, memory, orchestration, and probabilistic model outputs. Evaluating only
+    the final answer can miss unsafe or defective execution paths, while evaluating internal traces can
+    over-constrain valid implementations or create a circular system in which the agent, evaluator, trace
+    generator, and acceptance criteria all share the same assumptions. This paper distinguishes
+    <em>black-box</em> validation, which evaluates externally observable behaviour without depending on
+    internal implementation, from <em>grey-box</em> validation, which evaluates selected internal
+    information such as tool trajectories, intermediate states, coverage, policy decisions, and execution
+    traces. The two provide complementary evidence but cannot validate one another automatically. The
+    central conclusion is that black-box and grey-box validation should be treated as independent evidence
+    channels whose oracles, instrumentation, and failure modes must themselves be tested.
   </p>
 
-  <h2>1. The oracle problem, for agents</h2>
+  <h2>1. Introduction</h2>
   <p>
-    Software testing calls the mechanism that decides whether an output is correct the <em>test oracle</em>,
-    and notes that a good oracle is often the hard part [1]. For autonomous agents the oracle problem is
-    sharper: the thing being checked can also argue about its own correctness. So the oracle must be
-    <em>external</em> to the agent and, ideally, deterministic.
+    A conventional software function can often be evaluated by providing an input and comparing the output
+    against an expected value. AI agents are more complicated: an agent may hold a multi-turn conversation,
+    retrieve external information, invoke tools, modify files or databases, delegate to other models,
+    maintain memory, recover from failed actions, make nondeterministic decisions, and produce an
+    apparently correct outcome through an incorrect process. A useful evaluation method must therefore
+    answer at least two distinct questions: (1) did the agent produce the correct externally observable
+    result, and (2) did it reach that result through an acceptable execution process? Black-box validation
+    primarily addresses the first; grey-box validation primarily addresses the second, though the boundary
+    is not absolute. The software-testing literature calls the difficulty of determining whether a result
+    is correct the <em>test-oracle problem</em>: even when execution is fully observable, the evaluator may
+    lack a complete or reliable definition of correct behaviour [1]. For agents this is more severe, since
+    natural-language requirements may be ambiguous, several outputs may be acceptable, environments change,
+    and an evaluator model may share the agent's misconceptions.
   </p>
 
-  <h2>2. Black-box: the outcome oracle</h2>
+  <h2>2. Definitions</h2>
+  <h3>2.1 Black-box validation</h3>
   <p>
-    Treat the agent as opaque; judge only the externally observable result — tests pass or fail, a type
-    check succeeds, a schema validates, produced state matches expected state. Where a single reference
-    output is unavailable, established black-box techniques still apply: <em>metamorphic</em> relations
-    (known relationships between inputs and outputs that must hold) [2] and <em>differential</em> testing
-    (compare against an independent implementation) [3]. None of these consult the agent's reasoning.
+    Black-box validation evaluates a system through its externally observable interface without relying on
+    internal implementation. The validator may observe user inputs, final responses, externally visible
+    tool effects, database or filesystem state, public errors and status codes, timing and resource
+    consumption, and whether the requested task was completed. It ordinarily does not depend on internal
+    prompts, source code, hidden reasoning, intermediate plans, internal memory, model-provider identity,
+    or private tool-selection logic.
   </p>
-
-  <h2>3. Grey-box: the process oracle</h2>
+  <pre>Initial environment state + User request
+        ↓
+Agent system
+        ↓
+Final response and external state
+        ↓
+Outcome oracle</pre>
   <p>
-    Outcome-correct is not always process-correct: a result can pass its visible tests while violating an
-    invariant (an unlogged side effect, a bypassed boundary, a hidden write). Grey-box validation adds
-    checks on the trajectory — invariants that must hold regardless of the result — without trusting the
-    agent's narration. In the Cortex setting these invariants are concrete: authorization precedes effect,
-    the broker is the sole writer, every request yields a receipt.
+    For example, an airline-support agent instructed to cancel an eligible reservation can be judged on
+    whether the reservation was actually cancelled, whether correct fees were applied, and whether
+    unrelated reservations were left unchanged. Recent research introduced AgentEval, a black-box framework
+    that mines conversational workflow graphs from observed interactions, replays paths to important
+    boundaries (confirmation, identity checks), and perturbs the interaction there. On four τ³-bench agents
+    it covered between 23 and 38 distinct boundaries per agent, compared with 12 for a prompt-only baseline
+    [2] — evidence that structured black-box exploration can reveal state-dependent failures without
+    source access, though not that it enumerates every state.
   </p>
-
-  <h2>4. Blind vs. grey-box holdouts</h2>
+  <h3>2.2 Grey-box validation</h3>
   <p>
-    A common anti-gaming device is a <em>holdout</em>: an independent party writes hidden tests. For
-    validating a <em>new build</em> against a spec, a blind holdout is right. But for validating
-    <em>existing</em> code, a blind holdout that must guess the real interface tends to test its own guesses
-    and produce false failures. The fix is a <b>grey-box holdout</b>: give the holdout author the real
-    signatures (extracted structurally — types and shapes, not bodies) so tests target the actual contract,
-    while the implementation stays hidden.
+    Grey-box validation examines externally observable behaviour while also using selected internal
+    information — sequences of tool calls, tool arguments, intermediate states, retrieval results,
+    execution spans, code and branch coverage, policy decisions, memory reads and writes, latency by
+    stage, generated plans, sandbox events, and intermediate task progress.
   </p>
-
-  <h2>5. Deterministic evidence dominates</h2>
+  <pre>Initial environment state + User request
+        ↓
+Agent system
+        ├── final response
+        ├── tool trajectory
+        ├── intermediate states
+        ├── execution metadata
+        └── selected instrumentation
+        ↓
+Outcome oracle + process oracle</pre>
   <p>
-    Across both modes the same rule holds: a deterministic checker decides pass/fail and a model vote never
-    overrides executable evidence. "Tests fail and the model says it is correct" is a failure. Models are
-    useful as advisors — proposing cases, explaining a diff, flagging a smell — but not as the authority in
-    the verdict path. An evaluator that is never itself attacked with defective and alternate-valid cases is
-    not authoritative.
+    The term is well established in software testing, especially coverage-guided fuzzing, where fuzzers
+    observe limited execution feedback (newly reached control-flow paths) to guide test generation without
+    full semantic analysis [3]. AgentBoard is a trajectory-aware evaluation framework that supplements
+    final success rates with progress rates, grounding accuracy, subskill analysis, long-range interaction
+    measurements, and trajectory visualisation; its progress metrics correlated above 0.95 with human
+    progress assessments on the evaluated tasks [4]. In this paper, grey-box means any evaluation that uses
+    selected internal execution evidence in addition to final observable outcomes.
+  </p>
+  <h3>2.3 White-box validation</h3>
+  <p>
+    White-box validation has broad access to implementation details — complete source, system and developer
+    prompts, orchestration logic, policy definitions, memory implementation, model configurations, and
+    test-generation code. It can identify structural vulnerabilities and unreachable branches but is more
+    tightly coupled to the implementation, and it risks validating what the system claims to do rather than
+    what the deployed system actually does. This paper treats white-box analysis as a complementary
+    engineering and auditing method and focuses on black-box and grey-box approaches.
   </p>
 
-  <h2>6. Non-claims</h2>
+  <h2>3. The case for black-box validation</h2>
+  <p>
+    <b>3.1 Implementation independence.</b> A black-box test can remain valid when the implementation
+    changes. "The agent must not issue a refund without the required approval" can be tested regardless of
+    model provider, prompt structure, orchestration framework, number of subagents, language, or internal
+    authorization implementation — useful for comparing architectures under the same observable
+    requirements. <b>3.2 End-to-end evaluation.</b> Black-box testing includes failures caused by
+    interactions between components: a correct tool and arguments can still fail because an adapter
+    transforms an argument, the environment is in an unexpected state, a call is retried, the final response
+    claims a success that did not occur, or a later step reverses an earlier correct action. τ-bench
+    compares the final database state against an annotated goal state and introduced "pass^k", measuring
+    whether an agent succeeds consistently across repeated executions rather than once by chance [5].
+    <b>3.3 Resistance to implementation-specific gaming.</b> When the evaluator does not expose its expected
+    trajectory, the agent cannot pass merely by emitting expected trace labels — though it may still overfit
+    to public task distributions, recognisable benchmark wording, or repeatedly queried hidden evaluations.
+  </p>
+
+  <h2>4. Strict critique of black-box validation</h2>
+  <p>
+    <b>4.1 The oracle can be wrong.</b> A black-box test is only as reliable as its expected outcome.
+    Repairing a defect and checking that supplied tests pass misses a patch that breaks behaviour those
+    tests do not cover. An empirical analysis of SWE-bench Verified patches found that running additional
+    repository tests identified, on average, 7.8% of apparently plausible patches as incorrect, dropping
+    the reported resolution rate by 4.5 points; differential testing found 29.6% of plausible patches
+    behaved differently from the developer patch [6]. <b>4.2 Correct outcome, incorrect cause.</b> A result
+    may be correct accidentally — no unauthorized transfer happens because the payment service crashed, not
+    because authorization worked. <b>4.3 Limited diagnosis.</b> A black-box failure can show that a system
+    is wrong without showing why. <b>4.4 Sparse coverage.</b> A passing sample does not prove nearby or
+    hidden behaviours are correct; state-dependent boundaries may require specific earlier actions to become
+    reachable [2]. <b>4.5 Nondeterministic success.</b> Sampling, latency, retrieval variation, or race
+    conditions can make one run pass and another fail; single-run accuracy overestimates reliability, which
+    "pass^k" exposes [5]. <b>4.6 Public benchmark contamination.</b> Public benchmarks expose tasks and
+    sometimes solutions; a high score can measure benchmark familiarity, which continuously refreshed
+    benchmarks such as SWE-bench-Live aim to reduce [7].
+  </p>
+
+  <h2>5. The case for grey-box validation</h2>
+  <p>
+    <b>5.1 Diagnosing where failure occurred.</b> A trace separates a wrong result into: the correct tool
+    was never called; the wrong tool was selected; the right tool received incorrect arguments; the tool
+    succeeded but the agent misread the result; the environment changed after execution. <b>5.2 Detecting
+    accidental success.</b> An agent may complete a transaction but perform unnecessary privileged calls,
+    retry a non-idempotent operation, read unrelated confidential records, ignore a required confirmation,
+    or reach the correct state through an unsafe shortcut; a final-state oracle marks it successful while a
+    trajectory evaluator catches the violation. <b>5.3 Measuring partial progress.</b> Final success is too
+    coarse for long-horizon tasks; AgentBoard's progress-rate methodology captures incremental advancement
+    and distinguishes systems with similar low final success but different partial capabilities [4].
+    <b>5.4 Coverage-guided test generation.</b> Coverage-guided fuzzers prioritise inputs reaching new
+    paths; FuzzBench compares fuzzers reproducibly and Magma supplements coverage with known ground-truth
+    bugs [8, 9] — an agent analogue could guide generation using unexplored tool sequences, unvisited
+    states, or untested policy branches. <b>5.5 Efficiency and cost analysis.</b> Trajectory evidence
+    measures tool calls, unnecessary retries, model-call count, tokens, latency, and progress per step;
+    OSWorld-Human found even high-scoring computer-use agents often took far more steps than necessary [10].
+  </p>
+
+  <h2>6. Strict critique of grey-box validation</h2>
+  <p>
+    <b>6.1 Instrumentation is not ground truth.</b> A trace is an observation produced by an
+    instrumentation system, not a complete record of reality; it may omit direct network calls, writes by
+    another process, delayed side effects, out-of-band communication, or events after trace completion. If
+    the agent generates its own authoritative trace, it may emit a convincing but false account; grey-box
+    evidence should be corroborated against independently observed state. <b>6.2 The trajectory-equivalence
+    problem.</b> Multiple valid trajectories may produce the same correct result; comparing against one
+    "golden trajectory" incorrectly rejects valid alternatives. The process oracle should specify invariants
+    and forbidden actions — "user identity verified before write; no unrelated records accessed; exactly one
+    successful payment" — not require exact imitation of a reference trace. <b>6.3 Overfitting to the
+    evaluator.</b> Detailed trajectory feedback invites optimising for the visible evaluator rather than
+    general behaviour. <b>6.4 Implementation coupling.</b> Grey-box tests depend on trace schemas, tool
+    names, and internal structure; a refactor may break them even when external behaviour is unchanged.
+    <b>6.5 Instrumentation can alter behaviour.</b> Tracing affects timing, concurrency, memory, and prompt
+    context — an observer effect. <b>6.6 Exposure of sensitive information.</b> Traces may contain user
+    data, credentials, and file contents; trace access should be treated as privileged.
+  </p>
+
+  <h2>7. Circular validation</h2>
+  <p>
+    Circular validation occurs when the system being evaluated and the system determining correctness share
+    the same assumptions, models, data, or artifacts:
+  </p>
+  <pre>Model creates answer → Related model evaluates answer →
+Evaluation confirms shared assumptions → Result treated as independent validation</pre>
+  <p>
+    Adding more evaluators does not eliminate circularity when they share the same error source.
+    <b>7.2 Shared-oracle circularity.</b> An incorrect requirement can feed the black-box expected result,
+    the grey-box required trajectory, the judge rubric, and the human checklist alike; all layers agree
+    while validating the wrong behaviour [1]. <b>7.3 LLM-as-judge bias.</b> The MT-Bench study found strong
+    agreement between capable LLM judges and human preferences but also position bias, verbosity bias,
+    self-enhancement bias, and reasoning limits [11]; self-preference research found judges may favour
+    outputs more familiar to their own distribution (lower-perplexity outputs) rather than objectively
+    better ones [12] — a different vendor helps but does not make the evaluator independent. <b>7.4
+    Correlated model errors.</b> A study of more than 350 models found substantial correlation between model
+    errors, including across families and providers [13]; consensus measures agreement, not truth. <b>7.5
+    Adaptive holdout overfitting.</b> A hidden set becomes effectively visible through repeated interaction;
+    adaptive-data-analysis research showed repeated holdout consultation causes overfitting even when the
+    examples are never disclosed [14]. <b>7.6 Benchmark gaming.</b> A public, important benchmark becomes a
+    development target; ordinary iterative improvement gradually specialises a system to it. <b>7.7 Trace
+    circularity.</b> A grey-box evaluator becomes circular when it trusts execution records generated by the
+    component it is evaluating; the trace should come from independent instrumentation or the environment.
+  </p>
+
+  <h2>8. Anti-circular validation design</h2>
+  <ol>
+    <li><b>Separate outcome and process oracles.</b> The process evaluator must not reinterpret an incorrect
+      external outcome as successful; the outcome evaluator must not ignore a critical process violation.</li>
+    <li><b>Prefer deterministic evidence</b> — database/filesystem state, JSON structure, call arguments,
+      compiler results, unit tests, access-control decisions, schema compliance, forbidden operations. Use
+      model judges only for semantic questions that cannot be reduced to deterministic checks.</li>
+    <li><b>Evaluate invariants, not exact trajectories.</b> Distinguish required invariants (permitted
+      order, required confirmation, no sensitive-data access, no duplicate write) from optional
+      implementation choices (exact wording, reasoning sequence, harmless extra retrieval).</li>
+    <li><b>Independently observe final state.</b> Query the system of record. If the agent claims
+      "reservation cancelled" but the database shows it active → FAIL.</li>
+    <li><b>Blind model judges</b> — conceal producer identity, randomise and reverse answer ordering,
+      remove stylistic metadata, commit initial judgments before showing others' opinions, calibrate against
+      labelled examples.</li>
+    <li><b>Limit hidden-evaluation feedback.</b> Visible development set with diagnostics; a diagnostic
+      holdout with limited queries and broad categories; a final holdout of fresh or rarely reused cases
+      with minimal feedback. Count every query to a protected holdout.</li>
+    <li><b>Use metamorphic and differential testing</b> — reordering irrelevant records should not change
+      the decision; removing required approval should flip allow→deny; two implementations should agree on
+      shared requirements.</li>
+    <li><b>Test the evaluator.</b> Challenge every validation component with deliberately defective cases: a
+      superficially successful but incomplete result; an alternate valid trajectory; an intentionally
+      unlogged side effect; reversed candidate order with concealed authorship; repeated-query inference;
+      known scoring mistakes; seeded defects; delayed and duplicated events. An evaluator never tested
+      against known failures should not be treated as authoritative.</li>
+  </ol>
+
+  <h2>9. Publicly available benchmarks</h2>
+  <p><em>Operational classification; many benchmarks run black-box while also collecting traces for grey-box analysis.</em></p>
   <ul>
-    <li>Describes a method and test plan, not a measured result.</li>
-    <li>Does not claim any specific pass rate; empirical cells are empty pending owner approval.</li>
-    <li>Companion to the orchestrator-control paper (db-r-2026-003), which supplies the family-bias firewall these oracles feed.</li>
+    <li><b>τ-bench / τ³-bench</b> — conversational tool-using agents under domain policies; black-box
+      final-state comparison plus "pass^k"; simulated users may not represent production [5].</li>
+    <li><b>AgentBoard</b> — analytical, strong grey-box/progress elements; annotations may privilege expected
+      solution structures [4].</li>
+    <li><b>AgentBench</b> — LLMs as agents across eight interactive environments; aggregate scores can hide
+      per-domain differences [15].</li>
+    <li><b>SWE-bench</b> — coding agents on real GitHub issues; black-box execution via repository tests; the
+      supplied oracle may be incomplete [6].</li>
+    <li><b>WebArena</b> — autonomous web interaction in self-hosted environments; multiple valid paths;
+      environment maintenance needed for reproducibility [16].</li>
+    <li><b>OSWorld / OSWorld 2.0</b> — multimodal computer-use agents on real desktops (369 tasks; 2.0 adds
+      108 longer workflows); a correct final state does not establish the intended/safest method [17, 18].</li>
+    <li><b>BFCL</b> — function selection and argument generation via AST and executable validation; measures
+      the function-calling layer, not full agent safety [19].</li>
+    <li><b>AgentDojo</b> — utility and security under indirect prompt injection; static attacks can become
+      development targets [20].</li>
+    <li><b>Agent Security Bench</b> — attacks and defences across agent stages; threat models cannot cover
+      unknown attacks or all tool compositions [21].</li>
+    <li><b>AgentDyn</b> — dynamic open-ended prompt-injection (60 tasks, 560 injections); still a finite
+      curated benchmark [22].</li>
+    <li><b>FuzzBench</b> — reproducible coverage-guided fuzzer comparison; coverage is an imperfect proxy for
+      defect detection [8].</li>
+    <li><b>Magma</b> — fuzzers against known ground-truth bugs; shows internal metrics like coverage should
+      be validated against meaningful ground-truth failures [9].</li>
   </ul>
 
-  <h2>7. Related work in this series</h2>
+  <h2>10. Production and open-source evaluation tools</h2>
+  <p>These operationalise black-box and grey-box evaluation but do not prove the evaluation design is non-circular.</p>
+  <ul>
+    <li><b>Inspect AI</b> (UK AI Security Institute) — tasks, tool agents, custom/model-graded scorers,
+      sandbox execution, logs/traces; Inspect Evals ships 200+ evaluations including SWE-bench. Provides
+      machinery, not guarantees of scorer correctness, holdout independence, judge neutrality, trace
+      completeness, or benchmark-to-production match [23].</li>
+    <li><b>LangSmith</b> — offline datasets, final-response and trajectory evaluators, model judges,
+      production tracing; trajectory evaluation may depend on judges or reference trajectories; users design
+      their own independence and anti-overfitting controls [24].</li>
+    <li><b>Braintrust</b> — datasets, code/LLM/trace-level scorers, online production scoring; quality
+      depends heavily on customer-created scorers and datasets [25].</li>
+    <li><b>Arize Phoenix</b> — OpenTelemetry-based observability plus evaluation across model calls,
+      retrieval, and tools; observability is not validation — a complete-looking trace may omit
+      uninstrumented effects, and a high score may rely on a weak oracle [26].</li>
+  </ul>
+  <p>
+    No surveyed production tool proves that combining black-box and grey-box testing eliminates circular
+    validation. The user must still determine who creates the oracle, whether it is independent, whether
+    traces are trustworthy, whether hidden evaluations are protected, whether judges are calibrated, whether
+    test cases represent production, whether evaluators have correlated errors, and whether the evaluator
+    itself has been adversarially tested.
+  </p>
+
+  <h2>11. Recommended evaluation protocol</h2>
+  <ul>
+    <li><b>Layer A — black-box outcome:</b> final task completion, external state, unintended side effects,
+      consistency across repeated runs, performance under perturbed inputs. Never rely solely on the agent's
+      verbal success claim.</li>
+    <li><b>Layer B — grey-box invariants:</b> required steps, forbidden actions, tool correctness,
+      sensitive-data access, duplication/retries, progress, resource consumption. Avoid requiring exact
+      reference trajectories unless only one is truly valid.</li>
+    <li><b>Layer C — evaluator validation:</b> scoring implementation, trace completeness, judge ordering
+      bias, judge self-preference, benchmark contamination, holdout leakage, alternative valid strategies,
+      known defective behaviours.</li>
+    <li><b>Layer D — production validation:</b> sampled production traces, independently observed outcomes,
+      human incident review, new regression cases from failures, periodically refreshed benchmarks,
+      distribution-shift monitoring.</li>
+  </ul>
+  <pre>PASS = external outcome correct
+       AND critical process invariants satisfied
+       AND evaluation infrastructure healthy
+       AND repeated-run reliability acceptable</pre>
+  <p>Model consensus must not override a deterministic external-state failure or a critical invariant violation.</p>
+
+  <h2>12. Conclusions</h2>
+  <p>
+    Black-box validation asks "did the agent produce the correct observable outcome?"; grey-box validation
+    asks "what happened during execution, and were required process properties preserved?" Black-box is more
+    implementation-independent and better aligned with user-visible results but suffers from incomplete
+    oracles, sparse coverage, weak diagnosis, nondeterminism, and benchmark gaming. Grey-box provides
+    process visibility, diagnosis, coverage feedback, partial-progress measurement, and detection of
+    accidental success but can trust incomplete instrumentation, reject valid alternate strategies, couple
+    tests to implementation, expose sensitive information, and encourage optimisation for the evaluator.
+    Combining both is stronger than either alone, but the combination does not automatically solve
+    circularity. The correct claim is not "black-box and grey-box validation prove that an agent is
+    correct," but "together they create complementary evidence about outcomes and execution processes,
+    provided that their oracles, instrumentation, benchmarks, and evaluators are themselves independently
+    challenged."
+  </p>
+
+  <h2>Related work in this series</h2>
   <div class="paths">
     <a href="/research/papers/db-r-2026-002.html">db-r-2026-002 · Deny-by-default authorization</a>
     <a href="/research/papers/db-r-2026-003.html">db-r-2026-003 · Constraining an LLM orchestrator</a>
     <a href="/research/papers/db-r-2026-001.html">db-r-2026-001 · Composition status</a>
+    <a href="/case-studies/cortex/a/">Cortex case study</a>
   </div>
 
   <h2>References</h2>
+  <p style="font-size:13px;color:var(--muted)"><em>Citations are AI-suggested and pending independent verification (see provenance note). Several carry 2026 arXiv identifiers.</em></p>
   <ol class="cite">
-    <li>Barr, E. T.; Harman, M.; McMinn, P.; Shahbaz, M.; Yoo, S. "The Oracle Problem in Software Testing: A Survey." <em>IEEE TSE</em> 41(5), 2015.</li>
-    <li>Chen, T. Y.; Cheung, S. C.; Yiu, S. M. "Metamorphic Testing: A New Approach for Generating Next Test Cases." Tech. report HKUST-CS98-01, 1998.</li>
-    <li>McKeeman, W. M. "Differential Testing for Software." <em>Digital Technical Journal</em> 10(1), 1998.</li>
-    <li>Pujan; Design Bakery. <em>Cortex reliability kernel: composition status and evidence boundaries</em>. db-r-2026-001, 2026 (pending).</li>
+    <li>Barr, Harman, McMinn, Shahbaz, Yoo. "The Oracle Problem in Software Testing: A Survey." IEEE TSE 41(5), 507–525, 2015. DOI: 10.1109/TSE.2014.2372785.</li>
+    <li>Lin, Yu, Zhang, Briand, Niland, Muñoz. "Mining Workflow Graphs for Black-Box Boundary Testing of Conversational LLM Agents." arXiv:2607.06873, 2026.</li>
+    <li>Böhme, Pham, Roychoudhury. "Coverage-Based Greybox Fuzzing as Markov Chain." ACM CCS 2016; extended in IEEE TSE.</li>
+    <li>Ma et al. "AgentBoard: An Analytical Evaluation Board of Multi-turn LLM Agents." NeurIPS D&amp;B, 2024. arXiv:2401.13178. Repo: hkust-nlp/AgentBoard.</li>
+    <li>Yao, Shinn, Razavi, Narasimhan. "τ-bench: A Benchmark for Tool-Agent-User Interaction in Real-World Domains." arXiv:2406.12045, 2024. Repo: sierra-research/tau-bench.</li>
+    <li>Yang et al. "Are 'Solved Issues' in SWE-bench Really Solved Correctly? An Empirical Study." arXiv:2503.15223, 2025.</li>
+    <li>Zhang et al. "SWE-bench Goes Live!" arXiv:2505.23419, 2025.</li>
+    <li>Metzman et al. "FuzzBench: An Open Fuzzer Benchmarking Platform and Service." ESEC/FSE 2021. Repo: google/fuzzbench.</li>
+    <li>Hazimeh et al. "Magma: A Ground-Truth Fuzzing Benchmark." Proc. ACM Meas. Anal. Comput. Syst. 4(3), 2020. arXiv:2009.01120.</li>
+    <li>Abhyankar, Qi, Zhang. "OSWorld-Human: Benchmarking the Efficiency of Computer-Use Agents." arXiv:2506.16042, 2025. Repo: WukLab/osworld-human.</li>
+    <li>Zheng et al. "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena." NeurIPS 2023. arXiv:2306.05685.</li>
+    <li>Wataoka, Takahashi, Ri. "Self-Preference Bias in LLM-as-a-Judge." arXiv:2410.21819, 2024.</li>
+    <li>Kim, Garg, Peng, Garg. "Correlated Errors in Large Language Models." ICML, PMLR 267, 2025.</li>
+    <li>Dwork, Feldman, Hardt, Pitassi, Reingold, Roth. "Generalization in Adaptive Data Analysis and Holdout Reuse." NeurIPS 2015. arXiv:1506.02629.</li>
+    <li>Liu et al. "AgentBench: Evaluating LLMs as Agents." ICLR 2024. arXiv:2308.03688. Repo: THUDM/AgentBench.</li>
+    <li>Zhou et al. "WebArena: A Realistic Web Environment for Building Autonomous Agents." arXiv:2307.13854, 2023. Repo: web-arena-x/webarena.</li>
+    <li>Xie et al. "OSWorld: Benchmarking Multimodal Agents for Open-Ended Tasks in Real Computer Environments." NeurIPS 2024. arXiv:2404.07972. Repo: xlang-ai/OSWorld.</li>
+    <li>Yuan et al. "OSWorld 2.0: Benchmarking Computer Use Agents on Long-Horizon Real-World Tasks." arXiv:2606.29537, 2026.</li>
+    <li>Patil et al. "Berkeley Function-Calling Leaderboard." UC Berkeley Sky Computing Lab. Repo: ShishirPatil/gorilla.</li>
+    <li>Debenedetti, Zhang, Balunovic, Beurer-Kellner, Fischer, Tramèr. "AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents." NeurIPS D&amp;B, 2024. arXiv:2406.13352. Repo: ethz-spylab/agentdojo.</li>
+    <li>Zhang et al. "Agent Security Bench: Formalizing and Benchmarking Attacks and Defenses in LLM-Based Agents." ICLR 2025. arXiv:2410.02644. Repo: agiresearch/asb.</li>
+    <li>Li, Wen, Shi, Zhang, Xiao. "AgentDyn: A Dynamic Open-Ended Benchmark for Evaluating Prompt Injection Attacks of Real-World Agent Security Systems." arXiv:2602.03117, 2026. Repo: SaFo-Lab/AgentDyn.</li>
+    <li>UK AI Security Institute. "Inspect AI" / "Inspect Evals." Repos: UKGovernmentBEIS/inspect_ai, UKGovernmentBEIS/inspect_evals.</li>
+    <li>LangChain. "LangSmith Trajectory Evaluations and Agent Evals." Product documentation.</li>
+    <li>Braintrust. "Systematic Evaluation, Trace Scorers, and Online Scoring." Product documentation.</li>
+    <li>Arize AI. "Phoenix: Open-Source AI Observability and Evaluation." Repo: Arize-ai/phoenix.</li>
   </ol>
 
   <footer>
