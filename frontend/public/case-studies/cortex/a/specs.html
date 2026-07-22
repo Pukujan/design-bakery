@@ -830,6 +830,7 @@
       <div class="nav-actions">
         <a class="nav-link" href="index.html">Overview</a>
         <a class="nav-link" href="specs.html" aria-current="page">Specs</a>
+        <a class="nav-link" href="flowchart.html">Flow</a>
         <button class="theme-toggle" type="button" aria-label="Switch color theme" title="Switch color theme">
           <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
             <path d="M20.5 15.5A9 9 0 0 1 8.5 3.5a9 9 0 1 0 12 12Z"/>
@@ -1260,858 +1261,88 @@ return receipt(request, decision, result)</code></pre>
                   <td>Authority</td>
                   <td>May remain implicit in tool access</td>
                   <td>May vary by wrapper or call site</td>
-                  <td>Explicit, scoped, and policy-checked</tdI’m locating the existing Cortex case-study files and extracting the product claims, section content, and link conventions so the replacement preserves meaning while changing the visual system completely.I’ll also check the current mobile and specs structure before editing, since the requested deliverable has two standalone documents with different responsive behaviors.I’m ready to inspect the workspace now; the key things I’m looking for are the current claim language, the seven mechanisms, and any existing technical-flow details that should remain authoritative.<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Cortex case study: a bounded execution kernel for agents, with deny-by-default authorization, receipts, and a sole-writer tool broker.">
-  <title>Cortex | The boundary around useful agency</title>
-  <style>
-    :root {
-      --paper: #f5f1e8;
-      --paper-2: #ebe5d8;
-      --ink: #1d2220;
-      --muted: #646963;
-      --line: #c9c6ba;
-      --green: #174d43;
-      --green-2: #22685a;
-      --orange: #e27135;
-      --yellow: #f0c95c;
-      --white: #fffdf7;
-      --serif: "Fraunces", Georgia, serif;
-      --sans: "DM Sans", Arial, sans-serif;
-      --mono: "SFMono-Regular", Consolas, monospace;
-      color-scheme: light;
-    }
-
-    @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap");
-
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      background: var(--paper);
-      color: var(--ink);
-      font-family: var(--sans);
-      font-size: 16px;
-      line-height: 1.55;
-    }
-    a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px; }
-    img, svg { max-width: 100%; }
-    .site-header {
-      position: sticky;
-      z-index: 10;
-      top: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 58px;
-      padding: 0 5vw;
-      border-bottom: 1px solid rgba(29,34,32,.16);
-      background: rgba(245,241,232,.92);
-      backdrop-filter: blur(12px);
-    }
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--green);
-      font-weight: 700;
-      letter-spacing: -.03em;
-      text-decoration: none;
-    }
-    .brand-mark {
-      display: grid;
-      place-items: center;
-      width: 25px;
-      height: 25px;
-      border: 2px solid var(--green);
-      border-radius: 50%;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    nav { display: flex; align-items: center; gap: 17px; font-size: 13px; }
-    nav a { text-decoration: none; color: var(--muted); }
-    nav a:hover, nav a:focus-visible { color: var(--ink); }
-    .nav-cta {
-      padding: 7px 11px;
-      border: 1px solid var(--green);
-      border-radius: 2px;
-      color: var(--green);
-      font-weight: 600;
-    }
-
-    main { overflow: hidden; }
-    .wrap { width: min(1120px, 90vw); margin-inline: auto; }
-    .eyebrow {
-      margin: 0 0 13px;
-      color: var(--orange);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-    }
-    h1, h2, h3 {
-      margin: 0;
-      color: var(--green);
-      font-family: var(--serif);
-      font-weight: 600;
-      letter-spacing: -.045em;
-      line-height: 1.03;
-    }
-    h1 { max-width: 790px; font-size: clamp(3.2rem, 13vw, 8.5rem); }
-    h2 { font-size: clamp(2.5rem, 7vw, 5rem); }
-    h3 { font-size: clamp(1.45rem, 3vw, 2rem); }
-    p { margin: 0; }
-    .lede { max-width: 615px; color: var(--muted); font-size: clamp(1.05rem, 2vw, 1.3rem); }
-    .hero {
-      position: relative;
-      padding: 10vh 0 8vh;
-      border-bottom: 1px solid var(--line);
-    }
-    .hero-grid {
-      display: grid;
-      gap: 42px;
-      align-items: end;
-    }
-    .hero-copy { position: relative; z-index: 1; }
-    .hero-copy .lede { margin-top: 27px; }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 43px;
-      padding: 10px 15px;
-      border: 1px solid var(--green);
-      border-radius: 2px;
-      background: var(--green);
-      color: var(--white);
-      font-size: 14px;
-      font-weight: 700;
-      text-decoration: none;
-    }
-    .button.secondary { background: transparent; color: var(--green); }
-    .button:hover, .button:focus-visible { background: var(--orange); border-color: var(--orange); color: var(--white); }
-
-    .hero-visual {
-      min-height: 255px;
-      padding: 26px;
-      border: 1px solid var(--green);
-      background: var(--green);
-      color: var(--white);
-      overflow: hidden;
-    }
-    .visual-kicker {
-      display: flex;
-      justify-content: space-between;
-      color: #bcd2c5;
-      font-family: var(--mono);
-      font-size: 11px;
-      text-transform: uppercase;
-    }
-    .orbit {
-      position: relative;
-      display: grid;
-      place-items: center;
-      height: 190px;
-      margin-top: 8px;
-    }
-    .orbit::before, .orbit::after {
-      position: absolute;
-      content: "";
-      border: 1px solid rgba(255,253,247,.32);
-      border-radius: 50%;
-    }
-    .orbit::before { width: 178px; height: 108px; transform: rotate(-24deg); }
-    .orbit::after { width: 258px; height: 156px; transform: rotate(20deg); }
-    .core {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      place-items: center;
-      width: 104px;
-      height: 104px;
-      border: 1px solid var(--yellow);
-      border-radius: 50%;
-      background: var(--green-2);
-      color: var(--yellow);
-      font-family: var(--serif);
-      font-size: 25px;
-      text-align: center;
-    }
-    .node {
-      position: absolute;
-      z-index: 2;
-      padding: 4px 7px;
-      background: var(--orange);
-      color: var(--white);
-      font-family: var(--mono);
-      font-size: 10px;
-    }
-    .node.a { top: 17px; left: 8%; }
-    .node.b { right: 4%; bottom: 25px; }
-    .node.c { bottom: 9px; left: 28%; background: var(--yellow); color: var(--ink); }
-
-    .section { padding: 84px 0; border-bottom: 1px solid var(--line); }
-    .section-intro { display: grid; gap: 22px; margin-bottom: 42px; }
-    .section-intro p { max-width: 540px; color: var(--muted); }
-    .split {
-      display: grid;
-      gap: 32px;
-      align-items: start;
-    }
-    .statement {
-      padding: 26px 0;
-      border-top: 4px solid var(--orange);
-      font-family: var(--serif);
-      color: var(--green);
-      font-size: clamp(1.8rem, 4vw, 3.2rem);
-      line-height: 1.07;
-    }
-    .body-copy { color: var(--muted); }
-    .body-copy p + p { margin-top: 17px; }
-    .annotation {
-      padding: 19px;
-      border-left: 3px solid var(--yellow);
-      background: var(--paper-2);
-      color: var(--ink);
-      font-size: 14px;
-    }
-    .mechanisms {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-      gap: 1px;
-      border: 1px solid var(--line);
-      background: var(--line);
-    }
-    .mechanism {
-      min-height: 176px;
-      padding: 21px;
-      background: var(--paper);
-    }
-    .mechanism-number {
-      display: block;
-      margin-bottom: 24px;
-      color: var(--orange);
-      font-family: var(--mono);
-      font-size: 12px;
-    }
-    .mechanism h3 { margin-bottom: 10px; font-size: 1.35rem; }
-    .mechanism p { color: var(--muted); font-size: 14px; }
-
-    .comparison {
-      display: grid;
-      gap: 14px;
-    }
-    .compare-card {
-      padding: 22px;
-      border: 1px solid var(--line);
-      background: var(--white);
-    }
-    .compare-card.cortex { border-color: var(--orange); background: #fff8e9; }
-    .compare-label {
-      display: inline-block;
-      margin-bottom: 17px;
-      color: var(--muted);
-      font-family: var(--mono);
-      font-size: 11px;
-      text-transform: uppercase;
-    }
-    .compare-card h3 { margin-bottom: 13px; font-size: 1.7rem; }
-    .compare-card p { color: var(--muted); }
-    .compare-card ul { margin: 17px 0 0; padding-left: 18px; color: var(--muted); }
-    .compare-card li + li { margin-top: 7px; }
-
-    .receipt {
-      display: grid;
-      gap: 28px;
-      padding: 26px;
-      background: var(--green);
-      color: var(--white);
-    }
-    .receipt h2 { color: var(--yellow); font-size: clamp(2.2rem, 5vw, 4.2rem); }
-    .receipt p { color: #d6e0d7; }
-    pre {
-      max-width: 100%;
-      margin: 0;
-      padding: 19px;
-      overflow-x: auto;
-      border: 1px solid rgba(255,253,247,.3);
-      background: #103a33;
-      color: #d9e9d8;
-      font: 12px/1.7 var(--mono);
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-    .key { color: var(--yellow); }
-    .value { color: #f4a26f; }
-
-    .status-band {
-      display: grid;
-      gap: 28px;
-      align-items: center;
-      background: var(--yellow);
-    }
-    .status-band h2 { color: var(--ink); }
-    .status-band p { max-width: 550px; color: #4d4a35; }
-
-    footer {
-      padding: 30px 0;
-      background: var(--green);
-      color: #dce6da;
-    }
-    .footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; }
-    footer a { color: inherit; }
-    .footer-brand { color: var(--yellow); }
-
-    @media (min-width: 700px) {
-      .site-header { min-height: 68px; }
-      .hero { padding: 15vh 0 12vh; }
-      .hero-grid { grid-template-columns: minmax(0, 1.1fr) minmax(300px, .7fr); gap: 7vw; }
-      .hero-visual { margin-bottom: 6px; }
-      .section { padding: 120px 0; }
-      .section-intro { grid-template-columns: minmax(250px, .8fr) minmax(300px, 1fr); align-items: end; }
-      .split { grid-template-columns: minmax(220px, .7fr) minmax(300px, 1fr); gap: 8vw; }
-      .comparison { grid-template-columns: repeat(2, 1fr); }
-      .receipt { grid-template-columns: .8fr 1.2fr; align-items: center; padding: 42px; }
-      .status-band { grid-template-columns: 1fr 1fr; }
-    }
-
-    @media (prefers-reduced-motion: no-preference) {
-      .hero-visual { animation: settle .8s ease both; }
-      .orbit::before { animation: turn 18s linear infinite; }
-      .orbit::after { animation: turn-reverse 23s linear infinite; }
-      @keyframes settle { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-      @keyframes turn { to { transform: rotate(336deg); } }
-      @keyframes turn-reverse { to { transform: rotate(-340deg); } }
-    }
-    @media (max-width: 360px) {
-      nav { gap: 9px; font-size: 12px; }
-      .nav-cta { padding-inline: 8px; }
-      .hero-visual { padding: 18px; }
-    }
-  </style>
-</head>
-<body>
-  <header class="site-header">
-    <a class="brand" href="/" aria-label="Cortex home">
-      <span class="brand-mark">C</span>
-      <span>Cortex</span>
-    </a>
-    <nav aria-label="Primary navigation">
-      <a href="#approach">Approach</a>
-      <a href="#status">Status</a>
-      <a class="nav-cta" href="specs.html">Technical specs</a>
-    </nav>
-  </header>
-
-  <main>
-    <section class="hero">
-      <div class="wrap hero-grid">
-        <div class="hero-copy">
-          <p class="eyebrow">Cortex / case study</p>
-          <h1>The boundary around useful agency.</h1>
-          <p class="lede">Cortex is an execution kernel for tool-using agents. It does not make an agent smarter. It makes every proposed action explicit, authorized, bounded, and accountable.</p>
-          <div class="hero-actions">
-            <a class="button" href="specs.html">Read the technical specs <span aria-hidden="true">&nbsp;↗</span></a>
-            <a class="button secondary" href="#mechanisms">See the seven mechanisms</a>
+                  <td>Explicit, scoped, and policy-checked</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </div>
-        <div class="hero-visual" aria-label="Diagram showing an agent surrounded by authorization and receipt boundaries">
-          <div class="visual-kicker"><span>execution boundary</span><span>01 / 07</span></div>
-          <div class="orbit">
-            <span class="node a">intent</span>
-            <span class="node b">receipt</span>
-            <span class="node c">policy</span>
-            <div class="core">Cortex<br>kernel</div>
-          </div>
-        </div>
-      </div>
-    </section>
+        </section>
 
-    <section class="section" id="approach">
-      <div class="wrap">
-        <div class="section-intro">
-          <div>
-            <p class="eyebrow">The proposition</p>
-            <h2>Intelligence proposes. The boundary decides.</h2>
-          </div>
-          <p>Cortex separates a model's reasoning from the effects that reasoning can cause. The kernel receives an intended action, evaluates it against authority and policy, and records what happened.</p>
-        </div>
-        <div class="split">
-          <div class="statement">Authorization is a control point, not a prompt.</div>
-          <div class="body-copy">
-            <p>In an open-ended agent loop, a useful answer is only part of the job. The system also needs a dependable answer to: what was requested, what was allowed, which tool performed it, and what evidence remains?</p>
-            <p>Cortex puts those questions in a small, inspectable execution path. By default, a proposed action is denied until it has the authority and context required to proceed.</p>
-            <div class="annotation">The kernel is not a smarter agent. It is the part that keeps an agent's reach smaller than its imagination.</div>
-          </div>
-        </div>
-      </div>
-    </section>
+        <section class="spec-section" id="failure">
+          <p class="section-label">10 / Failure behavior</p>
+          <h2>Every failure resolves to a refusal, with evidence.</h2>
+          <p class="lead">The kernel has no silent-failure path. Missing authority, an unsatisfied policy, or an execution fault all resolve the same way: no controlled state change, and a receipt that records what happened.</p>
 
-    <section class="section" id="mechanisms">
-      <div class="wrap">
-        <div class="section-intro">
-          <div>
-            <p class="eyebrow">The architecture</p>
-            <h2>Seven mechanisms make the boundary real.</h2>
+          <div class="flow" aria-label="Cortex failure conditions and responses">
+            <article class="flow-step gate">
+              <span>Authority absent</span>
+              <b>Deny by default</b>
+              <p>A request with missing, unknown, invalid, or insufficient authority is refused. Absence of proof resolves to deny — never to a pass.</p>
+            </article>
+            <article class="flow-step gate">
+              <span>Policy unsatisfied</span>
+              <b>Refuse at the effect boundary</b>
+              <p>If current policy does not permit the concrete effect, the request is denied before any write is attempted.</p>
+            </article>
+            <article class="flow-step">
+              <span>Execution fault</span>
+              <b>No alternate write path</b>
+              <p>If an allowed operation fails inside <code>tool_broker</code>, execution fails without committing through any other path.</p>
+            </article>
+            <article class="flow-step">
+              <span>Every outcome</span>
+              <b>Durable evidence</b>
+              <p>Each completed or denied request produces a receipt connecting the proposal, the authorization decision, the tool outcome, and the resulting state.</p>
+            </article>
           </div>
-          <p>Each mechanism answers a different failure mode in the path from intent to side effect. Together they turn a vague tool call into a governed execution.</p>
-        </div>
-        <div class="mechanisms">
-          <article class="mechanism">
-            <span class="mechanism-number">01 / intent</span>
-            <h3>Explicit action requests</h3>
-            <p>Proposals become structured requests rather than invisible side effects.</p>
-          </article>
-          <article class="mechanism">
-            <span class="mechanism-number">02 / authority</span>
-            <h3>Deny by default</h3>
-            <p>An action must be authorized before the system permits it to continue.</p>
-          </article>
-          <article class="mechanism">
-            <span class="mechanism-number">03 / policy</span>
-            <h3>Bounded decisions</h3>
-            <p>Policy evaluates the requested operation, its target, and the available context.</p>
-          </article>
-          <article class="mechanism">
-            <span class="mechanism-number">04 / mediation</span>
-            <h3>One tool broker</h3>
-            <p><code>tool_broker</code> is the sole writer. Tools do not bypass the execution boundary.</p>
-          </article>
-          <article class="mechanism">
-            <span class="mechanism-number">05 / evidence</span>
-            <h3>Receipts</h3>
-            <p>Each decision and resulting execution has a durable, inspectable record.</p>
-          </article>
-          <article class="mechanism">
-            <span class="mechanism-number">06 / continuity</span>
-            <h3>Traceable context</h3>
-            <p>Requests, decisions, and outcomes stay connected through an execution trace.</p>
-          </article>
-          <article class="mechanism">
-            <span class="mechanism-number">07 / control</span>
-            <h3>Observable status</h3>
-            <p>The system exposes whether work is proposed, denied, executing, or complete.</p>
-          </article>
-        </div>
-      </div>
-    </section>
 
-    <section class="section">
-      <div class="wrap">
-        <div class="section-intro">
-          <div>
-            <p class="eyebrow">Field comparison</p>
-            <h2>Capability without a blank cheque.</h2>
+          <div class="normative">
+            <strong>Failure posture</strong>
+            <p><code>tool_broker</code> remains the sole writer. A denied or failed request produces evidence, not a partial or unattributed state change.</p>
           </div>
-          <p>The useful distinction is not whether an agent can call a tool. It is whether the surrounding system can constrain and explain that call.</p>
-        </div>
-        <div class="comparison">
-          <article class="compare-card">
-            <span class="compare-label">Unbounded agent loop</span>
-            <h3>Reasoning and effects share a path.</h3>
-            <p>Tool access is treated as an extension of the model's loop, making authority and outcome difficult to inspect independently.</p>
-            <ul>
-              <li>Permission may be implicit</li>
-              <li>Writes can be scattered across tools</li>
-              <li>Evidence is assembled after the fact</li>
-            </ul>
-          </article>
-          <article class="compare-card cortex">
-            <span class="compare-label">Cortex execution</span>
-            <h3>Reasoning meets a governed boundary.</h3>
-            <p>The model can propose useful work while the kernel remains responsible for authorization, mediation, and the record.</p>
-            <ul>
-              <li>Denial is the starting state</li>
-              <li><code>tool_broker</code> is the sole writer</li>
-              <li>Receipts follow the execution path</li>
-            </ul>
-          </article>
-        </div>
-      </div>
-    </section>
+        </section>
 
-    <section class="section">
-      <div class="wrap">
-        <div class="receipt">
-          <div>
-            <p class="eyebrow">The artifact</p>
-            <h2>Every allowed action leaves a receipt.</h2>
-            <p style="margin-top:18px">A receipt makes a decision legible after the model has moved on. It ties the requested action to its authorization, broker, result, and current status.</p>
-          </div>
-          <pre aria-label="Example Cortex receipt"><span class="key">{
-  "status"</span>: <span class="value">"executed"</span>,
-  <span class="key">"request_id"</span>: <span class="value">"req_0184"</span>,
-  <span class="key">"action"</span>: <span class="value">"write"</span>,
-  <span class="key">"authorization"</span>: <span class="value">"allowed"</span>,
-  <span class="key">"writer"</span>: <span class="value">"tool_broker"</span>,
-  <span class="key">"receipt"</span>: <span class="value">"available"</span>
-}</pre>
-        </div>
-      </div>
-    </section>
-
-    <section class="section status-band" id="status">
-      <div class="wrap">
-        <p class="eyebrow">Current status</p>
-        <h2>Built around the decision that matters.</h2>
-      </div>
-      <div class="wrap">
-        <p>Cortex is a case study in making agent execution governable: explicit requests, deny-by-default authorization, a sole writing broker, and receipts that preserve the path from intent to outcome.</p>
-        <div class="hero-actions">
-          <a class="button" href="specs.html">Open technical specs <span aria-hidden="true">&nbsp;↗</span></a>
-        </div>
-      </div>
-    </section>
+        <section class="spec-section" id="status">
+          <p class="section-label">11 / Status</p>
+          <h2>Where this specification stands.</h2>
+          <p class="lead">Cortex is presented here as a constrained-execution kernel and architecture case study.</p>
+          <p>The status describes the system boundary documented in this case study. Deployment readiness, policy coverage, and operational guarantees remain properties of a specific implementation and environment.</p>
+          <p>Related material: the <a href="index.html">case-study overview</a>, the <a href="flowchart.html">decision-flow diagrams</a>, and Design Bakery research paper <a href="/research/papers/db-r-2026-001.html">db-r-2026-001</a> (pending owner approval).</p>
+        </section>
+      </article>
+    </div>
   </main>
 
   <footer>
-    <div class="wrap footer-inner">
-      <span class="footer-brand">Cortex</span>
-      <span>Execution boundaries for tool-using agents.</span>
-      <a href="/">Brand home</a>
+    <div class="footer-inner">
+      <a href="/" class="brand">
+        <span class="brand-mark" aria-hidden="true">CX</span>
+        <span>Cortex</span>
+      </a>
+      <span>Constrained execution, explicit authority, verifiable receipts.</span>
     </div>
   </footer>
-</body>
-</html>
----SPECS---
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Technical specifications for Cortex, an execution kernel for tool-using agents.">
-  <title>Cortex | Technical specifications</title>
-  <style>
-    :root {
-      --paper: #f5f1e8;
-      --paper-2: #ebe5d8;
-      --ink: #1d2220;
-      --muted: #646963;
-      --line: #c9c6ba;
-      --green: #174d43;
-      --green-2: #22685a;
-      --orange: #e27135;
-      --yellow: #f0c95c;
-      --white: #fffdf7;
-      --serif: "Fraunces", Georgia, serif;
-      --sans: "DM Sans", Arial, sans-serif;
-      --mono: "SFMono-Regular", Consolas, monospace;
-      color-scheme: light;
-    }
-    @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap");
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 var(--sans); }
-    a { color: inherit; text-underline-offset: 3px; }
-    code, pre, th:first-child, td:first-child { font-family: var(--mono); }
-    .site-header {
-      position: sticky; top: 0; z-index: 5; display: flex; align-items: center;
-      justify-content: space-between; min-height: 58px; padding: 0 5vw;
-      border-bottom: 1px solid rgba(29,34,32,.16); background: rgba(245,241,232,.93);
-      backdrop-filter: blur(12px);
-    }
-    .brand { display: flex; align-items: center; gap: 10px; color: var(--green); font-weight: 700; letter-spacing: -.03em; text-decoration: none; }
-    .brand-mark { display: grid; place-items: center; width: 25px; height: 25px; border: 2px solid var(--green); border-radius: 50%; font-size: 12px; }
-    nav { display: flex; gap: 17px; align-items: center; font-size: 13px; }
-    nav a { color: var(--muted); text-decoration: none; }
-    .nav-cta { padding: 7px 11px; border: 1px solid var(--green); border-radius: 2px; color: var(--green); font-weight: 700; }
-    main { overflow: hidden; }
-    .wrap { width: min(1120px, 90vw); margin-inline: auto; }
-    .page-head { padding: 10vh 0 8vh; border-bottom: 1px solid var(--line); }
-    .eyebrow { margin: 0 0 13px; color: var(--orange); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-    h1, h2, h3 { margin: 0; color: var(--green); font-family: var(--serif); font-weight: 600; letter-spacing: -.045em; line-height: 1.05; }
-    h1 { max-width: 800px; font-size: clamp(3rem, 10vw, 7.2rem); }
-    h2 { font-size: clamp(2.1rem, 6vw, 4.2rem); }
-    h3 { font-size: 1.55rem; }
-    .lede { max-width: 640px; margin-top: 23px; color: var(--muted); font-size: clamp(1.03rem, 2vw, 1.22rem); }
-    .section { padding: 72px 0; border-bottom: 1px solid var(--line); }
-    .section-head { display: grid; gap: 17px; margin-bottom: 31px; }
-    .section-head p { max-width: 590px; color: var(--muted); }
-    .flow {
-      display: grid;
-      gap: 0;
-      border-top: 1px solid var(--green);
-    }
-    .flow-step {
-      position: relative;
-      display: grid;
-      grid-template-columns: 47px 1fr;
-      gap: 16px;
-      padding: 23px 0;
-      border-bottom: 1px solid var(--line);
-    }
-    .flow-step::after {
-      position: absolute; content: "↓"; left: 17px; bottom: -16px; z-index: 1;
-      display: grid; place-items: center; width: 30px; height: 30px;
-      background: var(--paper); color: var(--orange); font-weight: 700;
-    }
-    .flow-step:last-child::after { display: none; }
-    .flow-num { display: grid; place-items: center; width: 36px; height: 36px; background: var(--green); color: var(--yellow); font: 12px var(--mono); }
-    .flow-step h3 { margin-bottom: 6px; }
-    .flow-step p { color: var(--muted); }
-    .flow-step code { color: var(--green); font-size: 12px; }
 
-    .table-scroll {
-      width: 100%;
-      overflow-x: auto;
-      border: 1px solid var(--line);
-      background: var(--white);
-      -webkit-overflow-scrolling: touch;
-    }
-    table { width: 100%; min-width: 720px; border-collapse: collapse; text-align: left; }
-    caption { padding: 17px 19px; color: var(--muted); caption-side: top; text-align: left; }
-    th, td { padding: 15px 17px; border-top: 1px solid var(--line); vertical-align: top; }
-    th { background: var(--paper-2); color: var(--green); font-size: 12px; letter-spacing: .05em; text-transform: uppercase; }
-    td:first-child { color: var(--green); font-size: 12px; white-space: nowrap; }
-    td { color: var(--muted); }
-    .table-note { margin-top: 11px; color: var(--muted); font-size: 12px; }
-
-    .two-col { display: grid; gap: 28px; }
-    .spec-list { margin: 0; border-top: 1px solid var(--line); }
-    .spec-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
-    .spec-row dt { color: var(--green); font: 12px var(--mono); }
-    .spec-row dd { margin: 0; color: var(--muted); }
-    .callout { padding: 23px; border-left: 3px solid var(--orange); background: var(--paper-2); }
-    .callout h3 { margin-bottom: 10px; }
-    .callout p { color: var(--muted); }
-
-    pre {
-      margin: 0; padding: 20px; overflow-x: auto; border: 1px solid var(--line);
-      background: var(--green); color: #d9e9d8; font: 12px/1.7 var(--mono);
-      white-space: pre-wrap; overflow-wrap: anywhere;
-    }
-    .key { color: var(--yellow); }
-    .value { color: #f4a26f; }
-    .cta {
-      padding: 72px 0;
-      background: var(--yellow);
-    }
-    .cta-inner { display: grid; gap: 21px; }
-    .cta h2 { color: var(--ink); }
-    .cta p { max-width: 580px; color: #4d4a35; }
-    .button { display: inline-flex; width: fit-content; min-height: 43px; align-items: center; padding: 10px 15px; border: 1px solid var(--green); border-radius: 2px; background: var(--green); color: var(--white); font-size: 14px; font-weight: 700; text-decoration: none; }
-    .button:hover, .button:focus-visible { background: var(--orange); border-color: var(--orange); }
-    footer { padding: 28px 0; background: var(--green); color: #dce6da; }
-    .footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; }
-    footer a { color: inherit; }
-    .footer-brand { color: var(--yellow); }
-    @media (min-width: 700px) {
-      .site-header { min-height: 68px; }
-      .page-head { padding: 14vh 0 11vh; }
-      .section { padding: 105px 0; }
-      .section-head { grid-template-columns: .8fr 1fr; align-items: end; }
-      .two-col { grid-template-columns: 1fr 1fr; gap: 7vw; align-items: start; }
-      .cta { padding: 100px 0; }
-    }
-    @media (max-width: 360px) {
-      nav { gap: 9px; font-size: 12px; }
-      .nav-cta { padding-inline: 8px; }
-      .spec-row { grid-template-columns: .85fr 1.15fr; gap: 10px; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-    }
-  </style>
-</head>
-<body>
-  <header class="site-header">
-    <a class="brand" href="/" aria-label="Cortex home">
-      <span class="brand-mark">C</span>
-      <span>Cortex</span>
-    </a>
-    <nav aria-label="Primary navigation">
-      <a href="index.html">Overview</a>
-      <a class="nav-cta" href="#flow">Specs</a>
-    </nav>
-  </header>
-
-  <main>
-    <section class="page-head">
-      <div class="wrap">
-        <p class="eyebrow">Cortex / technical specifications</p>
-        <h1>A small execution path with a clear perimeter.</h1>
-        <p class="lede">These specifications describe the boundary between an agent's proposed intent and the tools that can produce effects. Cortex is the kernel and control path, not a replacement for the agent.</p>
-      </div>
-    </section>
-
-    <section class="section" id="flow">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Execution flow</p>
-            <h2>From proposal to receipt.</h2>
-          </div>
-          <p>The flow is intentionally directional. A request moves through authorization before the broker can perform a write, and the outcome is returned as an inspectable receipt.</p>
-        </div>
-        <div class="flow">
-          <article class="flow-step">
-            <span class="flow-num">01</span>
-            <div>
-              <h3>Agent proposes</h3>
-              <p>The agent emits an explicit action request with the operation and target it wants to use.</p>
-              <code>intent -&gt; action_request</code>
-            </div>
-          </article>
-          <article class="flow-step">
-            <span class="flow-num">02</span>
-            <div>
-              <h3>Kernel normalizes</h3>
-              <p>Cortex places the request into the governed execution path and gives it a traceable identity.</p>
-              <code>action_request -&gt; request_id</code>
-            </div>
-          </article>
-          <article class="flow-step">
-            <span class="flow-num">03</span>
-            <div>
-              <h3>Policy evaluates</h3>
-              <p>Authorization is deny-by-default. The requested action must be allowed by the applicable authority and policy context.</p>
-              <code>request + policy -&gt; allow | deny</code>
-            </div>
-          </article>
-          <article class="flow-step">
-            <span class="flow-num">04</span>
-            <div>
-              <h3>Broker mediates</h3>
-              <p>Only <code>tool_broker</code> may write. A denied request stops here; an allowed request is passed to the tool path.</p>
-              <code>allow -&gt; tool_broker -&gt; tool</code>
-            </div>
-          </article>
-          <article class="flow-step">
-            <span class="flow-num">05</span>
-            <div>
-              <h3>Receipt returns</h3>
-              <p>The resulting status and evidence remain connected to the original request and its authorization decision.</p>
-              <code>outcome -&gt; receipt -&gt; agent</code>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Contract surface</p>
-            <h2>Small records. Strong boundaries.</h2>
-          </div>
-          <p>The fields below express the concepts that must stay visible as an action moves through Cortex. Implementations may add context, but the decision and writer remain explicit.</p>
-        </div>
-        <div class="table-scroll">
-          <table>
-            <caption>Core execution records</caption>
-            <thead>
-              <tr>
-                <th>Record</th>
-                <th>Required meaning</th>
-                <th>Example values</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>action_request</td>
-                <td>A proposed operation and target emitted by the agent.</td>
-                <td><code>read</code>, <code>write</code>, target reference</td>
-              </tr>
-              <tr>
-                <td>authorization</td>
-                <td>The kernel's decision under the applicable authority and policy.</td>
-                <td><code>allowed</code>, <code>denied</code></td>
-              </tr>
-              <tr>
-                <td>writer</td>
-                <td>The mediated component responsible for producing a write effect.</td>
-                <td><code>tool_broker</code></td>
-              </tr>
-              <tr>
-                <td>status</td>
-                <td>The current state of the request in the execution path.</td>
-                <td><code>proposed</code>, <code>denied</code>, <code>executing</code>, <code>executed</code></td>
-              </tr>
-              <tr>
-                <td>receipt</td>
-                <td>Evidence connecting request, decision, broker, and outcome.</td>
-                <td>receipt identifier and outcome data</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="table-note">On narrow screens, the table preserves its reading width inside a horizontal scroll container.</p>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="wrap two-col">
-        <div>
-          <p class="eyebrow">Seven mechanisms</p>
-          <h2>The implementation follows the model.</h2>
-        </div>
-        <dl class="spec-list">
-          <div class="spec-row"><dt>01 / intent</dt><dd>Explicit action requests separate proposal from effect.</dd></div>
-          <div class="spec-row"><dt>02 / authority</dt><dd>Deny-by-default authorization is the initial state.</dd></div>
-          <div class="spec-row"><dt>03 / policy</dt><dd>Bounded decisions account for operation, target, and context.</dd></div>
-          <div class="spec-row"><dt>04 / mediation</dt><dd><code>tool_broker</code> is the sole writer.</dd></div>
-          <div class="spec-row"><dt>05 / evidence</dt><dd>Receipts make decisions and outcomes inspectable.</dd></div>
-          <div class="spec-row"><dt>06 / continuity</dt><dd>Trace context keeps records connected across the path.</dd></div>
-          <div class="spec-row"><dt>07 / control</dt><dd>Status exposes where work is in the execution lifecycle.</dd></div>
-        </dl>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="wrap two-col">
-        <div class="callout">
-          <h3>What Cortex is</h3>
-          <p>An execution kernel and authorization boundary around tool-using agents. Its purpose is to make actions governable and accountable.</p>
-        </div>
-        <div class="callout">
-          <h3>What Cortex is not</h3>
-          <p>It is not a smarter agent. It does not replace reasoning or invent authority. It governs the path from an agent's proposal to an allowed, recorded effect.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Receipt shape</p>
-            <h2>Evidence that can travel with the action.</h2>
-          </div>
-          <p>A receipt is the compact record of what Cortex knows about an execution. It is designed to be read by operators and systems after the originating model has continued its work.</p>
-        </div>
-        <pre aria-label="Example Cortex receipt"><span class="key">{
-  "status"</span>: <span class="value">"executed"</span>,
-  <span class="key">"request_id"</span>: <span class="value">"req_0184"</span>,
-  <span class="key">"action"</span>: <span class="value">"write"</span>,
-  <span class="key">"target"</span>: <span class="value">"resource/reference"</span>,
-  <span class="key">"authorization"</span>: <span class="value">"allowed"</span>,
-  <span class="key">"writer"</span>: <span class="value">"tool_broker"</span>,
-  <span class="key">"receipt"</span>: <span class="value">"available"</span>
-}</pre>
-      </div>
-    </section>
-
-    <section class="cta">
-      <div class="wrap cta-inner">
-        <p class="eyebrow">Back to the case study</p>
-        <h2>See the boundary in context.</h2>
-        <p>The overview shows why the kernel matters: useful agency needs a clear point where authority is checked and effects become accountable.</p>
-        <a class="button" href="index.html">Return to Cortex overview <span aria-hidden="true">&nbsp;↗</span></a>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="wrap footer-inner">
-      <span class="footer-brand">Cortex</span>
-      <span>Execution boundaries for tool-using agents.</span>
-      <a href="/">Brand home</a>
-    </div>
-  </footer>
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const button = document.querySelector(".theme-toggle");
+      const stored = localStorage.getItem("cortex-theme");
+      const preferredDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const initial = stored || (preferredDark ? "dark" : "light");
+      root.dataset.theme = initial;
+      function updateLabel() {
+        const next = root.dataset.theme === "dark" ? "light" : "dark";
+        button.setAttribute("aria-label", `Switch to ${next} theme`);
+        button.setAttribute("title", `Switch to ${next} theme`);
+      }
+      updateLabel();
+      button.addEventListener("click", () => {
+        root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+        localStorage.setItem("cortex-theme", root.dataset.theme);
+        updateLabel();
+      });
+    })();
+  </script>
 </body>
 </html>

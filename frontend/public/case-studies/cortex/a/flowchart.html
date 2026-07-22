@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="How the Cortex kernel decides: a top-down flowchart of deny-by-default authorization, brokered effects, sole-writer commits, and verifiable receipts.">
+  <title>Cortex | How the kernel decides</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f6f1;
+      --surface: #ffffff;
+      --surface-soft: #eceae3;
+      --ink: #181914;
+      --muted: #65665e;
+      --line: #cccbc3;
+      --strong-line: #8f9187;
+      --accent: #d43c24;
+      --accent-soft: #f4ded8;
+      --good: #126449;
+      --good-soft: #dcebe4;
+      --code: #20211d;
+      --code-ink: #f4f1e9;
+      --sans: "Manrope", system-ui, sans-serif;
+      --serif: "Newsreader", Georgia, serif;
+      --mono: "DM Mono", ui-monospace, monospace;
+      --header-height: 58px;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --paper: #181916;
+      --surface: #23241f;
+      --surface-soft: #2c2d28;
+      --ink: #f3f0e7;
+      --muted: #aaa99f;
+      --line: #41423b;
+      --strong-line: #696a62;
+      --accent: #ff735b;
+      --accent-soft: #452c26;
+      --good: #70d3ad;
+      --good-soft: #203c32;
+      --code: #11120f;
+      --code-ink: #f4f1e9;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: calc(var(--header-height) + 18px);
+      overflow-x: hidden;
+      max-width: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-width: 0;
+      max-width: 100%;
+      overflow-x: hidden;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    a { color: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, a:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    /* ---- header chrome (shared with index.html / specs.html) ---- */
+    .site-header {
+      position: sticky;
+      z-index: 30;
+      top: 0;
+      height: var(--header-height);
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--paper) 91%, transparent);
+      backdrop-filter: blur(14px);
+    }
+    .nav {
+      width: min(1240px, 100%);
+      height: 100%;
+      margin: 0 auto;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .brand-mark {
+      width: 26px;
+      height: 26px;
+      flex: 0 0 26px;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+    .document-name {
+      display: none;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+    .nav-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nav-link {
+      padding: 7px 8px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .nav-link[aria-current="page"] { background: var(--surface-soft); }
+    .theme-toggle {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--surface);
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .theme-toggle svg { width: 16px; height: 16px; }
+    .moon { display: block; }
+    .sun { display: none; }
+    html[data-theme="dark"] .moon { display: none; }
+    html[data-theme="dark"] .sun { display: block; }
+
+    @media (min-width: 640px) {
+      .nav { padding: 0 22px; }
+      .document-name { display: inline; }
+    }
+
+    /* ---- page ---- */
+    main { display: block; }
+    .wrap { width: min(860px, 100%); margin: 0 auto; padding: 0 18px; }
+
+    .hero {
+      padding: clamp(38px, 8vw, 74px) 0 clamp(24px, 5vw, 40px);
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow {
+      margin: 0 0 14px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    h1 {
+      margin: 0;
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: clamp(2.1rem, 7vw, 3.4rem);
+      line-height: 1.06;
+      letter-spacing: -0.02em;
+    }
+    .hero-summary {
+      margin: 18px 0 0;
+      max-width: 60ch;
+      color: var(--muted);
+      font-size: clamp(1rem, 2.4vw, 1.13rem);
+    }
+
+    .section { padding: clamp(34px, 6vw, 56px) 0; border-bottom: 1px solid var(--line); }
+    .section-label {
+      margin: 0 0 10px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    h2 {
+      margin: 0 0 14px;
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: clamp(1.5rem, 4.4vw, 2.05rem);
+      line-height: 1.12;
+      letter-spacing: -0.015em;
+    }
+    h3 {
+      margin: 0 0 6px;
+      font-size: 0.98rem;
+      font-weight: 700;
+    }
+    p { margin: 0 0 14px; }
+    p:last-child { margin-bottom: 0; }
+    code {
+      font-family: var(--mono);
+      font-size: 0.86em;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--surface-soft);
+    }
+
+    .diagram {
+      margin: 8px 0 4px;
+      padding: clamp(14px, 3vw, 26px) clamp(8px, 2vw, 18px);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .diagram .mermaid { margin: 0; text-align: center; max-width: 100%; }
+    /* force diagrams to fit the container (mobile-first): shrink, never overflow the page */
+    .diagram svg { max-width: 100% !important; height: auto !important; }
+    .diagram pre.mermaid { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .diagram-caption {
+      margin: 12px 2px 0;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    .legend {
+      margin: 22px 0 0;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 620px) { .legend { grid-template-columns: 1fr 1fr; } }
+    .legend-item {
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+    .legend-item p { color: var(--muted); font-size: 13.5px; margin: 0; }
+
+    .refs { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+    .refs li {
+      padding: 13px 15px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      font-size: 13.5px;
+    }
+    .refs a { color: var(--accent); text-underline-offset: 3px; }
+    .ref-id { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+    .note {
+      margin-top: 20px;
+      padding: 13px 15px;
+      border-left: 3px solid var(--strong-line);
+      background: var(--surface-soft);
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    footer {
+      padding: 28px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .footer-inner {
+      width: min(860px, 100%);
+      margin: 0 auto;
+      padding: 0 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .footer-inner .brand { color: var(--ink); }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="/" aria-label="Cortex home">
+        <span class="brand-mark" aria-hidden="true">CX</span>
+        <span>Cortex</span>
+      </a>
+      <span class="document-name">/ how the kernel decides</span>
+      <div class="nav-actions">
+        <a class="nav-link" href="index.html">Overview</a>
+        <a class="nav-link" href="specs.html">Specs</a>
+        <a class="nav-link" href="flowchart.html" aria-current="page">Flow</a>
+        <button class="theme-toggle" type="button" aria-label="Switch color theme" title="Switch color theme">
+          <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M20.5 15.5A9 9 0 0 1 8.5 3.5a9 9 0 1 0 12 12Z"/>
+          </svg>
+          <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/>
+          </svg>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <p class="eyebrow">CX-FLOW / execution control</p>
+        <h1>How the Cortex kernel decides.</h1>
+        <p class="hero-summary">Every proposed operation follows one path: a request carrying declared authority, a deny-by-default check, a policy gate evaluated where the concrete effect is known, brokered execution through a sole writer, and a receipt that binds what was asked, what was decided, and what changed. The diagrams below read top to bottom.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <p class="section-label">01 / Decision path</p>
+        <h2>Request to receipt.</h2>
+        <p>An actor never writes state directly. It proposes an operation; the kernel decides whether that proposal is permitted to become an effect. Denials and approvals both leave evidence.</p>
+        <div class="diagram">
+          <pre class="mermaid">
+flowchart TD
+  A["Actor proposes an operation"] --> B{"Explicit authority sufficient?"}
+  B -- "no" --> D["Deny by default"]
+  B -- "yes" --> P{"Policy gate:<br/>constraints satisfied?"}
+  P -- "no" --> D
+  P -- "yes" --> BR["Brokered execution<br/>(tool_broker)"]
+  BR --> W["Sole-writer commit"]
+  W --> R["Execution receipt"]
+  D --> R2["Refusal receipt"]
+  R --> AUD[["Audit trail"]]
+  R2 --> AUD
+          </pre>
+        </div>
+        <p class="diagram-caption">The two decision diamonds are the whole boundary: authority (is this actor allowed this class of operation on this target?) and policy (are current constraints satisfied at the point where the real effect is known?). Failing either resolves to a refusal — never to a silent write.</p>
+
+        <div class="legend" aria-label="What each stage means">
+          <div class="legend-item">
+            <h3>Explicit authority</h3>
+            <p>A declared grant whose operation and target scope cover the request. Missing, unknown, invalid, or insufficient authority resolves to a refusal.</p>
+          </div>
+          <div class="legend-item">
+            <h3>Policy gate</h3>
+            <p>Current constraints are evaluated at the boundary where the concrete effect is known — not earlier, when only intent is visible.</p>
+          </div>
+          <div class="legend-item">
+            <h3>Sole-writer commit</h3>
+            <p>Controlled writes are concentrated in <code>tool_broker</code>, so authorization cannot be bypassed by a parallel path.</p>
+          </div>
+          <div class="legend-item">
+            <h3>Receipts</h3>
+            <p>Evidence connecting the proposal, the authorization decision, the broker outcome, and the resulting state — for both approvals and refusals.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <p class="section-label">02 / Seven mechanisms</p>
+        <h2>The complete control path.</h2>
+        <p>The decision above is enforced by seven mechanisms in sequence. Each one narrows what a proposal can become before it is allowed to touch state.</p>
+        <div class="diagram">
+          <pre class="mermaid">
+flowchart TD
+  M1["1 · Request envelope"] --> M2["2 · Deny by default"]
+  M2 --> M3["3 · Explicit authority"]
+  M3 --> M4["4 · Policy gate"]
+  M4 --> M5["5 · Brokered tools"]
+  M5 --> M6["6 · Sole-writer commit"]
+  M6 --> M7["7 · Execution receipts"]
+          </pre>
+        </div>
+        <p class="diagram-caption">Read as a pipeline: structure the request, refuse by default, require declared authority, evaluate policy at the effect boundary, route execution through the broker, keep the broker the sole writer, and return receipts. Full definitions live in the <a href="specs.html#mechanisms">technical specification</a>.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <p class="section-label">03 / Related research</p>
+        <h2>Where these decisions come from.</h2>
+        <p>The kernel's boundary is documented alongside the reliability research it draws on. Design Bakery research papers are marked <em>pending</em> until owner-approved; the case study pages carry the narrative framing.</p>
+        <ul class="refs">
+          <li>
+            <span class="ref-id">db-r-2026-001</span> · <a href="/research/papers/db-r-2026-001.html">Cortex reliability kernel: composition status and evidence boundaries</a> — component-tested mechanisms versus composition status, and the documentation rules for benchmarks. <em>(pending owner approval)</em>
+          </li>
+          <li>
+            <span class="ref-id">case study</span> · <a href="index.html">Overview — a kernel for constrained execution</a> and the <a href="specs.html">technical specification</a>.
+          </li>
+        </ul>
+        <p class="note">This page is a visual explainer of the kernel's control flow. It makes no benchmark or production-readiness claim; the status language on this site tracks <code>catalog.js</code> and the owner-approved research entries only.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <a href="/" class="brand">
+        <span class="brand-mark" aria-hidden="true">CX</span>
+        <span>Cortex</span>
+      </a>
+      <span>Constrained execution, explicit authority, verifiable receipts.</span>
+    </div>
+  </footer>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+    const root = document.documentElement;
+    const button = document.querySelector(".theme-toggle");
+    const stored = localStorage.getItem("cortex-theme");
+    const preferredDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = stored || (preferredDark ? "dark" : "light");
+
+    // preserve each diagram's source so we can re-render on theme change
+    const diagrams = [...document.querySelectorAll(".mermaid")].map((el) => ({
+      el,
+      src: el.textContent,
+    }));
+
+    const themeVars = {
+      light: {
+        fontFamily: "Manrope, system-ui, sans-serif",
+        background: "#f7f6f1",
+        primaryColor: "#ffffff",
+        primaryTextColor: "#181914",
+        primaryBorderColor: "#8f9187",
+        lineColor: "#8f9187",
+        secondaryColor: "#eceae3",
+        tertiaryColor: "#f7f6f1",
+        tertiaryTextColor: "#181914",
+      },
+      dark: {
+        fontFamily: "Manrope, system-ui, sans-serif",
+        background: "#181916",
+        primaryColor: "#23241f",
+        primaryTextColor: "#f3f0e7",
+        primaryBorderColor: "#696a62",
+        lineColor: "#696a62",
+        secondaryColor: "#2c2d28",
+        tertiaryColor: "#181916",
+        tertiaryTextColor: "#f3f0e7",
+      },
+    };
+
+    async function renderDiagrams() {
+      const mode = root.dataset.theme === "dark" ? "dark" : "light";
+      mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: "loose",
+        theme: "base",
+        themeVariables: themeVars[mode],
+        flowchart: { curve: "basis", useMaxWidth: true, htmlLabels: true },
+      });
+      for (const d of diagrams) {
+        d.el.removeAttribute("data-processed");
+        d.el.innerHTML = d.src;
+      }
+      await mermaid.run({ nodes: diagrams.map((d) => d.el) });
+    }
+
+    function updateLabel() {
+      const next = root.dataset.theme === "dark" ? "light" : "dark";
+      button.setAttribute("aria-label", `Switch to ${next} theme`);
+      button.setAttribute("title", `Switch to ${next} theme`);
+    }
+
+    updateLabel();
+    renderDiagrams();
+
+    button.addEventListener("click", () => {
+      root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+      localStorage.setItem("cortex-theme", root.dataset.theme);
+      updateLabel();
+      renderDiagrams();
+    });
+  </script>
+</body>
+</html>

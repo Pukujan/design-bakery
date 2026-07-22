@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>db-r-2026-002 · Deny-by-default authorization for tool-using agents</title>
+<meta name="description" content="Working paper (pending owner approval): the Cortex kernel model — deny-by-default authorization, brokered effects, a sole writer, and content-bound receipts for tool-using agents." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f7f6f2; --paper:#fff; --ink:#1a1a1a; --muted:#5a5a5a;
+    --line:#d8d4c8; --link:#1a4a8a; --link-h:#0d2f5c; --tag:#e8e4d8;
+    --pend:#8a6a12; --focus:#1a4a8a; --max:760px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#12141a; --paper:#1a1d26; --ink:#e8e6df; --muted:#9a968c;
+      --line:#2c3040; --link:#7eb0e8; --link-h:#a8c8f0; --tag:#252a38; --focus:#7eb0e8; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Source Serif 4",Georgia,serif; font-size:17px; line-height:1.65;
+    overflow-x:hidden;}
+  a{color:var(--link)}
+  a:hover{color:var(--link-h)}
+  a:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+  .skip{position:absolute; left:-9999px; top:0; z-index:100;
+    background:var(--paper); color:var(--ink); border:1px solid var(--line);
+    padding:8px 14px; border-radius:0 0 6px 0;
+    font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px}
+  .skip:focus{left:0}
+  .wrap{max-width:var(--max); margin:0 auto; padding:28px 22px 64px}
+  .top{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px; margin-bottom:28px}
+  .badge{display:inline-block; padding:2px 10px; border-radius:999px; background:var(--tag);
+    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--pend); overflow-wrap:anywhere}
+  h1{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:1.65rem;
+    line-height:1.3; margin:14px 0 10px; letter-spacing:-.02em; overflow-wrap:break-word}
+  .authors{color:var(--muted); margin:0 0 6px}
+  .idline{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
+    overflow-wrap:anywhere; word-break:break-word}
+  .warn{border:1px solid var(--line); background:var(--paper); padding:12px 14px;
+    border-radius:6px; margin:20px 0; font-size:14px; color:var(--muted)}
+  h2{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:1.15rem;
+    margin:2em 0 .6em; border-bottom:1px solid var(--line); padding-bottom:6px}
+  h3{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:1rem; margin:1.4em 0 .3em}
+  p{margin:.75em 0}
+  ul,ol{padding-left:1.25em}
+  li{margin:.3em 0}
+  table{width:100%; border-collapse:collapse; font-size:14px; margin:1em 0;
+    font-family:"IBM Plex Sans",system-ui,sans-serif; display:block; overflow-x:auto}
+  th,td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
+  th{background:var(--paper); font-weight:600}
+  caption.cap{caption-side:top; text-align:left; color:var(--muted);
+    font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:12.5px;
+    padding:0 0 6px}
+  .cite{font-size:14px}
+  .cite li{margin:.4em 0}
+  .paths{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:14px;
+    display:flex; flex-wrap:wrap; gap:10px 16px; margin:1em 0}
+  footer{margin-top:3em; padding-top:1em; border-top:1px solid var(--line);
+    font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px; color:var(--muted)}
+  code, .mono{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+    overflow-wrap:anywhere; word-break:break-word}
+  @media (max-width:560px){
+    .wrap{padding:20px 16px 48px}
+    h1{font-size:1.35rem}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<main id="main">
+<article class="wrap">
+  <div class="top"><a href="/research/">← Research index</a></div>
+  <span class="badge">pending · not owner-approved</span>
+  <h1>Deny-by-default authorization for tool-using agents: the Cortex kernel model</h1>
+  <p class="authors">Pujan · Design Bakery</p>
+  <p class="idline">db-r-2026-002 · submitted 2026-07-22 · status pending</p>
+
+  <div class="warn">
+    <strong>Owner gate.</strong> This is a design-descriptive working paper. It states an authorization
+    model and its invariants; it makes <em>no</em> benchmark, latency, or production-governance claim.
+    Numeric results remain empty until the owner marks the paper <span class="mono">approved</span> in
+    <span class="mono">catalog.js</span>.
+  </div>
+
+  <h2>Abstract</h2>
+  <p>
+    A capable agent decides <em>what</em> to attempt; it does not, by itself, decide what may become a
+    committed effect. Cortex is an execution kernel that sits beneath agent reasoning and owns that second
+    decision. This paper describes the kernel model — a structured request, a deny-by-default check,
+    explicit and scoped authority, a policy gate evaluated at the point where the concrete effect is known,
+    tool execution routed through a single broker, a sole-writer commit path, and a content-bound receipt
+    for every outcome. The model is a restatement of two classical security principles — the reference
+    monitor and least privilege — specialised for tool-using agents. We separate component-tested
+    mechanisms from composition status and make no production claim.
+  </p>
+
+  <h2>1. Problem</h2>
+  <p>
+    An agent with tools can cause external effects: writes, calls, transactions. If authority is implicit
+    in tool access — "the agent could call it, so it may" — then reasoning quality, conversational context,
+    or possession of a tool name become de-facto authorization. That is the failure this kernel exists to
+    prevent. The requirement is a boundary that is <em>separate</em> from the agent, evaluates every
+    proposed effect, and is deny-by-default.
+  </p>
+
+  <h2>2. The model</h2>
+  <p>Seven mechanisms compose one controlled path from a proposal to a committed state change:</p>
+  <ol>
+    <li><b>Request envelope.</b> Actor, intent, target, context, and presented authority are structured before execution — a free-form model message is not itself an execution contract.</li>
+    <li><b>Deny by default.</b> Missing, unknown, invalid, or insufficient authority resolves to a refusal.</li>
+    <li><b>Explicit authority.</b> A declared grant whose operation and target scope cover the request.</li>
+    <li><b>Policy gate.</b> Current constraints are evaluated at the boundary where the concrete effect is known, not earlier when only intent is visible.</li>
+    <li><b>Brokered tools.</b> Allowed tool execution crosses the effect boundary through a single broker, not by direct agent access.</li>
+    <li><b>Sole-writer commit.</b> Controlled writes are concentrated in the broker so authorization cannot be bypassed by a parallel path.</li>
+    <li><b>Execution receipts.</b> Every completed or denied request returns evidence binding the proposal, the decision, the broker outcome, and the resulting state.</li>
+  </ol>
+
+  <h2>3. Invariants</h2>
+  <p>An implementation preserves these regardless of the agent, model, tool, or application attached to it:</p>
+  <ul>
+    <li>A request is denied unless sufficient authority is established (default deny).</li>
+    <li>Authority applies to declared operations and targets, not general intent (explicit scope).</li>
+    <li>The broker is the only component permitted to commit controlled state (sole writer).</li>
+    <li>Authorization completes before a requested write is committed (decision before effect).</li>
+    <li>Allowed, denied, and failed requests all return evidence of their path (receipt after decision).</li>
+  </ul>
+  <p>
+    These restate the reference-monitor idea — a mediation point that is always invoked, tamper-resistant,
+    and small enough to verify [1] — and least privilege / least authority [2], applied to agent effects.
+  </p>
+
+  <h2>4. Non-claims</h2>
+  <ul>
+    <li>Does not claim live production-governed runs unless an owner-approved table says so.</li>
+    <li>Does not treat builder self-report as independent evaluation.</li>
+    <li>Separates <em>component-tested</em> mechanisms from <em>composed product path</em> status; see db-r-2026-001 [3].</li>
+    <li>Invents no pass rates or latency figures for empty benchmark cells.</li>
+  </ul>
+
+  <h2>5. Related work in this series</h2>
+  <div class="paths">
+    <a href="/research/papers/db-r-2026-001.html">db-r-2026-001 · Composition status &amp; evidence boundaries</a>
+    <a href="/research/papers/db-r-2026-003.html">db-r-2026-003 · Constraining an LLM orchestrator</a>
+    <a href="/research/papers/db-r-2026-004.html">db-r-2026-004 · Black-box &amp; grey-box validation</a>
+  </div>
+  <p>Narrative framing (not a research paper): the Cortex case study.</p>
+  <div class="paths">
+    <a href="/case-studies/cortex/a/">Overview</a>
+    <a href="/case-studies/cortex/a/specs.html">Technical specification</a>
+    <a href="/case-studies/cortex/a/flowchart.html">Decision-flow diagrams</a>
+  </div>
+
+  <h2>References</h2>
+  <ol class="cite">
+    <li>Anderson, J. P. <em>Computer Security Technology Planning Study</em> (the reference-monitor concept). ESD-TR-73-51, USAF, 1972.</li>
+    <li>Saltzer, J. H.; Schroeder, M. D. "The Protection of Information in Computer Systems" (least privilege). <em>Proc. IEEE</em> 63(9), 1975.</li>
+    <li>Pujan; Design Bakery. <em>Cortex reliability kernel: composition status and evidence boundaries</em>. db-r-2026-001, 2026 (pending). <a href="/research/papers/db-r-2026-001.html">/research/papers/db-r-2026-001.html</a></li>
+    <li>Design Bakery. <em>Cortex case study</em>, 2026. <a href="/case-studies/cortex/a/">/case-studies/cortex/a/</a></li>
+  </ol>
+
+  <footer>
+    <p>Cite as: Pujan (2026). <em>Deny-by-default authorization for tool-using agents: the Cortex kernel model</em>.
+      Design Bakery Research db-r-2026-002 (pending).</p>
+    <p><a href="db-r-2026-002.bib">BibTeX</a> · <a href="/research/">Index</a></p>
+  </footer>
+</article>
+</main>
+</body>
+</html>

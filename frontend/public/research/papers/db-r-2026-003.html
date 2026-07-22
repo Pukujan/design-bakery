@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>db-r-2026-003 · Mechanically constraining an LLM orchestrator</title>
+<meta name="description" content="Working paper (pending owner approval): removing control-plane authority from a probabilistic orchestrator, and a same-family bias firewall for evaluation decisions." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f7f6f2; --paper:#fff; --ink:#1a1a1a; --muted:#5a5a5a;
+    --line:#d8d4c8; --link:#1a4a8a; --link-h:#0d2f5c; --tag:#e8e4d8;
+    --pend:#8a6a12; --focus:#1a4a8a; --max:760px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#12141a; --paper:#1a1d26; --ink:#e8e6df; --muted:#9a968c;
+      --line:#2c3040; --link:#7eb0e8; --link-h:#a8c8f0; --tag:#252a38; --focus:#7eb0e8; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Source Serif 4",Georgia,serif; font-size:17px; line-height:1.65;
+    overflow-x:hidden;}
+  a{color:var(--link)}
+  a:hover{color:var(--link-h)}
+  a:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+  .skip{position:absolute; left:-9999px; top:0; z-index:100;
+    background:var(--paper); color:var(--ink); border:1px solid var(--line);
+    padding:8px 14px; border-radius:0 0 6px 0;
+    font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px}
+  .skip:focus{left:0}
+  .wrap{max-width:var(--max); margin:0 auto; padding:28px 22px 64px}
+  .top{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px; margin-bottom:28px}
+  .badge{display:inline-block; padding:2px 10px; border-radius:999px; background:var(--tag);
+    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--pend); overflow-wrap:anywhere}
+  h1{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:1.65rem;
+    line-height:1.3; margin:14px 0 10px; letter-spacing:-.02em; overflow-wrap:break-word}
+  .authors{color:var(--muted); margin:0 0 6px}
+  .idline{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
+    overflow-wrap:anywhere; word-break:break-word}
+  .warn{border:1px solid var(--line); background:var(--paper); padding:12px 14px;
+    border-radius:6px; margin:20px 0; font-size:14px; color:var(--muted)}
+  h2{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:1.15rem;
+    margin:2em 0 .6em; border-bottom:1px solid var(--line); padding-bottom:6px}
+  h3{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:1rem; margin:1.4em 0 .3em}
+  p{margin:.75em 0}
+  ul,ol{padding-left:1.25em}
+  li{margin:.3em 0}
+  table{width:100%; border-collapse:collapse; font-size:14px; margin:1em 0;
+    font-family:"IBM Plex Sans",system-ui,sans-serif; display:block; overflow-x:auto}
+  th,td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
+  th{background:var(--paper); font-weight:600}
+  caption.cap{caption-side:top; text-align:left; color:var(--muted);
+    font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:12.5px;
+    padding:0 0 6px}
+  .cite{font-size:14px}
+  .cite li{margin:.4em 0}
+  .paths{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:14px;
+    display:flex; flex-wrap:wrap; gap:10px 16px; margin:1em 0}
+  footer{margin-top:3em; padding-top:1em; border-top:1px solid var(--line);
+    font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px; color:var(--muted)}
+  code, .mono{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+    overflow-wrap:anywhere; word-break:break-word}
+  @media (max-width:560px){
+    .wrap{padding:20px 16px 48px}
+    h1{font-size:1.35rem}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<main id="main">
+<article class="wrap">
+  <div class="top"><a href="/research/">← Research index</a></div>
+  <span class="badge">pending · not owner-approved</span>
+  <h1>Mechanically constraining an LLM orchestrator: control-plane authority and a same-family bias firewall</h1>
+  <p class="authors">Pujan · Design Bakery</p>
+  <p class="idline">db-r-2026-003 · submitted 2026-07-22 · status pending</p>
+
+  <div class="warn">
+    <strong>Owner gate &amp; citation note.</strong> Design-descriptive working paper; no benchmark claim.
+    Core references (Panickssery et&nbsp;al.; Prometheus&nbsp;2; position-bias) are real; a small number of
+    2026 arXiv identifiers are AI-suggested and <span class="mono">unverified</span> and must be checked
+    before this paper is marked <span class="mono">approved</span>.
+  </div>
+
+  <h2>Abstract</h2>
+  <p>
+    The orchestrator of a multi-agent system is its most privileged component: it plans, routes, retries,
+    accepts or rejects worker output, and can terminate work. Giving those powers to a probabilistic model
+    is fragile for two reasons — the model can favour its own or its family's generations, and it can argue
+    past text-only constraints. This paper argues the correct response is not to debias or obey-train the
+    orchestrator but to <em>remove its authority</em>: the model proposes, and a small deterministic
+    controller owns state, permissions, retries, budgets, verification, and commits. We add a same-family
+    bias firewall that makes a model's judgement of its own family advisory-only, and provenance-preserving
+    blinding so evaluation sees opaque candidate IDs while audit keeps full provenance.
+  </p>
+
+  <h2>1. Problem</h2>
+  <p>
+    LLM evaluators can recognise and favour their own generations, sometimes without a disclosed source
+    identity [1]; the effect can extend to same-family models and persist under objective rubrics [2].
+    Not every same-family preference is bias — stronger models may genuinely be better, and early
+    self-preference measurements had confounds [3]. The safe design therefore does not auto-reject a
+    model's own-family work; it <em>disqualifies that model from being the final evaluator of it</em>.
+  </p>
+
+  <h2>2. Architecture: propose vs. decide</h2>
+  <ul>
+    <li><b>LLM planner.</b> Proposes task graphs, rosters, one of a fixed set of transitions, bounded retries, and abort/escalate recommendations. May decide <em>what should happen next</em>.</li>
+    <li><b>Deterministic controller.</b> Validates the typed plan, owns the authoritative state machine, issues scoped capabilities, enforces budgets and termination, invokes verification, and decides commit eligibility. Decides <em>whether it is permitted to happen</em>. No natural-language reasoning in its path.</li>
+  </ul>
+  <p>
+    This mirrors durable-execution / workflow-controller practice, where a deterministic engine owns
+    progress, retries, and state while application code (here, the model) only proposes the next step [4].
+    It is also least privilege [5] applied to the orchestrator.
+  </p>
+
+  <h2>3. The same-family bias firewall</h2>
+  <p>
+    Deterministic middleware sits between the orchestrator and every evaluation decision. On any
+    accept / reject / rank / adjudicate / terminate where judge and candidate share a vendor family, the
+    orchestrator verdict becomes <em>advisory only</em> and an independent non-family evaluation is
+    required. The orchestrator cannot override this through natural-language reasoning — that is the point.
+    Counter-bias checks: run each pair twice with order reversed (position bias is well documented [6]);
+    have judges commit independently before seeing others; give judges the requirement, candidate, and test
+    evidence but not other verdicts or vendor identities. <b>Deterministic evidence dominates any model
+    vote</b> — a failing test plus a model saying "correct" is a fail.
+  </p>
+
+  <h2>4. Provenance-preserving blinding</h2>
+  <p>
+    Provenance is not discarded; it is split into two planes. A trusted provenance plane keeps
+    artifact→model, signatures, and run IDs. An evaluation plane shows the deciding model only opaque
+    candidate IDs, the rubric, and evidence. After the verdict is sealed, provenance is re-attached for
+    audit and conflict/bias statistics. Prometheus&nbsp;2 and similar open evaluators [7] serve as
+    independent shadow judges and rubric critics — not as the sole truth oracle.
+  </p>
+
+  <h2>5. Testing the firewall</h2>
+  <p>
+    The firewall is validated on public bias benchmarks by evaluator family (gold-label accuracy,
+    false-accept/reject, same-family preference delta, position-flip rate, disagreement with executable
+    evidence): LLMBar [8], JudgeBench [9], self-preference measurement [2], Prometheus-Eval [7], and
+    position-swap suites [6]. No model — or its family — both is a gate and scores whether that gate works.
+  </p>
+
+  <h2>6. Non-claims</h2>
+  <ul>
+    <li>Does not claim a deployed orchestrator-control plane; this is a design and its test plan.</li>
+    <li>Does not claim family bias is resolved — the direction of any Anthropic-authored gold is treated as unresolved pending objective third-party labels.</li>
+    <li>Invents no metrics; benchmark cells are empty until owner-approved.</li>
+  </ul>
+
+  <h2>7. Related work in this series</h2>
+  <div class="paths">
+    <a href="/research/papers/db-r-2026-002.html">db-r-2026-002 · Deny-by-default authorization</a>
+    <a href="/research/papers/db-r-2026-004.html">db-r-2026-004 · Black-box &amp; grey-box validation</a>
+    <a href="/research/papers/db-r-2026-001.html">db-r-2026-001 · Composition status</a>
+  </div>
+
+  <h2>References</h2>
+  <ol class="cite">
+    <li>Panickssery, A.; Bowman, S.; Feng, S. "LLM Evaluators Recognize and Favor Their Own Generations." NeurIPS 2024. arXiv:2404.13076.</li>
+    <li>Chen et al. "Beyond the Surface: Measuring Self-Preference in LLM Judgments." EMNLP 2025. arXiv:2506.02592.</li>
+    <li>Chen et al. "Do LLM Evaluators Prefer Themselves for a Reason?" arXiv:2504.03846, 2025.</li>
+    <li>Durable-execution / workflow-controller pattern (deterministic engine owns state, retries, and progress; application code proposes steps). Industry precedent, e.g. Temporal; AWS Step Functions.</li>
+    <li>Saltzer, J. H.; Schroeder, M. D. "The Protection of Information in Computer Systems" (least privilege). <em>Proc. IEEE</em> 63(9), 1975.</li>
+    <li>Shi et al. "Judging the Judges: Position Bias in LLM-as-a-Judge." arXiv:2406.07791, 2024.</li>
+    <li>Kim et al. "Prometheus 2." EMNLP 2024. arXiv:2405.01535.</li>
+    <li>Zeng et al. "Evaluating LLMs at Evaluating Instruction Following (LLMBar)." ICLR 2024. arXiv:2310.07641.</li>
+    <li>Tan et al. "JudgeBench." arXiv:2410.12784, 2024.</li>
+  </ol>
+
+  <footer>
+    <p>Cite as: Pujan (2026). <em>Mechanically constraining an LLM orchestrator</em>.
+      Design Bakery Research db-r-2026-003 (pending).</p>
+    <p><a href="db-r-2026-003.bib">BibTeX</a> · <a href="/research/">Index</a></p>
+  </footer>
+</article>
+</main>
+</body>
+</html>
