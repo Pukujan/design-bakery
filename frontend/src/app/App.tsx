@@ -17,7 +17,11 @@ import { AiAgentsCaseStudyV4Page } from './modules/case-studies/ai-agents/AiAgen
 import { LegalWorkflowResearchCaseStudyPage } from './modules/case-studies/legal-workflow-research/LegalWorkflowResearchCaseStudyPage';
 import { StaticCaseStudyAssetGuard } from './modules/case-studies/legal-workflow-research/StaticCaseStudyAssetGuard';
 import { CortexCaseStudyRedirect } from './modules/case-studies/cortex/CortexCaseStudyRedirect';
-import { ResearchRedirect } from './modules/research/ResearchRedirect';
+import { CortexOverviewPage } from './modules/case-studies/cortex/CortexOverviewPage';
+import { CortexSpecsPage } from './modules/case-studies/cortex/CortexSpecsPage';
+import { CortexFlowchartPage } from './modules/case-studies/cortex/CortexFlowchartPage';
+import { ResearchListPage } from './modules/research/public/ResearchListPage';
+import { ResearchPaperPage } from './modules/research/public/ResearchPaperPage';
 
 const ADMIN_PORTFOLIOS = [
   'default',
@@ -92,24 +96,15 @@ function publicRoutes(): ReactElement[] {
       path="/case-studies/legal-workflow-research/:asset"
       element={<StaticCaseStudyAssetGuard />}
     />,
-    <Route
-      path="/case-studies/cortex"
-      element={<CortexCaseStudyRedirect />}
-    />,
-    <Route
-      path="/case-studies/cortex/specs"
-      element={<CortexCaseStudyRedirect />}
-    />,
-    <Route
-      path="/case-studies/cortex/:ver"
-      element={<CortexCaseStudyRedirect />}
-    />,
-    <Route
-      path="/case-studies/cortex/:ver/specs"
-      element={<CortexCaseStudyRedirect />}
-    />,
-    <Route path="/research" element={<ResearchRedirect />} />,
-    <Route path="/research/*" element={<ResearchRedirect />} />,
+    <Route path="/case-studies/cortex" element={<CortexOverviewPage />} />,
+    <Route path="/case-studies/cortex/specs" element={<CortexSpecsPage />} />,
+    <Route path="/case-studies/cortex/flow" element={<CortexFlowchartPage />} />,
+    <Route path="/case-studies/cortex/:ver" element={<CortexCaseStudyRedirect />} />,
+    <Route path="/case-studies/cortex/:ver/specs" element={<CortexCaseStudyRedirect />} />,
+    <Route key="research-shell" path="/research" element={<PortfolioPublicLayout />}>
+      <Route index element={<ResearchListPage />} />
+      <Route path="papers/:paperId" element={<ResearchPaperPage />} />
+    </Route>,
     <Route key="catch-all" path="*" element={<NotFoundPage />} />,
   ];
 }
