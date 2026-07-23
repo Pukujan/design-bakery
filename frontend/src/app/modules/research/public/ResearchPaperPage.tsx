@@ -45,6 +45,17 @@ const STATUS_LABEL: Record<string, string> = {
   approved: 'approved',
 };
 
+/** The page header already renders the title; strip a leading `# <title>` line from
+ *  the markdown body so it isn't shown twice. Only strips an exact-title H1. */
+function stripLeadingTitle(md: string, title: string): string {
+  const nl = md.indexOf('\n');
+  const firstLine = (nl === -1 ? md : md.slice(0, nl)).trim();
+  if (firstLine === `# ${title}` || firstLine === `#${title}`) {
+    return md.slice(nl === -1 ? md.length : nl + 1).replace(/^\s+/, '');
+  }
+  return md;
+}
+
 export function ResearchPaperPage() {
   const { paperId } = useParams<{ paperId: string }>();
   const paper = paperId ? getResearchPaper(paperId) : undefined;
@@ -102,13 +113,13 @@ export function ResearchPaperPage() {
           ))}
         </div>
 
-        <div className="mt-8 prose prose-neutral dark:prose-invert max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-h2:mt-10 prose-h2:border-b prose-h2:border-neutral-300 dark:prose-h2:border-neutral-700 prose-h2:pb-1.5 prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:underline-offset-2 prose-blockquote:border-l-neutral-400 dark:prose-blockquote:border-l-neutral-600 prose-blockquote:not-italic prose-table:text-sm">
+        <div className="research-paper mt-8">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw]}
             components={markdownComponents}
           >
-            {paper.content}
+            {stripLeadingTitle(paper.content, paper.title)}
           </ReactMarkdown>
         </div>
 
