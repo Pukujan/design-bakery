@@ -122,7 +122,7 @@ export function CortexSpecsPage() {
           transitions, and verifiable receipts.
         </p>
 
-        <div className="mt-8 prose prose-neutral dark:prose-invert max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-h2:mt-10 prose-h2:text-xl prose-h2:border-b prose-h2:border-neutral-300 dark:prose-h2:border-neutral-700 prose-h2:pb-1.5 prose-a:text-[#d43c24] dark:prose-a:text-[#ff735b] prose-blockquote:border-l-neutral-400 prose-blockquote:not-italic prose-table:text-sm">
+        <div className="cortex-spec mt-8">
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
             {SPEC}
           </ReactMarkdown>
