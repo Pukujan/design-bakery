@@ -1,5 +1,9 @@
-/** Longform markdown bodies for research papers 002–004 (split out for readability). */
+/** Longform markdown bodies for research papers 002–006 (split out for readability). */
 import type { ResearchPaper } from './researchPapers';
+// Papers 005–006 are full arXiv-style manuscripts stored verbatim as markdown and
+// imported raw (Vite ?raw) so their triple-backtick code fences need no escaping.
+import NSCCP_MD from '../content/db-r-2026-005.md?raw';
+import MBC_MD from '../content/db-r-2026-006.md?raw';
 
 export const PAPER_002: ResearchPaper = {
   id: 'db-r-2026-002',
@@ -367,5 +371,39 @@ Combining both is stronger than either alone, but the combination does not autom
   title  = {Black-box and grey-box validation of autonomous agent work},
   author = {Pujan}, institution = {Design Bakery}, year = {2026}, month = {7},
   number = {db-r-2026-004}, note = {Technical survey / position paper; pending; citations to be verified.}
+}`,
+};
+
+export const PAPER_005: ResearchPaper = {
+  id: 'db-r-2026-005',
+  title: 'Neuro-Symbolic Control for Reliable Multi-Model Coding Agents',
+  authors: ['Pujan', 'Design Bakery'],
+  submitted: '2026-07-22',
+  status: 'pending',
+  tags: ['cortex', 'control-plane', 'routing', 'reward', 'verification', 'agents'],
+  abstract:
+    "A hybrid architecture (the Neuro-Symbolic Coding Control Plane) that divides a coding agent's responsibilities across three layers: a deterministic safety/workflow kernel, a locally trained neural controller, and frontier LLM workers. The kernel owns permissions, budgets, artifact identity, and irreversible effects; the neural controller learns bounded structural decisions (which model to invoke, whether to test or revise, when to escalate); frontier models generate code but never control authoritative transitions. Central principle: the neural controller may optimize execution within a mechanically safe region, but may not redefine that region. Position, architecture, and experimental-methods paper; no original experimental results.",
+  content: NSCCP_MD,
+  bibtex: `@techreport{db-r-2026-005,
+  title  = {Neuro-Symbolic Control for Reliable Multi-Model Coding Agents},
+  author = {Pujan}, institution = {Design Bakery}, year = {2026}, month = {7},
+  number = {db-r-2026-005}, note = {Position/architecture/methods paper; pending; no original results; citations to be verified.}
+}`,
+};
+
+export const PAPER_006: ResearchPaper = {
+  id: 'db-r-2026-006',
+  title: 'Mechanical Bias Containment for Multi-Vendor LLM Orchestration',
+  authors: ['Pujan', 'Design Bakery'],
+  submitted: '2026-07-22',
+  status: 'pending',
+  tags: ['cortex', 'bias', 'orchestration', 'evaluation', 'conflict-of-interest'],
+  abstract:
+    'Rather than persuade or reward a frozen orchestrator into being unbiased, Mechanical Bias Containment mechanically limits the authority of potentially conflicted judgments via five mechanisms: provenance-preserving decision-local blinding, same-family conflict-of-interest exclusion, deterministic evidence precedence, authority-weighted external rewards, and refusal containment. A model may express a preference, but external software determines whether that preference has decision authority; reward alters routing and authority, never safety boundaries. Position and methods paper; no original experimental results.',
+  content: MBC_MD,
+  bibtex: `@techreport{db-r-2026-006,
+  title  = {Mechanical Bias Containment for Multi-Vendor LLM Orchestration},
+  author = {Pujan}, institution = {Design Bakery}, year = {2026}, month = {7},
+  number = {db-r-2026-006}, note = {Position/methods paper; pending; no original results; citations to be verified.}
 }`,
 };

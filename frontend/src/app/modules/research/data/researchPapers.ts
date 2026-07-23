@@ -78,9 +78,11 @@ No published numbers in this revision. Table reserved for post-approval fill-in 
 };
 
 // Papers 002–004 are appended from a companion module to keep this file readable.
-import { PAPER_002, PAPER_003, PAPER_004 } from './researchPapers.longform';
+import { PAPER_002, PAPER_003, PAPER_004, PAPER_005, PAPER_006 } from './researchPapers.longform';
 
 export const RESEARCH_PAPERS: ResearchPaper[] = [
+  PAPER_006,
+  PAPER_005,
   PAPER_004,
   PAPER_003,
   PAPER_002,
