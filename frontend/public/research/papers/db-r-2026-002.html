@@ -4,368 +4,368 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>db-r-2026-002 · Deny-by-default authorization for tool-using agents</title>
-<meta name="description" content="Working paper (pending owner approval): the Cortex kernel model — deny-by-default authorization, brokered effects, a sole writer, and content-bound receipts for tool-using agents." />
+<meta name="description" content="Working paper (pending owner approval): the Cortex kernel model, deny-by-default authorization, brokered effects, a sole writer, and content-bound receipts for tool-using agents." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet" />
 <style>
-  :root{
-    --bg:#f7f6f2; --paper:#fff; --ink:#1a1a1a; --muted:#5a5a5a;
-    --line:#d8d4c8; --link:#1a4a8a; --link-h:#0d2f5c; --tag:#e8e4d8;
-    --pend:#8a6a12; --focus:#1a4a8a; --max:760px;
-  }
-  @media (prefers-color-scheme: dark){
-    :root{ --bg:#12141a; --paper:#1a1d26; --ink:#e8e6df; --muted:#9a968c;
-      --line:#2c3040; --link:#7eb0e8; --link-h:#a8c8f0; --tag:#252a38; --focus:#7eb0e8; }
-  }
-  *{box-sizing:border-box}
-  body{margin:0; background:var(--bg); color:var(--ink);
-    font-family:"Source Serif 4",Georgia,serif; font-size:17px; line-height:1.65;
-    overflow-x:hidden;}
-  a{color:var(--link)}
-  a:hover{color:var(--link-h)}
-  a:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
-  .skip{position:absolute; left:-9999px; top:0; z-index:100;
-    background:var(--paper); color:var(--ink); border:1px solid var(--line);
-    padding:8px 14px; border-radius:0 0 6px 0;
-    font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px}
-  .skip:focus{left:0}
-  .wrap{max-width:var(--max); margin:0 auto; padding:28px 22px 64px}
-  .top{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px; margin-bottom:28px}
-  .badge{display:inline-block; padding:2px 10px; border-radius:999px; background:var(--tag);
-    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em;
-    text-transform:uppercase; color:var(--pend); overflow-wrap:anywhere}
-  h1{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:1.65rem;
-    line-height:1.3; margin:14px 0 10px; letter-spacing:-.02em; overflow-wrap:break-word}
-  .authors{color:var(--muted); margin:0 0 6px}
-  .idline{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
-    overflow-wrap:anywhere; word-break:break-word}
-  .warn{border:1px solid var(--line); background:var(--paper); padding:12px 14px;
-    border-radius:6px; margin:20px 0; font-size:14px; color:var(--muted)}
-  h2{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:1.15rem;
-    margin:2em 0 .6em; border-bottom:1px solid var(--line); padding-bottom:6px}
-  h3{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:1rem; margin:1.4em 0 .3em}
-  p{margin:.75em 0}
-  ul,ol{padding-left:1.25em}
-  li{margin:.3em 0}
-  blockquote{margin:1.2em 0; padding:2px 0 2px 16px; border-left:3px solid var(--line);
-    color:var(--ink); font-style:italic}
-  table{width:100%; border-collapse:collapse; font-size:14px; margin:1em 0;
-    font-family:"IBM Plex Sans",system-ui,sans-serif; display:block; overflow-x:auto}
-  th,td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
-  th{background:var(--paper); font-weight:600}
-  caption.cap{caption-side:top; text-align:left; color:var(--muted);
-    font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:12.5px;
-    padding:0 0 6px}
-  pre{margin:1em 0; padding:14px 16px; background:var(--paper); border:1px solid var(--line);
-    border-radius:6px; overflow-x:auto; font-family:"IBM Plex Mono",monospace;
-    font-size:12.5px; line-height:1.55}
-  .cite{font-size:14px}
-  .cite li{margin:.4em 0}
-  .paths{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:14px;
-    display:flex; flex-wrap:wrap; gap:10px 16px; margin:1em 0}
-  footer{margin-top:3em; padding-top:1em; border-top:1px solid var(--line);
-    font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px; color:var(--muted)}
-  code, .mono{font-family:"IBM Plex Mono",monospace; font-size:.9em;
-    overflow-wrap:anywhere; word-break:break-word}
-  @media (max-width:560px){
-    .wrap{padding:20px 16px 48px}
-    h1{font-size:1.35rem}
-  }
+ :root{
+ --bg:#f7f6f2; --paper:#fff; --ink:#1a1a1a; --muted:#5a5a5a;
+ --line:#d8d4c8; --link:#1a4a8a; --link-h:#0d2f5c; --tag:#e8e4d8;
+ --pend:#8a6a12; --focus:#1a4a8a; --max:760px;
+ }
+ @media (prefers-color-scheme: dark){
+ :root{ --bg:#12141a; --paper:#1a1d26; --ink:#e8e6df; --muted:#9a968c;
+ --line:#2c3040; --link:#7eb0e8; --link-h:#a8c8f0; --tag:#252a38; --focus:#7eb0e8; }
+ }
+ *{box-sizing:border-box}
+ body{margin:0; background:var(--bg); color:var(--ink);
+ font-family:"Source Serif 4",Georgia,serif; font-size:17px; line-height:1.65;
+ overflow-x:hidden;}
+ a{color:var(--link)}
+ a:hover{color:var(--link-h)}
+ a:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+ .skip{position:absolute; left:-9999px; top:0; z-index:100;
+ background:var(--paper); color:var(--ink); border:1px solid var(--line);
+ padding:8px 14px; border-radius:0 0 6px 0;
+ font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px}
+ .skip:focus{left:0}
+ .wrap{max-width:var(--max); margin:0 auto; padding:28px 22px 64px}
+ .top{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px; margin-bottom:28px}
+ .badge{display:inline-block; padding:2px 10px; border-radius:999px; background:var(--tag);
+ font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em;
+ text-transform:uppercase; color:var(--pend); overflow-wrap:anywhere}
+ h1{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:1.65rem;
+ line-height:1.3; margin:14px 0 10px; letter-spacing:-.02em; overflow-wrap:break-word}
+ .authors{color:var(--muted); margin:0 0 6px}
+ .idline{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
+ overflow-wrap:anywhere; word-break:break-word}
+ .warn{border:1px solid var(--line); background:var(--paper); padding:12px 14px;
+ border-radius:6px; margin:20px 0; font-size:14px; color:var(--muted)}
+ h2{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:1.15rem;
+ margin:2em 0 .6em; border-bottom:1px solid var(--line); padding-bottom:6px}
+ h3{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:1rem; margin:1.4em 0 .3em}
+ p{margin:.75em 0}
+ ul,ol{padding-left:1.25em}
+ li{margin:.3em 0}
+ blockquote{margin:1.2em 0; padding:2px 0 2px 16px; border-left:3px solid var(--line);
+ color:var(--ink); font-style:italic}
+ table{width:100%; border-collapse:collapse; font-size:14px; margin:1em 0;
+ font-family:"IBM Plex Sans",system-ui,sans-serif; display:block; overflow-x:auto}
+ th,td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
+ th{background:var(--paper); font-weight:600}
+ caption.cap{caption-side:top; text-align:left; color:var(--muted);
+ font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:12.5px;
+ padding:0 0 6px}
+ pre{margin:1em 0; padding:14px 16px; background:var(--paper); border:1px solid var(--line);
+ border-radius:6px; overflow-x:auto; font-family:"IBM Plex Mono",monospace;
+ font-size:12.5px; line-height:1.55}
+ .cite{font-size:14px}
+ .cite li{margin:.4em 0}
+ .paths{font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:14px;
+ display:flex; flex-wrap:wrap; gap:10px 16px; margin:1em 0}
+ footer{margin-top:3em; padding-top:1em; border-top:1px solid var(--line);
+ font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:13px; color:var(--muted)}
+ code, .mono{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+ overflow-wrap:anywhere; word-break:break-word}
+ @media (max-width:560px){
+ .wrap{padding:20px 16px 48px}
+ h1{font-size:1.35rem}
+ }
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <main id="main">
 <article class="wrap">
-  <div class="top"><a href="/research/">← Research index</a></div>
-  <span class="badge">pending · not owner-approved</span>
-  <h1>Deny-by-default authorization for tool-using agents: the Cortex kernel model</h1>
-  <p class="authors">Pujan · Design Bakery</p>
-  <p class="idline">db-r-2026-002 · submitted 2026-07-22 · status pending</p>
+ <div class="top"><a href="/research/">← Research index</a></div>
+ <span class="badge">pending · not owner-approved</span>
+ <h1>Deny-by-default authorization for tool-using agents: the Cortex kernel model</h1>
+ <p class="authors">Pujan · Design Bakery</p>
+ <p class="idline">db-r-2026-002 · submitted 2026-07-22 · status pending</p>
 
-  <div class="warn">
-    <strong>Owner gate.</strong> This is a design-descriptive working paper. It states an authorization
-    model, its invariants, a decision procedure, and an evaluation protocol; it makes <em>no</em>
-    benchmark, latency, or production-governance claim about a running Cortex deployment. Numeric results
-    remain empty until the owner marks the paper <span class="mono">approved</span> in
-    <span class="mono">catalog.js</span>. Where the paper cites results, those are other authors' published
-    figures, attributed by reference.
-  </div>
+ <div class="warn">
+ <strong>Owner gate.</strong> This is a design-descriptive working paper. It states an authorization
+ model, its invariants, a decision procedure, and an evaluation protocol; it makes <em>no</em>
+ benchmark, latency, or production-governance claim about a running Cortex deployment. Numeric results
+ remain empty until the owner marks the paper <span class="mono">approved</span> in
+ <span class="mono">catalog.js</span>. Where the paper cites results, those are other authors' published
+ figures, attributed by reference.
+ </div>
 
-  <h2>Abstract</h2>
-  <p>
-    A capable agent decides <em>what</em> to attempt; it does not, by itself, decide what may become a
-    committed effect. We describe Cortex, an execution kernel that sits beneath agent reasoning and owns
-    that second decision. The kernel accepts a structured request describing an actor, an intent, a
-    target, a context, and presented authority; refuses by default; requires an explicit, scoped grant;
-    evaluates policy at the point where the concrete effect is known; routes any allowed effect through a
-    single broker that is the sole writer of controlled state; and returns a content-bound receipt for
-    every outcome, allowed or denied. We argue that this is not a new security idea but a specialisation
-    of two classical ones — the <em>reference monitor</em> (a mediation point that is always invoked,
-    tamper-resistant, and small enough to verify) and <em>least privilege</em> — to the setting where the
-    principal proposing effects is a probabilistic model. We give the request contract, the authorization
-    decision procedure, the kernel invariants, and the receipt structure; relate the model to recent work
-    on programmable privilege and control/data-flow separation for LLM agents; and specify an evaluation
-    protocol that a deterministic checker, not a model judge, would run. We separate component-tested
-    mechanisms from composition status and make no claim of a governed production deployment.
-  </p>
+ <h2>Abstract</h2>
+ <p>
+ A capable agent decides <em>what</em> to attempt; it does not, by itself, decide what may become a
+ committed effect. We describe Cortex, an execution kernel that sits beneath agent reasoning and owns
+ that second decision. The kernel accepts a structured request describing an actor, an intent, a
+ target, a context, and presented authority; refuses by default; requires an explicit, scoped grant;
+ evaluates policy at the point where the concrete effect is known; routes any allowed effect through a
+ single broker that is the sole writer of controlled state; and returns a content-bound receipt for
+ every outcome, allowed or denied. We argue that this is not a new security idea but a specialisation
+ of two classical ones, the <em>reference monitor</em> (a mediation point that is always invoked,
+ tamper-resistant, and small enough to verify) and <em>least privilege</em>, to the setting where the
+ principal proposing effects is a probabilistic model. We give the request contract, the authorization
+ decision procedure, the kernel invariants, and the receipt structure; relate the model to recent work
+ on programmable privilege and control/data-flow separation for LLM agents; and specify an evaluation
+ protocol that a deterministic checker, not a model judge, would run. We separate component-tested
+ mechanisms from composition status and make no claim of a governed production deployment.
+ </p>
 
-  <h2>1. Introduction</h2>
-  <p>
-    An agent equipped with tools can cause external effects — it can write records, call services, move
-    money, change files. The question this paper is about is not whether the agent is <em>smart</em>
-    enough to choose a good action, but whether the system can guarantee that a proposed action becomes a
-    committed effect <em>only</em> when it is explicitly authorized under current policy. When authority
-    is implicit in tool access — "the model was able to call the tool, therefore it may" — then reasoning
-    quality, conversational context, or mere possession of a tool name silently become authorization. That
-    substitution is the failure this kernel exists to prevent.
-  </p>
-  <p>
-    Cortex is a kernel, not a smarter agent. Its responsibility begins at the moment an actor proposes an
-    operation that could produce an external effect or a committed state change, and ends when that
-    proposal has been either refused or turned into an authorized, brokered, receipted effect. Planning,
-    model selection, prompt construction, and general task reasoning remain deliberately outside the
-    kernel. This paper contributes:
-  </p>
-  <ul>
-    <li>a <b>request contract</b> that makes a proposed effect concrete enough to authorize (§4);</li>
-    <li>a <b>deny-by-default authorization decision procedure</b>, evaluated at the effect boundary, with
-      an explicit sole-writer commit path (§5);</li>
-    <li>a set of <b>kernel invariants</b> that hold regardless of the agent, model, tool, or application
-      attached to the kernel (§6);</li>
-    <li>a <b>content-bound receipt</b> structure that records the proposal, the decision, the broker
-      outcome, and the resulting state for every request, allowed or denied (§7);</li>
-    <li>a mapping to <b>classical and contemporary</b> access-control work, and an <b>evaluation
-      protocol</b> that relies on deterministic checks rather than model judgement (§8–§9).</li>
-  </ul>
+ <h2>1. Introduction</h2>
+ <p>
+ An agent equipped with tools can cause external effects, it can write records, call services, move
+ money, change files. The question this paper is about is not whether the agent is <em>smart</em>
+ enough to choose a good action, but whether the system can guarantee that a proposed action becomes a
+ committed effect <em>only</em> when it is explicitly authorized under current policy. When authority
+ is implicit in tool access, "the model was able to call the tool, therefore it may", then reasoning
+ quality, conversational context, or mere possession of a tool name silently become authorization. That
+ substitution is the failure this kernel exists to prevent.
+ </p>
+ <p>
+ Cortex is a kernel, not a smarter agent. Its responsibility begins at the moment an actor proposes an
+ operation that could produce an external effect or a committed state change, and ends when that
+ proposal has been either refused or turned into an authorized, brokered, receipted effect. Planning,
+ model selection, prompt construction, and general task reasoning remain deliberately outside the
+ kernel. This paper contributes:
+ </p>
+ <ul>
+ <li>a <b>request contract</b> that makes a proposed effect concrete enough to authorize (§4);</li>
+ <li>a <b>deny-by-default authorization decision procedure</b>, evaluated at the effect boundary, with
+ an explicit sole-writer commit path (§5);</li>
+ <li>a set of <b>kernel invariants</b> that hold regardless of the agent, model, tool, or application
+ attached to the kernel (§6);</li>
+ <li>a <b>content-bound receipt</b> structure that records the proposal, the decision, the broker
+ outcome, and the resulting state for every request, allowed or denied (§7);</li>
+ <li>a mapping to <b>classical and contemporary</b> access-control work, and an <b>evaluation
+ protocol</b> that relies on deterministic checks rather than model judgement (§8–§9).</li>
+ </ul>
 
-  <h2>2. Threat model and assumptions</h2>
-  <p>
-    We assume the agent is <em>capable but not trusted with authority</em>: it may propose any operation,
-    including operations it should not be allowed to perform, and it may produce fluent justifications for
-    them. We do not assume the agent is adversarial in the cryptographic sense, but the kernel must be
-    correct even if the agent is wrong, confused, prompt-injected, or optimising for task completion at
-    the expense of a constraint. Concretely, the kernel must resist: authority implied by tool
-    availability; a persuasive natural-language argument standing in for a grant; an effect authorized
-    against stale context and then committed after the authorizing evidence is no longer valid; and a
-    second, parallel write path that bypasses the authorization boundary.
-  </p>
-  <p>
-    We assume a trusted computing base consisting of the kernel's decision procedure, the broker, and the
-    receipt store; these must be small, testable, and auditable. We do <em>not</em> assume the policy
-    itself is correct — an incorrect policy will authorize the wrong things — only that the kernel
-    faithfully enforces whatever policy it is given, deny-by-default, at the effect boundary. Out of scope:
-    sandbox escape at the operating-system level, compromise of the broker's own credentials, and
-    supply-chain compromise of the kernel binary; these are the concern of the surrounding platform.
-  </p>
+ <h2>2. Threat model and assumptions</h2>
+ <p>
+ We assume the agent is <em>capable but not trusted with authority</em>: it may propose any operation,
+ including operations it should not be allowed to perform, and it may produce fluent justifications for
+ them. We do not assume the agent is adversarial in the cryptographic sense, but the kernel must be
+ correct even if the agent is wrong, confused, prompt-injected, or optimising for task completion at
+ the expense of a constraint. Concretely, the kernel must resist: authority implied by tool
+ availability; a persuasive natural-language argument standing in for a grant; an effect authorized
+ against stale context and then committed after the authorizing evidence is no longer valid; and a
+ second, parallel write path that bypasses the authorization boundary.
+ </p>
+ <p>
+ We assume a trusted computing base consisting of the kernel's decision procedure, the broker, and the
+ receipt store; these must be small, testable, and auditable. We do <em>not</em> assume the policy
+ itself is correct, an incorrect policy will authorize the wrong things, only that the kernel
+ faithfully enforces whatever policy it is given, deny-by-default, at the effect boundary. Out of scope:
+ sandbox escape at the operating-system level, compromise of the broker's own credentials, and
+ supply-chain compromise of the kernel binary; these are the concern of the surrounding platform.
+ </p>
 
-  <h2>3. System model and notation</h2>
-  <p>
-    A <em>request</em> <code>r</code> is proposed by an <em>actor</em> and carries an <em>intent</em>
-    (the operation class), a <em>target</em> (the concrete object of the operation), a <em>context</em>
-    (the state the proposal was formed against), and <em>presented authority</em> (the grant the actor
-    claims covers the request). A <em>grant</em> <code>g</code> declares an operation set and a target
-    scope. A <em>policy</em> <code>P</code> is a predicate evaluated at the effect boundary — the point at
-    which the concrete effect is known, not the earlier point at which only intent is visible. The
-    <em>broker</em> <code>B</code> is the single component permitted to perform controlled effects and
-    commit controlled state. A <em>receipt</em> binds a request to its decision and observed outcome.
-  </p>
-  <p>
-    The kernel decides a function <code>authorize(r, g, P) → {ALLOW, DENY}</code>. An <code>ALLOW</code>
-    proceeds through <code>B</code>; a <code>DENY</code> — including the absence of a decision — proceeds
-    to a refusal. Both paths produce a receipt. The kernel does not itself plan, choose models, or
-    interpret free-form text; it evaluates the contract it is handed.
-  </p>
+ <h2>3. System model and notation</h2>
+ <p>
+ A <em>request</em> <code>r</code> is proposed by an <em>actor</em> and carries an <em>intent</em>
+ (the operation class), a <em>target</em> (the concrete object of the operation), a <em>context</em>
+ (the state the proposal was formed against), and <em>presented authority</em> (the grant the actor
+ claims covers the request). A <em>grant</em> <code>g</code> declares an operation set and a target
+ scope. A <em>policy</em> <code>P</code> is a predicate evaluated at the effect boundary, the point at
+ which the concrete effect is known, not the earlier point at which only intent is visible. The
+ <em>broker</em> <code>B</code> is the single component permitted to perform controlled effects and
+ commit controlled state. A <em>receipt</em> binds a request to its decision and observed outcome.
+ </p>
+ <p>
+ The kernel decides a function <code>authorize(r, g, P) → {ALLOW, DENY}</code>. An <code>ALLOW</code>
+ proceeds through <code>B</code>; a <code>DENY</code>, including the absence of a decision, proceeds
+ to a refusal. Both paths produce a receipt. The kernel does not itself plan, choose models, or
+ interpret free-form text; it evaluates the contract it is handed.
+ </p>
 
-  <h2>4. The request contract</h2>
-  <p>
-    The authorization boundary needs a structured description of what is being requested; a free-form
-    model message is not itself an execution contract. The request envelope therefore structures, before
-    execution, the fields the decision procedure consumes:
-  </p>
-  <pre><code>request := {
-  actor:     principal proposing the operation
-  intent:    operation class (e.g. write.customer_note)
-  target:    concrete object + scope of the effect
-  context:   state / evidence the proposal was formed against
-  authority: the grant presented as covering this request
+ <h2>4. The request contract</h2>
+ <p>
+ The authorization boundary needs a structured description of what is being requested; a free-form
+ model message is not itself an execution contract. The request envelope therefore structures, before
+ execution, the fields the decision procedure consumes:
+ </p>
+ <pre><code>request := {
+ actor: principal proposing the operation
+ intent: operation class (e.g. write.customer_note)
+ target: concrete object + scope of the effect
+ context: state / evidence the proposal was formed against
+ authority: the grant presented as covering this request
 }</code></pre>
-  <p>
-    Structuring the request is what makes deny-by-default meaningful: a decision procedure can only refuse
-    "unless sufficient authority is established" if there is a declared thing to check the authority
-    against. The envelope also carries the material later bound into the receipt, so that the record of a
-    decision references exactly the request that was decided.
-  </p>
+ <p>
+ Structuring the request is what makes deny-by-default meaningful: a decision procedure can only refuse
+ "unless sufficient authority is established" if there is a declared thing to check the authority
+ against. The envelope also carries the material later bound into the receipt, so that the record of a
+ decision references exactly the request that was decided.
+ </p>
 
-  <h2>5. The authorization decision procedure</h2>
-  <p>
-    Seven mechanisms compose one controlled path from a proposal to a committed state change. They are, in
-    order: (1) the <b>request envelope</b> above; (2) <b>deny by default</b> — missing, unknown, invalid,
-    or insufficient authority resolves to a refusal; (3) <b>explicit authority</b> — a declared grant
-    whose operation and target scope cover the request; (4) the <b>policy gate</b> — current constraints
-    evaluated where the concrete effect is known; (5) <b>brokered tools</b> — allowed execution crosses
-    the effect boundary through <code>B</code>, not by direct agent access; (6) <b>sole-writer commit</b>
-    — controlled writes are concentrated in <code>B</code> so authorization cannot be bypassed by a
-    parallel path; and (7) <b>execution receipts</b> — evidence returned for every outcome. The conceptual
-    kernel path is small:
-  </p>
-  <pre><code>decision = authorize(request, authority, policy)
+ <h2>5. The authorization decision procedure</h2>
+ <p>
+ Seven mechanisms compose one controlled path from a proposal to a committed state change. They are, in
+ order: (1) the <b>request envelope</b> above; (2) <b>deny by default</b>, missing, unknown, invalid,
+ or insufficient authority resolves to a refusal; (3) <b>explicit authority</b>, a declared grant
+ whose operation and target scope cover the request; (4) the <b>policy gate</b>, current constraints
+ evaluated where the concrete effect is known; (5) <b>brokered tools</b>, allowed execution crosses
+ the effect boundary through <code>B</code>, not by direct agent access; (6) <b>sole-writer commit</b>
+, controlled writes are concentrated in <code>B</code> so authorization cannot be bypassed by a
+ parallel path; and (7) <b>execution receipts</b>, evidence returned for every outcome. The conceptual
+ kernel path is small:
+ </p>
+ <pre><code>decision = authorize(request, authority, policy)
 
 if decision != ALLOW:
-    return receipt(request, decision, no_effect)      # refusal is still receipted
+ return receipt(request, decision, no_effect) # refusal is still receipted
 
-result = tool_broker.execute(request.operation)       # sole writer performs the effect
-return receipt(request, decision, result)             # bind proposal, decision, outcome</code></pre>
-  <p>
-    Two properties of this procedure are load-bearing. First, the policy gate is evaluated <em>at the
-    effect boundary</em>: authorizing against intent alone permits a class of failures in which an
-    operation is approved and then committed after the authorizing evidence has gone stale. Re-checking
-    authorization immediately before a durable effect is the mitigation. Second, the commit path is a
-    <em>sole writer</em>: if any other path could write controlled state, the authorization decision would
-    be advisory. Concentrating writes in <code>B</code> makes the decision binding.
-  </p>
+result = tool_broker.execute(request.operation) # sole writer performs the effect
+return receipt(request, decision, result) # bind proposal, decision, outcome</code></pre>
+ <p>
+ Two properties of this procedure are load-bearing. First, the policy gate is evaluated <em>at the
+ effect boundary</em>: authorizing against intent alone permits a class of failures in which an
+ operation is approved and then committed after the authorizing evidence has gone stale. Re-checking
+ authorization immediately before a durable effect is the mitigation. Second, the commit path is a
+ <em>sole writer</em>: if any other path could write controlled state, the authorization decision would
+ be advisory. Concentrating writes in <code>B</code> makes the decision binding.
+ </p>
 
-  <h2>6. Kernel invariants</h2>
-  <p>An implementation preserves these regardless of the agent, model, tool, or application attached:</p>
-  <ul>
-    <li><b>INV-1 Default deny.</b> A request is denied unless sufficient authority is established.</li>
-    <li><b>INV-2 Explicit scope.</b> Authority applies to declared operations and targets, not general
-      intent.</li>
-    <li><b>INV-3 Brokered effects.</b> Authorized tool execution crosses the effect boundary through the
-      broker.</li>
-    <li><b>INV-4 Sole writer.</b> The broker is the only component permitted to commit controlled
-      state.</li>
-    <li><b>INV-5 Decision before effect.</b> Authorization completes before a requested write is
-      committed.</li>
-    <li><b>INV-6 Receipt after decision.</b> Allowed, denied, and failed requests all return evidence of
-      their path.</li>
-  </ul>
-  <p>
-    INV-1 and INV-2 are the deny-by-default core; INV-3 and INV-4 make the decision non-bypassable;
-    INV-5 orders the decision before the effect; INV-6 makes the whole path accountable. A failure of any
-    one degrades the others: without a sole writer, "decision before effect" can be routed around; without
-    receipts, a denial cannot be distinguished from a silent success.
-  </p>
+ <h2>6. Kernel invariants</h2>
+ <p>An implementation preserves these regardless of the agent, model, tool, or application attached:</p>
+ <ul>
+ <li><b>INV-1 Default deny.</b> A request is denied unless sufficient authority is established.</li>
+ <li><b>INV-2 Explicit scope.</b> Authority applies to declared operations and targets, not general
+ intent.</li>
+ <li><b>INV-3 Brokered effects.</b> Authorized tool execution crosses the effect boundary through the
+ broker.</li>
+ <li><b>INV-4 Sole writer.</b> The broker is the only component permitted to commit controlled
+ state.</li>
+ <li><b>INV-5 Decision before effect.</b> Authorization completes before a requested write is
+ committed.</li>
+ <li><b>INV-6 Receipt after decision.</b> Allowed, denied, and failed requests all return evidence of
+ their path.</li>
+ </ul>
+ <p>
+ INV-1 and INV-2 are the deny-by-default core; INV-3 and INV-4 make the decision non-bypassable;
+ INV-5 orders the decision before the effect; INV-6 makes the whole path accountable. A failure of any
+ one degrades the others: without a sole writer, "decision before effect" can be routed around; without
+ receipts, a denial cannot be distinguished from a silent success.
+ </p>
 
-  <h2>7. Execution receipts</h2>
-  <p>
-    A receipt is the kernel's evidence object. It binds, for a single request, the proposal that was made,
-    the authorization decision and the policy it was evaluated under, the identity of the writer, and the
-    observed outcome and resulting state reference:
-  </p>
-  <pre><code>receipt := {
-  request_ref:   the exact proposal (actor, intent, target, context)
-  decision:      ALLOW | DENY, with the policy reference evaluated
-  writer:        that the controlled commit path stayed with the broker
-  outcome:       whether an effect occurred, and the resulting state ref
+ <h2>7. Execution receipts</h2>
+ <p>
+ A receipt is the kernel's evidence object. It binds, for a single request, the proposal that was made,
+ the authorization decision and the policy it was evaluated under, the identity of the writer, and the
+ observed outcome and resulting state reference:
+ </p>
+ <pre><code>receipt := {
+ request_ref: the exact proposal (actor, intent, target, context)
+ decision: ALLOW | DENY, with the policy reference evaluated
+ writer: that the controlled commit path stayed with the broker
+ outcome: whether an effect occurred, and the resulting state ref
 }</code></pre>
-  <p>
-    Because a receipt is produced for a denial as well as a success, the receipt log distinguishes "the
-    request was refused" from "the request silently did nothing" — a distinction that black-box outcome
-    checking alone cannot always make (an unauthorized transfer that does not happen because the payment
-    service crashed looks, externally, like a correctly refused transfer). Receipts are the process
-    evidence a grey-box validator consumes; see the companion validation paper [3] and the discussion of
-    trace trustworthiness there.
-  </p>
+ <p>
+ Because a receipt is produced for a denial as well as a success, the receipt log distinguishes "the
+ request was refused" from "the request silently did nothing", a distinction that black-box outcome
+ checking alone cannot always make (an unauthorized transfer that does not happen because the payment
+ service crashed looks, externally, like a correctly refused transfer). Receipts are the process
+ evidence a grey-box validator consumes; see the companion validation paper [3] and the discussion of
+ trace trustworthiness there.
+ </p>
 
-  <h2>8. Relationship to classical and contemporary work</h2>
-  <p>
-    The invariants are a restatement of the <em>reference-monitor</em> concept — a mediation point that
-    is always invoked, tamper-resistant, and small enough to be verified [1] — and of <em>least
-    privilege</em> [2], applied to agent effects rather than to processes or users. The request contract
-    plays the role of the mediated operation; deny-by-default and explicit scope are least privilege;
-    the sole writer is the always-invoked property; receipts are the auditability property.
-  </p>
-  <p>
-    Recent work brings these principles to LLM agents specifically. Programmable privilege control such as
-    Progent expresses fine-grained, deterministic policies over tool names, arguments, and context, with
-    fallback behaviour [4] — the policy-gate analogue at the tool layer. Control/data-flow separation such
-    as CaMeL keeps a trusted control plane distinct from untrusted data and mediates effects through a
-    capability-checking interpreter [5] — the same instinct as brokered effects and a sole writer. General
-    policy engines and analyzable authorization languages — OPA's decision/enforcement separation [6] and
-    Cedar's analyzable policies [7] — are candidate implementations of the policy gate. Per-worker
-    cryptographic identity [8] and signed step metadata [9] are candidate implementations of "who was the
-    writer" and of receipt integrity. Cortex's contribution is not a new primitive but the specific
-    composition — envelope, deny-by-default, explicit scope, effect-boundary policy, sole writer,
-    receipts — presented as a kernel with stated invariants.
-  </p>
+ <h2>8. Relationship to classical and contemporary work</h2>
+ <p>
+ The invariants are a restatement of the <em>reference-monitor</em> concept, a mediation point that
+ is always invoked, tamper-resistant, and small enough to be verified [1], and of <em>least
+ privilege</em> [2], applied to agent effects rather than to processes or users. The request contract
+ plays the role of the mediated operation; deny-by-default and explicit scope are least privilege;
+ the sole writer is the always-invoked property; receipts are the auditability property.
+ </p>
+ <p>
+ Recent work brings these principles to LLM agents specifically. Programmable privilege control such as
+ Progent expresses fine-grained, deterministic policies over tool names, arguments, and context, with
+ fallback behaviour [4], the policy-gate analogue at the tool layer. Control/data-flow separation such
+ as CaMeL keeps a trusted control plane distinct from untrusted data and mediates effects through a
+ capability-checking interpreter [5], the same instinct as brokered effects and a sole writer. General
+ policy engines and analyzable authorization languages, OPA's decision/enforcement separation [6] and
+ Cedar's analyzable policies [7], are candidate implementations of the policy gate. Per-worker
+ cryptographic identity [8] and signed step metadata [9] are candidate implementations of "who was the
+ writer" and of receipt integrity. Cortex's contribution is not a new primitive but the specific
+ composition, envelope, deny-by-default, explicit scope, effect-boundary policy, sole writer,
+ receipts, presented as a kernel with stated invariants.
+ </p>
 
-  <h2>9. Evaluation methodology (no results claimed)</h2>
-  <p>
-    The kernel is designed to be evaluated by deterministic checks, not by a model's opinion. We specify
-    the protocol; we report no numbers. A conforming test suite would establish, per mechanism:
-  </p>
-  <ul>
-    <li><b>Default deny.</b> For a corpus of requests with missing / unknown / invalid / insufficient
-      authority, the decision is <code>DENY</code> and no controlled write occurs (checked against the
-      system of record, not the agent's self-report).</li>
-    <li><b>Explicit scope.</b> A grant covering operation <em>x</em> on target <em>t</em> does not
-      authorize <em>x</em> on <em>t′</em> outside scope, nor a different operation on <em>t</em>.</li>
-    <li><b>Decision before effect / effect-boundary freshness.</b> An authorization formed against context
-      that becomes invalid before commit does not commit; a metamorphic check (revoke the grant between
-      decision and commit → the effect must flip allow→deny).</li>
-    <li><b>Sole writer.</b> An attempt to commit controlled state through any path other than the broker
-      fails closed.</li>
-    <li><b>Receipt completeness.</b> Every request — allowed, denied, failed — yields a receipt whose
-      <code>request_ref</code> matches the exact proposal and whose <code>outcome</code> matches the
-      independently observed state.</li>
-  </ul>
-  <p>
-    This is a black-box outcome oracle over external state plus a grey-box process oracle over the
-    invariants, in the sense of [3]; deterministic evidence decides pass or fail, and no model vote
-    overrides an executable contradiction. The evaluator itself should be challenged with deliberately
-    defective cases (a superficially successful but unauthorized write; an unlogged side effect) before it
-    is trusted — an evaluator never attacked is not authoritative [3].
-  </p>
+ <h2>9. Evaluation methodology (no results claimed)</h2>
+ <p>
+ The kernel is designed to be evaluated by deterministic checks, not by a model's opinion. We specify
+ the protocol; we report no numbers. A conforming test suite would establish, per mechanism:
+ </p>
+ <ul>
+ <li><b>Default deny.</b> For a corpus of requests with missing / unknown / invalid / insufficient
+ authority, the decision is <code>DENY</code> and no controlled write occurs (checked against the
+ system of record, not the agent's self-report).</li>
+ <li><b>Explicit scope.</b> A grant covering operation <em>x</em> on target <em>t</em> does not
+ authorize <em>x</em> on <em>t′</em> outside scope, nor a different operation on <em>t</em>.</li>
+ <li><b>Decision before effect / effect-boundary freshness.</b> An authorization formed against context
+ that becomes invalid before commit does not commit; a metamorphic check (revoke the grant between
+ decision and commit → the effect must flip allow→deny).</li>
+ <li><b>Sole writer.</b> An attempt to commit controlled state through any path other than the broker
+ fails closed.</li>
+ <li><b>Receipt completeness.</b> Every request, allowed, denied, failed, yields a receipt whose
+ <code>request_ref</code> matches the exact proposal and whose <code>outcome</code> matches the
+ independently observed state.</li>
+ </ul>
+ <p>
+ This is a black-box outcome oracle over external state plus a grey-box process oracle over the
+ invariants, in the sense of [3]; deterministic evidence decides pass or fail, and no model vote
+ overrides an executable contradiction. The evaluator itself should be challenged with deliberately
+ defective cases (a superficially successful but unauthorized write; an unlogged side effect) before it
+ is trusted, an evaluator never attacked is not authoritative [3].
+ </p>
 
-  <h2>10. Limitations and non-claims</h2>
-  <ul>
-    <li>The kernel enforces whatever policy it is given; an incorrect policy authorizes the wrong effects.
-      Policy correctness is out of scope here.</li>
-    <li>Per-request authorization is necessary but not sufficient: individually valid operations can
-      compose into an invalid sequence, which needs sequence- and commit-level policy in addition to the
-      per-effect gate.</li>
-    <li>Moving authority out of the agent does not delete the root of trust; it relocates it to the
-      policy, the broker, and the receipt store, which must be smaller and more auditable than the agent.</li>
-    <li>This paper claims no live production-governed runs and treats builder self-report as not
-      independent evaluation; composition status is tracked separately [10].</li>
-    <li>No pass rates, latencies, or coverage figures are asserted; benchmark cells are empty pending
-      owner approval.</li>
-  </ul>
+ <h2>10. Limitations and non-claims</h2>
+ <ul>
+ <li>The kernel enforces whatever policy it is given; an incorrect policy authorizes the wrong effects.
+ Policy correctness is out of scope here.</li>
+ <li>Per-request authorization is necessary but not sufficient: individually valid operations can
+ compose into an invalid sequence, which needs sequence- and commit-level policy in addition to the
+ per-effect gate.</li>
+ <li>Moving authority out of the agent does not delete the root of trust; it relocates it to the
+ policy, the broker, and the receipt store, which must be smaller and more auditable than the agent.</li>
+ <li>This paper claims no live production-governed runs and treats builder self-report as not
+ independent evaluation; composition status is tracked separately [10].</li>
+ <li>No pass rates, latencies, or coverage figures are asserted; benchmark cells are empty pending
+ owner approval.</li>
+ </ul>
 
-  <h2>11. Related work in this series</h2>
-  <div class="paths">
-    <a href="/research/papers/db-r-2026-003.html">db-r-2026-003 · Constraining an LLM orchestrator</a>
-    <a href="/research/papers/db-r-2026-004.html">db-r-2026-004 · Black-box &amp; grey-box validation</a>
-    <a href="/research/papers/db-r-2026-001.html">db-r-2026-001 · Composition status &amp; evidence boundaries</a>
-  </div>
-  <p>Narrative framing (not a research paper): the Cortex case study.</p>
-  <div class="paths">
-    <a href="/case-studies/cortex/a/">Overview</a>
-    <a href="/case-studies/cortex/a/specs.html">Technical specification</a>
-    <a href="/case-studies/cortex/a/flowchart.html">Decision-flow diagrams</a>
-  </div>
+ <h2>11. Related work in this series</h2>
+ <div class="paths">
+ <a href="/research/papers/db-r-2026-003.html">db-r-2026-003 · Constraining an LLM orchestrator</a>
+ <a href="/research/papers/db-r-2026-004.html">db-r-2026-004 · Black-box &amp; grey-box validation</a>
+ <a href="/research/papers/db-r-2026-001.html">db-r-2026-001 · Composition status &amp; evidence boundaries</a>
+ </div>
+ <p>Narrative framing (not a research paper): the Cortex case study.</p>
+ <div class="paths">
+ <a href="/case-studies/cortex/a/">Overview</a>
+ <a href="/case-studies/cortex/a/specs.html">Technical specification</a>
+ <a href="/case-studies/cortex/a/flowchart.html">Decision-flow diagrams</a>
+ </div>
 
-  <h2>References</h2>
-  <ol class="cite">
-    <li>Anderson, J. P. <em>Computer Security Technology Planning Study</em> (the reference-monitor concept). ESD-TR-73-51, USAF, 1972.</li>
-    <li>Saltzer, J. H.; Schroeder, M. D. "The Protection of Information in Computer Systems" (least privilege). <em>Proc. IEEE</em> 63(9), 1975.</li>
-    <li>Pujan; Design Bakery. <em>Black-box and grey-box validation of autonomous agent work</em>. db-r-2026-004, 2026 (pending). <a href="/research/papers/db-r-2026-004.html">/research/papers/db-r-2026-004.html</a></li>
-    <li>Shi et al. "Progent: Programmable Privilege Control for LLM Agents." arXiv:2504.11703, 2025.</li>
-    <li>Debenedetti et al. "Defeating Prompt Injections by Design (CaMeL)." arXiv:2503.18813, 2025.</li>
-    <li>Open Policy Agent Project. Documentation (policy decision / enforcement separation).</li>
-    <li>Cutler et al. "Cedar: A Language for Expressive, Fast, Safe, and Analyzable Authorization." arXiv:2403.04651, 2024.</li>
-    <li>CNCF. "SPIFFE / SPIRE" (workload identity). Project documentation.</li>
-    <li>in-toto Project. Signed supply-chain / step metadata. Project documentation.</li>
-    <li>Pujan; Design Bakery. <em>Cortex reliability kernel: composition status and evidence boundaries</em>. db-r-2026-001, 2026 (pending). <a href="/research/papers/db-r-2026-001.html">/research/papers/db-r-2026-001.html</a></li>
-  </ol>
+ <h2>References</h2>
+ <ol class="cite">
+ <li>Anderson, J. P. <em>Computer Security Technology Planning Study</em> (the reference-monitor concept). ESD-TR-73-51, USAF, 1972.</li>
+ <li>Saltzer, J. H.; Schroeder, M. D. "The Protection of Information in Computer Systems" (least privilege). <em>Proc. IEEE</em> 63(9), 1975.</li>
+ <li>Pujan; Design Bakery. <em>Black-box and grey-box validation of autonomous agent work</em>. db-r-2026-004, 2026 (pending). <a href="/research/papers/db-r-2026-004.html">/research/papers/db-r-2026-004.html</a></li>
+ <li>Shi et al. "Progent: Programmable Privilege Control for LLM Agents." arXiv:2504.11703, 2025.</li>
+ <li>Debenedetti et al. "Defeating Prompt Injections by Design (CaMeL)." arXiv:2503.18813, 2025.</li>
+ <li>Open Policy Agent Project. Documentation (policy decision / enforcement separation).</li>
+ <li>Cutler et al. "Cedar: A Language for Expressive, Fast, Safe, and Analyzable Authorization." arXiv:2403.04651, 2024.</li>
+ <li>CNCF. "SPIFFE / SPIRE" (workload identity). Project documentation.</li>
+ <li>in-toto Project. Signed supply-chain / step metadata. Project documentation.</li>
+ <li>Pujan; Design Bakery. <em>Cortex reliability kernel: composition status and evidence boundaries</em>. db-r-2026-001, 2026 (pending). <a href="/research/papers/db-r-2026-001.html">/research/papers/db-r-2026-001.html</a></li>
+ </ol>
 
-  <footer>
-    <p>Cite as: Pujan (2026). <em>Deny-by-default authorization for tool-using agents: the Cortex kernel model</em>.
-      Design Bakery Research db-r-2026-002 (pending).</p>
-    <p><a href="db-r-2026-002.bib">BibTeX</a> · <a href="/research/">Index</a></p>
-  </footer>
+ <footer>
+ <p>Cite as: Pujan (2026). <em>Deny-by-default authorization for tool-using agents: the Cortex kernel model</em>.
+ Design Bakery Research db-r-2026-002 (pending).</p>
+ <p><a href="db-r-2026-002.bib">BibTeX</a> · <a href="/research/">Index</a></p>
+ </footer>
 </article>
 </main>
 </body>

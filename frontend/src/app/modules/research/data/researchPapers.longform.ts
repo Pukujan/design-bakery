@@ -1,9 +1,10 @@
-/** Longform markdown bodies for research papers 002–006 (split out for readability). */
+/** Longform markdown bodies for research papers 002-007 (split out for readability). */
 import type { ResearchPaper } from './researchPapers';
-// Papers 005–006 are full arXiv-style manuscripts stored verbatim as markdown and
+// Papers 005-007 are full arXiv-style manuscripts stored verbatim as markdown and
 // imported raw (Vite ?raw) so their triple-backtick code fences need no escaping.
 import NSCCP_MD from '../content/db-r-2026-005.md?raw';
 import MBC_MD from '../content/db-r-2026-006.md?raw';
+import MULTINET_MD from '../content/db-r-2026-007.md?raw';
 
 export const PAPER_002: ResearchPaper = {
   id: 'db-r-2026-002',
@@ -18,17 +19,17 @@ export const PAPER_002: ResearchPaper = {
 
 ## Abstract
 
-A capable agent decides *what* to attempt; it does not, by itself, decide what may become a committed effect. We describe Cortex, an execution kernel that sits beneath agent reasoning and owns that second decision. The kernel accepts a structured request; refuses by default; requires an explicit, scoped grant; evaluates policy at the point where the concrete effect is known; routes any allowed effect through a single broker that is the sole writer of controlled state; and returns a content-bound receipt for every outcome, allowed or denied. This is a specialisation of two classical ideas — the *reference monitor* and *least privilege* — to the setting where the principal proposing effects is a probabilistic model.
+A capable agent decides *what* to attempt; it does not, by itself, decide what may become a committed effect. We describe Cortex, an execution kernel that sits beneath agent reasoning and owns that second decision. The kernel accepts a structured request; refuses by default; requires an explicit, scoped grant; evaluates policy at the point where the concrete effect is known; routes any allowed effect through a single broker that is the sole writer of controlled state; and returns a content-bound receipt for every outcome, allowed or denied. This is a specialisation of two classical ideas (the *reference monitor* and *least privilege*) to the setting where the principal proposing effects is a probabilistic model.
 
 ## 1. Introduction
 
-The question is not whether the agent is *smart* enough to choose a good action, but whether the system can guarantee that a proposed action becomes a committed effect **only** when it is explicitly authorized under current policy. When authority is implicit in tool access — "the model could call the tool, therefore it may" — reasoning quality or mere possession of a tool name silently become authorization. That substitution is the failure this kernel prevents.
+The question is not whether the agent is *smart* enough to choose a good action, but whether the system can guarantee that a proposed action becomes a committed effect **only** when it is explicitly authorized under current policy. When authority is implicit in tool access ("the model could call the tool, therefore it may"), reasoning quality or mere possession of a tool name silently become authorization. That substitution is the failure this kernel prevents.
 
 This paper contributes: a **request contract** (§4); a **deny-by-default decision procedure** with a sole-writer commit path (§5); a set of **kernel invariants** (§6); a **content-bound receipt** structure (§7); and a mapping to classical and contemporary access-control work plus an **evaluation protocol** that relies on deterministic checks (§8–§9).
 
 ## 2. Threat model and assumptions
 
-The agent is *capable but not trusted with authority*: it may propose any operation, including ones it should not perform, and produce fluent justifications. The kernel must be correct even if the agent is wrong, confused, prompt-injected, or optimising for task completion at the expense of a constraint. It must resist: authority implied by tool availability; a persuasive argument standing in for a grant; an effect authorized against stale context then committed after the evidence is invalid; and a parallel write path that bypasses the boundary. The trusted computing base — the decision procedure, the broker, the receipt store — must be small, testable, and auditable. Out of scope: OS-level sandbox escape, compromise of the broker's credentials, supply-chain compromise of the kernel binary.
+The agent is *capable but not trusted with authority*: it may propose any operation, including ones it should not perform, and produce fluent justifications. The kernel must be correct even if the agent is wrong, confused, prompt-injected, or optimising for task completion at the expense of a constraint. It must resist: authority implied by tool availability; a persuasive argument standing in for a grant; an effect authorized against stale context then committed after the evidence is invalid; and a parallel write path that bypasses the boundary. The trusted computing base (the decision procedure, the broker, the receipt store) must be small, testable, and auditable. Out of scope: OS-level sandbox escape, compromise of the broker's credentials, supply-chain compromise of the kernel binary.
 
 ## 3. System model and notation
 
@@ -86,11 +87,11 @@ receipt := {
 }
 \`\`\`
 
-Because a receipt is produced for a denial as well as a success, the log distinguishes "refused" from "silently did nothing" — a distinction black-box outcome checking alone cannot always make.
+Because a receipt is produced for a denial as well as a success, the log distinguishes "refused" from "silently did nothing", a distinction black-box outcome checking alone cannot always make.
 
 ## 8. Relationship to classical and contemporary work
 
-The invariants restate the *reference-monitor* concept — always invoked, tamper-resistant, small enough to verify [1] — and *least privilege* [2], applied to agent effects. Recent work brings these to LLM agents: programmable privilege control (Progent) over tool names/args/context [4]; control/data-flow separation (CaMeL) mediating effects through a capability interpreter [5]; policy engines (OPA [6], Cedar [7]); per-worker identity (SPIFFE [8]) and signed step metadata (in-toto [9]). Cortex's contribution is the specific composition presented as a kernel with stated invariants.
+The invariants restate the *reference-monitor* concept (always invoked, tamper-resistant, small enough to verify [1]) and *least privilege* [2], applied to agent effects. Recent work brings these to LLM agents: programmable privilege control (Progent) over tool names/args/context [4]; control/data-flow separation (CaMeL) mediating effects through a capability interpreter [5]; policy engines (OPA [6], Cedar [7]); per-worker identity (SPIFFE [8]) and signed step metadata (in-toto [9]). Cortex's contribution is the specific composition presented as a kernel with stated invariants.
 
 ## 9. Evaluation methodology (no results claimed)
 
@@ -155,7 +156,7 @@ A common architecture gives one LLM the whole pipeline, combining five authoriti
 
 ## 4. Planner versus orchestrator
 
-An **LLM planner** may decompose a task, propose a workflow, and request a bounded replan — it emits a *proposal*. A **deterministic controller** validates the plan, owns the state machine, issues scoped capabilities, enforces budgets, invokes verification, and authorizes commitment — no natural-language reasoning in its path.
+An **LLM planner** may decompose a task, propose a workflow, and request a bounded replan; it emits a *proposal*. A **deterministic controller** validates the plan, owns the state machine, issues scoped capabilities, enforces budgets, invokes verification, and authorizes commitment; no natural-language reasoning in its path.
 
 ## 5. Recommended capability boundaries
 
@@ -164,9 +165,9 @@ The **planner** may read the task contract, propose a typed task graph, select r
 ## 6. Mechanical gates supported by research
 
 - **Typed plan gate.** A validator rejects unknown node types, undeclared tools, cycles, missing verification, illegal data flows; Agentproof statically verifies workflow graphs [7].
-- **Runtime rule gate.** AgentSpec prevented >90% of unsafe code-agent executions at ms overhead — but enforces only the rules that exist [8].
-- **Least-privilege tool gate.** Progent — fine-grained deterministic policies over tool names/args/context [9].
-- **Control/data-flow separation.** CaMeL — trusted control flow vs untrusted data, 67% of AgentDojo with its guarantees [10].
+- **Runtime rule gate.** AgentSpec prevented >90% of unsafe code-agent executions at ms overhead, but enforces only the rules that exist [8].
+- **Least-privilege tool gate.** Progent: fine-grained deterministic policies over tool names/args/context [9].
+- **Control/data-flow separation.** CaMeL: trusted control flow vs untrusted data, 67% of AgentDojo with its guarantees [10].
 - **Trusted monitoring & deferral.** AI-control wraps an untrusted model with monitoring [11]; monitoring can be defeated by adaptive attacks while *deferring critical actions to a trusted policy* stayed robust [12].
 - **Commit-time authorization.** Re-check authorization immediately before a durable effect; a fail-closed commit boundary rechecks freshness / causal-dependency / eligibility [13].
 
@@ -184,7 +185,7 @@ The LLM cannot set the authoritative state; it emits \`{requested_transition, re
 
 ## 8. Mechanical efficiency controls
 
-Per-stage budgets the orchestrator cannot modify. Progress predicates: \`same state + same action + no new evidence = loop detected\`. Retry classes by failure type. Limit delegation depth (≤2), active workers (≤5), replans (≤2), reviewer loops (≤3). Use the simplest sufficient architecture — MAST found adding agents can add coordination failures without adding capability [1].
+Per-stage budgets the orchestrator cannot modify. Progress predicates: \`same state + same action + no evidence = loop detected\`. Retry classes by failure type. Limit delegation depth (≤2), active workers (≤5), replans (≤2), reviewer loops (≤3). Use the simplest sufficient architecture; MAST found adding agents can add coordination failures without adding capability [1].
 
 ## 9. Recommended production stack
 
@@ -200,7 +201,7 @@ Mechanical gates enforce only *encoded* properties. Restriction reduces flexibil
 
 ## 12. Central recommendation
 
-The practical answer is not to make the orchestrator sufficiently obedient — it is to ensure disobedience has limited consequences.
+The practical answer is not to make the orchestrator sufficiently obedient; it is to ensure disobedience has limited consequences.
 
 > The orchestrator may decide what it believes should happen next. It must not decide whether it is permitted to happen next.
 
@@ -245,12 +246,12 @@ export const PAPER_004: ResearchPaper = {
   status: 'pending',
   tags: ['cortex', 'validation', 'agents', 'testing'],
   abstract:
-    'Validating autonomous agent output without trusting the agent: a black-box outcome oracle over external state, a grey-box process oracle over invariants, and grey-box holdouts that receive real signatures (not implementations). A deterministic checker — never a model vote — decides pass or fail. A technical survey and position paper.',
+    'Validating autonomous agent output without trusting the agent: a black-box outcome oracle over external state, a grey-box process oracle over invariants, and grey-box holdouts that receive real signatures (not implementations). A deterministic checker (never a model vote) decides pass or fail. A technical survey and position paper.',
   content: `> **Provenance note.** This is a technical survey and position paper. It reports no original benchmark experiment or production deployment; all quantitative findings are attributed to prior publications. References and numerical claims must be independently verified before owner approval. Citations were AI-suggested; several carry 2026 arXiv identifiers that must be confirmed before this paper is marked \`approved\`.
 
 ## Abstract
 
-AI agents are difficult to evaluate because their behaviour emerges from multi-turn interaction, tool use, external state, retrieval, memory, orchestration, and probabilistic outputs. This paper distinguishes **black-box** validation (externally observable behaviour) from **grey-box** validation (selected internal information — tool trajectories, intermediate states, coverage, policy decisions). The two provide complementary evidence but cannot validate one another automatically. The central conclusion: they should be treated as independent evidence channels whose oracles, instrumentation, and failure modes must themselves be tested.
+AI agents are difficult to evaluate because their behaviour emerges from multi-turn interaction, tool use, external state, retrieval, memory, orchestration, and probabilistic outputs. This paper distinguishes **black-box** validation (externally observable behaviour) from **grey-box** validation (selected internal information: tool trajectories, intermediate states, coverage, policy decisions). The two provide complementary evidence but cannot validate one another automatically. The central conclusion: they should be treated as independent evidence channels whose oracles, instrumentation, and failure modes must themselves be tested.
 
 ## 1. Introduction
 
@@ -268,7 +269,7 @@ Initial state + User request → Agent system → Final response + external stat
 AgentEval mines conversational workflow graphs and covered 23–38 boundaries per agent vs 12 for a prompt-only baseline [2].
 
 ### 2.2 Grey-box validation
-Also uses selected internal information — tool calls, arguments, intermediate states, coverage, policy decisions.
+Also uses selected internal information (tool calls, arguments, intermediate states, coverage, policy decisions).
 
 \`\`\`
 Agent system → { final response, tool trajectory, intermediate states, metadata } → Outcome oracle + process oracle
@@ -301,11 +302,11 @@ Broad access to implementation; it risks validating what the system *claims* to 
 Model creates answer → Related model evaluates answer → Evaluation confirms shared assumptions → Treated as independent validation
 \`\`\`
 
-**7.2 Shared-oracle circularity.** One incorrect requirement feeds every layer. **7.3 LLM-as-judge bias.** MT-Bench found position, verbosity, and self-enhancement bias [11]; self-preference favours lower-perplexity outputs [12]. **7.4 Correlated model errors.** A study of 350+ models found substantial correlated errors across families [13]. **7.5 Adaptive holdout overfitting** [14]. **7.6 Benchmark gaming.** **7.7 Trace circularity** — trusting records generated by the component being evaluated.
+**7.2 Shared-oracle circularity.** One incorrect requirement feeds every layer. **7.3 LLM-as-judge bias.** MT-Bench found position, verbosity, and self-enhancement bias [11]; self-preference favours lower-perplexity outputs [12]. **7.4 Correlated model errors.** A study of 350+ models found substantial correlated errors across families [13]. **7.5 Adaptive holdout overfitting** [14]. **7.6 Benchmark gaming.** **7.7 Trace circularity:** trusting records generated by the component being evaluated.
 
 ## 8. Anti-circular validation design
 
-1. Separate outcome and process oracles. 2. Prefer deterministic evidence. 3. Evaluate invariants, not exact trajectories. 4. Independently observe final state. 5. Blind model judges (conceal identity, reverse ordering, commit before seeing others). 6. Limit hidden-evaluation feedback; count every query. 7. Use metamorphic and differential testing. 8. **Test the evaluator** with deliberately defective cases — an evaluator never tested against known failures is not authoritative.
+1. Separate outcome and process oracles. 2. Prefer deterministic evidence. 3. Evaluate invariants, not exact trajectories. 4. Independently observe final state. 5. Blind model judges (conceal identity, reverse ordering, commit before seeing others). 6. Limit hidden-evaluation feedback; count every query. 7. Use metamorphic and differential testing. 8. **Test the evaluator** with deliberately defective cases: an evaluator never tested against known failures is not authoritative.
 
 ## 9. Publicly available benchmarks
 
@@ -313,14 +314,14 @@ Model creates answer → Related model evaluates answer → Evaluation confirms 
 
 ## 10. Production and open-source evaluation tools
 
-Inspect AI [23]; LangSmith [24]; Braintrust [25]; Arize Phoenix [26]. These operationalise evaluation but do not prove the design is non-circular — observability is not validation.
+Inspect AI [23]; LangSmith [24]; Braintrust [25]; Arize Phoenix [26]. These operationalise evaluation but do not prove the design is non-circular; observability is not validation.
 
 ## 11. Recommended evaluation protocol
 
-- **Layer A — black-box outcome:** final completion, external state, side effects, repeated-run consistency.
-- **Layer B — grey-box invariants:** required steps, forbidden actions, tool correctness, resource consumption.
-- **Layer C — evaluator validation:** scoring, trace completeness, judge bias, contamination, holdout leakage.
-- **Layer D — production validation:** sampled traces, independent outcomes, incident review, refreshed benchmarks.
+- **Layer A (black-box outcome):** final completion, external state, side effects, repeated-run consistency.
+- **Layer B (grey-box invariants):** required steps, forbidden actions, tool correctness, resource consumption.
+- **Layer C (evaluator validation):** scoring, trace completeness, judge bias, contamination, holdout leakage.
+- **Layer D (production validation):** sampled traces, independent outcomes, incident review, refreshed benchmarks.
 
 \`\`\`
 PASS = external outcome correct AND critical invariants satisfied
@@ -331,7 +332,7 @@ Model consensus must not override a deterministic external-state failure or a cr
 
 ## 12. Proposed empirical evaluation
 
-Measure the incremental value of each channel directly: run the same agents under four conditions — **A** black-box only, **B** grey-box only, **C** combined, **D** combined with evaluator fault injection — while injecting known failure classes (correct outcome via crash/shortcut; correct trace but wrong result; forged/incomplete trace; alternate valid trajectory; unauthorized access; duplicate non-idempotent call; delayed side effect; evaluator position bias; repeated hidden-set feedback; benchmark overfitting). Measure false-acceptance, false-rejection, critical-defect recall, time-to-diagnosis, cost, sensitivity to alternative trajectories, trace-omission detection, repeated-run reliability, and evaluator-bias rate.
+Measure the incremental value of each channel directly: run the same agents under four conditions (**A** black-box only, **B** grey-box only, **C** combined, **D** combined with evaluator fault injection) while injecting known failure classes (correct outcome via crash/shortcut; correct trace but wrong result; forged/incomplete trace; alternate valid trajectory; unauthorized access; duplicate non-idempotent call; delayed side effect; evaluator position bias; repeated hidden-set feedback; benchmark overfitting). Measure false-acceptance, false-rejection, critical-defect recall, time-to-diagnosis, cost, sensitivity to alternative trajectories, trace-omission detection, repeated-run reliability, and evaluator-bias rate.
 
 > Does combining independently generated black-box and grey-box evidence detect more meaningful failures than either method alone, without producing unacceptable false rejection or cost?
 
@@ -405,5 +406,22 @@ export const PAPER_006: ResearchPaper = {
   title  = {Mechanical Bias Containment for Multi-Vendor LLM Orchestration},
   author = {Pujan}, institution = {Design Bakery}, year = {2026}, month = {7},
   number = {db-r-2026-006}, note = {Position/methods paper; pending; no original results; citations to be verified.}
+}`,
+};
+
+export const PAPER_007: ResearchPaper = {
+  id: 'db-r-2026-007',
+  title: 'Multi-Network Character Minds: LLM Orchestration, Affective Development, and the Open Gap',
+  authors: ['Pujan', 'Design Bakery'],
+  submitted: '2026-07-24',
+  status: 'pending',
+  tags: ['character-ai', 'multi-network', 'emotion', 'agents', 'architecture', 'survey'],
+  abstract:
+    'Survey of multi-network character AI: four architectural patterns (prompt-modular, LLM orchestrator + specialized nets, multi-net without LLM, hybrid LLM + world model), industry vs open stacks, affective development vs recognition, self-learning agents, and a dual-brain design thesis (LLM as slow control + specialized nets). Pending owner approval; no numeric product claims.',
+  content: MULTINET_MD,
+  bibtex: `@techreport{db-r-2026-007,
+  title  = {Multi-Network Character Minds: LLM Orchestration, Affective Development, and the Open Gap},
+  author = {Pujan}, institution = {Design Bakery}, year = {2026}, month = {7},
+  number = {db-r-2026-007}, note = {Landscape survey and design thesis; pending; no original results.}
 }`,
 };

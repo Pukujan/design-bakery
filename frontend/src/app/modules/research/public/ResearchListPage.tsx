@@ -41,7 +41,7 @@ export function ResearchListPage() {
           <span className="font-mono text-emerald-700 dark:text-emerald-500">approved</span> means the
           owner accepted the write-up and any claimed numbers.{' '}
           <span className="font-mono text-amber-700 dark:text-amber-500">pending</span> means draft or
-          awaiting approval — read as provisional. No silent promotion from green tests to product claims.
+          awaiting approval, read as provisional. No silent promotion from green tests to product claims.
         </div>
 
         {/* Controls */}
