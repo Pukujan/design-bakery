@@ -111,6 +111,7 @@ export function CortexSpecsPage() {
           <Link to="/case-studies/cortex" className="text-neutral-500 hover:text-[#d43c24] dark:hover:text-[#ff735b]">Overview</Link>
           <span className={`font-semibold ${accent}`}>Specs</span>
           <Link to="/case-studies/cortex/flow" className="text-neutral-500 hover:text-[#d43c24] dark:hover:text-[#ff735b]">Flow</Link>
+          <Link to="/case-studies/cortex/evidence" className="text-neutral-500 hover:text-[#d43c24] dark:hover:text-[#ff735b]">Evidence</Link>
         </nav>
 
         <p className={`font-mono text-[11px] uppercase tracking-[0.14em] ${accent}`}>CX-SPEC / constrained execution</p>

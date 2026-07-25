@@ -17,9 +17,6 @@ import { AiAgentsCaseStudyV4Page } from './modules/case-studies/ai-agents/AiAgen
 import { LegalWorkflowResearchCaseStudyPage } from './modules/case-studies/legal-workflow-research/LegalWorkflowResearchCaseStudyPage';
 import { StaticCaseStudyAssetGuard } from './modules/case-studies/legal-workflow-research/StaticCaseStudyAssetGuard';
 import { CortexCaseStudyRedirect } from './modules/case-studies/cortex/CortexCaseStudyRedirect';
-import { CortexOverviewPage } from './modules/case-studies/cortex/CortexOverviewPage';
-import { CortexSpecsPage } from './modules/case-studies/cortex/CortexSpecsPage';
-import { CortexFlowchartPage } from './modules/case-studies/cortex/CortexFlowchartPage';
 import { ResearchListPage } from './modules/research/public/ResearchListPage';
 import { ResearchPaperPage } from './modules/research/public/ResearchPaperPage';
 
@@ -96,9 +93,11 @@ function publicRoutes(): ReactElement[] {
       path="/case-studies/legal-workflow-research/:asset"
       element={<StaticCaseStudyAssetGuard />}
     />,
-    <Route path="/case-studies/cortex" element={<CortexOverviewPage />} />,
-    <Route path="/case-studies/cortex/specs" element={<CortexSpecsPage />} />,
-    <Route path="/case-studies/cortex/flow" element={<CortexFlowchartPage />} />,
+    // Cortex case study is served as static HTML (public/case-studies/cortex/a/*.html).
+    // vercel.json rewrites every non-.html path to the SPA, so these routes must exist and
+    // redirect out to the static pages. React versions archived in extras/ 2026-07-25.
+    <Route path="/case-studies/cortex" element={<CortexCaseStudyRedirect />} />,
+    <Route path="/case-studies/cortex/specs" element={<CortexCaseStudyRedirect />} />,
     <Route path="/case-studies/cortex/:ver" element={<CortexCaseStudyRedirect />} />,
     <Route path="/case-studies/cortex/:ver/specs" element={<CortexCaseStudyRedirect />} />,
     <Route key="research-shell" path="/research" element={<PortfolioPublicLayout />}>

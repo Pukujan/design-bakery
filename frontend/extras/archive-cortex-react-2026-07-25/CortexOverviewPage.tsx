@@ -40,6 +40,7 @@ export function CortexOverviewPage() {
           <span className={`font-semibold ${accent}`}>Overview</span>
           <Link to="/case-studies/cortex/specs" className="text-neutral-500 hover:text-[#d43c24] dark:hover:text-[#ff735b]">Specs</Link>
           <Link to="/case-studies/cortex/flow" className="text-neutral-500 hover:text-[#d43c24] dark:hover:text-[#ff735b]">Flow</Link>
+          <Link to="/case-studies/cortex/evidence" className="text-neutral-500 hover:text-[#d43c24] dark:hover:text-[#ff735b]">Evidence</Link>
         </nav>
 
         {/* Hero */}
