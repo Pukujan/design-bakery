@@ -54,6 +54,7 @@ export function CortexFlowchartPage() {
           <Link to="/case-studies/cortex" className="text-neutral-500 hover:text-[#d43c24] dark:hover:text-[#ff735b]">Overview</Link>
           <Link to="/case-studies/cortex/specs" className="text-neutral-500 hover:text-[#d43c24] dark:hover:text-[#ff735b]">Specs</Link>
           <span className="font-semibold text-[#d43c24] dark:text-[#ff735b]">Flow</span>
+          <Link to="/case-studies/cortex/evidence" className="text-neutral-500 hover:text-[#d43c24] dark:hover:text-[#ff735b]">Evidence</Link>
         </nav>
 
         <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#d43c24] dark:text-[#ff735b]">
