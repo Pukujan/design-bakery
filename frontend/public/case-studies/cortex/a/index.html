@@ -216,28 +216,7 @@
 
   :focus-visible{outline:2px solid var(--seal); outline-offset:3px; border-radius:4px;}
 
-  /* version switcher A/B/C */
-  .ver-switch{position:fixed; right:16px; bottom:16px; z-index:60;
-    display:flex; flex-direction:column; gap:8px; align-items:flex-end;
-    font-family:"IBM Plex Mono",monospace; pointer-events:none;}
-  .ver-switch .ver-panel{pointer-events:auto; background:color-mix(in srgb, var(--ink, #0A0D13) 92%, transparent);
-    border:1px solid var(--line, #222b3d); border-radius:12px; padding:10px 12px;
-    box-shadow:0 12px 40px rgba(0,0,0,.35); min-width:220px;}
-  .ver-switch .ver-label{font-size:10px; letter-spacing:.16em; text-transform:uppercase;
-    color:var(--muted, #7c8698); margin-bottom:8px;}
-  .ver-switch .ver-btns{display:flex; gap:6px;}
-  .ver-switch a.ver-btn{flex:1; text-align:center; font-size:12px; letter-spacing:.04em;
-    padding:8px 6px; border-radius:8px; border:1px solid var(--line, #222b3d);
-    color:var(--muted, #7c8698); background:transparent; transition:all .15s; text-decoration:none;}
-  .ver-switch a.ver-btn:hover{color:var(--text-strong, #f2f5fa); border-color:var(--seal, #f5b640);}
-  .ver-switch a.ver-btn.is-active{color:#0A0D13; background:var(--seal, #f5b640); border-color:var(--seal, #f5b640); font-weight:600;}
-  .ver-switch .ver-hint{font-size:10px; color:var(--muted-2, #5c6577); margin-top:8px; line-height:1.4; max-width:220px;}
-  @media (max-width:520px){
-    .ver-switch{right:10px; bottom:10px; left:10px; align-items:stretch;}
-    .ver-switch .ver-panel{min-width:0;}
-  }
-
-  /* mobile responsive polish — layout only, no content changes */
+  /* mobile responsive polish, layout only, no content changes */
   @media (max-width:720px){
     .wrap{padding:0 16px;}
     .bar-in{height:56px; gap:10px;}
@@ -340,8 +319,10 @@
     <nav class="links">
       <a href="#problem">Problem</a>
       <a href="#kernel">Kernel</a>
+      <a href="#measured">Numbers</a>
       <a href="#compare">Field</a>
       <a href="#evidence">Evidence</a>
+      <a href="flowchart.html">Flow</a>
       <a class="cta theme-btn" href="specs.html">Technical&nbsp;specs&nbsp;→</a>
       <button class="theme-btn" id="themeToggle" aria-label="Toggle colour theme">◐ theme</button>
     </nav>
@@ -354,13 +335,15 @@
     <div>
       <span class="eyebrow">Reliability kernel · AI agents</span>
       <h1>Don't trust the&nbsp;<span class="thru">agent</span>.<br />Trust the&nbsp;<em>kernel</em>.</h1>
-      <p class="lede">Cortex is not a smarter agent. It is the machinery around the agent.
-        A deny-by-default gate. An unforgeable receipt of exactly what got approved. Proof
-        before anything ships. Put those in place and interchangeable models can do real
-        work on a codebase you never have to read to trust.</p>
+      <p class="lede">Cortex is not a smarter agent. It is the machinery around the agent:
+        a memory that keeps a months-long project coherent, retrieval that finds the right
+        context instead of guessing, an evaluation harness where checkers rather than
+        opinions decide pass or fail, and a kernel that decides which effects are allowed
+        to happen at all. The kernel is the part that can say no. The rest is what makes
+        saying yes worth anything.</p>
       <div class="hero-cta">
         <a class="btn primary" href="specs.html">Read the technical spec →</a>
-        <a class="btn ghost" href="#kernel">See the kernel</a>
+        <a class="btn ghost" href="#measured">See the numbers</a>
       </div>
     </div>
     <div class="instrument" aria-hidden="true">
@@ -552,6 +535,35 @@
   </div>
 </section>
 
+<section class="reveal" id="measured">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Measured · not asserted</span>
+      <h2>What the rest of Cortex actually scores.</h2>
+      <p>The kernel decides what may happen. These are the parts that decide whether the
+        work was any good, and what they measured. Numbers marked <b>committed</b> are backed
+        by a generated artifact in the repository. Numbers marked <b>self-measured</b> are
+        real but still live in working notes, so they are labelled that way rather than
+        dressed up as audited.</p>
+    </div>
+    <div class="status-grid">
+      <div class="stat"><div class="n">3,528</div><div class="l">graded records across five lanes, every verdict decided by a checker, no model judging <b>committed</b></div></div>
+      <div class="stat"><div class="n">99.93<span class="u">%</span></div><div class="l">agreement between our tool-call checker and a third-party reference grader, 3,043 of 3,045 <b>committed</b></div></div>
+      <div class="stat"><div class="n">34<span class="u">/34</span></div><div class="l">planted defects caught across four modules, so the tests can actually fail on purpose <b>committed</b></div></div>
+      <div class="stat"><div class="n">0.62<span class="u">→0.92</span></div><div class="l">judge agreement (Cohen's kappa) after rewriting the rubric, with the model left unchanged <b>committed</b></div></div>
+      <div class="stat"><div class="n">0.46<span class="u">→0.65</span></div><div class="l">retrieval quality (nDCG@5) after adding the vector leg to keyword search <b>self-measured</b></div></div>
+      <div class="stat"><div class="n">96<span class="u">%</span></div><div class="l">of retrieval context removed by scope packing, without losing the answer <b>self-measured</b></div></div>
+    </div>
+    <div class="note">Two results worth reporting because they went against us. The rubric
+      that lifted a capable judge to 0.92 pushed a small local model down from 0.60 to 0.52,
+      so rubric complexity has to match the judge. And on our own gold set, judges from the
+      same model family that wrote the labels agreed at 0.95 while other families managed
+      0.50. That is a self-preference problem, so nothing was promoted to training gold and
+      the judge-free harness above exists because of it. <b>An evaluation that flatters its
+      author is not an evaluation.</b></div>
+  </div>
+</section>
+
 <section class="reveal" id="status">
   <div class="wrap">
     <div class="sec-head">
@@ -704,37 +716,6 @@
 })();
 </script>
 
-<div class="ver-switch" role="navigation" aria-label="Case study layout version">
-  <div class="ver-panel">
-    <div class="ver-label">Layout version</div>
-    <div class="ver-btns">
-      <a class="ver-btn" data-ver="a" href="/case-studies/cortex/a/index.html" title="Quiet instrument">A</a>
-      <a class="ver-btn" data-ver="b" href="/case-studies/cortex/b/index.html" title="Refined editorial">B</a>
-      <a class="ver-btn" data-ver="c" href="/case-studies/cortex/c/index.html" title="Kernel motion">C</a>
-    </div>
-    <div class="ver-hint" id="verHint">A quiet · B refined · C motion</div>
-  </div>
-</div>
-
-<script>
-
-(function(){
-  var m = location.pathname.match(/\/case-studies\/cortex\/(a|b|c)\//i);
-  var ver = m ? m[1].toLowerCase() : 'b';
-  try { localStorage.setItem('cortex-case-ver', ver); } catch(e){}
-  var hints = {
-    a: 'A · quiet instrument',
-    b: 'B · refined editorial',
-    c: 'C · kernel motion'
-  };
-  document.querySelectorAll('.ver-switch a.ver-btn').forEach(function(el){
-    if (el.getAttribute('data-ver') === ver) el.classList.add('is-active');
-  });
-  var h = document.getElementById('verHint');
-  if (h) h.textContent = hints[ver] || hints.b;
-})();
-
-</script>
 
 <script>
 (function(){
