@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cortex · case study — an evidence-gated harness for trustworthy autonomous AI</title>
+<meta name="description" content="A research system answering whether AI agents can build and verify software autonomously without you trusting their word. Contract-first freezes, sealed-holdout verification with mutation testing, and a judge-free objective evaluation harness — every figure tagged by how well it is backed." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    /* inherited control-plane palette : blue-biased ink, cool slate neutrals,
+       one deliberate accent: the amber "receipt seal". allow/deny stay semantic. */
+    --ink:        #0A0D13;
+    --ink-2:      #0E121B;
+    --panel:      #121826;
+    --panel-2:    #161D2D;
+    --line:       #222b3d;
+    --line-soft:  #1a2231;
+    --text:       #ced6e3;
+    --text-strong:#f2f5fa;
+    --muted:      #7c8698;
+    --muted-2:    #5c6577;
+    --seal:       #f5b640;
+    --seal-deep:  #c98a14;
+    --allow:      #37b8a4;
+    --deny:       #e0563e;
+    --seal-glow:  rgba(245,182,64,0.14);
+    --shadow:     0 30px 80px rgba(0,0,0,0.5);
+    --maxw: 1120px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --ink:#eef1f6; --ink-2:#e7ebf2; --panel:#ffffff; --panel-2:#f4f6fa;
+      --line:#d6dce6; --line-soft:#e2e7ee; --text:#333d4e; --text-strong:#0d1220;
+      --muted:#5c6577; --muted-2:#8a93a3; --seal:#b6790c; --seal-deep:#8a5b06;
+      --allow:#0f8a79; --deny:#c1432c; --seal-glow:rgba(182,121,12,0.10);
+      --shadow:0 24px 60px rgba(20,30,55,0.12);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#0A0D13; --ink-2:#0E121B; --panel:#121826; --panel-2:#161D2D;
+    --line:#222b3d; --line-soft:#1a2231; --text:#ced6e3; --text-strong:#f2f5fa;
+    --muted:#7c8698; --muted-2:#5c6577; --seal:#f5b640; --seal-deep:#c98a14;
+    --allow:#37b8a4; --deny:#e0563e; --seal-glow:rgba(245,182,64,0.14);
+    --shadow:0 30px 80px rgba(0,0,0,0.5);
+  }
+  :root[data-theme="light"]{
+    --ink:#eef1f6; --ink-2:#e7ebf2; --panel:#ffffff; --panel-2:#f4f6fa;
+    --line:#d6dce6; --line-soft:#e2e7ee; --text:#333d4e; --text-strong:#0d1220;
+    --muted:#5c6577; --muted-2:#8a93a3; --seal:#b6790c; --seal-deep:#8a5b06;
+    --allow:#0f8a79; --deny:#c1432c; --seal-glow:rgba(182,121,12,0.10);
+    --shadow:0 24px 60px rgba(20,30,55,0.12);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth; scroll-padding-top:84px;}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} }
+  body{
+    margin:0; background:var(--ink); color:var(--text);
+    font-family:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,sans-serif;
+    font-size:17px; line-height:1.65; -webkit-font-smoothing:antialiased;
+    letter-spacing:0.005em;
+  }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px;}
+  a{color:inherit; text-decoration:none;}
+  h1,h2,h3{text-wrap:balance; color:var(--text-strong); margin:0;}
+  p{margin:0;}
+  ::selection{background:var(--seal); color:#0A0D13;}
+  a.inline{color:var(--seal); border-bottom:1px solid color-mix(in srgb,var(--seal) 40%,transparent);}
+  a.inline:hover{border-bottom-color:var(--seal);}
+  code{font-family:"IBM Plex Mono",monospace; font-size:0.88em; color:var(--text-strong);
+    background:var(--panel-2); border:1px solid var(--line-soft);
+    padding:1px 6px; border-radius:5px;}
+
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:500;
+    letter-spacing:0.22em; text-transform:uppercase; color:var(--seal);
+    display:inline-flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:""; width:26px; height:1px; background:var(--seal); opacity:.7;}
+
+  /* ---- top bar ---- */
+  header.bar{
+    position:sticky; top:0; z-index:40;
+    backdrop-filter:blur(14px); background:color-mix(in srgb, var(--ink) 82%, transparent);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .bar-in{display:flex; align-items:center; justify-content:space-between; height:64px;}
+  .brand{display:flex; align-items:center; gap:12px; font-family:"IBM Plex Mono",monospace;
+    font-weight:600; letter-spacing:0.04em; color:var(--text-strong); font-size:15px;}
+  .brand .dot{width:10px; height:10px; border-radius:2px; background:var(--seal);
+    box-shadow:0 0 0 4px var(--seal-glow);}
+  nav.links{display:flex; gap:30px; align-items:center;}
+  nav.links a{font-family:"IBM Plex Mono",monospace; font-size:13px; letter-spacing:0.04em;
+    color:var(--muted); transition:color .18s;}
+  nav.links a:hover{color:var(--text-strong);}
+  nav.links a.here{color:var(--text-strong);}
+  .theme-btn{font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.06em;
+    color:var(--muted); background:transparent; border:1px solid var(--line);
+    padding:7px 12px; border-radius:8px; cursor:pointer; transition:all .18s;}
+  .theme-btn:hover{color:var(--text-strong); border-color:var(--seal);}
+  @media (max-width:760px){ nav.links a:not(.cta){display:none;} }
+
+  /* ---- hero ---- */
+  .hero{padding:80px 0 56px;}
+  .hero h1{font-size:clamp(34px,5.4vw,60px); line-height:1.04; font-weight:700;
+    letter-spacing:-0.02em; margin:22px 0 0; max-width:19ch;}
+  .hero h1 em{font-style:normal; color:var(--seal);}
+  .lede{font-size:19px; line-height:1.6; color:var(--text); max-width:60ch; margin:26px 0 0;}
+  .lede i{color:var(--text-strong); font-style:italic;}
+
+  .meta-row{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:26px;
+    margin-top:44px; padding-top:30px; border-top:1px solid var(--line-soft);}
+  .meta-row .k{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--muted-2); display:block; margin-bottom:8px;}
+  .meta-row .v{font-size:15.5px; color:var(--text);}
+
+  .frame{border:1px solid var(--line); border-left:2px solid var(--seal); border-radius:14px;
+    background:var(--panel); padding:26px 28px; margin-top:34px; max-width:76ch;
+    box-shadow:var(--shadow);}
+  .frame h3{font-size:19px; margin-bottom:10px;}
+  .frame p{color:var(--muted); font-size:15.5px;}
+  .frame strong{color:var(--text-strong); font-weight:600;}
+
+  .hero-cta{display:flex; gap:14px; margin-top:32px; flex-wrap:wrap;}
+  .btn{font-family:"IBM Plex Mono",monospace; font-size:13.5px; letter-spacing:.03em;
+    padding:13px 20px; border-radius:10px; cursor:pointer; transition:all .2s;
+    display:inline-flex; align-items:center; gap:9px; border:1px solid transparent;}
+  .btn.primary{background:var(--seal); color:#0A0D13; font-weight:600;}
+  .btn.primary:hover{transform:translateY(-2px); box-shadow:0 12px 30px var(--seal-glow);}
+  .btn.ghost{border-color:var(--line); color:var(--text-strong);}
+  .btn.ghost:hover{border-color:var(--seal); color:var(--seal);}
+
+  /* ---- section frame ---- */
+  section{padding:78px 0; border-top:1px solid var(--line-soft);}
+  .sec-head{max-width:62ch;}
+  .sec-head h2{font-size:clamp(26px,3.4vw,38px); line-height:1.12; letter-spacing:-0.015em;
+    font-weight:700; margin:16px 0 0;}
+  .sec-head p{color:var(--muted); font-size:18px; margin:16px 0 0; max-width:64ch;}
+  .body-copy{max-width:64ch; margin-top:22px;}
+  .body-copy p{margin-top:16px; color:var(--text);}
+  .body-copy strong{color:var(--text-strong); font-weight:600;}
+
+  /* two truths */
+  .truths{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:44px;}
+  @media (max-width:760px){ .truths{grid-template-columns:1fr;} }
+  .truth{border:1px solid var(--line); border-radius:14px; padding:28px; background:var(--panel);}
+  .truth .k{font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--muted-2);}
+  .truth h3{font-size:21px; margin:12px 0 10px;}
+  .truth p{margin:0; color:var(--muted); font-size:15.5px; line-height:1.6;}
+  .truth.bad{border-left:2px solid var(--deny);}
+  .truth.good{border-left:2px solid var(--seal);}
+
+  /* principles */
+  .panel-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:44px;}
+  @media (max-width:900px){ .panel-grid{grid-template-columns:1fr 1fr;} }
+  @media (max-width:620px){ .panel-grid{grid-template-columns:1fr;} }
+  .mod{border:1px solid var(--line); border-radius:14px; background:var(--panel);
+    padding:24px; transition:border-color .2s, transform .2s;}
+  .mod:hover{border-color:var(--seal); transform:translateY(-3px);}
+  .mod .n{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.16em;
+    color:var(--seal);}
+  .mod h3{font-size:19px; margin:12px 0 10px;}
+  .mod p{margin:0; color:var(--muted); font-size:15px; line-height:1.62;}
+
+  /* ---- provenance ---- */
+  .chip{display:inline-flex; align-items:center; gap:7px; white-space:nowrap;
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:500;
+    letter-spacing:.13em; text-transform:uppercase; padding:4px 10px; border-radius:999px;
+    border:1px solid; vertical-align:middle;}
+  .chip::before{content:""; width:6px; height:6px; flex:0 0 6px;}
+  /* committed == sealed: the receipt metaphor, squared like the brand dot */
+  .chip.committed{color:var(--seal); border-color:color-mix(in srgb,var(--seal) 46%,transparent);
+    background:var(--seal-glow);}
+  .chip.committed::before{background:var(--seal); border-radius:2px;}
+  /* self-measured == unsealed: hollow, neutral, deliberately quieter */
+  .chip.measured{color:var(--muted); border-color:var(--line); background:transparent;
+    border-style:dashed;}
+  .chip.measured::before{background:transparent; border:1px solid var(--muted-2); border-radius:50%;}
+
+  .prov-key{display:flex; flex-wrap:wrap; gap:16px 30px; margin-top:34px; padding:20px 24px;
+    border:1px solid var(--line-soft); border-radius:12px; background:var(--panel-2);}
+  .prov-key div{display:flex; align-items:flex-start; gap:11px; max-width:44ch;
+    font-size:14.5px; color:var(--muted);}
+
+  /* ---- stat tiles ---- */
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:18px;
+    margin-top:34px;}
+  .stat{border:1px solid var(--line); border-radius:14px; background:var(--panel);
+    padding:24px; box-shadow:var(--shadow);}
+  .stat .v{font-size:clamp(28px,3.6vw,38px); font-weight:700; letter-spacing:-0.025em;
+    color:var(--text-strong); line-height:1.05;}
+  .stat .l{margin:10px 0 14px; font-size:14.5px; color:var(--muted); line-height:1.55;}
+
+  /* ---- diagram ---- */
+  .diagram{margin-top:38px; border:1px solid var(--line); border-radius:16px;
+    background:linear-gradient(180deg,var(--panel),var(--ink-2)); box-shadow:var(--shadow);
+    overflow:hidden;}
+  .diagram .cap{display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding:12px 18px; border-bottom:1px solid var(--line-soft);
+    font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.08em;
+    color:var(--muted);}
+  .diagram .cap .seal{color:var(--seal);}
+  .diagram .canvas{padding:26px 18px; overflow-x:auto;}
+  .diagram .mermaid{margin:0; text-align:center; min-width:0;}
+  .diagram pre.mermaid{white-space:pre-wrap; overflow-wrap:anywhere;}
+  .caption{margin-top:18px; max-width:70ch; font-size:15px; color:var(--muted); line-height:1.62;}
+
+  /* ---- evidence ---- */
+  .evidence{display:grid; gap:18px; margin-top:34px;}
+  .ev{border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:26px 28px;}
+  .ev.sealed{border-left:2px solid var(--seal);}
+  .ev.unsealed{border-left:2px dashed var(--muted-2);}
+  .ev-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:12px; margin-bottom:12px;}
+  .ev-head h3{font-size:20px; line-height:1.25;}
+  .ev p{color:var(--text); font-size:15.5px; line-height:1.62;}
+  .ev p + p{margin-top:14px;}
+  .ev strong{color:var(--text-strong); font-weight:600;}
+  .caveat{margin-top:16px; padding:14px 18px; border-radius:10px; background:var(--panel-2);
+    border:1px solid var(--line-soft); font-size:14.5px; color:var(--muted); line-height:1.6;}
+  .caveat strong{color:var(--text-strong);}
+
+  /* ---- misc ---- */
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(232px,1fr)); gap:18px;
+    margin-top:38px;}
+  .card{border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:22px;}
+  .card h3{font-size:17.5px; margin-bottom:9px;}
+  .card p{margin:0; color:var(--muted); font-size:14.5px; line-height:1.6;}
+
+  .note{margin-top:24px; max-width:70ch; font-size:14.5px; color:var(--muted-2); line-height:1.6;}
+
+  footer{border-top:1px solid var(--line-soft); padding:36px 0 56px; color:var(--muted);}
+  .foot-in{display:flex; flex-wrap:wrap; align-items:center; gap:14px 24px;
+    font-family:"IBM Plex Mono",monospace; font-size:12.5px; letter-spacing:.04em;}
+  .foot-in .rights{margin-left:auto; color:var(--muted-2);}
+  @media (max-width:700px){ .foot-in .rights{margin-left:0;} }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap bar-in">
+    <a href="index.html" class="brand"><span class="dot"></span>CORTEX</a>
+    <nav class="links">
+      <a href="index.html">Overview</a>
+      <a href="specs.html">Specs</a>
+      <a href="flowchart.html">Flow</a>
+      <a href="case-study.html" class="here">Case&nbsp;study</a>
+      <a class="cta theme-btn" href="#evidence">Evidence&nbsp;→</a>
+      <button class="theme-btn" id="themeToggle" aria-label="Toggle colour theme">◐ theme</button>
+    </nav>
+  </div>
+</header>
+
+<a id="top"></a>
+
+<main>
+  <!-- ============ HERO ============ -->
+  <div class="hero">
+    <div class="wrap">
+      <span class="eyebrow">Case study · research system</span>
+      <h1>An evidence-gated harness for <em>trustworthy</em> autonomous AI.</h1>
+      <p class="lede">
+        A research system that tackles a hard question — <i>can AI agents build and verify
+        software autonomously without you having to trust their word?</i> — and answers it with
+        deterministic gates instead of faith.
+      </p>
+
+      <div class="meta-row">
+        <div>
+          <span class="k">My role</span>
+          <span class="v">Sole architect and director — architecture, verification methodology, orchestration.</span>
+        </div>
+        <div>
+          <span class="k">Status</span>
+          <span class="v">Solo research system, active development. Not a shipped product.</span>
+        </div>
+        <div>
+          <span class="k">Implementation</span>
+          <span class="v">AI agents, working inside a harness built to keep them honest.</span>
+        </div>
+      </div>
+
+      <div class="frame">
+        <h3>Honest framing, up front</h3>
+        <p>
+          This is <strong>agent-orchestrated engineering</strong>. The contribution is the systems
+          design and the verification discipline — not hand-written novel algorithms. Every number
+          below is tagged by how well it is backed, and the tags are the point.
+        </p>
+      </div>
+
+      <div class="hero-cta">
+        <a class="btn primary" href="#evidence">Evidence &amp; results →</a>
+        <a class="btn ghost" href="#method">How verification works</a>
+        <a class="btn ghost" href="#limits">Honest limitations</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 01 PROBLEM ============ -->
+  <section id="problem">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · the problem</span>
+        <h2>Fluent, confident, and wrong is the dangerous combination.</h2>
+        <p>
+          Most agentic systems answer this by putting a human in front of every step. Cortex asks
+          whether you can replace <strong>trust</strong> with <strong>mechanism</strong>.
+        </p>
+      </div>
+
+      <div class="truths">
+        <div class="truth bad">
+          <span class="k">What an agent will tell you</span>
+          <h3>"The tests pass. I verified it end-to-end."</h3>
+          <p>
+            Both are things an agent will say whether or not they are true. Fluency is not
+            evidence, and a confident report is the cheapest thing a model produces.
+          </p>
+        </div>
+        <div class="truth good">
+          <span class="k">What the kernel requires instead</span>
+          <h3>A machine-checkable artifact, or it did not happen.</h3>
+          <p>
+            A frozen contract, a sealed probe suite the builder never saw, killed mutants, and a
+            deterministic checker's verdict. No step advances on an assertion.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 APPROACH ============ -->
+  <section id="method">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · the approach</span>
+        <h2>Three principles, each made mechanical rather than aspirational.</h2>
+      </div>
+
+      <div class="panel-grid">
+        <div class="mod">
+          <span class="n">01</span>
+          <h3>Contract-first</h3>
+          <p>
+            Freeze what "done" means — as a testable observable — before any code is written. An
+            agent cannot move goalposts it cannot see.
+          </p>
+        </div>
+        <div class="mod">
+          <span class="n">02</span>
+          <h3>Objective verification, not judgment</h3>
+          <p>
+            Where possible a deterministic checker, not another LLM, decides pass/fail. Gates that
+            could be gamed get an adversarial holdout whose whole job is to try to game them.
+          </p>
+        </div>
+        <div class="mod">
+          <span class="n">03</span>
+          <h3>Independence</h3>
+          <p>
+            The agent that builds is never the agent that verifies, and the verifier's tests are
+            sealed from the builder — so it cannot fix-to-the-test.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 VERIFICATION PATH ============ -->
+  <section id="path">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · verification path</span>
+        <h2>How a unit of work earns the word "done".</h2>
+        <p>
+          Nothing is accepted on an agent's report. A work unit advances only by passing gates that
+          a machine, not a model, decides.
+        </p>
+      </div>
+
+      <div class="diagram">
+        <div class="cap">
+          <span>work-unit lifecycle · builder ≠ verifier</span>
+          <span class="seal">deterministic verdict</span>
+        </div>
+        <div class="canvas">
+          <pre class="mermaid">
+flowchart TD
+  C["Contract frozen&lt;br/&gt;(testable observable)"] --> B["Builder agent&lt;br/&gt;writes implementation"]
+  C --> H["Verifier agent authors&lt;br/&gt;SEALED holdout probes"]
+  H -. "never shared with builder" .-> B
+  B --> R{"Run sealed probes&lt;br/&gt;against blind build"}
+  H --> R
+  R -- "fail" --> F["Defect recorded&lt;br/&gt;· returned to builder"]
+  F --> B
+  R -- "pass" --> M{"Inject mutants:&lt;br/&gt;are they all killed?"}
+  M -- "survivor" --> W["Probe suite too weak&lt;br/&gt;· strengthen and re-run"]
+  W --> H
+  M -- "all killed" --> D["Deterministic checker&lt;br/&gt;decides pass/fail"]
+  D --> V[["Verdict + evidence ledger"]]
+  F --> V
+          </pre>
+        </div>
+      </div>
+
+      <p class="caption">
+        The two independent authors are the load-bearing part. Because the probe suite is written
+        from the frozen contract and sealed before the build exists, a builder cannot tune to it —
+        and because every injected mutant must die before a verdict counts, a suite that merely
+        passes is not yet trusted.
+      </p>
+
+      <div class="frame">
+        <h3>This is not a hypothetical failure mode</h3>
+        <p>
+          The sealed holdouts repeatedly caught <strong>real defects the builder's own green test
+          suite missed</strong> — including a floor-bypass defect that a 41/41-passing test-driven
+          suite sailed straight past, and an owner-approval-gate bypass on a resume path.
+          "Building to the test" was caught empirically here, not asserted.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 04 EVIDENCE ============ -->
+  <section id="evidence">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · what I built</span>
+        <h2>Five results, each tagged by how well it is backed.</h2>
+        <p>
+          The distinction below matters more than any single figure. A number with a weaker tag is
+          not hidden here — it is labelled.
+        </p>
+      </div>
+
+      <div class="prov-key">
+        <div>
+          <span class="chip committed">Committed</span>
+          <span>Backed by a machine-generated data artifact in the repository.</span>
+        </div>
+        <div>
+          <span class="chip measured">Self-measured</span>
+          <span>Real, but living in prose or agent-authored eval docs pending independent review.</span>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="v">3,528</div>
+          <div class="l">verification records across five objective lanes, zero LLM judges in the verdict path</div>
+          <span class="chip committed">Committed</span>
+        </div>
+        <div class="stat">
+          <div class="v">34 / 34</div>
+          <div class="l">injected mutants killed across kernel modules (10/10, 13/13, 6/6, 5/5)</div>
+          <span class="chip committed">Committed</span>
+        </div>
+        <div class="stat">
+          <div class="v">0.62 → 0.92</div>
+          <div class="l">judge reliability (Cohen's κ) from rubric versioning alone, model held constant</div>
+          <span class="chip committed">Committed</span>
+        </div>
+        <div class="stat">
+          <div class="v">0</div>
+          <div class="l">records promoted to training gold — the bias audit said don't, so I didn't</div>
+          <span class="chip committed">Committed</span>
+        </div>
+      </div>
+
+      <div class="evidence">
+        <article class="ev sealed">
+          <div class="ev-head">
+            <h3>An objective evaluation harness</h3>
+            <span class="chip committed">Committed</span>
+          </div>
+          <p>
+            3,528 verification records across five lanes — tool-calling (synthetic plus live
+            cross-family data graded by BFCL's own checker), coding with hidden holdout tests,
+            defensive security, research faithfulness, and architecture. Each is decided by a
+            <strong>deterministic checker</strong>, with <code>"judge_in_verdict_path": false</code>
+            recorded in the committed ledger.
+          </p>
+          <div class="caveat">
+            <strong>Caveats.</strong> A local tool-calling checker agrees with BFCL's canonical
+            checker at ~99.93% <em>at the report level</em> — the full row-level comparison is not
+            committed. 3,528 is the Stage-2 snapshot; the catalog has since grown past it (~5,800).
+            ~41 frozen checker tests are committed, though a "48" figure appears in summary prose.
+          </div>
+        </article>
+
+        <article class="ev sealed">
+          <div class="ev-head">
+            <h3>LLM-judge calibration — including finding that the gold my own pipeline produced was vendor-biased</h3>
+            <span class="chip committed">Committed</span>
+          </div>
+          <p>
+            I measured judge reliability with Cohen's κ across versioned rubrics. A richer rubric
+            lifted a capable judge from κ ≈0.62 to 0.92 with the <em>model held constant</em> —
+            while the same rubric <em>regressed</em> a small 4B model from ≈0.60 to 0.52. The
+            durable asset is the rubric, not the model.
+          </p>
+          <p>
+            The sharpest result cuts against the model family I had chosen to build on. My gold
+            labels were authored by Anthropic models; on those labels, Anthropic judges agreed at
+            weighted-κ <strong>0.95</strong> versus non-Anthropic <strong>0.50</strong> — an
+            explicit self-preference flag. A purpose-built independent judge (Prometheus) agreed at
+            <strong>κ = 0.000</strong>, which the audit itself names as the clean family-bias test
+            to trust over the gentler family-mean.
+          </p>
+          <div class="caveat">
+            <strong>The disposition that follows.</strong> The labels "have signal but are
+            <strong>not vendor-neutral</strong>", so <strong>0 records</strong> were promoted to
+            training gold, and the judge-free objective harness above exists precisely
+            <em>because</em> this bias is — in the project's own words — <strong>unresolved</strong>
+            without third-party gold. It is partly capability rather than pure vendor: the
+            strongest non-Anthropic judge reached 0.75.
+          </div>
+        </article>
+
+        <article class="ev sealed">
+          <div class="ev-head">
+            <h3>Sealed-holdout verification with mutation testing</h3>
+            <span class="chip committed">Committed</span>
+          </div>
+          <p>
+            Independent probe suites, authored <em>sealed</em> and run against blind builds the test
+            author never saw. Across kernel modules every injected mutant was killed —
+            contract-engine 10/10, human-control 13/13, broker 6/6, model_dispatch 5/5 — and the
+            holdouts repeatedly caught real defects the builder's own green suite missed (a
+            floor-bypass past a 41/41-passing suite; an owner-approval-gate bypass on a resume
+            path, 16/21 probes deterministic on double-run).
+          </p>
+        </article>
+
+        <article class="ev sealed">
+          <div class="ev-head">
+            <h3>Multi-model routing calibration</h3>
+            <span class="chip committed">Committed</span>
+          </div>
+          <p>
+            A cheap model passed only <strong>14/41 (34%)</strong> first-pass against a frozen
+            oracle suite — with failures all logic-class, not interface crashes — while a stronger
+            model repaired every failure to <strong>41/41</strong>. That is the empirical basis for
+            risk-tiered routing: expensive models run only where a task's <em>measured</em>
+            difficulty demands them.
+          </p>
+        </article>
+
+        <article class="ev unsealed">
+          <div class="ev-head">
+            <h3>Hybrid retrieval (RAG)</h3>
+            <span class="chip measured">Self-measured</span>
+          </div>
+          <p>
+            BM25 + vector reciprocal-rank-fusion over the project's own technical-doc corpus, tuned
+            against a chunk-level graded eval (nDCG@5 ≈0.46 → 0.65; chunk_recall@5 0.467 → 0.667;
+            chunk_mrr 0.425 → 0.503). Scope-packing cut retrieval context by ~96% on the golden-set
+            mean.
+          </p>
+          <div class="caveat">
+            <strong>Caveats.</strong> The graded eval is agent-authored and pending human review,
+            n=17 (a one-query swing is ≈6%), one companion doc records a slightly different nDCG for
+            the same run, and these live in prose rather than a committed ledger.
+            <strong>But the gate worked:</strong> three candidate improvements (KP-miner,
+            chunking-v2, an ms-marco reranker) were <em>rejected</em> on the eval's evidence; only
+            the fourth shipped.
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 05 DEMONSTRATES ============ -->
+  <section id="demonstrates">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">05 · what it demonstrates</span>
+        <h2>Four capabilities, in order of how rare they are.</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <h3>Evaluation engineering</h3>
+          <p>Objective benchmarks, statistical calibration, adversarial verification. The rarest and most transferable skill in the set.</p>
+        </div>
+        <div class="card">
+          <h3>A verification instinct</h3>
+          <p>Treating "the model said so" as worthless, and building the mechanisms that make autonomous work auditable.</p>
+        </div>
+        <div class="card">
+          <h3>AI systems architecture</h3>
+          <p>A coherent multi-agent system with explicit authority boundaries and fail-closed behaviour.</p>
+        </div>
+        <div class="card">
+          <h3>Pragmatic AI engineering</h3>
+          <p>RAG, retrieval tuning, cost and latency optimisation, model routing.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 06 LIMITS ============ -->
+  <section id="limits">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">06 · honest limitations</span>
+        <h2>What this is not.</h2>
+      </div>
+      <div class="body-copy">
+        <p>
+          Solo, research-grade, not production-hardened. Metrics are self-measured on this system
+          and not externally audited — which is exactly why they carry a
+          <span class="chip committed">Committed</span> or
+          <span class="chip measured">Self-measured</span> tag above rather than being presented
+          uniformly.
+        </p>
+        <p>
+          The objective lanes and calibration κ are machine-backed; the retrieval and scope-pack
+          numbers live in agent-authored eval docs pending review. The value here is a
+          demonstration of <strong>how I approach trustworthy AI</strong> — not a claim of
+          production scale. The methodology and the judgment are the transferable parts.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 07 AUDIT ============ -->
+  <section id="audit">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">07 · how this document was checked</span>
+        <h2>The write-up went through the same treatment as the system.</h2>
+        <p>
+          To avoid the exact failure this project studies, this case study was itself put through a
+          cross-vendor adversarial audit — a panel of non-Anthropic models (GLM-5.2 / Zhipu and
+          Gemini 3.5 Flash / Google) tasked to <strong>refute</strong> it against the repository's
+          actual source files.
+        </p>
+      </div>
+
+      <div class="frame">
+        <h3>They found a real problem</h3>
+        <p>
+          An earlier draft cited the <em>milder</em> vendor-bias number and omitted the sharper
+          self-preference finding — the 0.95 versus 0.50 split now shown above. That correction,
+          and others, are folded in. A write-up that hid its worst number would have failed its own
+          thesis.
+        </p>
+      </div>
+
+      <p class="note">
+        Audit trail: <code>reviewed/CASE-STUDY-CROSSVENDOR-AUDIT-2026-07-25.md</code>. Supporting
+        verification: <code>reviewed/CASE-STUDY-MINING-2026-07-25.md</code>.
+      </p>
+      <p class="note">
+        Related — the <a class="inline" href="index.html">kernel overview</a>, the
+        <a class="inline" href="specs.html">technical specification</a>, and the
+        <a class="inline" href="flowchart.html">decision-flow explainer</a>.
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot-in">
+    <a href="index.html" class="brand"><span class="dot"></span>CORTEX</a>
+    <span>Constrained execution · explicit authority · verifiable receipts</span>
+    <span class="rights">Source available for review on request — private repository; copyright retained.</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  /* theme toggle : stamps data-theme, overrides the media query both ways */
+  var root=document.documentElement, btn=document.getElementById('themeToggle');
+  function apply(t){ if(t){root.setAttribute('data-theme',t);} }
+  try{ apply(localStorage.getItem('cortex-theme')); }catch(e){}
+  btn && btn.addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme');
+    var next = cur==='light' ? 'dark' : (cur==='dark' ? 'light'
+      : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light':'dark'));
+    apply(next); try{localStorage.setItem('cortex-theme',next);}catch(e){}
+    window.dispatchEvent(new CustomEvent('cortex-theme-change'));
+  });
+})();
+</script>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+  const root = document.documentElement;
+  const diagrams = [...document.querySelectorAll(".mermaid")].map((el) => ({
+    el, src: el.textContent,
+  }));
+
+  function css(v){ return getComputedStyle(root).getPropertyValue(v).trim(); }
+
+  async function renderDiagrams(){
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "loose",
+      theme: "base",
+      themeVariables: {
+        fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif',
+        fontSize: "14px",
+        background:        css("--panel"),
+        primaryColor:      css("--panel-2"),
+        primaryTextColor:  css("--text-strong"),
+        primaryBorderColor:css("--line"),
+        lineColor:         css("--muted-2"),
+        secondaryColor:    css("--panel"),
+        tertiaryColor:     css("--ink-2"),
+        tertiaryTextColor: css("--text"),
+        textColor:         css("--text"),
+      },
+      flowchart: { curve: "basis", useMaxWidth: true, htmlLabels: true },
+    });
+    for (const d of diagrams){
+      d.el.removeAttribute("data-processed");
+      d.el.innerHTML = d.src;
+    }
+    await mermaid.run({ nodes: diagrams.map((d) => d.el) });
+  }
+
+  renderDiagrams();
+  window.addEventListener("cortex-theme-change", renderDiagrams);
+</script>
+
+</body>
+</html>
