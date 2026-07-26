@@ -228,13 +228,15 @@
     header.bar .theme-btn{padding:7px 9px;}
   }
 
-  /* ---- mobile overflow guard (2026-07-25) ---- */
-  html,body{max-width:100%; overflow-x:hidden;}
-  img,svg,canvas,table,pre{max-width:100%;}
-  @media (max-width:620px){
-    .wrap{padding:0 16px;}
-    .diagram .canvas{padding:18px 10px;}
-  }
+  /* ---- mobile overflow root-cause fix (2026-07-26) ----
+     A wide table (min-width:600/720px) inside an overflow-x:auto wrapper still forces the
+     PAGE wide, because grid/flex items default to min-width:auto and propagate the child's
+     min-content width upward. Measured: div.content was 607px in a 489px viewport, so every
+     paragraph inherited the overflow and text clipped at the right edge on phones.
+     Letting the containers shrink lets the scroll wrapper do its job. */
+  .body-grid, .body-grid > *, .content, .doc, .wrap, main, section { min-width: 0; }
+  .tbl-scroll, .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+  table { max-width: 100%; }
 </style>
 </head>
 <body>
