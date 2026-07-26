@@ -696,10 +696,14 @@
       <p>Do not read the illustrated broker path on this page as operational. It is the
         design and the target, not a description of a running production system.</p>
       <p class="verdict">The reason this section exists: on 2026-07-26 three models from
-        different vendors, given only the source and never the specification or the tests,
-        independently found <b>nine reproduced defects</b> that a 26/26 green sealed-holdout
-        suite had missed entirely, including the content-binding gap above. Tests that pass
-        are not evidence that a system works. That finding is the case study.</p>
+        different vendors, given the source and the contract but never the tests,
+        independently raised <b>11 findings, 10 distinct, of which 6 are code defects</b> and
+        4 are contract ambiguities. A 26/26 green sealed-holdout suite had caught none of
+        them. <b>One is fixed so far</b>, and it is the only one with a regression test. An
+        audit of that claim also found the assessors were given a list of attack families, so
+        7 of the 11 map onto a prompted angle rather than an invented one. Tests that pass are
+        not evidence that a system works, and neither is a headline number that has not been
+        audited. Both findings are the case study.</p>
     </div>
   </div>
 </section>

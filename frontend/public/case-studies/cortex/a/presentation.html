@@ -358,18 +358,21 @@
   <section class="slide">
     <div class="inner">
       <p class="eyebrow">The finding that matters</p>
-      <p class="kicker">Three AI models from different companies, shown only the code and never
-        the tests, found nine defects that a fully passing test suite had missed.</p>
-      <p>Each was reproduced with a script before being believed, and each became a permanent
-        regression test that runs without a model. Tests passing is not evidence that a system
-        works; building the thing that can tell the difference is what Cortex is for.</p>
-      <p style="font-size:14.5px; color:var(--ink-3)">Stated so it can be checked rather than
-        taken: this is not yet an auditable claim. A reader cannot verify it without the model
-        versions, the prompts, the commit, the files withheld, a severity and reachability
-        rating per finding, the false-positive count, and the fix and regression commits. That
-        ledger is owed. Note also that "different vendors" is weaker independence than it sounds:
-        models can share training data and failure modes, so this is diverse review, not proof of
-        independence.</p>
+      <p class="kicker">Three AI models from different companies, never shown the tests,
+        raised 11 findings a fully passing test suite had missed.</p>
+      <p>10 are distinct: 6 code defects and 4 contract ambiguities. Each was reproduced with a
+        script before being believed. <strong>One is fixed so far</strong>, and it is the only
+        one carrying a regression test. Tests passing is not evidence that a system works;
+        building the thing that can tell the difference is what Cortex is for.</p>
+      <p style="font-size:14.5px; color:var(--ink-3)">The earlier version of this slide said
+        "nine", and an audit of our own evidence could not derive that number: the source
+        document gives three incompatible counts. Two further corrections from the same audit,
+        recorded rather than quietly dropped. The assessors were shown the contract as well as
+        the code, so "only the code" was false. And they were handed a list of attack families,
+        so 7 of the 11 findings map onto a prompted angle: they invented the tests, not the
+        angles. "Different vendors" is also weaker independence than it sounds, since models can
+        share training data and failure modes. This is cross-model adversarial review, not
+        independent verification.</p>
     </div>
   </section>
 
