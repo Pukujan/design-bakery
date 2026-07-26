@@ -62,7 +62,7 @@ Component suites and sealed holdouts may exist in engineering workspaces; that d
 
 ## 4. Benchmarks (owner approval required)
 
-No published numbers in this revision. Table reserved for post-approval fill-in (component suites → holdouts → post-composition runs).
+No benchmark table in this revision. This paper makes no numeric claim, so an empty table would imply results that do not exist. Measured results live in the repository ledger evals/results.jsonl, where every figure carries a provenance tag (committed-artifact / recomputed / reconciled / prose-only). Figures are cited from there, never restated here.
 
 ## References
 

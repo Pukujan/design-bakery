@@ -73,7 +73,9 @@
   a.inline:hover{border-bottom-color:var(--seal);}
   code{font-family:"IBM Plex Mono",monospace; font-size:0.88em; color:var(--text-strong);
     background:var(--panel-2); border:1px solid var(--line-soft);
-    padding:1px 6px; border-radius:5px;}
+    padding:1px 6px; border-radius:5px;
+    /* long paths/commands must wrap rather than force the page wide on phones */
+    overflow-wrap:anywhere; word-break:break-word;}
 
   .eyebrow{
     font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:500;
@@ -167,33 +169,74 @@
   .mod h3{font-size:19px; margin:12px 0 10px;}
   .mod p{margin:0; color:var(--muted); font-size:15px; line-height:1.62;}
 
-  /* ---- provenance ---- */
+  /* ---- provenance : the four tiers used by evals/results.jsonl, plus off-ledger ----
+     strength is carried by how much of the amber SEAL a chip is allowed to hold.
+     committed-artifact = filled seal (the unforgeable receipt); recomputed = seal outline
+     (re-derivable on demand, not sealed); reconciled = neutral; prose-only = dashed and
+     quiet; off-ledger = dotted, the faintest thing on the page.
+     --allow/--deny are semantic-only and are deliberately NOT used here. */
   .chip{display:inline-flex; align-items:center; gap:7px; white-space:nowrap;
     font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:500;
-    letter-spacing:.13em; text-transform:uppercase; padding:4px 10px; border-radius:999px;
+    letter-spacing:.11em; text-transform:uppercase; padding:4px 10px; border-radius:999px;
     border:1px solid; vertical-align:middle;}
   .chip::before{content:""; width:6px; height:6px; flex:0 0 6px;}
-  /* committed == sealed: the receipt metaphor, squared like the brand dot */
-  .chip.committed{color:var(--seal); border-color:color-mix(in srgb,var(--seal) 46%,transparent);
-    background:var(--seal-glow);}
-  .chip.committed::before{background:var(--seal); border-radius:2px;}
-  /* self-measured == unsealed: hollow, neutral, deliberately quieter */
-  .chip.measured{color:var(--muted); border-color:var(--line); background:transparent;
-    border-style:dashed;}
-  .chip.measured::before{background:transparent; border:1px solid var(--muted-2); border-radius:50%;}
 
-  .prov-key{display:flex; flex-wrap:wrap; gap:16px 30px; margin-top:34px; padding:20px 24px;
-    border:1px solid var(--line-soft); border-radius:12px; background:var(--panel-2);}
-  .prov-key div{display:flex; align-items:flex-start; gap:11px; max-width:44ch;
-    font-size:14.5px; color:var(--muted);}
+  .chip.t-committed{color:var(--seal); border-color:color-mix(in srgb,var(--seal) 55%,transparent);
+    background:var(--seal-glow);}
+  .chip.t-committed::before{background:var(--seal); border-radius:2px;}
+
+  .chip.t-recomputed{color:var(--seal); border-color:color-mix(in srgb,var(--seal) 32%,transparent);
+    background:transparent;}
+  .chip.t-recomputed::before{background:transparent;
+    border:1px solid color-mix(in srgb,var(--seal) 70%,transparent); border-radius:2px;}
+
+  .chip.t-reconciled{color:var(--text); border-color:var(--line); background:var(--panel-2);}
+  .chip.t-reconciled::before{background:var(--muted); border-radius:50%;}
+
+  .chip.t-prose{color:var(--muted); border-color:var(--line); background:transparent;
+    border-style:dashed;}
+  .chip.t-prose::before{background:transparent; border:1px solid var(--muted-2); border-radius:50%;}
+
+  .chip.t-offledger{color:var(--muted-2); border-color:var(--line-soft); background:transparent;
+    border-style:dotted;}
+  .chip.t-offledger::before{background:transparent; border:1px dotted var(--muted-2);
+    border-radius:50%;}
+
+  .prov-key{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:16px 28px; margin-top:34px; padding:22px 24px;
+    border:1px solid var(--line-soft); border-radius:12px; background:var(--panel-2);
+    min-width:0;}
+  .prov-key > div{display:flex; align-items:flex-start; gap:11px; min-width:0;
+    font-size:14.5px; color:var(--muted); line-height:1.55;}
+  .prov-key > div > span:last-child{min-width:0; overflow-wrap:anywhere;}
+  .prov-note{margin-top:14px; font-size:14px; color:var(--muted-2); max-width:74ch;}
+
+  /* ---- provenance tables ---- */
+  .tbl-scroll{margin-top:20px; border:1px solid var(--line-soft); border-radius:12px;
+    background:var(--panel-2); overflow-x:auto; -webkit-overflow-scrolling:touch;
+    max-width:100%; min-width:0;}
+  table.fig{width:100%; min-width:580px; border-collapse:collapse; font-size:14.5px;}
+  table.fig caption{text-align:left; padding:13px 16px 0; font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted-2);}
+  table.fig th, table.fig td{text-align:left; padding:11px 16px; vertical-align:top;
+    border-bottom:1px solid var(--line-soft);}
+  table.fig thead th{font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:500;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--muted-2); white-space:nowrap;}
+  table.fig tbody tr:last-child td{border-bottom:none;}
+  table.fig td.num{font-family:"IBM Plex Mono",monospace; color:var(--text-strong);
+    white-space:nowrap;}
+  table.fig td.what{color:var(--muted); min-width:16ch;}
+  table.fig td .src{display:block; margin-top:4px; font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px; color:var(--muted-2); overflow-wrap:anywhere; white-space:normal;}
 
   /* ---- stat tiles ---- */
   .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:18px;
-    margin-top:34px;}
+    margin-top:34px; min-width:0;}
   .stat{border:1px solid var(--line); border-radius:14px; background:var(--panel);
-    padding:24px; box-shadow:var(--shadow);}
-  .stat .v{font-size:clamp(28px,3.6vw,38px); font-weight:700; letter-spacing:-0.025em;
-    color:var(--text-strong); line-height:1.05;}
+    padding:24px; box-shadow:var(--shadow); min-width:0;}
+  .stat .v{font-size:clamp(26px,3.4vw,36px); font-weight:700; letter-spacing:-0.025em;
+    color:var(--text-strong); line-height:1.08; overflow-wrap:anywhere;}
+  .stat .v.sm{font-size:clamp(21px,2.6vw,27px); letter-spacing:-0.015em;}
   .stat .l{margin:10px 0 14px; font-size:14.5px; color:var(--muted); line-height:1.55;}
 
   /* ---- diagram ---- */
@@ -211,12 +254,17 @@
   .caption{margin-top:18px; max-width:70ch; font-size:15px; color:var(--muted); line-height:1.62;}
 
   /* ---- evidence ---- */
-  .evidence{display:grid; gap:18px; margin-top:34px;}
-  .ev{border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:26px 28px;}
-  .ev.sealed{border-left:2px solid var(--seal);}
-  .ev.unsealed{border-left:2px dashed var(--muted-2);}
-  .ev-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:12px; margin-bottom:12px;}
-  .ev-head h3{font-size:20px; line-height:1.25;}
+  .evidence{display:grid; gap:18px; margin-top:34px; min-width:0;}
+  .ev{border:1px solid var(--line); border-radius:14px; background:var(--panel);
+    padding:26px 28px; min-width:0;}
+  .ev.p-committed{border-left:2px solid var(--seal);}
+  .ev.p-recomputed{border-left:2px solid color-mix(in srgb,var(--seal) 48%,transparent);}
+  .ev.p-reconciled{border-left:2px solid var(--muted-2);}
+  .ev.p-prose{border-left:2px dashed var(--muted-2);}
+  .ev.p-offledger{border-left:2px dotted var(--line);}
+  .ev-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:12px; margin-bottom:12px;
+    min-width:0;}
+  .ev-head h3{font-size:20px; line-height:1.25; min-width:0;}
   .ev p{color:var(--text); font-size:15.5px; line-height:1.62;}
   .ev p + p{margin-top:14px;}
   .ev strong{color:var(--text-strong); font-weight:600;}
@@ -272,6 +320,7 @@
      paragraph inherited the overflow and text clipped at the right edge on phones.
      Letting the containers shrink lets the scroll wrapper do its job. */
   .body-grid, .body-grid > *, .content, .doc, .wrap, main, section { min-width: 0; }
+  .evidence, .ev, .stats, .stat, .prov-key, .cards, .card, .panel-grid, .mod { min-width: 0; }
   .tbl-scroll, .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
   table { max-width: 100%; }
 </style>
@@ -468,147 +517,414 @@ flowchart TD
     <div class="wrap">
       <div class="sec-head">
         <span class="eyebrow">04 · what I built</span>
-        <h2>Five results, each tagged by how well it is backed.</h2>
+        <h2>Seven results, each carrying the provenance its ledger row records.</h2>
         <p>
-          The distinction below matters more than any single figure. A number with a weaker tag is
-          not hidden here — it is labelled.
+          Every figure below is tagged with one of the four provenance values used by the project's
+          own evidence ledger, <code>evals/results.jsonl</code>. The tags are not decoration: a
+          figure is never shown at a stronger tier than the ledger records for it, and figures with
+          no ledger row at all say so.
         </p>
       </div>
 
       <div class="prov-key">
         <div>
-          <span class="chip committed">Committed</span>
-          <span>Backed by a machine-generated data artifact in the repository.</span>
+          <span class="chip t-committed">committed-artifact</span>
+          <span>The number is read out of a machine-generated file committed to the repository.
+            The strongest claim on this page.</span>
         </div>
         <div>
-          <span class="chip measured">Self-measured</span>
-          <span>Real, but living in prose or agent-authored eval docs pending independent review.</span>
+          <span class="chip t-recomputed">recomputed</span>
+          <span>Re-derived from the repository by a named command that can be run again. Fresh,
+            but not sealed — it will move as the repository moves.</span>
+        </div>
+        <div>
+          <span class="chip t-reconciled">reconciled</span>
+          <span>Two documents disagreed; one was chosen as canonical and the loser is recorded
+            beside it rather than deleted.</span>
+        </div>
+        <div>
+          <span class="chip t-prose">prose-only</span>
+          <span>Real measurement, but it survives only as prose in a report. No committed data
+            artifact reproduces it.</span>
+        </div>
+        <div>
+          <span class="chip t-offledger">off-ledger</span>
+          <span>Sourced to a named file in the repository, but it has <em>no row</em> in
+            <code>evals/results.jsonl</code>. Weakest tier — shown, not leaned on.</span>
         </div>
       </div>
 
+      <p class="prov-note">
+        An earlier version of this page collapsed all of this into two badges and gave the stronger
+        badge to two of the weakest figures — including a record count the ledger itself annotates
+        as <em>“STALE … does NOT match disk.”</em> An external reviewer caught it. The fix is below,
+        including the numbers that got worse.
+      </p>
+
       <div class="stats">
         <div class="stat">
-          <div class="v">3,528</div>
-          <div class="l">verification records across five objective lanes, zero LLM judges in the verdict path</div>
-          <span class="chip committed">Committed</span>
+          <div class="v sm">73 lanes · 4,318 rows</div>
+          <div class="l">objective verification lanes and hard-gold records actually on disk,
+            counted 2026-07-26</div>
+          <span class="chip t-recomputed">recomputed</span>
         </div>
         <div class="stat">
-          <div class="v">34 / 34</div>
-          <div class="l">injected mutants killed across kernel modules (10/10, 13/13, 6/6, 5/5)</div>
-          <span class="chip committed">Committed</span>
+          <div class="v">16 / 16</div>
+          <div class="l">builds that gamed the visible test suite and were caught anyway by the
+            sealed hidden holdout — 20 attempts, 0 uncaught</div>
+          <span class="chip t-recomputed">recomputed</span>
         </div>
         <div class="stat">
-          <div class="v">0.62 → 0.92</div>
-          <div class="l">judge reliability (Cohen's κ) from rubric versioning alone, model held constant</div>
-          <span class="chip committed">Committed</span>
+          <div class="v sm">1.00 × 4 lanes</div>
+          <div class="l">mutation score across four oracles cross-validated against independent
+            second implementations, n=71 negatives</div>
+          <span class="chip t-recomputed">recomputed</span>
         </div>
         <div class="stat">
-          <div class="v">0</div>
-          <div class="l">records promoted to training gold — the bias audit said don't, so I didn't</div>
-          <span class="chip committed">Committed</span>
+          <div class="v">0.61 → 0.92</div>
+          <div class="l">judge reliability (Cohen's κ) from rubric versioning alone, model held
+            constant, n=18</div>
+          <span class="chip t-prose">prose-only</span>
         </div>
       </div>
 
       <div class="evidence">
-        <article class="ev sealed">
+        <article class="ev p-recomputed">
           <div class="ev-head">
-            <h3>An objective evaluation harness</h3>
-            <span class="chip committed">Committed</span>
+            <h3>A judge-free objective evaluation harness</h3>
+            <span class="chip t-recomputed">recomputed</span>
           </div>
           <p>
-            3,528 verification records across five lanes — tool-calling (synthetic plus live
-            cross-family data graded by BFCL's own checker), coding with hidden holdout tests,
-            defensive security, research faithfulness, and architecture. Each is decided by a
-            <strong>deterministic checker</strong>, with <code>"judge_in_verdict_path": false</code>
-            recorded in the committed ledger.
+            Verification lanes in which a <strong>deterministic checker</strong> — never another
+            LLM — decides pass/fail: tool-calling (synthetic plus live cross-family data graded by
+            BFCL's own checker), coding with hidden holdout tests, defensive security, research
+            faithfulness, architecture, and dozens more since. Counted on disk today:
+            <strong>73 lanes, 4,318 hard-gold rows</strong>. Every Stage-2 promotion row carries
+            <code>"judge_in_verdict_path": false</code>
+            <span class="chip t-committed">committed-artifact</span>.
           </p>
+
+          <div class="tbl-scroll">
+            <table class="fig">
+              <caption>“How many verification records?” — three answers, none of them wrong</caption>
+              <thead>
+                <tr><th>Figure</th><th>What it actually counts</th><th>Provenance</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="num">3,528</td>
+                  <td class="what">The frozen Stage-2 snapshot over the five original lanes.
+                    <span class="src">evals/reports/STAGE2_SUMMARY.md — ledger note: “STALE frozen
+                    ledger snapshot — does NOT match disk”</span></td>
+                  <td><span class="chip t-prose">prose-only</span></td>
+                </tr>
+                <tr>
+                  <td class="num">5,804</td>
+                  <td class="what">Promoted gold across the 29 curated lanes in the catalog as of
+                    2026-07-12 — a different quantity from a raw row count.
+                    <span class="src">docs/OBJECTIVE-GOLD-CATALOG.md</span></td>
+                  <td><span class="chip t-committed">committed-artifact</span></td>
+                </tr>
+                <tr>
+                  <td class="num">4,318</td>
+                  <td class="what">Raw <code>hard_gold.jsonl</code> rows summed across every
+                    objective lane present on disk (73 lanes).
+                    <span class="src">ls -d evals/objective_*/ | wc -l → 73 · cat
+                    evals/objective_*/hard_gold.jsonl | wc -l → 4318 · re-run 2026-07-26</span></td>
+                  <td><span class="chip t-recomputed">recomputed</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            The headline figure on the previous version of this page was 3,528, badged as though it
+            were machine-backed. It is the weakest of the three and the ledger says so in its own
+            note. These are three different quantities — a frozen snapshot, a curated promotion
+            count, and a live row count — and the ledger deliberately keeps all three rather than
+            picking a clean one.
+          </p>
+
+          <div class="tbl-scroll">
+            <table class="fig">
+              <caption>Live cross-family tool-calling pass rates · n=48 each</caption>
+              <thead><tr><th>Endpoint</th><th>Pass rate</th><th>Provenance</th></tr></thead>
+              <tbody>
+                <tr><td class="what">qwen35b</td><td class="num">0.917</td><td><span class="chip t-committed">committed-artifact</span></td></tr>
+                <tr><td class="what">openrouter</td><td class="num">0.875</td><td><span class="chip t-committed">committed-artifact</span></td></tr>
+                <tr><td class="what">opencode</td><td class="num">0.875</td><td><span class="chip t-committed">committed-artifact</span></td></tr>
+                <tr><td class="what">ollama</td><td class="num">0.875</td><td><span class="chip t-committed">committed-artifact</span></td></tr>
+                <tr><td class="what">glm5.2</td><td class="num">0.833</td><td><span class="chip t-committed">committed-artifact</span></td></tr>
+                <tr><td class="what">opencode-zen</td><td class="num">0.812</td><td><span class="chip t-committed">committed-artifact</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
           <div class="caveat">
-            <strong>Caveats.</strong> A local tool-calling checker agrees with BFCL's canonical
-            checker at ~99.93% <em>at the report level</em> — the full row-level comparison is not
-            committed. 3,528 is the Stage-2 snapshot; the catalog has since grown past it (~5,800).
-            ~41 frozen checker tests are committed, though a "48" figure appears in summary prose.
+            <strong>Caveats, at their real tier.</strong> The local tool-calling checker agrees with
+            BFCL's canonical checker at ~99.93% <em>at the report level</em>; the full 3,045-row
+            comparison is not committed <span class="chip t-prose">prose-only</span>. The frozen
+            checker-test count is <strong>41</strong>, not the “48” that appears in summary prose
+            <span class="chip t-reconciled">reconciled</span>. Honest quarantines are
+            <strong>8</strong> in the committed file, against “9” in prose
+            <span class="chip t-committed">committed-artifact</span>. And the ledger records that
+            one endpoint's scorecard entry (GLM at 0.92) was <em>wrong</em> — the committed manifest
+            says 0.833, which is the number shown above.
           </div>
         </article>
 
-        <article class="ev sealed">
+        <article class="ev p-recomputed">
           <div class="ev-head">
-            <h3>LLM-judge calibration — including finding that the gold my own pipeline produced was vendor-biased</h3>
-            <span class="chip committed">Committed</span>
+            <h3>The anti-gaming result: a hidden holdout that caught every gamed build</h3>
+            <span class="chip t-recomputed">recomputed</span>
+          </div>
+          <p>
+            The obvious failure mode of “make the tests pass” is a build that satisfies the visible
+            suite without solving the problem. So the coding lane runs an adversarial experiment
+            against itself: deliberately gamed implementations — visible-suite memorisers and seeded
+            logic bugs — are submitted, and a <em>hidden</em> holdout suite the build never saw
+            decides the verdict.
+          </p>
+          <p>
+            <strong>20 attempts. 16 passed the visible suite. All 16 were caught by the hidden
+            holdout. 0 uncaught.</strong> That is the single strongest piece of evidence on this
+            page, and it was absent from the previous version of it.
+          </p>
+          <div class="caveat">
+            <strong>What this does and does not show.</strong> Re-run on 2026-07-26 with
+            <code>python -m evals.objective_coding.holdout_gaming</code> →
+            <code>attempts: 20, gamed_attempts_passing_visible: 16, caught_by_holdout: 16,
+            uncaught_by_holdout: 0, catch_rate: 1.0</code>. The gaming strategies are ones I
+            authored, so this measures the holdout against <em>anticipated</em> gaming, not against
+            an adversary cleverer than the person who designed the trap. A perfect score here is a
+            floor, not a proof.
+          </div>
+        </article>
+
+        <article class="ev p-recomputed">
+          <div class="ev-head">
+            <h3>Sealed-holdout verification with mutation testing</h3>
+            <span class="chip t-recomputed">recomputed</span>
+          </div>
+          <p>
+            A test suite that passes has not earned trust; a test suite that <em>kills injected
+            mutants</em> has. Four oracle lanes — datetime, regex, ledger, invoice — are each
+            cross-validated against an independently written second implementation, with mutants
+            injected into the primary. <strong>Mutation score 1.0 on all four, n=71 scored
+            negatives</strong>; checker agreement 1.0 on three lanes and 0.9762 on regex, whose
+            single disagreement is a documented policy false-negative (a catastrophic-backtracking
+            pattern), not an undetected defect.
+          </p>
+          <p>
+            The same discipline runs on the kernel itself: probe suites authored <em>sealed</em>,
+            by an agent that is never the builder, and run against blind builds. Across four kernel
+            modules every injected mutant died — contract-engine 10/10, human-control 13/13, broker
+            6/6, model_dispatch 5/5 <span class="chip t-offledger">off-ledger</span> — and the
+            holdouts repeatedly caught real defects the builder's own green suite missed: a
+            floor-bypass that sailed past a 41/41-passing test-driven suite, and an
+            owner-approval-gate bypass on a resume path (16/21 probes deterministic on double-run)
+            <span class="chip t-offledger">off-ledger</span>.
+          </p>
+          <div class="caveat">
+            <strong>Where each number comes from.</strong> The mutation-score line is re-runnable:
+            <code>python -m cortex_core.oracle_crossval</code> → four lanes,
+            <code>mutation_score: 1.0</code> each, 20+13+19+19 = 71 negatives scored. The kernel
+            <em>34/34</em> figures are tagged <span class="chip t-offledger">off-ledger</span>
+            because they live in review write-ups
+            (<code>reviewed/scc-v2-*-review-2026-07-18.md</code>) and have no row in
+            <code>evals/results.jsonl</code>. They are real and cited; they are not sealed evidence,
+            and this page will not pretend otherwise. Mutant sets are also hand-seeded: 13/13 means
+            every failure class <em>I thought of</em> dies.
+          </div>
+        </article>
+
+        <article class="ev p-prose">
+          <div class="ev-head">
+            <h3>LLM-judge calibration — and finding that the gold my own pipeline produced was vendor-biased</h3>
+            <span class="chip t-prose">prose-only</span>
           </div>
           <p>
             I measured judge reliability with Cohen's κ across versioned rubrics. A richer rubric
-            lifted a capable judge from κ ≈0.62 to 0.92 with the <em>model held constant</em> —
-            while the same rubric <em>regressed</em> a small 4B model from ≈0.60 to 0.52. The
-            durable asset is the rubric, not the model.
+            lifted capable judges from <strong>κ 0.61 to 0.92</strong> with the <em>model held
+            constant</em> (n=18) — while the same rubric <em>regressed</em> a small 4B model from
+            0.60 to 0.52. The durable asset is the rubric, not the model. Both figures are
+            <span class="chip t-prose">prose-only</span>: they live in the calibration report, with
+            no committed artifact that reproduces them.
           </p>
           <p>
             The sharpest result cuts against the model family I had chosen to build on. My gold
-            labels were authored by Anthropic models; on those labels, Anthropic judges agreed at
-            weighted-κ <strong>0.95</strong> versus non-Anthropic <strong>0.50</strong> — an
-            explicit self-preference flag. A purpose-built independent judge (Prometheus) agreed at
-            <strong>κ = 0.000</strong>, which the audit itself names as the clean family-bias test
-            to trust over the gentler family-mean.
+            labels were authored by Anthropic models; on a 28-record blinded panel of ten judges,
+            Anthropic judges agreed with those labels at mean weighted-κ <strong>0.947</strong>
+            versus non-Anthropic <strong>0.426</strong> — a gap of <strong>0.522</strong>, recorded
+            in the audit as an explicit self-preference flag. The strongest non-Anthropic judge
+            reached <strong>0.753</strong>, so the gap is partly capability rather than pure vendor
+            bias — but a residual family gap remains, and the project's own conclusion is that the
+            labels “have signal but are <strong>not vendor-neutral</strong>.”
           </p>
           <div class="caveat">
-            <strong>The disposition that follows.</strong> The labels "have signal but are
-            <strong>not vendor-neutral</strong>", so <strong>0 records</strong> were promoted to
-            training gold, and the judge-free objective harness above exists precisely
-            <em>because</em> this bias is — in the project's own words — <strong>unresolved</strong>
-            without third-party gold. It is partly capability rather than pure vendor: the
-            strongest non-Anthropic judge reached 0.75.
+            <strong>Two corrections this rebuild made to its own page.</strong> (1) The earlier
+            draft cited <em>0.95 vs 0.50</em>. The committed artifact
+            (<code>evals/bias_reports/stage1_summary.json</code>) says
+            <code>anthropic_mean_wk 0.9474</code>, <code>non_anthropic_mean_wk 0.4257</code>,
+            <code>gap 0.5218</code> — the 0.50 came from a closeout's prose restatement, and the
+            sharper artifact number is the one now shown. (2) The earlier draft attached
+            “Prometheus κ = 0.000” to this same audit. It belongs to a <em>different</em>
+            experiment — the 18-case calibration bias audit
+            (<code>calibration/results/BIAS-AUDIT.md</code>), where Prometheus scores 0.000 and the
+            file itself names that row as the clean family-bias test to read instead of the gentler
+            family mean. In <em>this</em> 28-record panel Prometheus scored 0.519. Merging the two
+            made the finding look sharper than any single experiment supports. Both figures are
+            <span class="chip t-offledger">off-ledger</span> — cited to committed files, but with
+            no row in <code>evals/results.jsonl</code>.
+          </div>
+          <div class="caveat">
+            <strong>The disposition that follows.</strong> The same artifact records
+            <code>hard_gold: 0</code> and <code>safe_training_candidates: 0</code> — nothing from
+            this pipeline was promoted to training gold, because the audit said not to. (It does
+            record 20 <code>cross_vendor_synthetic_gold</code> records, so “zero promoted” is only
+            true of the safe-training-candidate lane; the previous page's flat “0 records promoted”
+            over-simplified.) The judge-free objective harness above exists precisely
+            <em>because</em> this bias is, in the project's own words,
+            <strong>unresolved</strong> without third-party gold. A separate faithfulness backend
+            was rejected on the same principle: it agreed with human labels at
+            <strong>0.429</strong>, below the 0.744 majority baseline, and was refused registration
+            rather than shipped as biased gold <span class="chip t-prose">prose-only</span>.
           </div>
         </article>
 
-        <article class="ev sealed">
-          <div class="ev-head">
-            <h3>Sealed-holdout verification with mutation testing</h3>
-            <span class="chip committed">Committed</span>
-          </div>
-          <p>
-            Independent probe suites, authored <em>sealed</em> and run against blind builds the test
-            author never saw. Across kernel modules every injected mutant was killed —
-            contract-engine 10/10, human-control 13/13, broker 6/6, model_dispatch 5/5 — and the
-            holdouts repeatedly caught real defects the builder's own green suite missed (a
-            floor-bypass past a 41/41-passing suite; an owner-approval-gate bypass on a resume
-            path, 16/21 probes deterministic on double-run).
-          </p>
-        </article>
-
-        <article class="ev sealed">
+        <article class="ev p-offledger">
           <div class="ev-head">
             <h3>Multi-model routing calibration</h3>
-            <span class="chip committed">Committed</span>
+            <span class="chip t-offledger">off-ledger</span>
           </div>
           <p>
             A cheap model passed only <strong>14/41 (34%)</strong> first-pass against a frozen
             oracle suite — with failures all logic-class, not interface crashes — while a stronger
             model repaired every failure to <strong>41/41</strong>. That is the empirical basis for
             risk-tiered routing: expensive models run only where a task's <em>measured</em>
-            difficulty demands them.
+            difficulty demands it.
           </p>
+          <div class="caveat">
+            <strong>Tier.</strong> Sourced to
+            <code>reviewed/scc-v2-model-dispatch-review-2026-07-18.md</code> and
+            <code>BUILD-ROUTING-CALIBRATION-2026-07-18.md</code>, with no row in
+            <code>evals/results.jsonl</code>. One model pair, one module — a calibration data point,
+            not a routing law.
+          </div>
         </article>
 
-        <article class="ev unsealed">
+        <article class="ev p-prose">
           <div class="ev-head">
             <h3>Hybrid retrieval (RAG)</h3>
-            <span class="chip measured">Self-measured</span>
+            <span class="chip t-prose">prose-only</span>
           </div>
           <p>
             BM25 + vector reciprocal-rank-fusion over the project's own technical-doc corpus, tuned
-            against a chunk-level graded eval (nDCG@5 ≈0.46 → 0.65; chunk_recall@5 0.467 → 0.667;
-            chunk_mrr 0.425 → 0.503). Scope-packing cut retrieval context by ~96% on the golden-set
-            mean.
+            against a chunk-level graded eval. The baselines below were re-run from source; the
+            improvement deltas were not, and are shown at the tier the ledger gives them.
           </p>
+
+          <div class="tbl-scroll">
+            <table class="fig">
+              <caption>Graded retrieval eval · BM25 baseline vs shipped RRF hybrid</caption>
+              <thead>
+                <tr><th>Metric</th><th>BM25 baseline</th><th>Hybrid delta</th><th>Delta provenance</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="what">nDCG@5 <span class="src">n=17</span></td>
+                  <td class="num">0.3857</td>
+                  <td class="num">0.444 → 0.654</td>
+                  <td><span class="chip t-reconciled">reconciled</span>
+                    <span class="src">PHASE-GATES canonical; a companion doc states 0.462 → 0.650
+                    for the same run — kept, not deleted</span></td>
+                </tr>
+                <tr>
+                  <td class="what">chunk_recall@5 <span class="src">n=15</span></td>
+                  <td class="num">0.4667</td>
+                  <td class="num">0.467 → 0.667 → 0.733</td>
+                  <td><span class="chip t-reconciled">reconciled</span>
+                    <span class="src">two steps, not one A/B: hybrid to 0.667, then a
+                    vector-distance-threshold fix to 0.733</span></td>
+                </tr>
+                <tr>
+                  <td class="what">chunk_mrr <span class="src">n=15</span></td>
+                  <td class="num">0.3278</td>
+                  <td class="num">0.425 → 0.503</td>
+                  <td><span class="chip t-prose">prose-only</span></td>
+                </tr>
+                <tr>
+                  <td class="what">context_precision@5 <span class="src">n=17</span></td>
+                  <td class="num">0.1333</td>
+                  <td class="num">0.147 → 0.213</td>
+                  <td><span class="chip t-prose">prose-only</span></td>
+                </tr>
+                <tr>
+                  <td class="what">negatives correct <span class="src">n=2</span></td>
+                  <td class="num">2 / 2</td>
+                  <td class="num">—</td>
+                  <td><span class="chip t-recomputed">recomputed</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
           <div class="caveat">
             <strong>Caveats.</strong> The graded eval is agent-authored and pending human review,
-            n=17 (a one-query swing is ≈6%), one companion doc records a slightly different nDCG for
-            the same run, and these live in prose rather than a committed ledger.
-            <strong>But the gate worked:</strong> three candidate improvements (KP-miner,
-            chunking-v2, an ms-marco reranker) were <em>rejected</em> on the eval's evidence; only
-            the fourth shipped.
+            and n=17 means a one-query swing is ≈6%. The baseline column is
+            <span class="chip t-recomputed">recomputed</span> from
+            <code>cortex_core/graded_eval.py</code> and comes out <em>below</em> the historical
+            prose snapshots — because the corpus grew underneath them. That is the whole lesson: a
+            prose snapshot is not reproducible after corpus drift, which is why the delta column
+            can never be upgraded past <span class="chip t-reconciled">reconciled</span>.
+            <strong>But the gate worked:</strong> two candidate improvements were <em>rejected</em>
+            on this eval's evidence — chunking-v2 measured byte-identical, and an ms-marco reranker
+            <em>hurt</em> recall 0.733 → 0.600 <span class="chip t-prose">prose-only</span>. Scope
+            packing cut retrieval context by 96.1% on the golden-set mean, all queries ≥50%
+            <span class="chip t-prose">prose-only</span> — no committed per-query artifact.
+          </div>
+        </article>
+
+        <article class="ev p-recomputed">
+          <div class="ev-head">
+            <h3>The gap this page is least comfortable showing</h3>
+            <span class="chip t-recomputed">recomputed</span>
+          </div>
+          <p>
+            The whole thesis here is that a claim without a machine-checkable artifact does not
+            count. So the fair question is how well the project's own audit trail holds to that.
+            Measured across every closeout in <code>audit/audit-log-*/agent/</code> on 2026-07-26:
+            <strong>1,723 closeouts, of which 1,626 (94.4%) carry an empty or absent
+            <code>evidence[]</code> array.</strong> Of the 219 whose <code>tests</code> field claims
+            a passing run, only <strong>31</strong> attach a machine-readable test evidence item —
+            <strong>188 are prose assertions</strong> of exactly the kind the kernel is built to
+            reject.
+          </p>
+          <p>
+            The structured-evidence schema arrived after most of that history was written, and the
+            newer kernel work is gated mechanically rather than by closeout hygiene. But the number
+            is what it is, and a page arguing for evidence discipline that hid its own worst
+            compliance figure would be making the argument it claims to refute.
+          </p>
+          <div class="caveat">
+            <strong>Method, so you can disagree with it.</strong> “Claims a pass” = the
+            <code>tests</code> string matches <code>pass|passed|passing|green|all tests</code> and
+            is not one of the explicit “not run / none” forms. “Grounded” = at least one
+            <code>evidence[]</code> item with <code>type == "test"</code>. Both are judgement calls
+            in the classifier, and a looser or stricter reading moves the denominator by a few
+            dozen; the 94.4% empty-evidence figure is a direct count and does not depend on them.
           </div>
         </article>
       </div>
+
+      <p class="prov-note">
+        One more receipt, because it is the cheapest kind to check:
+        <code>sha256sum -c scratchpad/STORE1-HASH-MANIFEST-2026-07-25.sha256</code> →
+        <strong>450 files OK, 0 failed</strong>, re-verified 2026-07-26. The manifest covers
+        artifacts that cannot be regenerated — sealed probe packs whose authoring seat is retired —
+        so integrity is the only guarantee left available for them.
+        <span class="chip t-recomputed">recomputed</span>
+      </p>
     </div>
   </section>
 
@@ -649,17 +965,23 @@ flowchart TD
       </div>
       <div class="body-copy">
         <p>
-          Solo, research-grade, not production-hardened. Metrics are self-measured on this system
-          and not externally audited — which is exactly why they carry a
-          <span class="chip committed">Committed</span> or
-          <span class="chip measured">Self-measured</span> tag above rather than being presented
+          Solo, research-grade, not production-hardened. Every metric is self-measured on this
+          system and none is externally audited — which is exactly why each one above carries a
+          <span class="chip t-committed">committed-artifact</span>,
+          <span class="chip t-recomputed">recomputed</span>,
+          <span class="chip t-reconciled">reconciled</span>,
+          <span class="chip t-prose">prose-only</span> or
+          <span class="chip t-offledger">off-ledger</span> tag rather than being presented
           uniformly.
         </p>
         <p>
-          The objective lanes and calibration κ are machine-backed; the retrieval and scope-pack
-          numbers live in agent-authored eval docs pending review. The value here is a
-          demonstration of <strong>how I approach trustworthy AI</strong> — not a claim of
-          production scale. The methodology and the judgment are the transferable parts.
+          The honest split: the objective lanes, the hidden-holdout catch rate and the mutation
+          scores are re-runnable from source; the calibration κ, the scope-pack cut and the
+          retrieval deltas survive only as prose in agent-authored eval docs; and the kernel
+          mutant counts and routing calibration are cited to review write-ups with no ledger row at
+          all. The value here is a demonstration of <strong>how I approach trustworthy AI</strong> —
+          not a claim of production scale. The methodology and the judgment are the transferable
+          parts.
         </p>
       </div>
     </div>
@@ -680,18 +1002,25 @@ flowchart TD
       </div>
 
       <div class="frame">
-        <h3>They found a real problem</h3>
+        <h3>They found real problems — twice</h3>
         <p>
-          An earlier draft cited the <em>milder</em> vendor-bias number and omitted the sharper
-          self-preference finding — the 0.95 versus 0.50 split now shown above. That correction,
-          and others, are folded in. A write-up that hid its worst number would have failed its own
+          The first pass caught a draft that cited the <em>milder</em> vendor-bias number and
+          omitted the sharper self-preference finding. A later review caught something worse: the
+          badge system itself. Two badges were standing in for the ledger's four provenance tiers,
+          and the stronger badge had been assigned to two of the <em>weakest</em> rows — including a
+          record count the ledger annotates as “STALE … does NOT match disk.” Both corrections are
+          folded in above, along with the numbers that got smaller when checked
+          (0.50 → <strong>0.426</strong>) and the ones that had been quietly merged from two
+          different experiments. A write-up that hid its worst number would have failed its own
           thesis.
         </p>
       </div>
 
       <p class="note">
         Audit trail: <code>reviewed/CASE-STUDY-CROSSVENDOR-AUDIT-2026-07-25.md</code>. Supporting
-        verification: <code>reviewed/CASE-STUDY-MINING-2026-07-25.md</code>.
+        verification: <code>reviewed/CASE-STUDY-MINING-2026-07-25.md</code>. Evidence-provenance
+        rebuild: <code>reviewed/case-study-evidence-rebuild-2026-07-26.md</code>. Source of truth
+        for every tag above: <code>evals/results.jsonl</code>.
       </p>
       <p class="note">
         Related — the <a class="inline" href="index.html">kernel overview</a>, the

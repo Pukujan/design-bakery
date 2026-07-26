@@ -4,8 +4,21 @@
  */
 window.DB_RESEARCH = {
  schema: "design-bakery.research.catalog.v1",
- updated: "2026-07-22",
+ updated: "2026-07-26",
  papers: [
+ {
+ id: "db-r-2026-005",
+ title: "Verification independence without opinion aggregation: adversarial input generation with deterministic adjudication",
+ authors: ["Pujan", "Design Bakery"],
+ submitted: "2026-07-26",
+ status: "pending",
+ tags: ["cortex", "verification", "evaluation", "multi-model", "benchmarks"],
+ href: "/research/papers/db-r-2026-005.html",
+ abstract:
+ "Criticism of multi-model ensembles targets opinion aggregation - debate, voting, consensus - and is well founded. A different use of model diversity is not covered by it: a second, different-vendor model generates adversarial INPUTS that the incumbent's blind spot excludes, and the verdict is decided by deterministic execution rather than by any model's judgement. These are distinct mechanisms with different failure modes; opinion aggregation fails verdict-corruptingly, input generation fails only yield-reducingly. Includes observational evidence from one codebase (n is small throughout), a three-incident mechanism trace, and a falsifiable four-arm benchmark protocol with judge-free ground truth. No controlled benchmark was run.",
+ pdf: null,
+ bib: "/research/papers/db-r-2026-005.bib"
+ },
  {
  id: "db-r-2026-004",
  title: "Black-box and grey-box validation of autonomous agent work",
