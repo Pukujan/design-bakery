@@ -5,6 +5,26 @@
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
+      "source": "/research",
+      "destination": "/research/index.html"
+    },
+    {
+      "source": "/research/",
+      "destination": "/research/index.html"
+    },
+    {
+      "source": "/case-studies/cortex",
+      "destination": "/case-studies/cortex/a/index.html"
+    },
+    {
+      "source": "/case-studies/cortex/",
+      "destination": "/case-studies/cortex/a/index.html"
+    },
+    {
+      "source": "/case-studies/cortex/a",
+      "destination": "/case-studies/cortex/a/index.html"
+    },
+    {
       "source": "/((?!.*\\.html$).*)",
       "destination": "/index.html"
     }
