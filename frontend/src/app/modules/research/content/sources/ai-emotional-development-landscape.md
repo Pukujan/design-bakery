@@ -34,7 +34,7 @@ These papers build agents that *generate* emotional states from internal dynamic
 - **Authors:** Qingqing Gu et al.
 - **What they did:** Built an LLM-based agent that simulates *panic emotion formation* using appraisal theory. Uses role-playing agents to simulate individual psychological chains through dedicated prompts. Improved panic prediction by 12.6–21.7% over baselines.
 - **Key mechanism:** Emotion arousal theory → cognitive appraisal → role-based simulation. The LLM is prompted to *be* a person going through an emotional sequence, not just classify emotions.
-- **Code:** Available at `https://anonymous.4open.science/r/PsychoAgent-19DD`
+- **Code:** `https://anonymous.4open.science/r/PsychoAgent-19DD` (anonymous-review mirror; unreachable as of 2026-07-26, HTTP 401/403, so treat the code as not currently retrievable)
 - **Significance:** This is a paradigm shift from "data-driven fitting" to "role-based simulation with mechanistic interpretation", the agent actually *runs through* an emotional process rather than labeling it.
 
 ---
@@ -107,7 +107,7 @@ These papers explicitly connect AI emotion to developmental psychology framework
 
 | System | Code Available? | Link |
 |--------|----------------|------|
-| PsychoAgent | Yes | anonymous.4open.science/r/PsychoAgent-19DD |
+| PsychoAgent | Listed, link dead 2026-07-26 | anonymous.4open.science/r/PsychoAgent-19DD |
 | Robot Personality (Tang et al.) | Appears to have code | Check paper for repo |
 | MLLM Affective Geometry | Project page | reedonepeck.github.io/ai-emotion.github.io |
 | Free Energy Emotional Dynamics | Theory, reproducible | Paper only (IEEE Access 2026) |

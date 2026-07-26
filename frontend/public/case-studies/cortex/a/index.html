@@ -217,7 +217,7 @@
   :focus-visible{outline:2px solid var(--seal); outline-offset:3px; border-radius:4px;}
 
 
-  /* mobile responsive polish — layout only, no content changes */
+  /* mobile responsive polish, layout only, no content changes */
   @media (max-width:720px){
     .wrap{padding:0 16px;}
     .bar-in{height:56px; gap:10px;}
@@ -346,18 +346,40 @@
   .body-grid, .body-grid > *, .content, .doc, .wrap, main, section { min-width: 0; }
   .tbl-scroll, .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
   table { max-width: 100%; }
+
+  /* ---- research cross-links (2026-07-26) ----
+     Reuses the existing .refs / .ref card system so this introduces no second design
+     language: same border, radius, panel fill and seal accent as the prior-art cards.
+     Only difference is that the card is itself a link, so it needs a hover affordance
+     and a status chip. min-width:0 on the flex child keeps the 2026-07-26 mobile
+     overflow fix intact (a long paper title must wrap, never widen the page). */
+  a.ref{transition:border-color .2s, box-shadow .2s, transform .2s; min-width:0;}
+  a.ref > div{min-width:0;}
+  a.ref:hover{border-color:var(--seal); box-shadow:0 0 24px var(--seal-glow);}
+  /* the arrow must trail the last word inline; a flex h4 orphans it on its own
+     line as soon as the title wraps at 390px */
+  a.ref h4 .go{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--seal);
+    opacity:.55; transition:opacity .2s; margin-left:7px; white-space:nowrap;}
+  a.ref:hover h4 .go{opacity:1;}
+  a.ref .st{display:inline-block; margin-top:10px; font-family:"IBM Plex Mono",monospace;
+    font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted-2);
+    border:1px solid var(--line); border-radius:6px; padding:3px 7px;}
+  @media (max-width:720px){ a.ref:hover{transform:none;} }
+  .note a{border-bottom:1px solid color-mix(in srgb,var(--seal) 55%,transparent);
+    transition:border-color .2s;}
+  .note a:hover{border-bottom-color:var(--seal);}
 </style>
 </head>
 <body>
 
 <header class="bar">
   <div class="bar-in">
-    <a href="index.html" class="brand"><span class="dot"></span><span>CORTEX</span></a>
+    <a href="/case-studies/cortex/a/index.html" class="brand"><span class="dot"></span><span>CORTEX</span></a>
     <nav class="links" aria-label="Cortex case study">
-      <a href="index.html" aria-current="page">Overview</a>
-      <a href="specs.html">Specs</a>
-      <a href="flowchart.html">Flow</a>
-      <a href="case-study.html">Case&nbsp;study</a>
+      <a href="/case-studies/cortex/a/index.html" aria-current="page">Overview</a>
+      <a href="/case-studies/cortex/a/specs.html">Specs</a>
+      <a href="/case-studies/cortex/a/flowchart.html">Flow</a>
+      <a href="/case-studies/cortex/a/case-study.html">Case&nbsp;study</a>
     </nav>
     <button class="theme-btn" id="themeToggle" aria-label="Toggle colour theme">◐ theme</button>
   </div>
@@ -374,7 +396,7 @@
         before anything ships. Put those in place and interchangeable models can do real
         work on a codebase you never have to read to trust.</p>
       <div class="hero-cta">
-        <a class="btn primary" href="specs.html">Read the technical spec →</a>
+        <a class="btn primary" href="/case-studies/cortex/a/specs.html">Read the technical spec →</a>
         <a class="btn ghost" href="#kernel">See the kernel</a>
       </div>
     </div>
@@ -567,6 +589,49 @@
   </div>
 </section>
 
+<section class="reveal" id="research">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Written up · Design Bakery Research</span>
+      <h2>The design is on the record, not just in the product.</h2>
+      <p>Each mechanism above has a working paper behind it that states the model, the
+        prior art it stands on, and the boundary of what has actually been shown. They are
+        working papers, pending owner approval, and they say so on every page.</p>
+    </div>
+    <div class="refs">
+      <a class="ref" href="/research/papers/db-r-2026-002"><span class="yr">002</span><div>
+        <h4>Deny-by-default authorization for tool-using agents <span class="go">&rarr;</span></h4>
+        <p>The kernel model in full: a structured request, explicit scoped authority, a policy
+          gate at the effect boundary, a sole writer, and content-bound receipts. This is the
+          paper behind the seven mechanisms.</p>
+        <span class="st">working paper · pending</span></div></a>
+      <a class="ref" href="/research/papers/db-r-2026-003"><span class="yr">003</span><div>
+        <h4>Mechanically constraining an LLM orchestrator <span class="go">&rarr;</span></h4>
+        <p>Why the inversion works: do not debias a probabilistic planner, remove its
+          authority. The model proposes; a deterministic controller owns state, permissions,
+          retries and commits.</p>
+        <span class="st">working paper · pending</span></div></a>
+      <a class="ref" href="/research/papers/db-r-2026-004"><span class="yr">004</span><div>
+        <h4>Black-box and grey-box validation of agent work <span class="go">&rarr;</span></h4>
+        <p>How output gets checked without trusting the agent: an outcome oracle over external
+          state, a process oracle over invariants, and holdouts that receive signatures and
+          never implementations.</p>
+        <span class="st">working paper · pending</span></div></a>
+      <a class="ref" href="/research/papers/db-r-2026-008"><span class="yr">008</span><div>
+        <h4>Verification independence without opinion aggregation <span class="go">&rarr;</span></h4>
+        <p>The sealed-holdout result, argued properly: a second vendor's model generates the
+          adversarial inputs the incumbent's blind spot excludes, and a deterministic checker,
+          never a vote, decides the verdict.</p>
+        <span class="st">working paper · pending</span></div></a>
+    </div>
+    <div class="note">The honest boundary is written up too.
+      <a href="/research/papers/db-r-2026-001"><b>db-r-2026-001</b></a> separates
+      component-tested mechanisms from composed product-path status, so a green test on this
+      page is never quietly promoted into a production-governance claim.
+      <a href="/research"><b>All papers &rarr;</b></a></div>
+  </div>
+</section>
+
 <section class="reveal" id="status">
   <div class="wrap">
     <div class="sec-head">
@@ -596,7 +661,7 @@
       <p>A reliability kernel and contract-first process for trustworthy delegation at
         scale.</p>
     </div>
-    <a class="btn primary" href="specs.html">Technical specification →</a>
+    <a class="btn primary" href="/case-studies/cortex/a/specs.html">Technical specification →</a>
   </div>
   <div class="wrap">
     <div class="fine">
