@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cortex, in eight slides</title>
+<meta name="description" content="What Cortex is, why it can be trusted, and how to explain it to technical and non-technical people." />
+<style>
+  :root{
+    --stock:#DFE3E6; --stock-2:#F3F5F6; --card:#FFFFFF;
+    --ink:#14171A; --ink-2:#525A63; --ink-3:#7C858E;
+    --rule:#C3CAD0; --rule-soft:#DBE0E4;
+    --stamp:#3A3D8F; --allow:#2F6B4F; --deny:#A6402E; --perf:#DFE3E6;
+    --serif:ui-serif,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Mono","SF Mono","Segoe UI Mono","Roboto Mono",Menlo,Consolas,monospace;
+  }
+  :root[data-theme="dark"]{
+    --stock:#13161B; --stock-2:#191D24; --card:#1E232B;
+    --ink:#E7EBEF; --ink-2:#A2ACB6; --ink-3:#79838D;
+    --rule:#2C333C; --rule-soft:#232931;
+    --stamp:#8F93E6; --allow:#57A87F; --deny:#D97B65; --perf:#13161B;
+  }
+  *{box-sizing:border-box; min-width:0;}
+  html,body{height:100%;}
+  body{margin:0; background:var(--stock); color:var(--ink); font-family:var(--sans);
+       font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased; overflow:hidden;}
+
+  .deck{height:100dvh; position:relative;}
+  .slide{position:absolute; inset:0; display:grid; place-items:center; padding:72px 28px 96px;
+         opacity:0; visibility:hidden; transition:opacity .34s ease; overflow-y:auto;}
+  .slide[aria-current="true"]{opacity:1; visibility:visible;}
+  @media (prefers-reduced-motion:reduce){ .slide{transition:none;} }
+  .inner{max-width:900px; width:100%;}
+
+  .eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.16em;
+           text-transform:uppercase; color:var(--stamp); margin:0 0 16px;}
+  h1{font-family:var(--serif); font-weight:600; font-size:clamp(30px,5.4vw,54px);
+     line-height:1.1; letter-spacing:-.015em; margin:0 0 20px; text-wrap:balance;}
+  h2{font-family:var(--serif); font-weight:600; font-size:clamp(24px,3.8vw,38px);
+     line-height:1.16; letter-spacing:-.01em; margin:0 0 14px; text-wrap:balance;}
+  h3{font-family:var(--serif); font-size:18px; margin:0 0 4px; font-weight:600;}
+  p{margin:0 0 14px; max-width:64ch; color:var(--ink-2);}
+  p.lead{font-size:clamp(18px,2.2vw,22px); color:var(--ink); max-width:58ch;}
+  strong{color:var(--ink); font-weight:640;}
+
+  .lines{list-style:none; margin:26px 0 0; padding:0; display:grid; gap:14px;}
+  .lines li{display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:start;
+            font-size:clamp(17px,2vw,20px); color:var(--ink); max-width:60ch;}
+  .lines .n{font-family:var(--mono); font-size:11px; color:var(--stamp);
+            border:1px solid var(--stamp); border-radius:2px; padding:2px 6px; margin-top:6px;}
+
+  /* flow, built in CSS so it renders instantly and offline */
+  .flow{display:grid; gap:10px; margin-top:26px;}
+  .step{display:grid; grid-template-columns:auto 1fr auto; gap:16px; align-items:center;
+        background:var(--card); border:1px solid var(--rule-soft); border-radius:3px;
+        padding:14px 16px;}
+  .step .idx{font-family:var(--mono); font-size:11px; color:var(--ink-3);
+             border:1px solid var(--rule); border-radius:2px; padding:2px 7px;}
+  .step .txt{color:var(--ink); font-size:16px;}
+  .step .txt em{color:var(--ink-3); font-style:normal; font-size:14px; display:block;}
+  .step .out{font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+             text-transform:uppercase; padding:3px 8px; border-radius:2px; white-space:nowrap;}
+  .out.stop{color:var(--deny); border:1px solid var(--deny);}
+  .out.go{color:var(--allow); border:1px solid var(--allow);}
+  @media (max-width:620px){ .step{grid-template-columns:auto 1fr;} .step .out{grid-column:2;} }
+
+  .permit{background:var(--card); border:1px solid var(--rule); border-radius:3px;
+          max-width:520px; margin:22px auto 0; position:relative; overflow:hidden;}
+  .permit-head{padding:16px 20px 13px; display:flex; justify-content:space-between;
+               gap:14px; align-items:baseline; flex-wrap:wrap;}
+  .permit-title{font-family:var(--mono); font-size:12px; letter-spacing:.14em;
+                text-transform:uppercase;}
+  .permit-serial{font-family:var(--mono); font-size:12px; color:var(--ink-3);
+                 font-variant-numeric:tabular-nums;}
+  .perf{height:14px; background:
+        radial-gradient(circle at 7px 50%, var(--perf) 5px, transparent 5.5px) 0 0/14px 14px repeat-x;
+        border-top:1px dashed var(--rule); border-bottom:1px dashed var(--rule);}
+  .permit-body{padding:16px 20px 22px; display:grid; gap:11px;}
+  .row{display:grid; grid-template-columns:118px 1fr; gap:12px; align-items:baseline;}
+  .k{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+     color:var(--ink-3);}
+  .v{font-family:var(--mono); font-size:13px; color:var(--ink); word-break:break-all;}
+  .stamped{position:absolute; right:14px; bottom:12px; transform:rotate(-9deg);
+           border:2px solid var(--deny); color:var(--deny); border-radius:3px;
+           font-family:var(--mono); font-size:11px; letter-spacing:.14em; padding:4px 9px;
+           text-transform:uppercase; opacity:.85;}
+  @media (max-width:620px){ .row{grid-template-columns:1fr;} }
+
+  .scroll{overflow-x:auto; margin-top:20px;}
+  table{width:100%; border-collapse:collapse; font-size:15px;}
+  th,td{text-align:left; padding:11px 13px; border-bottom:1px solid var(--rule-soft);
+        vertical-align:top;}
+  th{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+     color:var(--ink-3); font-weight:500; border-bottom:1px solid var(--rule);}
+  td:first-child{color:var(--ink); font-weight:560; width:38%;}
+
+  .status{display:grid; gap:9px; margin-top:22px;}
+  .st{display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:start;
+      padding-bottom:9px; border-bottom:1px solid var(--rule-soft);}
+  .tag{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+       padding:3px 8px; border-radius:2px; white-space:nowrap; margin-top:3px;}
+  .tag.ok{color:var(--allow); border:1px solid var(--allow);}
+  .tag.no{color:var(--deny); border:1px solid var(--deny);}
+  .tag.tbd{color:var(--ink-3); border:1px solid var(--rule);}
+  .st p{margin:0; font-size:15px;}
+
+  .kicker{font-family:var(--serif); font-size:clamp(22px,3.4vw,34px); line-height:1.25;
+          color:var(--ink); max-width:22ch; margin:0 auto; text-align:center;
+          text-wrap:balance;}
+  .kicker + p{margin:20px auto 0; text-align:center; max-width:56ch;}
+
+  /* chrome */
+  .bar{position:fixed; left:0; right:0; bottom:0; height:64px; display:flex;
+       align-items:center; justify-content:space-between; gap:16px; padding:0 20px;
+       background:color-mix(in srgb, var(--stock) 88%, transparent);
+       border-top:1px solid var(--rule-soft); backdrop-filter:blur(8px); z-index:5;}
+  .dots{display:flex; gap:7px; align-items:center;}
+  .dot{width:9px; height:9px; border-radius:50%; border:1px solid var(--rule);
+       background:transparent; padding:0; cursor:pointer;}
+  .dot[aria-current="true"]{background:var(--stamp); border-color:var(--stamp);}
+  .dot:focus-visible, .nav:focus-visible, .home:focus-visible{outline:2px solid var(--stamp);
+       outline-offset:3px;}
+  .navs{display:flex; gap:8px;}
+  .nav{font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+       background:transparent; color:var(--ink); border:1px solid var(--rule);
+       border-radius:2px; padding:8px 13px; cursor:pointer;}
+  .nav[disabled]{opacity:.35; cursor:default;}
+  .count{font-family:var(--mono); font-size:12px; color:var(--ink-3);
+         font-variant-numeric:tabular-nums;}
+  .home{position:fixed; top:18px; left:20px; z-index:5; font-family:var(--mono);
+        font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);
+        text-decoration:none; border:1px solid var(--rule); border-radius:2px; padding:6px 11px;}
+  .home:hover{color:var(--ink);}
+  .themebtn{position:fixed; top:18px; right:20px; z-index:5; font-family:var(--mono);
+        font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);
+        background:transparent; border:1px solid var(--rule); border-radius:2px;
+        padding:6px 11px; cursor:pointer;}
+  @media (max-width:620px){ .count{display:none;} .home,.themebtn{top:12px;} }
+</style>
+</head>
+<body>
+
+<a class="home" href="/case-studies/cortex">&larr; Case study</a>
+<button class="themebtn" id="themebtn" type="button">Light</button>
+
+<div class="deck" id="deck">
+
+  <section class="slide" aria-current="true">
+    <div class="inner">
+      <p class="eyebrow">Cortex</p>
+      <h1>A checkpoint between an AI that writes code and the code that actually ships.</h1>
+      <p class="lead">An AI assistant can suggest changes to software. Cortex makes sure it can
+        never make one on its own.</p>
+      <ul class="lines">
+        <li><span class="n">01</span><span>The AI proposes. It cannot write.</span></li>
+        <li><span class="n">02</span><span>Nothing reaches the real code without a human approving
+          that <strong>exact</strong> change.</span></li>
+        <li><span class="n">03</span><span>Every approval is a permit that works <strong>once</strong>,
+          and only for the thing it was issued for.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <p class="eyebrow">The problem</p>
+      <h2>Giving an AI the keys is the easy part. Getting them back is not.</h2>
+      <p>Most AI coding tools are handed the same access a developer has: edit files, commit,
+        push. When it works, it is fast. When it goes wrong, there is often no record of what
+        changed, who allowed it, or whether anyone did.</p>
+      <p>The usual answer is to review the AI's work afterwards. That only holds while a person
+        is genuinely reading every line, which stops being true almost immediately.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <p class="eyebrow">How it works</p>
+      <h2>Five steps, and a refusal available at every one.</h2>
+      <p>If any step fails, nothing happens at all. The safe outcome is always "no change".</p>
+      <div class="flow">
+        <div class="step"><span class="idx">1</span>
+          <span class="txt">The AI proposes a change<em>It has no keys and cannot write anything</em></span>
+          <span class="out go">Proposed</span></div>
+        <div class="step"><span class="idx">2</span>
+          <span class="txt">Is this allowed at all?<em>Scope, files, permissions. Anything unclear is refused</em></span>
+          <span class="out stop">Can refuse</span></div>
+        <div class="step"><span class="idx">3</span>
+          <span class="txt">You approve the exact change<em>A permit is issued, tied to that change, valid once</em></span>
+          <span class="out stop">Can refuse</span></div>
+        <div class="step"><span class="idx">4</span>
+          <span class="txt">Is it still the same change?<em>Re-checked at the last moment, right before writing</em></span>
+          <span class="out stop">Can refuse</span></div>
+        <div class="step"><span class="idx">5</span>
+          <span class="txt">The broker writes it, and records a receipt<em>The only part holding keys. What, when, approved by whom</em></span>
+          <span class="out go">Done</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <p class="eyebrow">The central idea</p>
+      <h2>The permit is the whole trick.</h2>
+      <p>An approval is not "yes, go ahead". It is a permit bound to one specific change, valid
+        once. Change a single character afterwards and the permit no longer matches, so the
+        write is refused.</p>
+      <div class="permit">
+        <div class="permit-head">
+          <span class="permit-title">Approval permit</span>
+          <span class="permit-serial">ap_dc609835061f4bd4</span>
+        </div>
+        <div class="perf"></div>
+        <div class="permit-body">
+          <div class="row"><span class="k">Change</span><span class="v">src/pricing.py, 1 file</span></div>
+          <div class="row"><span class="k">Fingerprint</span><span class="v">73f713c1ea183368&hellip;</span></div>
+          <div class="row"><span class="k">Approved by</span><span class="v">owner, in person</span></div>
+          <div class="row"><span class="k">Valid for</span><span class="v">one write, this change only</span></div>
+        </div>
+        <span class="stamped">Void after use</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <p class="eyebrow">Why trust it</p>
+      <h2>Six answers, in the order they matter.</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>What worries people</th><th>What Cortex does about it</th></tr></thead>
+          <tbody>
+            <tr><td>"The AI could do something I didn't ask for."</td>
+                <td>The AI holds no keys. A separate, ordinary program does all writing, and only
+                    accepts changes carrying a valid permit.</td></tr>
+            <tr><td>"What if something slips through?"</td>
+                <td>Everything is refused unless explicitly allowed. No path where silence or an
+                    error means "go ahead".</td></tr>
+            <tr><td>"How do I know what was approved is what was done?"</td>
+                <td>The permit is tied to a fingerprint of the exact change, re-checked at the
+                    last moment before writing.</td></tr>
+            <tr><td>"Could it reuse an old approval?"</td>
+                <td>Permits work once and are spent on use. A used permit is refused.</td></tr>
+            <tr><td>"You wrote the tests, so of course they pass."</td>
+                <td>It is judged against security requirements published in 1972, which nobody
+                    here wrote and nobody here can edit.</td></tr>
+            <tr><td>"Every project claims it's secure."</td>
+                <td>This one publishes what is <em>not</em> working, including a requirement it
+                    failed until this week.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <p class="eyebrow">How to talk about it</p>
+      <h2>Same idea, two vocabularies.</h2>
+      <p>Say the left version to anyone. Use the right version if an engineer pushes.</p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>To anyone</th><th>To an engineer</th></tr></thead>
+          <tbody>
+            <tr><td>A checkpoint between the AI and the real code.</td>
+                <td>A reference monitor over agent-initiated effects; complete mediation is the
+                    requirement.</td></tr>
+            <tr><td>The AI has no keys.</td>
+                <td>Credential isolation. A separate broker identity is the sole writer.</td></tr>
+            <tr><td>Everything is refused unless allowed.</td>
+                <td>Deny-by-default, fail-safe defaults, least privilege.</td></tr>
+            <tr><td>An approval is a permit for one exact change, used once.</td>
+                <td>Single-use, content-bound capability; unforgeable designation, no ambient
+                    authority.</td></tr>
+            <tr><td>Every important action leaves a receipt.</td>
+                <td>Durable audit receipts on every privileged branch.</td></tr>
+            <tr><td>Outsiders try to break it, not us.</td>
+                <td>Independent V&amp;V; cold-start black-box assessment by models from other
+                    vendors.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <p class="eyebrow">Honest status</p>
+      <h2>What is proven, and what is not.</h2>
+      <p>Being able to say this precisely is the point of the project, so it sits beside the
+        claims rather than behind them.</p>
+      <div class="status">
+        <div class="st"><span class="tag ok">Holds</span>
+          <div><h3>Nothing happens unless permitted</h3>
+            <p>Confirmed under independent attack: forged, replayed, spent and wrong-subject
+              permits were all refused.</p></div></div>
+        <div class="st"><span class="tag ok">Holds</span>
+          <div><h3>Approvals are bound to exact content</h3>
+            <p>Fixed and independently verified this week. Before that, an approved change could
+              be swapped for a different one. Outside testers found it; we published it.</p></div></div>
+        <div class="st"><span class="tag tbd">Unverified</span>
+          <div><h3>The checkpoint cannot be tampered with</h3>
+            <p>The design separates them. It has not yet been demonstrated, so it is not
+              claimed.</p></div></div>
+        <div class="st"><span class="tag no">Not yet</span>
+          <div><h3>Running in production</h3>
+            <p>The control layer is being verified end to end. The parts that execute work in an
+              isolated container are still outstanding.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <p class="eyebrow">The finding that matters</p>
+      <p class="kicker">Three AI models from different companies, shown only the code and never
+        the tests, found nine real defects that a fully passing test suite had missed.</p>
+      <p>Tests passing is not evidence that a system works. Building the thing that can tell the
+        difference is what Cortex is for.</p>
+    </div>
+  </section>
+
+</div>
+
+<div class="bar">
+  <div class="navs">
+    <button class="nav" id="prev" type="button" aria-label="Previous slide">Prev</button>
+    <button class="nav" id="next" type="button" aria-label="Next slide">Next</button>
+  </div>
+  <div class="dots" id="dots" role="tablist" aria-label="Slides"></div>
+  <span class="count" id="count"></span>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var dots = document.getElementById('dots');
+  var count = document.getElementById('count');
+  var prev = document.getElementById('prev');
+  var next = document.getElementById('next');
+  var i = 0;
+
+  slides.forEach(function(_, n){
+    var b = document.createElement('button');
+    b.className = 'dot'; b.type = 'button';
+    b.setAttribute('role','tab');
+    b.setAttribute('aria-label','Slide ' + (n+1));
+    b.addEventListener('click', function(){ go(n); });
+    dots.appendChild(b);
+  });
+
+  function go(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){
+      if (k === i) { s.setAttribute('aria-current','true'); s.scrollTop = 0; }
+      else s.removeAttribute('aria-current');
+    });
+    Array.prototype.forEach.call(dots.children, function(d, k){
+      if (k === i) d.setAttribute('aria-current','true'); else d.removeAttribute('aria-current');
+    });
+    count.textContent = (i+1) + ' / ' + slides.length;
+    prev.disabled = i === 0;
+    next.disabled = i === slides.length - 1;
+    if (location.hash !== '#' + (i+1)) history.replaceState(null, '', '#' + (i+1));
+  }
+
+  prev.addEventListener('click', function(){ go(i-1); });
+  next.addEventListener('click', function(){ go(i+1); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(i+1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   { e.preventDefault(); go(i-1); }
+    if (e.key === 'Home') { e.preventDefault(); go(0); }
+    if (e.key === 'End')  { e.preventDefault(); go(slides.length-1); }
+  });
+  // swipe, so it works on a phone held up to someone
+  var x0 = null;
+  document.addEventListener('touchstart', function(e){ x0 = e.touches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 55) go(dx < 0 ? i+1 : i-1);
+    x0 = null;
+  }, {passive:true});
+
+  var tb = document.getElementById('themebtn');
+  function applyTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    tb.textContent = t === 'dark' ? 'Light' : 'Dark';
+    try { localStorage.setItem('cortex-deck-theme', t); } catch (err) {}
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('cortex-deck-theme'); } catch (err) {}
+  applyTheme(saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+  tb.addEventListener('click', function(){
+    applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  go(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>
