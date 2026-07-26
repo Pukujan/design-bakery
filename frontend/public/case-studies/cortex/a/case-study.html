@@ -238,21 +238,54 @@
     font-family:"IBM Plex Mono",monospace; font-size:12.5px; letter-spacing:.04em;}
   .foot-in .rights{margin-left:auto; color:var(--muted-2);}
   @media (max-width:700px){ .foot-in .rights{margin-left:0;} }
+
+  /* ---- unified case-study nav (2026-07-25) : one navbar on all four pages ---- */
+  header.bar .bar-in{display:flex; align-items:center; gap:18px; height:64px;
+    max-width:1120px; margin:0 auto; padding:0 28px;}
+  header.bar .brand{flex:0 0 auto;}
+  header.bar nav.links{display:flex; align-items:center; gap:26px; margin-left:auto;
+    min-width:0; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;}
+  header.bar nav.links::-webkit-scrollbar{display:none;}
+  header.bar nav.links a{font-family:"IBM Plex Mono",monospace; font-size:13px;
+    letter-spacing:.04em; color:var(--muted); white-space:nowrap; padding:5px 0;
+    border-bottom:1px solid transparent; transition:color .18s, border-color .18s;}
+  header.bar nav.links a:hover{color:var(--text-strong);}
+  header.bar nav.links a[aria-current="page"]{color:var(--text-strong);
+    border-bottom-color:var(--seal);}
+  header.bar .theme-btn{flex:0 0 auto;}
+  /* navigation must never disappear on small screens - it scrolls instead */
+  @media (max-width:900px){
+    header.bar nav.links a:not(.cta){display:inline-block;}
+    header.bar .bar-in{gap:12px; padding:0 16px;}
+    header.bar nav.links{gap:18px;}
+    header.bar nav.links a{font-size:12px;}
+  }
+  @media (max-width:520px){
+    header.bar .brand span:not(.dot){display:none;}
+    header.bar .theme-btn{padding:7px 9px;}
+  }
+
+  /* ---- mobile overflow guard (2026-07-25) ---- */
+  html,body{max-width:100%; overflow-x:hidden;}
+  img,svg,canvas,table,pre{max-width:100%;}
+  @media (max-width:620px){
+    .wrap{padding:0 16px;}
+    .diagram .canvas{padding:18px 10px;}
+  }
 </style>
 </head>
 <body>
 
 <header class="bar">
-  <div class="wrap bar-in">
-    <a href="index.html" class="brand"><span class="dot"></span>CORTEX</a>
-    <nav class="links">
+  <div class="bar-in">
+    <a href="index.html" class="brand"><span class="dot"></span><span>CORTEX</span></a>
+    <nav class="links" aria-label="Cortex case study">
       <a href="index.html">Overview</a>
       <a href="specs.html">Specs</a>
       <a href="flowchart.html">Flow</a>
-      <a href="case-study.html" class="here">Case&nbsp;study</a>
-      <a class="cta theme-btn" href="#evidence">Evidence&nbsp;→</a>
-      <button class="theme-btn" id="themeToggle" aria-label="Toggle colour theme">◐ theme</button>
+      <a href="case-study.html" aria-current="page">Case&nbsp;study</a>
     </nav>
+    <button class="theme-btn" id="themeToggle" aria-label="Toggle colour theme">◐ theme</button>
   </div>
 </header>
 
