@@ -27,7 +27,7 @@
        font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased; overflow:hidden;}
 
   .deck{height:100dvh; position:relative;}
-  .slide{position:absolute; inset:0; display:grid; place-items:center; padding:72px 28px 96px;
+  .slide{position:absolute; inset:0; display:grid; place-items:center; padding:96px 28px 96px;
          opacity:0; visibility:hidden; transition:opacity .34s ease; overflow-y:auto;}
   .slide[aria-current="true"]{opacity:1; visibility:visible;}
   @media (prefers-reduced-motion:reduce){ .slide{transition:none;} }
@@ -137,10 +137,20 @@
         background:transparent; border:1px solid var(--rule); border-radius:2px;
         padding:6px 11px; cursor:pointer;}
   @media (max-width:620px){ .count{display:none;} .home,.themebtn{top:12px;} }
+
+  /* Persistent, every slide. An adversarial review found the deck made categorical
+     claims for six slides and only qualified them on slide 7 -- "strong claim first,
+     limitation after the audience has accepted the premise". */
+  .banner{position:fixed; top:0; left:0; right:0; z-index:4; text-align:center;
+    font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--deny); background:color-mix(in srgb, var(--stock) 92%, transparent);
+    border-bottom:1px solid var(--rule-soft); padding:7px 96px; line-height:1.5;}
+  @media (max-width:620px){ .banner{padding:6px 76px; font-size:9.5px; letter-spacing:.04em;} }
 </style>
 </head>
 <body>
 
+<div class="banner">Experimental prototype &middot; not independently audited &middot; not a production security boundary</div>
 <a class="home" href="/case-studies/cortex">&larr; Case study</a>
 <button class="themebtn" id="themebtn" type="button">Light</button>
 
@@ -150,15 +160,19 @@
     <div class="inner">
       <p class="eyebrow">Cortex</p>
       <h1>A checkpoint between an AI that writes code and the code that actually ships.</h1>
-      <p class="lead">An AI assistant can suggest changes to software. Cortex makes sure it can
-        never make one on its own.</p>
+      <p class="lead">An AI assistant can suggest changes to software. Cortex is designed so it
+        cannot make one on its own. Whether that holds across <em>every</em> route is still
+        being verified, and this deck says which parts are proven.</p>
       <ul class="lines">
-        <li><span class="n">01</span><span>The AI proposes. It cannot write.</span></li>
-        <li><span class="n">02</span><span>Nothing reaches the real code without a human approving
-          that <strong>exact</strong> change.</span></li>
-        <li><span class="n">03</span><span>Every approval is a permit that works <strong>once</strong>,
-          and only for the thing it was issued for.</span></li>
+        <li><span class="n">01</span><span>The AI proposes; a separate program writes.</span></li>
+        <li><span class="n">02</span><span>A change should not reach the real code without a human
+          approving that <strong>exact</strong> change.</span></li>
+        <li><span class="n">03</span><span>Each approval is a permit for one change, spent on
+          use.</span></li>
       </ul>
+      <p style="margin-top:26px; font-size:15px">Those are the design's intentions. Slide 7 states
+        which are demonstrated, which are unverified, and which have been <strong>refuted</strong>.
+        It is not in production and is not a sole security boundary.</p>
     </div>
   </section>
 
@@ -166,11 +180,17 @@
     <div class="inner">
       <p class="eyebrow">The problem</p>
       <h2>Giving an AI the keys is the easy part. Getting them back is not.</h2>
-      <p>Most AI coding tools are handed the same access a developer has: edit files, commit,
-        push. When it works, it is fast. When it goes wrong, there is often no record of what
+      <p>An AI coding tool is often handed the same access a developer has: edit files, commit,
+        push. When it works, it is fast. When it goes wrong, there is frequently no record of what
         changed, who allowed it, or whether anyone did.</p>
-      <p>The usual answer is to review the AI's work afterwards. That only holds while a person
-        is genuinely reading every line, which stops being true almost immediately.</p>
+      <p><strong>The honest comparison is not against an unrestricted agent.</strong> A serious
+        conventional setup already uses ephemeral sandboxes, scoped tokens or GitHub Apps,
+        protected branches, CODEOWNERS, required CI and a policy engine such as OPA or Cedar.
+        Much of what Cortex does, that stack also does.</p>
+      <p>The open question is whether binding an approval to <em>exact content</em>, and recording
+        evidence per effect, catches failures that stack misses. <strong>That benchmark has not
+        been run.</strong> Until it is, treat the case for Cortex as unproven rather than
+        established.</p>
     </div>
   </section>
 
@@ -178,7 +198,9 @@
     <div class="inner">
       <p class="eyebrow">How it works</p>
       <h2>Five steps, and a refusal available at every one.</h2>
-      <p>If any step fails, nothing happens at all. The safe outcome is always "no change".</p>
+      <p>If a step refuses, the write does not happen. That is fail-closed authorisation, which
+        is <strong>not</strong> the same as transactional rollback: temporary files, worktree
+        state or side effects from earlier steps can survive a refusal.</p>
       <div class="flow">
         <div class="step"><span class="idx">1</span>
           <span class="txt">The AI proposes a change<em>It has no keys and cannot write anything</em></span>
@@ -193,19 +215,29 @@
           <span class="txt">Is it still the same change?<em>Re-checked at the last moment, right before writing</em></span>
           <span class="out stop">Can refuse</span></div>
         <div class="step"><span class="idx">5</span>
-          <span class="txt">The broker writes it, and records a receipt<em>The only part holding keys. What, when, approved by whom</em></span>
+          <span class="txt">The broker writes it, and records a receipt<em>The intended sole writer. What, when, approved by whom</em></span>
           <span class="out go">Done</span></div>
       </div>
+      <p style="margin-top:22px; font-size:15px">This diagram assumes the broker is the
+        <em>only</em> route to an effect. That assumption is not yet proven: a builder refused
+        through the editing tool has been observed performing the same write through a shell, and
+        the current guard is a speed bump rather than a boundary. Enumerating every effect route,
+        and showing the check sits on all of them, is outstanding work.</p>
     </div>
   </section>
 
   <section class="slide">
     <div class="inner">
       <p class="eyebrow">The central idea</p>
-      <h2>The permit is the whole trick.</h2>
+      <h2>The permit is the central binding mechanism.</h2>
       <p>An approval is not "yes, go ahead". It is a permit bound to one specific change, valid
         once. Change a single character afterwards and the permit no longer matches, so the
         write is refused.</p>
+      <p style="font-size:15px">It is not the whole trick. It depends on the broker actually being
+        isolated, on consumption being atomic under concurrency, on the fingerprint covering the
+        right canonical representation, and on every effect route reaching the check. A permit
+        offers nothing against a compromised broker, a stolen credential, or an approver who was
+        shown a misleading diff.</p>
       <div class="permit">
         <div class="permit-head">
           <span class="permit-title">Approval permit</span>
@@ -225,8 +257,11 @@
 
   <section class="slide">
     <div class="inner">
-      <p class="eyebrow">Why trust it</p>
-      <h2>Six answers, in the order they matter.</h2>
+      <p class="eyebrow">Why it may deserve evaluation</p>
+      <h2>Six answers, and what each is actually worth.</h2>
+      <p style="font-size:15px">Most of the right-hand column describes what the design
+        <em>does</em>, which is not the same as evidence that it cannot be bypassed. Read it as a
+        claim set to be tested, not as assurance.</p>
       <div class="scroll">
         <table>
           <thead><tr><th>What worries people</th><th>What Cortex does about it</th></tr></thead>
@@ -243,11 +278,12 @@
             <tr><td>"Could it reuse an old approval?"</td>
                 <td>Permits work once and are spent on use. A used permit is refused.</td></tr>
             <tr><td>"You wrote the tests, so of course they pass."</td>
-                <td>It is judged against security requirements published in 1972, which nobody
-                    here wrote and nobody here can edit.</td></tr>
+                <td>It is judged against reference-monitor criteria published in 1972, which nobody
+                    here wrote and nobody here can edit. <strong>Judged against, not yet passing:
+                    one of the six is currently refuted.</strong></td></tr>
             <tr><td>"Every project claims it's secure."</td>
-                <td>This one publishes what is <em>not</em> working, including a requirement it
-                    failed until this week.</td></tr>
+                <td>This one publishes what is not working. That is a disclosure practice, not a
+                    security property, and a documented weakness is still a weakness.</td></tr>
           </tbody>
         </table>
       </div>
@@ -264,8 +300,8 @@
           <thead><tr><th>To anyone</th><th>To an engineer</th></tr></thead>
           <tbody>
             <tr><td>A checkpoint between the AI and the real code.</td>
-                <td>A reference monitor over agent-initiated effects; complete mediation is the
-                    requirement.</td></tr>
+                <td>A reference monitor over agent-initiated effects. Complete mediation is the
+                    requirement it is judged against, not a property it currently demonstrates.</td></tr>
             <tr><td>The AI has no keys.</td>
                 <td>Credential isolation. A separate broker identity is the sole writer.</td></tr>
             <tr><td>Everything is refused unless allowed.</td>
@@ -275,9 +311,11 @@
                     authority.</td></tr>
             <tr><td>Every important action leaves a receipt.</td>
                 <td>Durable audit receipts on every privileged branch.</td></tr>
-            <tr><td>Outsiders try to break it, not us.</td>
-                <td>Independent V&amp;V; cold-start black-box assessment by models from other
-                    vendors.</td></tr>
+            <tr><td>Models from other vendors try to break it.</td>
+                <td><strong>Cross-model adversarial review</strong>, cold-start and black-box. NOT
+                    independent V&amp;V: the models are chosen, prompted and interpreted by this
+                    project, so they are diverse reviewers rather than an accountable external
+                    party.</td></tr>
           </tbody>
         </table>
       </div>
@@ -291,18 +329,24 @@
       <p>Being able to say this precisely is the point of the project, so it sits beside the
         claims rather than behind them.</p>
       <div class="status">
-        <div class="st"><span class="tag ok">Holds</span>
-          <div><h3>Nothing happens unless permitted</h3>
-            <p>Confirmed under independent attack: forged, replayed, spent and wrong-subject
-              permits were all refused.</p></div></div>
-        <div class="st"><span class="tag ok">Holds</span>
+        <div class="st"><span class="tag ok">Holds, in test</span>
+          <div><h3>The permit check refuses bad permits</h3>
+            <p>Forged, replayed, spent and wrong-subject permits were all refused under
+              cross-model attack. Scope: the permit-verification path. It does <em>not</em>
+              establish that every write route reaches that check.</p></div></div>
+        <div class="st"><span class="tag ok">Holds, one site</span>
           <div><h3>Approvals are bound to exact content</h3>
-            <p>Fixed and independently verified this week. Before that, an approved change could
-              be swapped for a different one. Outside testers found it; we published it.</p></div></div>
-        <div class="st"><span class="tag tbd">Unverified</span>
+            <p>Fixed and verified this week at the composition apply site: content is re-derived
+              and compared immediately before the write. <strong>Not yet at the pull site</strong>,
+              where the verifying function is not called at all.</p></div></div>
+        <div class="st"><span class="tag no">Refuted</span>
           <div><h3>The checkpoint cannot be tampered with</h3>
-            <p>The design separates them. It has not yet been demonstrated, so it is not
-              claimed.</p></div></div>
+            <p>Not merely unverified. Five defects were reproduced this week: custody of a receipt
+              can be transferred, erased, or bound to a run that never existed, while the integrity
+              checks still report success. The affected subsystem is not yet wired into the live
+              path, so the defects are latent rather than exploitable today. Tamper resistance is
+              foundational to the reference-monitor claim, so this is the most important line on
+              the page.</p></div></div>
         <div class="st"><span class="tag no">Not yet</span>
           <div><h3>Running in production</h3>
             <p>The control layer is being verified end to end. The parts that execute work in an
@@ -315,9 +359,17 @@
     <div class="inner">
       <p class="eyebrow">The finding that matters</p>
       <p class="kicker">Three AI models from different companies, shown only the code and never
-        the tests, found nine real defects that a fully passing test suite had missed.</p>
-      <p>Tests passing is not evidence that a system works. Building the thing that can tell the
-        difference is what Cortex is for.</p>
+        the tests, found nine defects that a fully passing test suite had missed.</p>
+      <p>Each was reproduced with a script before being believed, and each became a permanent
+        regression test that runs without a model. Tests passing is not evidence that a system
+        works; building the thing that can tell the difference is what Cortex is for.</p>
+      <p style="font-size:14.5px; color:var(--ink-3)">Stated so it can be checked rather than
+        taken: this is not yet an auditable claim. A reader cannot verify it without the model
+        versions, the prompts, the commit, the files withheld, a severity and reachability
+        rating per finding, the false-positive count, and the fix and regression commits. That
+        ledger is owed. Note also that "different vendors" is weaker independence than it sounds:
+        models can share training data and failure modes, so this is diverse review, not proof of
+        independence.</p>
     </div>
   </section>
 
