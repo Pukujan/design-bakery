@@ -196,6 +196,23 @@
     padding:4px 0 4px 20px; max-width:70ch;}
   .note b{color:var(--text-strong); font-weight:600;}
 
+  /* evidence boundary: the composition-level status, stated where the module-level
+     numbers are. A component claim next to no composition claim reads as a system
+     claim, which is the exact error this project exists to prevent. */
+  .ebound{margin-top:34px; border:1px solid var(--line); border-left:3px solid var(--deny);
+    border-radius:12px; padding:24px 26px; background:var(--panel); max-width:78ch;
+    min-width:0;}
+  .ebound h3{margin:0 0 6px; font-size:17px; color:var(--text-strong); letter-spacing:-0.01em;}
+  .ebound .asof{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
+    letter-spacing:0.04em; text-transform:uppercase; margin-bottom:14px;}
+  .ebound p{margin:0 0 12px; font-size:15px; color:var(--muted); max-width:70ch;}
+  .ebound b{color:var(--text-strong); font-weight:600;}
+  .ebound ul{margin:0 0 12px; padding-left:18px;}
+  .ebound li{font-size:15px; color:var(--muted); margin-bottom:7px; min-width:0;}
+  .ebound .verdict{font-size:15px; color:var(--text-strong); border-top:1px solid var(--line-soft);
+    padding-top:14px; margin-top:2px;}
+  @media (max-width:760px){ .ebound{padding:20px 18px;} }
+
   /* status */
   .status-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:40px;}
   @media (max-width:760px){ .status-grid{grid-template-columns:1fr 1fr;} }
@@ -651,6 +668,38 @@
       implementation, have already found a receipt-replay hole and eleven path-and-authz
       gaps in code that was already merged. <b>The slow verification isn't overhead. It's
       the product.</b></div>
+
+    <div class="ebound">
+      <h3>Evidence boundary: what is proven, and at what level</h3>
+      <div class="asof">status as of 2026-07-26</div>
+      <p>The four numbers above are <b>module-level</b> claims and they are accurate at that
+        level. They do not say the assembled system works, and an earlier version of this
+        page did not draw that line clearly enough. Drawing it is the whole thesis, so it
+        belongs here.</p>
+      <ul>
+        <li><b>Composition was broken.</b> On 2026-07-25/26 an end-to-end wiring audit found
+          <b>15 failures</b> between modules that each passed their own tests: an
+          authorization call passing one argument where three were required, a caller
+          reading a field that does not exist, and the durable receipt component invoked
+          <b>zero times</b> during a full composed run. The repository's own words for it
+          are <i>"units green, chain hollow."</i></li>
+        <li><b>Since fixed and independently verified:</b> approval receipts now mint,
+          check and consume as separate steps, confirmed by a direct-import run against the
+          kernel with no test pack and no adapter, 6/6 refusal behaviours.</li>
+        <li><b>Still open, and material:</b> an approval is not yet re-bound to its content
+          at apply time, so approved content can be substituted before the write. Sealed
+          test packs also cannot yet distinguish whether the unit or the test harness
+          implements a behaviour.</li>
+        <li><b>Kernel completion:</b> 2 of 10 critical-path steps closed.</li>
+      </ul>
+      <p>Do not read the illustrated broker path on this page as operational. It is the
+        design and the target, not a description of a running production system.</p>
+      <p class="verdict">The reason this section exists: on 2026-07-26 three models from
+        different vendors, given only the source and never the specification or the tests,
+        independently found <b>nine reproduced defects</b> that a 26/26 green sealed-holdout
+        suite had missed entirely, including the content-binding gap above. Tests that pass
+        are not evidence that a system works. That finding is the case study.</p>
+    </div>
   </div>
 </section>
 
