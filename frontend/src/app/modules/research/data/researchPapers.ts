@@ -1,11 +1,30 @@
 /**
- * Design Bakery research papers, local, data-driven source (mirrors the blog's
- * local-data path). Each paper carries arXiv-style metadata plus a markdown body
- * rendered by the React research pages. Status "approved" = owner-approved for
- * public claim; "pending" = draft / awaiting approval.
+ * Design Bakery research, the single source of truth.
  *
- * To add a paper: append an entry here. No static HTML needed.
+ * Every paper body is a markdown file under `../content/`, imported raw (Vite
+ * `?raw`) so triple-backtick fences, tables and Unicode operators survive
+ * verbatim. There is no second system: the former static renders under
+ * `public/research/papers/` were archived on 2026-07-26 and this module is what
+ * `/research` and `/research/papers/:paperId` render.
+ *
+ * Status `approved` = owner-approved for public claim; `pending` = draft /
+ * awaiting approval. Nothing is promoted without the owner.
+ *
+ * To add a paper: drop `content/db-r-YYYY-NNN.md` in place, import it below,
+ * add an entry, and list it in RESEARCH_PAPERS. No static HTML needed.
  */
+
+import PAPER_001_MD from '../content/db-r-2026-001.md?raw';
+import PAPER_002_MD from '../content/db-r-2026-002.md?raw';
+import PAPER_003_MD from '../content/db-r-2026-003.md?raw';
+import PAPER_004_MD from '../content/db-r-2026-004.md?raw';
+import PAPER_005_MD from '../content/db-r-2026-005.md?raw';
+import PAPER_006_MD from '../content/db-r-2026-006.md?raw';
+import PAPER_007_MD from '../content/db-r-2026-007.md?raw';
+import PAPER_008_MD from '../content/db-r-2026-008.md?raw';
+
+import SOURCE_EMOTION_MD from '../content/sources/ai-emotional-development-landscape.md?raw';
+import SOURCE_SELFLEARN_MD from '../content/sources/self-learning-ai-survey.md?raw';
 
 export type ResearchStatus = 'approved' | 'pending';
 
@@ -23,6 +42,21 @@ export interface ResearchPaper {
   bibtex?: string;
 }
 
+/**
+ * Supporting material, working landscape/survey notes that papers cite.
+ * Deliberately a separate type from ResearchPaper: these are NOT peer-style
+ * papers and must never be listed as if they were. They exist so that a
+ * citation resolves to something a reader can actually open.
+ */
+export interface ResearchSource {
+  id: string;
+  title: string;
+  kind: 'landscape-note' | 'survey';
+  compiled: string; // ISO date
+  summary: string;
+  content: string;
+}
+
 const PAPER_001: ResearchPaper = {
   id: 'db-r-2026-001',
   title: 'Cortex reliability kernel: composition status and evidence boundaries',
@@ -32,42 +66,7 @@ const PAPER_001: ResearchPaper = {
   tags: ['cortex', 'reliability', 'benchmarks'],
   abstract:
     'Cortex is reliability infrastructure for AI agent runtimes: contract-first process, deny-by-default authorization, content-bound receipts, and independent evaluation. This note separates component-tested mechanisms from composed product-path status, and states documentation rules for benchmarks so green tests are not silently promoted to production-governance claims. Owner approval required before any numeric result is treated as published.',
-  content: `> **Owner gate.** This document is a scaffold for arXiv-style research presentation. Claims, tables, and citations below are structural placeholders until the owner marks the paper \`approved\` and accepts the numeric content.
-
-## Abstract
-
-Cortex is reliability infrastructure for AI agent runtimes: contract-first process, deny-by-default authorization, content-bound receipts, and independent evaluation. This note separates *component-tested* mechanisms from *composed product path* status, and states documentation rules for benchmarks so green tests are not silently promoted to production-governance claims.
-
-## 1. Scope and non-claims
-
-- Does not claim live Cortex-governed production runs unless an approved table says so.
-- Does not treat builder self-report as independent evaluation.
-- Composition status remains blocked until an owner-approved recovery/holdout path says otherwise.
-- Does not invent metrics, pass rates, or latency figures for empty benchmark cells.
-
-## 2. Method (documentation)
-
-Public research entries require: stable id, authors, abstract, citation list with resolvable links or in-repo paths, and explicit status (\`pending\` | \`approved\`). Benchmark rows require method name, date, environment, and artifact pointer. Literature-facing claims should prefer verified identifiers (DOI, arXiv id) over ungrounded paraphrase.
-
-## 3. Evidence boundaries
-
-Component suites and sealed holdouts may exist in engineering workspaces; that does not authorize public product claims. Status language on this site tracks the research catalog only. The matrix below is a *qualitative* boundary map: it records what each mechanism demonstrates in isolation versus its status in the reviewed composition branch, and carries **no numeric claims**.
-
-| Mechanism | Component evidence (isolated) | Composition status (reviewed branch) |
-| --- | --- | --- |
-| Contract-first plan | Merged and component-tested. | **Blocked** (no durable owner-frozen plan receipt demonstrated). |
-| Deny-by-default apply gate | Standalone pure path gate, tested in isolation. | **Blocked** (composition calls the gate without a broker-mediated apply boundary). |
-| Content-bound receipts | Receipt components merged and tested. | **Blocked** (composition accepts an arbitrary callback result as its approval receipt). |
-| Independent evaluation / recovery | Independent review performed; focused tests observed passing. | **Blocked** (projection permitted APPROVED without a hash; repair path: builder repair, independent holdout, owner review). |
-
-## 4. Benchmarks (owner approval required)
-
-No benchmark table in this revision. This paper makes no numeric claim, so an empty table would imply results that do not exist. Measured results live in the repository ledger evals/results.jsonl, where every figure carries a provenance tag (committed-artifact / recomputed / reconciled / prose-only). Figures are cited from there, never restated here.
-
-## References
-
-1. Design Bakery. *Cortex case study*. 2026. [/case-studies/cortex/](/case-studies/cortex/)
-2. Stupidly Simple Cortex. *Start here / capability status* (in-repo harness docs). Local workspace documentation; not an external peer-reviewed source.`,
+  content: PAPER_001_MD,
   bibtex: `@techreport{db-r-2026-001,
   title       = {Cortex reliability kernel: composition status and evidence boundaries},
   author      = {Pujan},
@@ -77,10 +76,142 @@ No benchmark table in this revision. This paper makes no numeric claim, so an em
 }`,
 };
 
-// Papers 002–004 are appended from a companion module to keep this file readable.
-import { PAPER_002, PAPER_003, PAPER_004, PAPER_005, PAPER_006, PAPER_007 } from './researchPapers.longform';
+const PAPER_002: ResearchPaper = {
+  id: 'db-r-2026-002',
+  title: 'Deny-by-default authorization for tool-using agents: the Cortex kernel model',
+  authors: ['Pujan', 'Design Bakery'],
+  submitted: '2026-07-22',
+  status: 'pending',
+  tags: ['cortex', 'authorization', 'kernel', 'security'],
+  abstract:
+    'The Cortex kernel model for tool-using agents: a structured request, deny-by-default authorization, explicit and scoped authority, a policy gate at the effect boundary, brokered effects through a sole writer, and content-bound receipts. A restatement of the reference-monitor and least-privilege principles specialised for agent effects. No benchmark claims.',
+  content: PAPER_002_MD,
+  bibtex: `@techreport{db-r-2026-002,
+  title  = {Deny-by-default authorization for tool-using agents: the Cortex kernel model},
+  author = {Pujan}, institution = {Design Bakery}, year = {2026}, month = {7},
+  number = {db-r-2026-002}, note = {Working paper; pending owner approval; no numeric claims.}
+}`,
+};
 
+const PAPER_003: ResearchPaper = {
+  id: 'db-r-2026-003',
+  title: 'Mechanically constraining an LLM orchestrator: control-plane authority and a same-family bias firewall',
+  authors: ['Pujan', 'Design Bakery'],
+  submitted: '2026-07-22',
+  status: 'pending',
+  tags: ['cortex', 'orchestration', 'bias', 'evaluation'],
+  abstract:
+    "The orchestrator is the most privileged component of a multi-agent system. Rather than debias a probabilistic planner, remove its authority: the model proposes and a deterministic controller owns state, permissions, retries, and commits. A same-family bias firewall makes a model's judgement of its own family advisory-only, with provenance-preserving blinding. Some 2026 arXiv identifiers are AI-suggested and unverified.",
+  content: PAPER_003_MD,
+  bibtex: `@techreport{db-r-2026-003,
+  title  = {Mechanically constraining an LLM orchestrator: control-plane authority and a same-family bias firewall},
+  author = {Pujan}, institution = {Design Bakery}, year = {2026}, month = {7},
+  number = {db-r-2026-003}, note = {Working paper; pending; some 2026 arXiv IDs unverified.}
+}`,
+};
+
+const PAPER_004: ResearchPaper = {
+  id: 'db-r-2026-004',
+  title: 'Black-box and grey-box validation of autonomous agent work',
+  authors: ['Pujan', 'Design Bakery'],
+  submitted: '2026-07-22',
+  status: 'pending',
+  tags: ['cortex', 'validation', 'agents', 'testing'],
+  abstract:
+    'Validating autonomous agent output without trusting the agent: a black-box outcome oracle over external state, a grey-box process oracle over invariants, and grey-box holdouts that receive real signatures (not implementations). A deterministic checker (never a model vote) decides pass or fail. A technical survey and position paper.',
+  content: PAPER_004_MD,
+  bibtex: `@techreport{db-r-2026-004,
+  title  = {Black-box and grey-box validation of autonomous agent work},
+  author = {Pujan}, institution = {Design Bakery}, year = {2026}, month = {7},
+  number = {db-r-2026-004}, note = {Technical survey / position paper; pending; citations to be verified.}
+}`,
+};
+
+const PAPER_005: ResearchPaper = {
+  id: 'db-r-2026-005',
+  title: 'Neuro-Symbolic Control for Reliable Multi-Model Coding Agents',
+  authors: ['Pujan', 'Design Bakery'],
+  submitted: '2026-07-22',
+  status: 'pending',
+  tags: ['cortex', 'control-plane', 'routing', 'reward', 'verification', 'agents'],
+  abstract:
+    "A hybrid architecture (the Neuro-Symbolic Coding Control Plane) that divides a coding agent's responsibilities across three layers: a deterministic safety/workflow kernel, a locally trained neural controller, and frontier LLM workers. The kernel owns permissions, budgets, artifact identity, and irreversible effects; the neural controller learns bounded structural decisions (which model to invoke, whether to test or revise, when to escalate); frontier models generate code but never control authoritative transitions. Central principle: the neural controller may optimize execution within a mechanically safe region, but may not redefine that region. Position, architecture, and experimental-methods paper; no original experimental results.",
+  content: PAPER_005_MD,
+  bibtex: `@techreport{db-r-2026-005,
+  title  = {Neuro-Symbolic Control for Reliable Multi-Model Coding Agents},
+  author = {Pujan}, institution = {Design Bakery}, year = {2026}, month = {7},
+  number = {db-r-2026-005}, note = {Position/architecture/methods paper; pending; no original results; citations to be verified.}
+}`,
+};
+
+const PAPER_006: ResearchPaper = {
+  id: 'db-r-2026-006',
+  title: 'Mechanical Bias Containment for Multi-Vendor LLM Orchestration',
+  authors: ['Pujan', 'Design Bakery'],
+  submitted: '2026-07-22',
+  status: 'pending',
+  tags: ['cortex', 'bias', 'orchestration', 'evaluation', 'conflict-of-interest'],
+  abstract:
+    'Rather than persuade or reward a frozen orchestrator into being unbiased, Mechanical Bias Containment mechanically limits the authority of potentially conflicted judgments via five mechanisms: provenance-preserving decision-local blinding, same-family conflict-of-interest exclusion, deterministic evidence precedence, authority-weighted external rewards, and refusal containment. A model may express a preference, but external software determines whether that preference has decision authority; reward alters routing and authority, never safety boundaries. Position and methods paper; no original experimental results.',
+  content: PAPER_006_MD,
+  bibtex: `@techreport{db-r-2026-006,
+  title  = {Mechanical Bias Containment for Multi-Vendor LLM Orchestration},
+  author = {Pujan}, institution = {Design Bakery}, year = {2026}, month = {7},
+  number = {db-r-2026-006}, note = {Position/methods paper; pending; no original results; citations to be verified.}
+}`,
+};
+
+const PAPER_007: ResearchPaper = {
+  id: 'db-r-2026-007',
+  title: 'Multi-Network Character Minds: LLM Orchestration, Affective Development, and the Open Gap',
+  authors: ['Pujan', 'Design Bakery'],
+  submitted: '2026-07-24',
+  status: 'pending',
+  tags: ['character-ai', 'multi-network', 'emotion', 'agents', 'architecture', 'survey'],
+  abstract:
+    'Survey of multi-network character AI: four architectural patterns (prompt-modular, LLM orchestrator + specialized nets, multi-net without LLM, hybrid LLM + world model), industry vs open stacks, affective development vs recognition, self-learning agents, and a dual-brain design thesis (LLM as slow control + specialized nets). Pending owner approval; no numeric product claims.',
+  content: PAPER_007_MD,
+  bibtex: `@techreport{db-r-2026-007,
+  title  = {Multi-Network Character Minds: LLM Orchestration, Affective Development, and the Open Gap},
+  author = {Pujan}, institution = {Design Bakery}, year = {2026}, month = {7},
+  number = {db-r-2026-007}, note = {Landscape survey and design thesis; pending; no original results.}
+}`,
+};
+
+/**
+ * Drafted as db-r-2026-005 in the static system on 2026-07-26, unaware that id
+ * was already held by the NSCCP paper above (registered 2026-07-22). Following
+ * the rule this paper's own "Identifier note" states, take the next free id
+ * rather than publish over an existing document, it moved to db-r-2026-008.
+ * The reassignment is provisional and awaits owner confirmation. No text,
+ * number, claim or status was altered by the move.
+ */
+const PAPER_008: ResearchPaper = {
+  id: 'db-r-2026-008',
+  title:
+    'Verification independence without opinion aggregation: adversarial input generation with deterministic adjudication',
+  authors: ['Pujan', 'Design Bakery'],
+  submitted: '2026-07-26',
+  status: 'pending',
+  tags: ['cortex', 'verification', 'evaluation', 'multi-model', 'benchmarks'],
+  abstract:
+    "Criticism of multi-model ensembles targets opinion aggregation - debate, voting, consensus - and is well founded. A different use of model diversity is not covered by it: a second, different-vendor model generates adversarial INPUTS that the incumbent's blind spot excludes, and the verdict is decided by deterministic execution rather than by any model's judgement. These are distinct mechanisms with different failure modes; opinion aggregation fails verdict-corruptingly, input generation fails only yield-reducingly. Includes observational evidence from one codebase (n is small throughout), a three-incident mechanism trace, and a falsifiable four-arm benchmark protocol with judge-free ground truth. No controlled benchmark was run.",
+  content: PAPER_008_MD,
+  bibtex: `@techreport{pujan2026verificationindependence,
+  title       = {Verification independence without opinion aggregation: adversarial input generation with deterministic adjudication},
+  author      = {Pujan},
+  institution = {Design Bakery Research},
+  number      = {db-r-2026-008},
+  year        = {2026},
+  month       = {jul},
+  note        = {Working paper, pending owner approval. No controlled benchmark was run; Section 6 is a protocol.
+                 Drafted as db-r-2026-005; reassigned to db-r-2026-008 on 2026-07-26 to resolve an id collision.}
+}`,
+};
+
+/** Newest first. */
 export const RESEARCH_PAPERS: ResearchPaper[] = [
+  PAPER_008,
   PAPER_007,
   PAPER_006,
   PAPER_005,
@@ -92,4 +223,33 @@ export const RESEARCH_PAPERS: ResearchPaper[] = [
 
 export function getResearchPaper(id: string): ResearchPaper | undefined {
   return RESEARCH_PAPERS.find((p) => p.id === id);
+}
+
+/**
+ * Supporting sources, working notes cited by the papers above, published so
+ * those citations resolve. Not papers; listed separately and never mixed in.
+ */
+export const RESEARCH_SOURCES: ResearchSource[] = [
+  {
+    id: 'ai-emotional-development-landscape',
+    title: 'AI Emotional Development: Research Landscape 2023–2026',
+    kind: 'landscape-note',
+    compiled: '2026-07-23',
+    summary:
+      'Working landscape note on AI systems that develop or change emotions over time rather than only recognising them: computational models of emotional emergence, emergent affective geometry in foundation models, emotion as a developmental capability, and the gaps (no shared benchmark, no longitudinal studies, no unified theory). Cited by db-r-2026-007.',
+    content: SOURCE_EMOTION_MD,
+  },
+  {
+    id: 'self-learning-ai-survey',
+    title: 'Self-Learning Problem-Solving AI: State of the Field (2023-2026)',
+    kind: 'survey',
+    compiled: '2026-07-23',
+    summary:
+      'Working survey of self-directed and autonomous learning systems (Voyager, MetaGPT, LATS, CodeAct, FireAct, EvoLLM and others), separating what is demonstrated and replicated from what is architecture-paper-only, plus the open gaps in open-ended problem discovery and recursive self-improvement. Cited by db-r-2026-007.',
+    content: SOURCE_SELFLEARN_MD,
+  },
+];
+
+export function getResearchSource(id: string): ResearchSource | undefined {
+  return RESEARCH_SOURCES.find((s) => s.id === id);
 }

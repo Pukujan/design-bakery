@@ -1427,6 +1427,28 @@ body::before {
   background: color-mix(in srgb, var(--rp-line) 32%, transparent);
 }
 
+/*
+ * Wide tables on /research: the markdown renderer wraps every table in
+ * .rp-table-scroll, so the TABLE may exceed the reading column and the WRAPPER
+ * scrolls. Never overflow-x:hidden here — that would silently clip a column
+ * instead of letting the reader reach it. `min-width: 0` stops the wrapper
+ * being forced wide by its own content inside a flex/grid ancestor, which is
+ * what turns a wide table into whole-page horizontal scroll at 390px.
+ */
+.research-paper .rp-table-scroll {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.research-paper .rp-table-scroll > table {
+  display: table;
+  width: auto;
+  min-width: 100%;
+  margin: 0;
+}
+
 /* Cortex spec page uses the case-study red accent for links; research keeps arXiv blue. */
 .cortex-spec {
   --rp-link: #d43c24;

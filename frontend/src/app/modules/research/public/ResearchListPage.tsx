@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { RESEARCH_PAPERS, type ResearchStatus } from '../data/researchPapers';
+import { SupportingSources } from './SupportingSources';
 
 type StatusFilter = 'all' | ResearchStatus;
 
@@ -131,6 +132,8 @@ export function ResearchListPage() {
         {papers.length === 0 ? (
           <p className="mt-8 text-neutral-500 dark:text-neutral-400">No papers match this filter.</p>
         ) : null}
+
+        <SupportingSources />
       </div>
     </main>
   );

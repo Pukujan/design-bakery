@@ -82,7 +82,7 @@ export function DefaultSiteHead() {
   return (
     <PageSeo
       title={`${SITE_NAME} | Fullstack Design Engineer`}
-      description="Fullstack design engineer portfolio — AI workflow systems, document intelligence, legal-tech products, and interactive case studies."
+      description="Fullstack design engineer portfolio, AI workflow systems, document intelligence, legal-tech products, and interactive case studies."
       canonicalPath="/"
     />
   );

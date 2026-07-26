@@ -8,8 +8,9 @@ import { MermaidDiagram } from '@/modules/blog/render/MermaidDiagram';
 import { getResearchPaper } from '../data/researchPapers';
 
 /** Markdown renderer: prose styles the prose; we only intercept fenced code
- *  (mermaid → diagram, other → styled block) and keep inline code compact. */
-const markdownComponents = {
+ *  (mermaid → diagram, other → styled block) and keep inline code compact.
+ *  Exported so the supporting-source page renders identically. */
+export const markdownComponents = {
   pre({ children }: any) {
     // Let the `code` component own block rendering so mermaid isn't wrapped in <pre>.
     return <>{children}</>;
@@ -36,6 +37,16 @@ const markdownComponents = {
       >
         {children}
       </code>
+    );
+  },
+  /** Wrap every table so a wide one scrolls inside its own box rather than
+   *  pushing the page sideways at 390px. Never overflow-x:hidden, that clips
+   *  a column instead of letting the reader reach it. */
+  table({ children, ...props }: any) {
+    return (
+      <div className="rp-table-scroll my-5">
+        <table {...props}>{children}</table>
+      </div>
     );
   },
 };
@@ -81,7 +92,7 @@ export function ResearchPaperPage() {
 
   return (
     <article className="min-h-screen bg-[#f7f6f2] dark:bg-[#12141a] text-neutral-900 dark:text-neutral-100">
-      <div className="mx-auto max-w-3xl px-5 sm:px-6 pt-10 pb-24">
+      <div className="mx-auto min-w-0 max-w-3xl px-5 sm:px-6 pt-10 pb-24">
         <Link
           to="/research"
           className="inline-flex items-center gap-1.5 text-sm text-blue-700 dark:text-blue-400 hover:underline underline-offset-2 mb-7"
@@ -113,7 +124,7 @@ export function ResearchPaperPage() {
           ))}
         </div>
 
-        <div className="research-paper mt-8">
+        <div className="research-paper mt-8 min-w-0">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw]}

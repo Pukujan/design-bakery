@@ -19,6 +19,7 @@ import { StaticCaseStudyAssetGuard } from './modules/case-studies/legal-workflow
 import { CortexCaseStudyRedirect } from './modules/case-studies/cortex/CortexCaseStudyRedirect';
 import { ResearchListPage } from './modules/research/public/ResearchListPage';
 import { ResearchPaperPage } from './modules/research/public/ResearchPaperPage';
+import { ResearchSourcePage } from './modules/research/public/ResearchSourcePage';
 
 const ADMIN_PORTFOLIOS = [
   'default',
@@ -103,6 +104,7 @@ function publicRoutes(): ReactElement[] {
     <Route key="research-shell" path="/research" element={<PortfolioPublicLayout />}>
       <Route index element={<ResearchListPage />} />
       <Route path="papers/:paperId" element={<ResearchPaperPage />} />
+      <Route path="sources/:sourceId" element={<ResearchSourcePage />} />
     </Route>,
     <Route key="catch-all" path="*" element={<NotFoundPage />} />,
   ];
