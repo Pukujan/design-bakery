@@ -22,6 +22,7 @@ import PAPER_005_MD from '../content/db-r-2026-005.md?raw';
 import PAPER_006_MD from '../content/db-r-2026-006.md?raw';
 import PAPER_007_MD from '../content/db-r-2026-007.md?raw';
 import PAPER_008_MD from '../content/db-r-2026-008.md?raw';
+import PAPER_009_MD from '../content/db-r-2026-009.md?raw';
 
 import SOURCE_EMOTION_MD from '../content/sources/ai-emotional-development-landscape.md?raw';
 import SOURCE_SELFLEARN_MD from '../content/sources/self-learning-ai-survey.md?raw';
@@ -209,8 +210,42 @@ const PAPER_008: ResearchPaper = {
 }`,
 };
 
+/**
+ * Commissioned 2026-07-26 as a description of the development cycle as actually
+ * practised, not as a proposal. Two conventions it follows deliberately, both
+ * inherited from 008: every internal number carries a repository path, and the
+ * figures that could not be substantiated are enumerated in the paper itself
+ * (§6.6) rather than reconstructed. It uses the AUDITED cold-start count
+ * (11 raised / 10 distinct / 6 defects / 4 ambiguities / 1 fixed); the earlier
+ * "nine defects" headline was withdrawn on 2026-07-26 as not derivable from its
+ * source, and §2.6 records the withdrawal instead of quietly dropping it.
+ */
+const PAPER_009: ResearchPaper = {
+  id: 'db-r-2026-009',
+  title:
+    'The development cycle of an agent-built system: seating, routing, and the instruments that were missing',
+  authors: ['Pujan', 'Design Bakery'],
+  submitted: '2026-07-26',
+  status: 'pending',
+  tags: ['cortex', 'methodology', 'seating', 'verification', 'multi-model', 'process'],
+  abstract:
+    "A description of one project's AI-agent development cycle as it actually ran: contract, build, wire, end-to-end test, cold-start adversarial review, cross-family verdict, merge gate, with the measurement from 2026-07-26 that shows what each stage catches and no earlier stage can. Three findings. Seat separation must be by model family, not by name: a frozen clause voided a fully passing 25/25 verification pack the day it was adopted, and Knight & Leveson 1986 explains why independent construction does not give independent failure, and therefore why varying the per-seat frame matters as much as varying the model. Some work is irreducibly sequential (fix custody defects, then the pack that judges them, then the wiring, because wiring makes latent defects live) while independent tracks over disjoint file sets parallelise cleanly; every observed coordination hazard is a dated shared-working-tree incident. And most usefully: this project built sealed holdouts, mutation scoring, adapter differentials and cross-model adversarial review while having no code coverage, no static type checking, and no test-running CI in the kernel repo at all. The losses are included: the benchmark against a conventional stack loses 5 of 9 rows, 1 of 23 effect routes reaches the authoriser, detection of a stand-in security component scores 0/5, and the regime is not independent V&V in the IEEE 1012 sense.",
+  content: PAPER_009_MD,
+  bibtex: `@techreport{pujan2026developmentcycle,
+  title       = {The development cycle of an agent-built system: seating, routing, and the instruments that were missing},
+  author      = {Pujan},
+  institution = {Design Bakery Research},
+  number      = {db-r-2026-009},
+  year        = {2026},
+  month       = {jul},
+  note        = {Working paper, pending owner approval. Case report, n = 1; no controlled experiment.
+                 Uses the audited cold-start count; the earlier "nine defects" figure was withdrawn 2026-07-26.}
+}`,
+};
+
 /** Newest first. */
 export const RESEARCH_PAPERS: ResearchPaper[] = [
+  PAPER_009,
   PAPER_008,
   PAPER_007,
   PAPER_006,
