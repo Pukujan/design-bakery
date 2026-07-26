@@ -172,26 +172,6 @@
     padding:10px 16px; border-radius:9px;}
   .foot a.back:hover{border-color:var(--seal);}
 
-  /* version switcher A/B/C */
-  .ver-switch{position:fixed; right:16px; bottom:16px; z-index:60;
-    display:flex; flex-direction:column; gap:8px; align-items:flex-end;
-    font-family:"IBM Plex Mono",monospace; pointer-events:none;}
-  .ver-switch .ver-panel{pointer-events:auto; background:color-mix(in srgb, var(--ink, #0A0D13) 92%, transparent);
-    border:1px solid var(--line, #222b3d); border-radius:12px; padding:10px 12px;
-    box-shadow:0 12px 40px rgba(0,0,0,.35); min-width:220px;}
-  .ver-switch .ver-label{font-size:10px; letter-spacing:.16em; text-transform:uppercase;
-    color:var(--muted, #7c8698); margin-bottom:8px;}
-  .ver-switch .ver-btns{display:flex; gap:6px;}
-  .ver-switch a.ver-btn{flex:1; text-align:center; font-size:12px; letter-spacing:.04em;
-    padding:8px 6px; border-radius:8px; border:1px solid var(--line, #222b3d);
-    color:var(--muted, #7c8698); background:transparent; transition:all .15s; text-decoration:none;}
-  .ver-switch a.ver-btn:hover{color:var(--text-strong, #f2f5fa); border-color:var(--seal, #f5b640);}
-  .ver-switch a.ver-btn.is-active{color:#0A0D13; background:var(--seal, #f5b640); border-color:var(--seal, #f5b640); font-weight:600;}
-  .ver-switch .ver-hint{font-size:10px; color:var(--muted-2, #5c6577); margin-top:8px; line-height:1.4; max-width:220px;}
-  @media (max-width:520px){
-    .ver-switch{right:10px; bottom:10px; left:10px; align-items:stretch;}
-    .ver-switch .ver-panel{min-width:0;}
-  }
 
   /* mobile responsive polish — layout only, no content changes */
   @media (max-width:720px){
@@ -506,36 +486,6 @@
 })();
 </script>
 
-<div class="ver-switch" role="navigation" aria-label="Case study layout version">
-  <div class="ver-panel">
-    <div class="ver-label">Layout version</div>
-    <div class="ver-btns">
-      <a class="ver-btn" data-ver="a" href="/case-studies/cortex/a/index.html" title="Quiet instrument">A</a>
-      <a class="ver-btn" data-ver="b" href="/case-studies/cortex/b/index.html" title="Refined editorial">B</a>
-      <a class="ver-btn" data-ver="c" href="/case-studies/cortex/c/index.html" title="Kernel motion">C</a>
-    </div>
-    <div class="ver-hint" id="verHint">A quiet · B refined · C motion</div>
-  </div>
-</div>
 
-<script>
-
-(function(){
-  var m = location.pathname.match(/\/case-studies\/cortex\/(a|b|c)\//i);
-  var ver = m ? m[1].toLowerCase() : 'b';
-  try { localStorage.setItem('cortex-case-ver', ver); } catch(e){}
-  var hints = {
-    a: 'A · quiet instrument',
-    b: 'B · refined editorial',
-    c: 'C · kernel motion'
-  };
-  document.querySelectorAll('.ver-switch a.ver-btn').forEach(function(el){
-    if (el.getAttribute('data-ver') === ver) el.classList.add('is-active');
-  });
-  var h = document.getElementById('verHint');
-  if (h) h.textContent = hints[ver] || hints.b;
-})();
-
-</script>
 </body>
 </html>
