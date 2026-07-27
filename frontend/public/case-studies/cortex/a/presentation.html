@@ -3,376 +3,556 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Cortex, in eight slides</title>
-<meta name="description" content="What Cortex is, why it can be trusted, and how to explain it to technical and non-technical people." />
+<title>Cortex, in ten slides</title>
+<meta name="description" content="What Cortex is, what is actually built, and what honestly is not. Written for technical and non-technical readers." />
 <style>
   :root{
-    --stock:#DFE3E6; --stock-2:#F3F5F6; --card:#FFFFFF;
-    --ink:#14171A; --ink-2:#525A63; --ink-3:#7C858E;
-    --rule:#C3CAD0; --rule-soft:#DBE0E4;
-    --stamp:#3A3D8F; --allow:#2F6B4F; --deny:#A6402E; --perf:#DFE3E6;
+    --stock:#E2E5E8; --stock-2:#F3F5F6; --card:#FFFFFF;
+    --ink:#14171A; --ink-2:#4E565F; --ink-3:#79828B;
+    --rule:#C3CAD0; --rule-soft:#D9DEE2;
+    --stamp:#3A3D8F; --allow:#2F6B4F; --deny:#A6402E;
+    --allow-bg:rgba(47,107,79,.07); --deny-bg:rgba(166,64,46,.06); --stamp-bg:rgba(58,61,143,.06);
     --serif:ui-serif,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
     --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:ui-monospace,"Cascadia Mono","SF Mono","Segoe UI Mono","Roboto Mono",Menlo,Consolas,monospace;
   }
   :root[data-theme="dark"]{
-    --stock:#13161B; --stock-2:#191D24; --card:#1E232B;
-    --ink:#E7EBEF; --ink-2:#A2ACB6; --ink-3:#79838D;
-    --rule:#2C333C; --rule-soft:#232931;
-    --stamp:#8F93E6; --allow:#57A87F; --deny:#D97B65; --perf:#13161B;
+    --stock:#12151A; --stock-2:#181C23; --card:#1D222A;
+    --ink:#E9EDF1; --ink-2:#A6B0BA; --ink-3:#7E8892;
+    --rule:#2C333C; --rule-soft:#242A32;
+    --stamp:#9599EA; --allow:#5FAE85; --deny:#DC8570;
+    --allow-bg:rgba(95,174,133,.09); --deny-bg:rgba(220,133,112,.08); --stamp-bg:rgba(149,153,234,.08);
   }
   *{box-sizing:border-box; min-width:0;}
   html,body{height:100%;}
   body{margin:0; background:var(--stock); color:var(--ink); font-family:var(--sans);
        font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased; overflow:hidden;}
 
+  /* ---------- header chrome ---------- */
+  .top{position:fixed; top:0; left:0; right:0; z-index:6;
+       background:color-mix(in srgb, var(--stock) 90%, transparent);
+       backdrop-filter:blur(8px); border-bottom:1px solid var(--rule-soft);}
+  .top-row{display:flex; align-items:center; justify-content:space-between; gap:10px;
+       padding:9px 16px;}
+  .home{font-family:var(--mono); font-size:11px; letter-spacing:.09em; text-transform:uppercase;
+       color:var(--ink-3); text-decoration:none; border:1px solid var(--rule); border-radius:2px;
+       padding:5px 10px; white-space:nowrap;}
+  .home:hover{color:var(--ink);}
+  .deckname{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+       color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .themebtn{font-family:var(--mono); font-size:11px; letter-spacing:.09em; text-transform:uppercase;
+       color:var(--ink-3); background:transparent; border:1px solid var(--rule); border-radius:2px;
+       padding:5px 10px; cursor:pointer; white-space:nowrap;}
+  .themebtn:hover{color:var(--ink);}
+  /* The caution line is persistent on every slide, on purpose. An earlier review found the
+     deck made strong claims for six slides and only qualified them at the end. */
+  .banner{text-align:center; font-family:var(--mono); font-size:10px; letter-spacing:.07em;
+       text-transform:uppercase; color:var(--deny); line-height:1.5;
+       border-top:1px dashed var(--rule-soft); padding:5px 14px;}
+  .progress{height:3px; background:var(--rule-soft);}
+  .progress i{display:block; height:100%; width:0; background:var(--stamp);
+       transition:width .35s ease;}
+  @media (prefers-reduced-motion:reduce){ .progress i{transition:none;} }
+
+  /* ---------- slides ---------- */
   .deck{height:100dvh; position:relative;}
-  .slide{position:absolute; inset:0; display:grid; place-items:center; padding:96px 28px 96px;
-         opacity:0; visibility:hidden; transition:opacity .34s ease; overflow-y:auto;}
+  .slide{position:absolute; inset:0; display:grid; place-items:center;
+         padding:128px 24px 100px;
+         opacity:0; visibility:hidden; transition:opacity .3s ease, visibility .3s;
+         overflow-y:auto;}
   .slide[aria-current="true"]{opacity:1; visibility:visible;}
   @media (prefers-reduced-motion:reduce){ .slide{transition:none;} }
-  .inner{max-width:900px; width:100%;}
+  .inner{max-width:880px; width:100%;}
 
   .eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.16em;
-           text-transform:uppercase; color:var(--stamp); margin:0 0 16px;}
-  h1{font-family:var(--serif); font-weight:600; font-size:clamp(30px,5.4vw,54px);
-     line-height:1.1; letter-spacing:-.015em; margin:0 0 20px; text-wrap:balance;}
-  h2{font-family:var(--serif); font-weight:600; font-size:clamp(24px,3.8vw,38px);
+           text-transform:uppercase; color:var(--stamp); margin:0 0 14px;
+           display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+  h1{font-family:var(--serif); font-weight:600; font-size:clamp(30px,5.4vw,52px);
+     line-height:1.12; letter-spacing:-.015em; margin:0 0 18px; text-wrap:balance;}
+  h2{font-family:var(--serif); font-weight:600; font-size:clamp(24px,3.8vw,37px);
      line-height:1.16; letter-spacing:-.01em; margin:0 0 14px; text-wrap:balance;}
   h3{font-family:var(--serif); font-size:18px; margin:0 0 4px; font-weight:600;}
-  p{margin:0 0 14px; max-width:64ch; color:var(--ink-2);}
-  p.lead{font-size:clamp(18px,2.2vw,22px); color:var(--ink); max-width:58ch;}
+  p{margin:0 0 13px; max-width:64ch; color:var(--ink-2);}
+  p.lead{font-size:clamp(18px,2.2vw,21px); color:var(--ink); max-width:58ch;}
+  p.small{font-size:14.5px;}
   strong{color:var(--ink); font-weight:640;}
 
-  .lines{list-style:none; margin:26px 0 0; padding:0; display:grid; gap:14px;}
-  .lines li{display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:start;
-            font-size:clamp(17px,2vw,20px); color:var(--ink); max-width:60ch;}
-  .lines .n{font-family:var(--mono); font-size:11px; color:var(--stamp);
-            border:1px solid var(--stamp); border-radius:2px; padding:2px 6px; margin-top:6px;}
+  /* maturity stamp. Every boundary slide wears one; they are a feature, not an apology. */
+  .stamp{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+       padding:4px 10px; border:1.5px solid currentColor; border-radius:2px;
+       box-shadow:inset 0 0 0 1px color-mix(in srgb, currentColor 0%, transparent),
+                  0 0 0 2.5px var(--stock), 0 0 0 3.5px currentColor;
+       transform:rotate(-1.6deg); white-space:nowrap;}
+  .stamp.partial{color:var(--ink-2);}
+  .stamp.road{color:var(--deny);}
+  .stamp.built{color:var(--allow);}
 
-  /* flow, built in CSS so it renders instantly and offline */
-  .flow{display:grid; gap:10px; margin-top:26px;}
-  .step{display:grid; grid-template-columns:auto 1fr auto; gap:16px; align-items:center;
+  .lines{list-style:none; margin:24px 0 0; padding:0; display:grid; gap:13px;}
+  .lines li{display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:start;
+            font-size:clamp(16.5px,2vw,19px); color:var(--ink); max-width:62ch;}
+  .lines .n{font-family:var(--mono); font-size:11px; color:var(--stamp);
+            border:1px solid var(--stamp); border-radius:2px; padding:2px 6px; margin-top:5px;}
+
+  /* flow diagram, hand-built CSS: renders instantly, works offline in a live demo */
+  .flow{display:grid; gap:10px; margin-top:22px;}
+  .step{display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:center;
         background:var(--card); border:1px solid var(--rule-soft); border-radius:3px;
-        padding:14px 16px;}
+        padding:13px 15px; position:relative;}
+  .step + .step::before{content:""; position:absolute; top:-11px; left:27px;
+        width:1px; height:11px; background:var(--rule);}
   .step .idx{font-family:var(--mono); font-size:11px; color:var(--ink-3);
              border:1px solid var(--rule); border-radius:2px; padding:2px 7px;}
-  .step .txt{color:var(--ink); font-size:16px;}
-  .step .txt em{color:var(--ink-3); font-style:normal; font-size:14px; display:block;}
-  .step .out{font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+  .step .txt{color:var(--ink); font-size:16px; line-height:1.45;}
+  .step .txt em{color:var(--ink-3); font-style:normal; font-size:13.5px; display:block;
+                margin-top:2px;}
+  .step .out{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em;
              text-transform:uppercase; padding:3px 8px; border-radius:2px; white-space:nowrap;}
-  .out.stop{color:var(--deny); border:1px solid var(--deny);}
-  .out.go{color:var(--allow); border:1px solid var(--allow);}
-  @media (max-width:620px){ .step{grid-template-columns:auto 1fr;} .step .out{grid-column:2;} }
+  .out.stop{color:var(--deny); border:1px solid var(--deny); background:var(--deny-bg);}
+  .out.go{color:var(--allow); border:1px solid var(--allow); background:var(--allow-bg);}
+  .out.dim{color:var(--ink-3); border:1px solid var(--rule);}
+  @media (max-width:620px){ .step{grid-template-columns:auto 1fr;} .step .out{grid-column:2; justify-self:start;} }
 
-  .permit{background:var(--card); border:1px solid var(--rule); border-radius:3px;
-          max-width:520px; margin:22px auto 0; position:relative; overflow:hidden;}
-  .permit-head{padding:16px 20px 13px; display:flex; justify-content:space-between;
-               gap:14px; align-items:baseline; flex-wrap:wrap;}
-  .permit-title{font-family:var(--mono); font-size:12px; letter-spacing:.14em;
-                text-transform:uppercase;}
-  .permit-serial{font-family:var(--mono); font-size:12px; color:var(--ink-3);
-                 font-variant-numeric:tabular-nums;}
-  .perf{height:14px; background:
-        radial-gradient(circle at 7px 50%, var(--perf) 5px, transparent 5.5px) 0 0/14px 14px repeat-x;
-        border-top:1px dashed var(--rule); border-bottom:1px dashed var(--rule);}
-  .permit-body{padding:16px 20px 22px; display:grid; gap:11px;}
-  .row{display:grid; grid-template-columns:118px 1fr; gap:12px; align-items:baseline;}
-  .k{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
-     color:var(--ink-3);}
-  .v{font-family:var(--mono); font-size:13px; color:var(--ink); word-break:break-all;}
-  .stamped{position:absolute; right:14px; bottom:12px; transform:rotate(-9deg);
-           border:2px solid var(--deny); color:var(--deny); border-radius:3px;
-           font-family:var(--mono); font-size:11px; letter-spacing:.14em; padding:4px 9px;
-           text-transform:uppercase; opacity:.85;}
-  @media (max-width:620px){ .row{grid-template-columns:1fr;} }
+  /* honest panel: the measured gap, styled as a record, not a footnote */
+  .honest{border-left:3px solid var(--deny); background:var(--deny-bg);
+          padding:13px 16px; border-radius:0 3px 3px 0; margin-top:20px; max-width:64ch;}
+  .honest .hlabel{font-family:var(--mono); font-size:10px; letter-spacing:.14em;
+          text-transform:uppercase; color:var(--deny); display:block; margin-bottom:6px;}
+  .honest p{font-size:14.5px; margin:0 0 8px;}
+  .honest p:last-child{margin-bottom:0;}
 
-  .scroll{overflow-x:auto; margin-top:20px;}
+  /* the local / cloud split on the core-idea slide */
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:22px;}
+  @media (max-width:620px){ .split{grid-template-columns:1fr;} }
+  .half{background:var(--card); border:1px solid var(--rule-soft); border-radius:3px;
+        padding:16px 18px;}
+  .half .hlabel{font-family:var(--mono); font-size:10.5px; letter-spacing:.13em;
+        text-transform:uppercase; display:block; margin-bottom:10px; padding-bottom:8px;
+        border-bottom:1px dashed var(--rule-soft);}
+  .half.local .hlabel{color:var(--allow);}
+  .half.cloud .hlabel{color:var(--ink-3);}
+  .half ul{list-style:none; margin:0; padding:0; display:grid; gap:8px;}
+  .half li{font-size:15px; color:var(--ink); padding-left:18px; position:relative; line-height:1.45;}
+  .half li::before{content:""; position:absolute; left:0; top:9px; width:7px; height:7px;
+        border-radius:50%; border:1.5px solid var(--rule);}
+  .half.local li::before{border-color:var(--allow); background:var(--allow-bg);}
+  .half li em{display:block; font-style:normal; color:var(--ink-3); font-size:13px;}
+
+  /* benchmark strip: 9 rows, 5 lost */
+  .bench{display:grid; grid-template-columns:repeat(9,1fr); gap:6px; max-width:540px; margin-top:22px;}
+  .bench i{display:block; height:38px; border-radius:2px; border:1px solid var(--rule);}
+  .bench i.lost{background:var(--deny-bg); border-color:var(--deny); position:relative;}
+  .bench i.lost::after{content:""; position:absolute; inset:0;
+        background:repeating-linear-gradient(-45deg, transparent 0 4px,
+        color-mix(in srgb, var(--deny) 26%, transparent) 4px 5px); border-radius:2px;}
+  .legend{display:flex; gap:22px; flex-wrap:wrap; margin-top:10px; font-size:13.5px; color:var(--ink-2);}
+  .legend span{display:inline-flex; align-items:center; gap:8px;}
+  .legend .sw{width:13px; height:13px; border-radius:2px; border:1px solid var(--rule); flex:none;}
+  .legend .sw.lost{background:var(--deny-bg); border-color:var(--deny);}
+
+  .scroll{overflow-x:auto; margin-top:18px;}
   table{width:100%; border-collapse:collapse; font-size:15px;}
   th,td{text-align:left; padding:11px 13px; border-bottom:1px solid var(--rule-soft);
         vertical-align:top;}
   th{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
      color:var(--ink-3); font-weight:500; border-bottom:1px solid var(--rule);}
-  td:first-child{color:var(--ink); font-weight:560; width:38%;}
+  td:first-child{color:var(--ink); font-weight:560;}
+  .t3 td:first-child{width:24%;}
+  .t2 td{width:50%;}
+  td em{font-style:normal; color:var(--ink-3); font-size:13.5px;}
 
-  .status{display:grid; gap:9px; margin-top:22px;}
+  .status{display:grid; gap:10px; margin-top:20px;}
   .st{display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:start;
-      padding-bottom:9px; border-bottom:1px solid var(--rule-soft);}
+      padding-bottom:10px; border-bottom:1px solid var(--rule-soft);}
+  @media (max-width:520px){ .st{grid-template-columns:1fr; gap:6px;} }
   .tag{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
-       padding:3px 8px; border-radius:2px; white-space:nowrap; margin-top:3px;}
-  .tag.ok{color:var(--allow); border:1px solid var(--allow);}
-  .tag.no{color:var(--deny); border:1px solid var(--deny);}
-  .tag.tbd{color:var(--ink-3); border:1px solid var(--rule);}
-  .st p{margin:0; font-size:15px;}
+       padding:3px 8px; border-radius:2px; white-space:nowrap; margin-top:3px; justify-self:start;}
+  .tag.ok{color:var(--allow); border:1px solid var(--allow); background:var(--allow-bg);}
+  .tag.no{color:var(--deny); border:1px solid var(--deny); background:var(--deny-bg);}
+  .st p{margin:0; font-size:14.5px;}
 
-  .kicker{font-family:var(--serif); font-size:clamp(22px,3.4vw,34px); line-height:1.25;
-          color:var(--ink); max-width:22ch; margin:0 auto; text-align:center;
-          text-wrap:balance;}
-  .kicker + p{margin:20px auto 0; text-align:center; max-width:56ch;}
+  .kicker{font-family:var(--serif); font-size:clamp(22px,3.4vw,33px); line-height:1.28;
+          color:var(--ink); max-width:26ch; margin:0 auto; text-align:center; text-wrap:balance;}
+  .kicker strong{font-weight:600; color:var(--stamp);}
+  .center p{margin-left:auto; margin-right:auto; text-align:center;}
+  .center .honest{margin-left:auto; margin-right:auto; text-align:left;}
 
-  /* chrome */
-  .bar{position:fixed; left:0; right:0; bottom:0; height:64px; display:flex;
-       align-items:center; justify-content:space-between; gap:16px; padding:0 20px;
-       background:color-mix(in srgb, var(--stock) 88%, transparent);
-       border-top:1px solid var(--rule-soft); backdrop-filter:blur(8px); z-index:5;}
-  .dots{display:flex; gap:7px; align-items:center;}
+  /* ---------- footer chrome ---------- */
+  .bar{position:fixed; left:0; right:0; bottom:0; height:62px; display:flex;
+       align-items:center; justify-content:space-between; gap:14px; padding:0 16px;
+       background:color-mix(in srgb, var(--stock) 90%, transparent);
+       border-top:1px solid var(--rule-soft); backdrop-filter:blur(8px); z-index:6;}
+  .dots{display:flex; gap:7px; align-items:center; flex-wrap:wrap; justify-content:center;}
   .dot{width:9px; height:9px; border-radius:50%; border:1px solid var(--rule);
-       background:transparent; padding:0; cursor:pointer;}
-  .dot[aria-current="true"]{background:var(--stamp); border-color:var(--stamp);}
-  .dot:focus-visible, .nav:focus-visible, .home:focus-visible{outline:2px solid var(--stamp);
-       outline-offset:3px;}
+       background:transparent; padding:0; cursor:pointer; transition:transform .2s ease;}
+  .dot[aria-current="true"]{background:var(--stamp); border-color:var(--stamp); transform:scale(1.25);}
+  @media (prefers-reduced-motion:reduce){ .dot{transition:none;} }
+  .dot:focus-visible,.nav:focus-visible,.home:focus-visible,.themebtn:focus-visible{
+       outline:2px solid var(--stamp); outline-offset:3px;}
   .navs{display:flex; gap:8px;}
   .nav{font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase;
        background:transparent; color:var(--ink); border:1px solid var(--rule);
        border-radius:2px; padding:8px 13px; cursor:pointer;}
   .nav[disabled]{opacity:.35; cursor:default;}
   .count{font-family:var(--mono); font-size:12px; color:var(--ink-3);
-         font-variant-numeric:tabular-nums;}
-  .home{position:fixed; top:18px; left:20px; z-index:5; font-family:var(--mono);
-        font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);
-        text-decoration:none; border:1px solid var(--rule); border-radius:2px; padding:6px 11px;}
-  .home:hover{color:var(--ink);}
-  .themebtn{position:fixed; top:18px; right:20px; z-index:5; font-family:var(--mono);
-        font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);
-        background:transparent; border:1px solid var(--rule); border-radius:2px;
-        padding:6px 11px; cursor:pointer;}
-  @media (max-width:620px){ .count{display:none;} .home,.themebtn{top:12px;} }
+         font-variant-numeric:tabular-nums; white-space:nowrap;}
 
-  /* Persistent, every slide. An adversarial review found the deck made categorical
-     claims for six slides and only qualified them on slide 7 -- "strong claim first,
-     limitation after the audience has accepted the premise". */
-  .banner{position:fixed; top:0; left:0; right:0; z-index:4; text-align:center;
-    font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
-    color:var(--deny); background:color-mix(in srgb, var(--stock) 92%, transparent);
-    border-bottom:1px solid var(--rule-soft); padding:7px 96px; line-height:1.5;}
-  @media (max-width:620px){ .banner{padding:6px 76px; font-size:9.5px; letter-spacing:.04em;} }
+  /* ---------- entrance animation ---------- */
+  @media (prefers-reduced-motion:no-preference){
+    @keyframes rise{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;}}
+    .slide[aria-current="true"] .inner>*{animation:rise .5s cubic-bezier(.22,.61,.21,1) both;}
+    .slide[aria-current="true"] .inner>*:nth-child(1){animation-delay:.04s;}
+    .slide[aria-current="true"] .inner>*:nth-child(2){animation-delay:.11s;}
+    .slide[aria-current="true"] .inner>*:nth-child(3){animation-delay:.18s;}
+    .slide[aria-current="true"] .inner>*:nth-child(4){animation-delay:.25s;}
+    .slide[aria-current="true"] .inner>*:nth-child(5){animation-delay:.32s;}
+    .slide[aria-current="true"] .inner>*:nth-child(6){animation-delay:.39s;}
+    .slide[aria-current="true"] .inner>*:nth-child(n+7){animation-delay:.46s;}
+    .slide[aria-current="true"] .step{animation:rise .45s cubic-bezier(.22,.61,.21,1) both;}
+    .slide[aria-current="true"] .step:nth-child(1){animation-delay:.24s;}
+    .slide[aria-current="true"] .step:nth-child(2){animation-delay:.32s;}
+    .slide[aria-current="true"] .step:nth-child(3){animation-delay:.40s;}
+    .slide[aria-current="true"] .step:nth-child(4){animation-delay:.48s;}
+    .slide[aria-current="true"] .step:nth-child(5){animation-delay:.56s;}
+  }
+
+  @media (max-width:620px){
+    .slide{padding:132px 20px 96px;}
+    .deckname{display:none;}
+    .banner{font-size:9.5px; letter-spacing:.04em;}
+    .bar{padding:0 12px; gap:10px;}
+    .dots{gap:5px;}
+    .dot{width:8px; height:8px;}
+    .nav{padding:7px 10px;}
+    .count{font-size:11px;}
+  }
 </style>
 </head>
 <body>
 
-<div class="banner">Experimental prototype &middot; not independently audited &middot; not a production security boundary</div>
-<a class="home" href="/case-studies/cortex">&larr; Case study</a>
-<button class="themebtn" id="themebtn" type="button">Light</button>
+<header class="top">
+  <div class="top-row">
+    <a class="home" href="/case-studies/cortex">&larr; Case study</a>
+    <span class="deckname">Cortex &middot; ten slides</span>
+    <button class="themebtn" id="themebtn" type="button">Light</button>
+  </div>
+  <div class="banner">Experimental prototype &middot; not independently audited &middot; not a production security boundary</div>
+  <div class="progress"><i id="progress"></i></div>
+</header>
 
 <div class="deck" id="deck">
 
+  <!-- 1 · cover -->
   <section class="slide" aria-current="true">
     <div class="inner">
       <p class="eyebrow">Cortex</p>
-      <h1>A checkpoint between an AI that writes code and the code that actually ships.</h1>
-      <p class="lead">An AI assistant can suggest changes to software. Cortex is designed so it
-        cannot make one on its own. Whether that holds across <em>every</em> route is still
-        being verified, and this deck says which parts are proven.</p>
+      <h1>Let an AI agent do real work, without handing it the keys.</h1>
+      <p class="lead">An AI coding agent can propose changes to your software. Cortex is the part
+        that decides what it is actually <strong>allowed</strong> to do.</p>
       <ul class="lines">
-        <li><span class="n">01</span><span>The AI proposes; a separate program writes.</span></li>
-        <li><span class="n">02</span><span>A change should not reach the real code without a human
-          approving that <strong>exact</strong> change.</span></li>
-        <li><span class="n">03</span><span>Each approval is a permit for one change, spent on
-          use.</span></li>
+        <li><span class="n">01</span><span>You approve a task once: what it is for, which files it
+          may touch, what finished means.</span></li>
+        <li><span class="n">02</span><span>Inside that line, the agent works on its own. It does
+          not ask again.</span></li>
+        <li><span class="n">03</span><span>Anything that would cross the line
+          <strong>stops</strong>, and asks you first.</span></li>
       </ul>
-      <p style="margin-top:26px; font-size:15px">Those are the design's intentions. Slide 7 states
-        which are demonstrated, which are unverified, and which have been <strong>refuted</strong>.
-        It is not in production and is not a sole security boundary.</p>
+      <p class="small" style="margin-top:26px">Ten slides. Cortex has three parts, at three very
+        different stages of completion, and each slide is stamped with how built that part really
+        is. The last two slides say plainly what is proven, what failed, and what does not exist
+        yet.</p>
     </div>
   </section>
 
+  <!-- 2 · the problem -->
   <section class="slide">
     <div class="inner">
       <p class="eyebrow">The problem</p>
-      <h2>Giving an AI the keys is the easy part. Getting them back is not.</h2>
-      <p>An AI coding tool is often handed the same access a developer has: edit files, commit,
-        push. When it works, it is fast. When it goes wrong, there is frequently no record of what
-        changed, who allowed it, or whether anyone did.</p>
-      <p><strong>The honest comparison is not against an unrestricted agent.</strong> A serious
-        conventional setup already uses ephemeral sandboxes, scoped tokens or GitHub Apps,
-        protected branches, CODEOWNERS, required CI and a policy engine such as OPA or Cedar.
-        Much of what Cortex does, that stack also does.</p>
-      <p>The open question is whether binding an approval to <em>exact content</em>, and recording
-        evidence per effect, catches failures that stack misses. <strong>That benchmark has not
-        been run.</strong> Until it is, treat the case for Cortex as unproven rather than
-        established.</p>
+      <h2>Today, an AI tool usually gets the keys to everything.</h2>
+      <p class="lead">The normal way to use an AI coding tool is to point it at your whole
+        project and let it work.</p>
+      <p>From that moment it can read every file, and it can change anything it can reach. The
+        task may have needed four files; the model got all of them.</p>
+      <p>When that goes well, it is fast. When it goes wrong, there is often no record of what
+        changed, who allowed it, or whether anyone allowed it at all.</p>
+      <p>And whatever the model reads can end up inside a prompt, sent to another company's
+        servers. From the outside, you cannot tell reading from sending.</p>
     </div>
   </section>
 
+  <!-- 3 · the core idea: local control plane, caveat in the same breath -->
   <section class="slide">
     <div class="inner">
-      <p class="eyebrow">How it works</p>
-      <h2>Five steps, and a refusal available at every one.</h2>
-      <p>If a step refuses, the write does not happen. That is fail-closed authorisation, which
-        is <strong>not</strong> the same as transactional rollback: temporary files, worktree
-        state or side effects from earlier steps can survive a refusal.</p>
+      <p class="eyebrow">The core idea</p>
+      <h2>Every decision Cortex makes runs on your machine.</h2>
+      <p class="lead">The rules, the approvals, the credentials that can write, and the record of
+        everything done: all of it lives and runs locally. None of it is ever held by a vendor.</p>
+      <p>Said in the same breath, because it matters: <strong>the AI model itself is not
+        local.</strong> The agent still calls a cloud model to think and to write code. Cortex
+        controls what that agent may <em>do</em>, and aims to control what it may <em>see</em>; it
+        does not move the model onto your machine.</p>
+      <div class="split">
+        <div class="half local">
+          <span class="hlabel">Stays on your machine</span>
+          <ul>
+            <li>The boundaries you set<em>which files, which task, what finished means</em></li>
+            <li>The approvals you give<em>and the permits issued under them</em></li>
+            <li>The credentials that can write<em>the agent itself holds no keys</em></li>
+            <li>The record of every action<em>what changed, when, under which approval</em></li>
+          </ul>
+        </div>
+        <div class="half cloud">
+          <span class="hlabel">Still in the cloud</span>
+          <ul>
+            <li>The model that generates the code<em>an API call, like any other AI tool</em></li>
+            <li>Whatever that model is shown<em>controlling this is the unbuilt boundary on
+              slide 5</em></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · boundary 1: work -->
+  <section class="slide">
+    <div class="inner">
+      <p class="eyebrow">Boundary 1 of 3 &middot; the work boundary
+        <span class="stamp partial">Partly built</span></p>
+      <h2>Approve the task once. The agent works alone inside it.</h2>
+      <p>This is <strong>not</strong> a person clicking Approve on every change; approving once
+        and then letting it run is the whole point. You say up front what the task is for, which
+        files it may touch, and what counts as finished. Routine work inside that plan goes ahead
+        without asking. Only a change that crosses the line stops.</p>
       <div class="flow">
         <div class="step"><span class="idx">1</span>
-          <span class="txt">The AI proposes a change<em>It has no keys and cannot write anything</em></span>
-          <span class="out go">Proposed</span></div>
+          <span class="txt">The agent proposes a change<em>It holds no keys, so it cannot write
+            anything by itself</em></span>
+          <span class="out dim">Proposed</span></div>
         <div class="step"><span class="idx">2</span>
-          <span class="txt">Is this allowed at all?<em>Scope, files, permissions. Anything unclear is refused</em></span>
+          <span class="txt">Is this inside the approved task?<em>Right files, right scope.
+            Anything unclear is refused</em></span>
           <span class="out stop">Can refuse</span></div>
         <div class="step"><span class="idx">3</span>
-          <span class="txt">You approve the exact change<em>A permit is issued, tied to that change, valid once</em></span>
+          <span class="txt">A permit is issued for that exact change<em>Backed by your one-time
+            approval. Tied to the exact content, valid once</em></span>
           <span class="out stop">Can refuse</span></div>
         <div class="step"><span class="idx">4</span>
-          <span class="txt">Is it still the same change?<em>Re-checked at the last moment, right before writing</em></span>
+          <span class="txt">Just before writing: is it still the same change?<em>Re-checked at the
+            last moment, in case anything shifted</em></span>
           <span class="out stop">Can refuse</span></div>
         <div class="step"><span class="idx">5</span>
-          <span class="txt">The broker writes it, and records a receipt<em>The intended sole writer. What, when, approved by whom</em></span>
+          <span class="txt">A separate writer makes the change, and keeps a receipt<em>What
+            changed, when, under which approval. A refusal stops the write; it does not undo
+            earlier steps</em></span>
           <span class="out go">Done</span></div>
       </div>
-      <p style="margin-top:22px; font-size:15px">This diagram assumes the broker is the
-        <em>only</em> route to an effect. That assumption is not yet proven: a builder refused
-        through the editing tool has been observed performing the same write through a shell, and
-        the current guard is a speed bump rather than a boundary. Enumerating every effect route,
-        and showing the check sits on all of them, is outstanding work.</p>
-    </div>
-  </section>
-
-  <section class="slide">
-    <div class="inner">
-      <p class="eyebrow">The central idea</p>
-      <h2>The permit is the central binding mechanism.</h2>
-      <p>An approval is not "yes, go ahead". It is a permit bound to one specific change, valid
-        once. Change a single character afterwards and the permit no longer matches, so the
-        write is refused.</p>
-      <p style="font-size:15px">It is not the whole trick. It depends on the broker actually being
-        isolated, on consumption being atomic under concurrency, on the fingerprint covering the
-        right canonical representation, and on every effect route reaching the check. A permit
-        offers nothing against a compromised broker, a stolen credential, or an approver who was
-        shown a misleading diff.</p>
-      <div class="permit">
-        <div class="permit-head">
-          <span class="permit-title">Approval permit</span>
-          <span class="permit-serial">ap_dc609835061f4bd4</span>
-        </div>
-        <div class="perf"></div>
-        <div class="permit-body">
-          <div class="row"><span class="k">Change</span><span class="v">src/pricing.py, 1 file</span></div>
-          <div class="row"><span class="k">Fingerprint</span><span class="v">73f713c1ea183368&hellip;</span></div>
-          <div class="row"><span class="k">Approved by</span><span class="v">owner, in person</span></div>
-          <div class="row"><span class="k">Valid for</span><span class="v">one write, this change only</span></div>
-        </div>
-        <span class="stamped">Void after use</span>
+      <div class="honest">
+        <span class="hlabel">The measured gap</span>
+        <p>A change can reach the repository by many routes: the editing tool, the shell, git
+          itself. We count 25 such routes. The check above currently sits on 4 of them;
+          <strong>21 of 25 effect routes still reach the repository without passing the
+          check.</strong> That number is measured on every run, and it is the honest status of
+          this boundary.</p>
+        <p>The diagram also assumes the checkpoint is the only door. Not yet proven: an agent
+          refused by the editing tool has been seen making the same change through the shell.
+          Closing every route is the outstanding work.</p>
       </div>
     </div>
   </section>
 
+  <!-- 5 · boundary 2: data -->
   <section class="slide">
     <div class="inner">
-      <p class="eyebrow">Why it may deserve evaluation</p>
-      <h2>Six answers, and what each is actually worth.</h2>
-      <p style="font-size:15px">Most of the right-hand column describes what the design
-        <em>does</em>, which is not the same as evidence that it cannot be bypassed. Read it as a
-        claim set to be tested, not as assurance.</p>
+      <p class="eyebrow">Boundary 2 of 3 &middot; the data boundary
+        <span class="stamp road">Roadmap &middot; not built</span></p>
+      <h2>Control what the model gets to see.</h2>
+      <p>Boundary 1 controls what the agent may <em>change</em>. This one would control what the
+        cloud model may <em>read</em>. It is the planned other half, and this slide describes
+        intent, not a feature. Each step of a task would be asked:</p>
+      <div class="flow">
+        <div class="step"><span class="idx">?</span>
+          <span class="txt">What does this step actually need to know?<em>Often the shape of the
+            code is enough; the contents rarely are</em></span>
+          <span class="out dim">Scope</span></div>
+        <div class="step"><span class="idx">?</span>
+          <span class="txt">May it leave your machine at all?<em>Secrets, customer data,
+            unreleased work: no</em></span>
+          <span class="out stop">Can refuse</span></div>
+        <div class="step"><span class="idx">?</span>
+          <span class="txt">Can it be masked instead of withheld?<em>Real names go out as
+            placeholders, and are restored on the way back</em></span>
+          <span class="out dim">Mask</span></div>
+        <div class="step"><span class="idx">?</span>
+          <span class="txt">Must this step stay local?<em>A small local model handles the
+            sensitive part; the cloud model gets the rest</em></span>
+          <span class="out dim">Keep local</span></div>
+        <div class="step"><span class="idx">?</span>
+          <span class="txt">Whatever does leave is recorded<em>Not a promise that nothing left: a
+            record of exactly what did, and under which approval</em></span>
+          <span class="out go">Ledger</span></div>
+      </div>
+      <div class="honest">
+        <span class="hlabel">Not built</span>
+        <p><strong>None of the data boundary is built.</strong> Today Cortex guards what an agent
+          writes, not what it reads, so nothing currently stops it putting a file into a prompt.
+          This is exactly why the caveat on slide 3 is said in the same breath as the claim.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · boundary 3: assurance -->
+  <section class="slide">
+    <div class="inner">
+      <p class="eyebrow">Boundary 3 of 3 &middot; the assurance system
+        <span class="stamp built">The most built part</span></p>
+      <h2>Testing whether the boundaries are real.</h2>
+      <p>A safety control can look perfect on paper and be connected to nothing. It passes every
+        human review, and it does nothing. So the most built part of Cortex is the machinery that
+        tests its own boundaries, three ways at once.</p>
+      <p>Think of checking a locked building: rattle the doors from outside, watch the alarms
+        while someone tries to get in, then open the wall and inspect the wiring. Passing one of
+        the three is not passing.</p>
       <div class="scroll">
-        <table>
-          <thead><tr><th>What worries people</th><th>What Cortex does about it</th></tr></thead>
+        <table class="t3">
+          <thead><tr><th>How</th><th>What it asks</th><th>What only it catches</th></tr></thead>
           <tbody>
-            <tr><td>"The AI could do something I didn't ask for."</td>
-                <td>The AI holds no keys. A separate, ordinary program does all writing, and only
-                    accepts changes carrying a valid permit.</td></tr>
-            <tr><td>"What if something slips through?"</td>
-                <td>Everything is refused unless explicitly allowed. No path where silence or an
-                    error means "go ahead".</td></tr>
-            <tr><td>"How do I know what was approved is what was done?"</td>
-                <td>The permit is tied to a fingerprint of the exact change, re-checked at the
-                    last moment before writing.</td></tr>
-            <tr><td>"Could it reuse an old approval?"</td>
-                <td>Permits work once and are spent on use. A used permit is refused.</td></tr>
-            <tr><td>"You wrote the tests, so of course they pass."</td>
-                <td>It is judged against reference-monitor criteria published in 1972, which nobody
-                    here wrote and nobody here can edit. <strong>Judged against, not yet passing:
-                    one of the six is currently refuted.</strong></td></tr>
-            <tr><td>"Every project claims it's secure."</td>
-                <td>This one publishes what is not working. That is a disclosure practice, not a
-                    security property, and a documented weakness is still a weakness.</td></tr>
+            <tr><td>From outside<br><em>the doors</em></td>
+                <td>Act like an agent and try to get past the boundary: reach a file that is off
+                    limits, write by an unexpected route, reuse a spent permit.</td>
+                <td>Failures nobody thought to write a test for. This is how the finding on the
+                    last slide was made.</td></tr>
+            <tr><td>From inside<br><em>the alarms</em></td>
+                <td>Watch a real task run: which checks fired, what was sent out, whether every
+                    write went through the checkpoint.</td>
+                <td>A check that exists but sits on the wrong path, so a real task never touches
+                    it. One component was invoked <strong>zero times</strong> during a complete
+                    run.</td></tr>
+            <tr><td>At the code<br><em>the wiring</em></td>
+                <td>Read the code itself: routes around the checkpoint, defaults that allow when
+                    they should refuse, checks that cannot fail.</td>
+                <td>That the main permission check was not connected to any running program. It
+                    existed, and nothing called it. Found by reading, not by testing.</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </section>
 
+  <!-- 7 · fair comparison -->
+  <section class="slide">
+    <div class="inner">
+      <p class="eyebrow">A fair comparison</p>
+      <h2>Against a good conventional setup, Cortex lost 5 of 9 rows.</h2>
+      <p>The honest comparison is not with an agent that has no rules. A careful team already
+        uses scoped access tokens, protected branches, and required human review. We scored
+        Cortex against that setup, row by row, and Cortex <strong>lost 5 of the 9
+        rows</strong>.</p>
+      <div class="bench" role="img" aria-label="Nine benchmark rows, five lost to the conventional setup">
+        <i class="lost"></i><i class="lost"></i><i class="lost"></i><i class="lost"></i><i class="lost"></i>
+        <i></i><i></i><i></i><i></i>
+      </div>
+      <p class="legend"><span><span class="sw lost"></span>rows lost to the conventional
+        setup (5)</span><span><span class="sw"></span>the remaining rows (4)</span></p>
+      <p style="margin-top:18px">What that conventional stack does not cover: what the model gets
+        to <em>see</em> (the unbuilt boundary on slide 5), and a receipt tied to each individual
+        change. Whether those two catch real failures the stack misses is the open question, and
+        <strong>that benchmark has not been run</strong>. Until it has, treat the case for Cortex
+        as unproven rather than established.</p>
+    </div>
+  </section>
+
+  <!-- 8 · two vocabularies -->
   <section class="slide">
     <div class="inner">
       <p class="eyebrow">How to talk about it</p>
       <h2>Same idea, two vocabularies.</h2>
-      <p>Say the left version to anyone. Use the right version if an engineer pushes.</p>
+      <p>The left column is for anyone. The right column is what to say when an engineer pushes
+        back.</p>
       <div class="scroll">
-        <table>
+        <table class="t2">
           <thead><tr><th>To anyone</th><th>To an engineer</th></tr></thead>
           <tbody>
             <tr><td>A checkpoint between the AI and the real code.</td>
                 <td>A reference monitor over agent-initiated effects. Complete mediation is the
-                    requirement it is judged against, not a property it currently demonstrates.</td></tr>
+                    requirement it is judged against, not a property it currently
+                    demonstrates.</td></tr>
             <tr><td>The AI has no keys.</td>
-                <td>Credential isolation. A separate broker identity is the sole writer.</td></tr>
-            <tr><td>Everything is refused unless allowed.</td>
-                <td>Deny-by-default, fail-safe defaults, least privilege.</td></tr>
+                <td>Credential isolation; a separate broker identity is the sole writer.</td></tr>
+            <tr><td>Everything is refused unless it was allowed.</td>
+                <td>Deny by default, fail-safe defaults, least privilege.</td></tr>
             <tr><td>An approval is a permit for one exact change, used once.</td>
-                <td>Single-use, content-bound capability; unforgeable designation, no ambient
-                    authority.</td></tr>
+                <td>A single-use, content-bound capability; no ambient authority.</td></tr>
             <tr><td>Every important action leaves a receipt.</td>
                 <td>Durable audit receipts on every privileged branch.</td></tr>
-            <tr><td>Models from other vendors try to break it.</td>
-                <td><strong>Cross-model adversarial review</strong>, cold-start and black-box. NOT
-                    independent V&amp;V: the models are chosen, prompted and interpreted by this
-                    project, so they are diverse reviewers rather than an accountable external
-                    party.</td></tr>
+            <tr><td>AI models from other companies try to find what breaks.</td>
+                <td>Cross-model adversarial review, cold-start and black-box. Not independent
+                    verification: the models are chosen, prompted, and interpreted by this
+                    project.</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </section>
 
+  <!-- 9 · honest status -->
   <section class="slide">
     <div class="inner">
       <p class="eyebrow">Honest status</p>
-      <h2>What is proven, and what is not.</h2>
+      <h2>What holds, what failed, what is not there.</h2>
       <p>Being able to say this precisely is the point of the project, so it sits beside the
-        claims rather than behind them.</p>
+        claims, not behind them.</p>
       <div class="status">
         <div class="st"><span class="tag ok">Holds, in test</span>
           <div><h3>The permit check refuses bad permits</h3>
-            <p>Forged, replayed, spent and wrong-subject permits were all refused under
-              cross-model attack. Scope: the permit-verification path. It does <em>not</em>
-              establish that every write route reaches that check.</p></div></div>
-        <div class="st"><span class="tag ok">Holds, one site</span>
+            <p>Forged, replayed, already-spent, and wrong-owner permits were all refused when
+              three outside models tried to slip them through. Scope: the permit check itself. It
+              does <em>not</em> show that every write route reaches that check; slide 4 says most
+              do not yet.</p></div></div>
+        <div class="st"><span class="tag ok">Holds, one site of two</span>
           <div><h3>Approvals are bound to exact content</h3>
-            <p>Fixed and verified this week at the composition apply site: content is re-derived
-              and compared immediately before the write. <strong>Not yet at the pull site</strong>,
-              where the verifying function is not called at all.</p></div></div>
+            <p>Changes land in two places. At the first, this was fixed and verified this week:
+              the content is re-derived and compared immediately before writing. At the second,
+              the checking function is never called at all. Fixed in one place is not
+              fixed.</p></div></div>
         <div class="st"><span class="tag no">Refuted</span>
-          <div><h3>The checkpoint cannot be tampered with</h3>
-            <p>Not merely unverified. Five defects were reproduced this week: custody of a receipt
-              can be transferred, erased, or bound to a run that never existed, while the integrity
-              checks still report success. The affected subsystem is not yet wired into the live
-              path, so the defects are latent rather than exploitable today. Tamper resistance is
-              foundational to the reference-monitor claim, so this is the most important line on
-              the page.</p></div></div>
-        <div class="st"><span class="tag no">Not yet</span>
-          <div><h3>Running in production</h3>
-            <p>The control layer is being verified end to end. The parts that execute work in an
-              isolated container are still outstanding.</p></div></div>
+          <div><h3>The record-keeping cannot be tampered with</h3>
+            <p>Not merely unverified: shown false. Five defects were reproduced this week. A
+              receipt's ownership can be transferred, erased, or tied to a run that never
+              happened, while the integrity checks still report success. The affected part is not
+              yet wired into the live path, so the defects are latent rather than live. Tamper
+              resistance is foundational here, which makes this the most important line on the
+              page.</p></div></div>
+        <div class="st"><span class="tag no">Not in production</span>
+          <div><h3>Nobody should run this in production today</h3>
+            <p>The control layer is still being verified end to end, and the part that runs the
+              work inside an isolated container is still outstanding. That includes us.</p></div></div>
       </div>
     </div>
   </section>
 
+  <!-- 10 · the finding -->
   <section class="slide">
-    <div class="inner">
-      <p class="eyebrow">The finding that matters</p>
-      <p class="kicker">Three AI models from different companies, never shown the tests,
-        raised 11 findings a fully passing test suite had missed.</p>
-      <p>10 are distinct: 6 code defects and 4 contract ambiguities. Each was reproduced with a
-        script before being believed. <strong>One is fixed so far</strong>, and it is the only
-        one carrying a regression test. Tests passing is not evidence that a system works;
-        building the thing that can tell the difference is what Cortex is for.</p>
-      <p style="font-size:14.5px; color:var(--ink-3)">The earlier version of this slide said
-        "nine", and an audit of our own evidence could not derive that number: the source
-        document gives three incompatible counts. Two further corrections from the same audit,
-        recorded rather than quietly dropped. The assessors were shown the contract as well as
-        the code, so "only the code" was false. And they were handed a list of attack families,
-        so 7 of the 11 findings map onto a prompted angle: they invented the tests, not the
-        angles. "Different vendors" is also weaker independence than it sounds, since models can
-        share training data and failure modes. This is cross-model adversarial review, not
-        independent verification.</p>
+    <div class="inner center">
+      <p class="eyebrow" style="justify-content:center">The finding that matters</p>
+      <p class="kicker">Three AI models from other companies, shown the code and the contract but
+        never the tests, raised <strong>11 findings</strong> a fully passing test suite had
+        missed.</p>
+      <p style="margin-top:20px; max-width:60ch">Of the 11, 10 are distinct: 6 defects in the
+        code and 4 ambiguities in the contract. Each was reproduced with a script before being
+        believed. <strong>One is fixed so far</strong>, and it is the only one carrying a
+        regression test.</p>
+      <p style="max-width:60ch">A green test suite is not evidence that a system works; it is
+        evidence that the system passes the tests someone thought to write. Building the thing
+        that can tell the difference is what Cortex is for.</p>
+      <div class="honest" style="max-width:60ch">
+        <span class="hlabel">Corrections, kept in view</span>
+        <p>An earlier version of this slide said "nine findings"; our own audit could not derive
+          that number from its source, so it was withdrawn. An earlier version also said the
+          models saw "only the code"; they saw the contract too. They were handed a list of
+          failure families to probe, so 7 of the 11 findings follow a prompted angle: they
+          invented the tests, not the angles. And models from different companies can share
+          training data and blind spots, so this is cross-model review, not independent
+          verification.</p>
+      </div>
     </div>
   </section>
 
@@ -394,6 +574,7 @@
   var count = document.getElementById('count');
   var prev = document.getElementById('prev');
   var next = document.getElementById('next');
+  var progress = document.getElementById('progress');
   var i = 0;
 
   slides.forEach(function(_, n){
@@ -415,6 +596,7 @@
       if (k === i) d.setAttribute('aria-current','true'); else d.removeAttribute('aria-current');
     });
     count.textContent = (i+1) + ' / ' + slides.length;
+    progress.style.width = (((i+1) / slides.length) * 100) + '%';
     prev.disabled = i === 0;
     next.disabled = i === slides.length - 1;
     if (location.hash !== '#' + (i+1)) history.replaceState(null, '', '#' + (i+1));
@@ -428,14 +610,18 @@
     if (e.key === 'Home') { e.preventDefault(); go(0); }
     if (e.key === 'End')  { e.preventDefault(); go(slides.length-1); }
   });
-  // swipe, so it works on a phone held up to someone
-  var x0 = null;
-  document.addEventListener('touchstart', function(e){ x0 = e.touches[0].clientX; }, {passive:true});
+
+  // swipe, so it works on a phone held up to someone; a mostly-vertical drag is a scroll, not a swipe
+  var x0 = null, y0 = null;
+  document.addEventListener('touchstart', function(e){
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+  }, {passive:true});
   document.addEventListener('touchend', function(e){
     if (x0 === null) return;
     var dx = e.changedTouches[0].clientX - x0;
-    if (Math.abs(dx) > 55) go(dx < 0 ? i+1 : i-1);
-    x0 = null;
+    var dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? i+1 : i-1);
+    x0 = null; y0 = null;
   }, {passive:true});
 
   var tb = document.getElementById('themebtn');
