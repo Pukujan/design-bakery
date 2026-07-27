@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cortex roadmap and status</title>
+<meta name="description" content="Where the Cortex kernel stands today, what ships next, and what is still open. Updated as it changes." />
+<style>
+  .refh{font-size:15px;letter-spacing:.02em;color:var(--text-strong);margin:30px 0 12px;}
+  .refs{margin:0;padding-left:22px;display:grid;gap:14px;}
+  .refs li{color:var(--text);font-size:15px;line-height:1.62;}
+  .refs .rw{display:block;color:var(--muted);font-size:14px;margin-top:4px;}
+  .refs.own li{list-style:none;margin-left:-22px;}
+  .refs.own a{color:var(--text-strong);text-decoration:none;border-bottom:1px solid var(--line);
+              display:inline-block;padding:3px 0;}
+  .refs.own a:hover{color:var(--seal);border-color:var(--seal);}
+  :root{
+    /* control-plane palette : a blue-biased ink, cool slate neutrals,
+       one deliberate accent: the amber "receipt seal". */
+    --ink:        #0A0D13;
+    --ink-2:      #0E121B;
+    --panel:      #121826;
+    --panel-2:    #161D2D;
+    --line:       #222b3d;
+    --line-soft:  #1a2231;
+    --text:       #ced6e3;
+    --text-strong:#f2f5fa;
+    --muted:      #7c8698;
+    --muted-2:    #5c6577;
+    --seal:       #f5b640;   /* the one bold spend : unforgeable receipt / authority */
+    --seal-deep:  #c98a14;
+    --allow:      #37b8a4;   /* semantic only, never the accent */
+    --deny:       #e0563e;   /* semantic only */
+    --seal-glow:  rgba(245,182,64,0.14);
+    --shadow:     0 30px 80px rgba(0,0,0,0.5);
+    --maxw: 1120px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --ink:#eef1f6; --ink-2:#e7ebf2; --panel:#ffffff; --panel-2:#f4f6fa;
+      --line:#d6dce6; --line-soft:#e2e7ee; --text:#333d4e; --text-strong:#0d1220;
+      --muted:#5c6577; --muted-2:#8a93a3; --seal:#b6790c; --seal-deep:#8a5b06;
+      --allow:#0f8a79; --deny:#c1432c; --seal-glow:rgba(182,121,12,0.10);
+      --shadow:0 24px 60px rgba(20,30,55,0.12);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#0A0D13; --ink-2:#0E121B; --panel:#121826; --panel-2:#161D2D;
+    --line:#222b3d; --line-soft:#1a2231; --text:#ced6e3; --text-strong:#f2f5fa;
+    --muted:#7c8698; --muted-2:#5c6577; --seal:#f5b640; --seal-deep:#c98a14;
+    --allow:#37b8a4; --deny:#e0563e; --seal-glow:rgba(245,182,64,0.14);
+    --shadow:0 30px 80px rgba(0,0,0,0.5);
+  }
+  :root[data-theme="light"]{
+    --ink:#eef1f6; --ink-2:#e7ebf2; --panel:#ffffff; --panel-2:#f4f6fa;
+    --line:#d6dce6; --line-soft:#e2e7ee; --text:#333d4e; --text-strong:#0d1220;
+    --muted:#5c6577; --muted-2:#8a93a3; --seal:#b6790c; --seal-deep:#8a5b06;
+    --allow:#0f8a79; --deny:#c1432c; --seal-glow:rgba(182,121,12,0.10);
+    --shadow:0 24px 60px rgba(20,30,55,0.12);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} }
+  body{
+    margin:0; background:var(--ink); color:var(--text);
+    font-family:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,sans-serif;
+    font-size:17px; line-height:1.65; -webkit-font-smoothing:antialiased;
+    letter-spacing:0.005em;
+  }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px;}
+  a{color:inherit; text-decoration:none;}
+  h1,h2,h3{text-wrap:balance; color:var(--text-strong); margin:0;}
+  ::selection{background:var(--seal); color:#0A0D13;}
+
+  /* ---- eyebrow / labels ---- */
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:500;
+    letter-spacing:0.22em; text-transform:uppercase; color:var(--seal);
+    display:inline-flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:""; width:26px; height:1px; background:var(--seal); opacity:.7;}
+
+  /* ---- top bar ---- */
+  header.bar{
+    position:sticky; top:0; z-index:40;
+    backdrop-filter:blur(14px); background:color-mix(in srgb, var(--ink) 82%, transparent);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .bar-in{display:flex; align-items:center; justify-content:space-between; height:64px;}
+  .brand{display:flex; align-items:center; gap:12px; font-family:"IBM Plex Mono",monospace;
+    font-weight:600; letter-spacing:0.04em; color:var(--text-strong); font-size:15px;}
+  .brand .dot{width:10px; height:10px; border-radius:2px; background:var(--seal);
+    box-shadow:0 0 0 4px var(--seal-glow); }
+  nav.links{display:flex; gap:30px; align-items:center;}
+  nav.links a{font-family:"IBM Plex Mono",monospace; font-size:13px; letter-spacing:0.04em;
+    color:var(--muted); transition:color .18s;}
+  nav.links a:hover{color:var(--text-strong);}
+  .theme-btn{font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.06em;
+    color:var(--muted); background:transparent; border:1px solid var(--line);
+    padding:7px 12px; border-radius:8px; cursor:pointer; transition:all .18s;}
+  .theme-btn:hover{color:var(--text-strong); border-color:var(--seal);}
+  @media (max-width:720px){ nav.links a:not(.cta){display:none;} }
+
+  /* ---- hero ---- */
+  .hero{position:relative; padding:88px 0 52px; overflow:hidden;}
+  .hero-grid{display:grid; grid-template-columns:1.15fr 0.85fr; gap:56px; align-items:center;}
+  @media (max-width:900px){ .hero-grid{grid-template-columns:1fr; gap:36px;} }
+  .hero h1{font-size:clamp(38px,6vw,68px); line-height:1.02; font-weight:700;
+    letter-spacing:-0.02em; margin:22px 0 0;}
+  .hero h1 .thru{color:var(--muted-2); position:relative; white-space:nowrap;}
+  .hero h1 .thru::after{content:""; position:absolute; left:-2%; right:-2%; top:52%;
+    height:3px; background:var(--deny); transform:rotate(-3deg);}
+  .hero h1 em{font-style:normal; color:var(--seal);}
+  .lede{font-size:19px; line-height:1.6; color:var(--text); max-width:34ch; margin:24px 0 0;}
+  .hero-cta{display:flex; gap:14px; margin-top:32px; flex-wrap:wrap;}
+  .btn{font-family:"IBM Plex Mono",monospace; font-size:13.5px; letter-spacing:.03em;
+    padding:13px 20px; border-radius:10px; cursor:pointer; transition:all .2s;
+    display:inline-flex; align-items:center; gap:9px; border:1px solid transparent;}
+  .btn.primary{background:var(--seal); color:#0A0D13; font-weight:600;}
+  .btn.primary:hover{transform:translateY(-2px); box-shadow:0 12px 30px var(--seal-glow);}
+  .btn.ghost{border-color:var(--line); color:var(--text-strong);}
+  .btn.ghost:hover{border-color:var(--seal); color:var(--seal);}
+
+  /* hero instrument (canvas) */
+  .instrument{position:relative; border:1px solid var(--line); border-radius:16px;
+    background:linear-gradient(180deg,var(--panel),var(--ink-2)); box-shadow:var(--shadow);
+    overflow:hidden; min-height:340px;}
+  .instrument .cap{display:flex; align-items:center; justify-content:space-between;
+    padding:12px 16px; border-bottom:1px solid var(--line-soft);
+    font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.08em; color:var(--muted);}
+  .instrument .cap .live{display:inline-flex; align-items:center; gap:7px; color:var(--allow);}
+  .instrument .cap .live::before{content:""; width:7px; height:7px; border-radius:50%;
+    background:var(--allow); box-shadow:0 0 0 3px color-mix(in srgb,var(--allow) 26%,transparent);
+    animation:pulse 2.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  @media (prefers-reduced-motion:reduce){ .instrument .cap .live::before{animation:none;} }
+  canvas#gate{display:block; width:100%; height:300px;}
+
+  /* ---- section frame ---- */
+  section{padding:78px 0; border-top:1px solid var(--line-soft);}
+  .sec-head{max-width:60ch;}
+  .sec-head h2{font-size:clamp(26px,3.4vw,38px); line-height:1.12; letter-spacing:-0.015em;
+    font-weight:700; margin:16px 0 0;}
+  .sec-head p{color:var(--muted); font-size:18px; margin:16px 0 0; max-width:62ch;}
+
+  /* problem : two truths */
+  .truths{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:44px;}
+  @media (max-width:760px){ .truths{grid-template-columns:1fr;} }
+  .truth{border:1px solid var(--line); border-radius:14px; padding:28px; background:var(--panel);}
+  .truth .k{font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--muted-2);}
+  .truth h3{font-size:22px; margin:12px 0 10px;}
+  .truth p{margin:0; color:var(--muted); font-size:15.5px; line-height:1.6;}
+  .truth.bad{border-left:2px solid var(--deny);}
+  .truth.good{border-left:2px solid var(--seal);}
+
+  /* kernel : instrument panel */
+  .panel-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:44px;}
+  @media (max-width:900px){ .panel-grid{grid-template-columns:1fr 1fr;} }
+  @media (max-width:620px){ .panel-grid{grid-template-columns:1fr;} }
+  .mod{border:1px solid var(--line); border-radius:14px; background:var(--panel);
+    padding:22px; position:relative; transition:border-color .2s, transform .2s;}
+  .mod:hover{border-color:var(--seal); transform:translateY(-3px);}
+  .mod .idx{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--seal); letter-spacing:.1em;}
+  .mod h3{font-size:18px; margin:14px 0 8px; letter-spacing:-0.01em;}
+  .mod p{margin:0; font-size:14.5px; color:var(--muted); line-height:1.58;}
+  .mod .state{position:absolute; top:20px; right:20px; font-family:"IBM Plex Mono",monospace;
+    font-size:10.5px; letter-spacing:.08em; padding:4px 8px; border-radius:6px; text-transform:uppercase;}
+  .state.built{color:var(--allow); background:color-mix(in srgb,var(--allow) 14%,transparent);}
+  .state.wip{color:var(--seal); background:var(--seal-glow);}
+  .state.next{color:var(--muted); background:color-mix(in srgb,var(--muted) 14%,transparent);}
+
+  /* comparison */
+  .cmp{margin-top:40px; border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+  .cmp-row{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;
+    border-bottom:1px solid var(--line-soft); font-size:14px;}
+  .cmp-row:last-child{border-bottom:none;}
+  .cmp-row > div{padding:15px 16px; border-right:1px solid var(--line-soft);}
+  .cmp-row > div:last-child{border-right:none;}
+  .cmp-row.head > div{font-family:"IBM Plex Mono",monospace; font-size:11.5px;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--muted); background:var(--panel-2);}
+  .cmp-row.head .cx{color:var(--seal);}
+  .cmp .cap{font-family:"IBM Plex Mono",monospace; font-size:13.5px; color:var(--text-strong);}
+  .yes{color:var(--allow); font-family:"IBM Plex Mono",monospace;}
+  .no{color:var(--muted-2); font-family:"IBM Plex Mono",monospace;}
+  .cx-col{background:color-mix(in srgb,var(--seal) 6%, transparent);}
+  @media (max-width:820px){ .cmp{overflow-x:auto;} .cmp-inner{min-width:720px;} }
+
+  /* evidence / prior art */
+  .refs{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-top:40px;}
+  @media (max-width:760px){ .refs{grid-template-columns:1fr;} }
+  .ref{border:1px solid var(--line); border-radius:12px; padding:20px 22px; background:var(--panel);
+    display:flex; gap:16px; align-items:flex-start;}
+  .ref .yr{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--seal);
+    font-weight:600; padding-top:2px; min-width:44px;}
+  .ref h4{margin:0 0 5px; font-size:15px; color:var(--text-strong); font-weight:600;}
+  .ref p{margin:0; font-size:13.5px; color:var(--muted); line-height:1.5;}
+  .note{margin-top:26px; font-size:15px; color:var(--muted); border-left:2px solid var(--seal);
+    padding:4px 0 4px 20px; max-width:70ch;}
+  .note b{color:var(--text-strong); font-weight:600;}
+
+  /* evidence boundary: the composition-level status, stated where the module-level
+     numbers are. A component claim next to no composition claim reads as a system
+     claim, which is the exact error this project exists to prevent. */
+  .ebound{margin-top:34px; border:1px solid var(--line); border-left:3px solid var(--deny);
+    border-radius:12px; padding:24px 26px; background:var(--panel); max-width:78ch;
+    min-width:0;}
+  .ebound h3{margin:0 0 6px; font-size:17px; color:var(--text-strong); letter-spacing:-0.01em;}
+  .ebound .asof{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
+    letter-spacing:0.04em; text-transform:uppercase; margin-bottom:14px;}
+  .ebound p{margin:0 0 12px; font-size:15px; color:var(--muted); max-width:70ch;}
+  .ebound b{color:var(--text-strong); font-weight:600;}
+  .ebound ul{margin:0 0 12px; padding-left:18px;}
+  .ebound li{font-size:15px; color:var(--muted); margin-bottom:7px; min-width:0;}
+  .ebound .verdict{font-size:15px; color:var(--text-strong); border-top:1px solid var(--line-soft);
+    padding-top:14px; margin-top:2px;}
+  @media (max-width:760px){ .ebound{padding:20px 18px;} }
+
+  /* status */
+  .status-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:40px;}
+  @media (max-width:760px){ .status-grid{grid-template-columns:1fr 1fr;} }
+  .stat{border:1px solid var(--line); border-radius:12px; padding:22px; background:var(--panel);}
+  .stat .n{font-family:"IBM Plex Mono",monospace; font-size:30px; color:var(--text-strong);
+    font-weight:600; font-variant-numeric:tabular-nums; letter-spacing:-0.02em;}
+  .stat .l{font-size:13px; color:var(--muted); margin-top:6px; line-height:1.4;}
+  .stat .n .u{font-size:16px; color:var(--seal);}
+
+  /* footer */
+  footer{border-top:1px solid var(--line-soft); padding:56px 0 70px; margin-top:30px;}
+  .foot-in{display:flex; justify-content:space-between; align-items:flex-end; gap:30px; flex-wrap:wrap;}
+  .foot-in h3{font-size:24px; letter-spacing:-0.01em;}
+  .foot-in p{color:var(--muted); font-size:14px; margin:8px 0 0; max-width:46ch;}
+  .fine{margin-top:38px; font-family:"IBM Plex Mono",monospace; font-size:11.5px;
+    letter-spacing:.06em; color:var(--muted-2); display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  .fine .sep{opacity:.4;}
+
+  :focus-visible{outline:2px solid var(--seal); outline-offset:3px; border-radius:4px;}
+
+
+  /* mobile responsive polish, layout only, no content changes */
+  @media (max-width:720px){
+    .wrap{padding:0 16px;}
+    .bar-in{height:56px; gap:10px;}
+    .brand{font-size:13px; gap:8px;}
+    nav.links{gap:8px;}
+    .theme-btn{padding:6px 10px; font-size:11px;}
+    .hero{padding:48px 0 36px;}
+    .hero h1{font-size:clamp(30px,9vw,42px); line-height:1.08;}
+    .lede{font-size:16px; max-width:none; margin-top:18px;}
+    .hero-cta{margin-top:22px; gap:10px;}
+    .btn{padding:12px 16px; font-size:12.5px; width:100%; justify-content:center;}
+    .instrument{min-height:260px; border-radius:12px;}
+    canvas#gate{height:220px;}
+    section{padding:48px 0;}
+    .sec-head h2{font-size:clamp(22px,6.5vw,30px);}
+    .sec-head p{font-size:15.5px; margin-top:12px;}
+    .truths,.panel-grid,.refs,.status-grid{margin-top:28px;}
+    .truth,.mod,.stat,.ref{padding:18px;}
+    .mod:hover{transform:none;}
+    .truth h3{font-size:18px;}
+    .stat .n{font-size:24px;}
+    .status-grid{grid-template-columns:1fr;}
+    .cmp-row{font-size:13px;}
+    .cmp-row > div{padding:12px 10px;}
+    footer{padding:40px 0 96px;}
+    .foot-in h3{font-size:20px;}
+    .fine{font-size:10.5px; gap:6px;}
+  }
+  @media (max-width:900px){
+    .panel-grid[style*="grid-template-columns"]{grid-template-columns:1fr !important;}
+  }
+  @media (max-width:380px){
+    .wrap{padding:0 12px;}
+    .hero h1{font-size:28px;}
+    nav.links a.cta{display:none;}
+  }
+
+
+  /* C kernel motion */
+  :root{
+    --ink:#090b0d;--ink-2:#101418;--panel:#151a1f;--panel-2:#1a2128;
+    --line:#293138;--line-soft:#1e262d;--text:#c5cdc8;--text-strong:#f1f3ef;
+    --muted:#9aa4a8;--muted-2:#6f7a80;--seal:#f0a43b;--seal-deep:#c47a18;
+    --allow:#51d7e8;--deny:#e0563e;--seal-glow:rgba(240,164,59,0.14);
+    --cyan:#51d7e8;--cyan-soft:#16383e;
+  }
+  :root[data-theme="light"]{
+    --ink:#eef1f3;--ink-2:#e4e9ec;--panel:#ffffff;--panel-2:#f3f6f8;
+    --line:#cfd6db;--line-soft:#e0e6ea;--text:#2a3338;--text-strong:#0c1114;
+    --muted:#5c676e;--muted-2:#8a949a;--seal:#b76700;--seal-deep:#8a5b06;
+    --allow:#0f8a79;--deny:#c1432c;--seal-glow:rgba(183,103,0,0.10);
+    --cyan:#0d7a88;--cyan-soft:#d5eef1;
+  }
+  body{background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(81,215,232,0.06), transparent 55%),
+    radial-gradient(900px 500px at 10% 0%, rgba(240,164,59,0.05), transparent 50%),
+    var(--ink);}
+  .hero{position:relative;overflow:hidden;}
+  .hero::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg, transparent, var(--ink));
+    opacity:0.35;z-index:0;}
+  .hero .wrap, .hero .hero-grid{position:relative;z-index:1;}
+  .instrument{border-color:color-mix(in srgb, var(--cyan) 35%, var(--line));
+    box-shadow:0 0 0 1px color-mix(in srgb,var(--cyan) 12%,transparent), var(--shadow);
+    position:relative;overflow:hidden;}
+  .instrument .cap .live{color:var(--cyan);}
+  .instrument .cap .live::before{background:var(--cyan);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 26%,transparent);}
+  .mod,.truth,.ref,.stat{background:color-mix(in srgb,var(--panel) 92%, transparent);
+    backdrop-filter:blur(6px);}
+  .mod:hover{border-color:var(--cyan);transform:none;
+    box-shadow:0 0 24px color-mix(in srgb,var(--cyan) 12%,transparent);}
+  .btn.primary{box-shadow:0 0 24px var(--seal-glow);}
+  .cx-col{background:color-mix(in srgb,var(--seal) 8%, transparent);}
+  @media (prefers-reduced-motion: no-preference){
+    .reveal{opacity:0;transform:translateY(14px);
+      transition:opacity .48s cubic-bezier(.2,.75,.2,1), transform .48s cubic-bezier(.2,.75,.2,1);}
+    .reveal.is-in{opacity:1;transform:none;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1;transform:none;}
+  }
+  .instrument::after{
+    content:"";position:absolute;left:0;right:0;height:28%;top:-30%;
+    background:linear-gradient(180deg, transparent, rgba(81,215,232,0.07), transparent);
+    pointer-events:none;opacity:0;}
+  @media (prefers-reduced-motion: no-preference){
+    .instrument::after{animation:scan 1.1s cubic-bezier(.16,1,.3,1) 0.2s 1 forwards;}
+  }
+  @keyframes scan{0%{top:-30%;opacity:0}20%{opacity:1}100%{top:110%;opacity:0}}
+
+
+  /* ---- unified case-study nav (2026-07-25) : one navbar on all four pages ---- */
+  header.bar .bar-in{display:flex; align-items:center; gap:18px; height:64px;
+    max-width:1120px; margin:0 auto; padding:0 28px;}
+  header.bar .brand{flex:0 0 auto;}
+  header.bar nav.links{display:flex; align-items:center; gap:26px; margin-left:auto;
+    min-width:0; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;}
+  header.bar nav.links::-webkit-scrollbar{display:none;}
+  header.bar nav.links a{font-family:"IBM Plex Mono",monospace; font-size:13px;
+    letter-spacing:.04em; color:var(--muted); white-space:nowrap; padding:5px 0;
+    border-bottom:1px solid transparent; transition:color .18s, border-color .18s;}
+  header.bar nav.links a:hover{color:var(--text-strong);}
+  header.bar nav.links a[aria-current="page"]{color:var(--text-strong);
+    border-bottom-color:var(--seal);}
+  header.bar .theme-btn{flex:0 0 auto;}
+  /* navigation must never disappear on small screens - it scrolls instead */
+  @media (max-width:900px){
+    header.bar nav.links a:not(.cta){display:inline-block;}
+    header.bar .bar-in{gap:12px; padding:0 16px;}
+    header.bar nav.links{gap:18px;}
+    header.bar nav.links a{font-size:12px;}
+  }
+  @media (max-width:520px){
+    header.bar .brand span:not(.dot){display:none;}
+    header.bar .theme-btn{padding:7px 9px;}
+  }
+
+  /* ---- mobile overflow root-cause fix (2026-07-26) ----
+     A wide table (min-width:600/720px) inside an overflow-x:auto wrapper still forces the
+     PAGE wide, because grid/flex items default to min-width:auto and propagate the child's
+     min-content width upward. Measured: div.content was 607px in a 489px viewport, so every
+     paragraph inherited the overflow and text clipped at the right edge on phones.
+     Letting the containers shrink lets the scroll wrapper do its job. */
+  .body-grid, .body-grid > *, .content, .doc, .wrap, main, section { min-width: 0; }
+  .tbl-scroll, .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+  table { max-width: 100%; }
+
+  /* ---- research cross-links (2026-07-26) ----
+     Reuses the existing .refs / .ref card system so this introduces no second design
+     language: same border, radius, panel fill and seal accent as the prior-art cards.
+     Only difference is that the card is itself a link, so it needs a hover affordance
+     and a status chip. min-width:0 on the flex child keeps the 2026-07-26 mobile
+     overflow fix intact (a long paper title must wrap, never widen the page). */
+  a.ref{transition:border-color .2s, box-shadow .2s, transform .2s; min-width:0;}
+  a.ref > div{min-width:0;}
+  a.ref:hover{border-color:var(--seal); box-shadow:0 0 24px var(--seal-glow);}
+  /* the arrow must trail the last word inline; a flex h4 orphans it on its own
+     line as soon as the title wraps at 390px */
+  a.ref h4 .go{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--seal);
+    opacity:.55; transition:opacity .2s; margin-left:7px; white-space:nowrap;}
+  a.ref:hover h4 .go{opacity:1;}
+  a.ref .st{display:inline-block; margin-top:10px; font-family:"IBM Plex Mono",monospace;
+    font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted-2);
+    border:1px solid var(--line); border-radius:6px; padding:3px 7px;}
+  @media (max-width:720px){ a.ref:hover{transform:none;} }
+  .note a{border-bottom:1px solid color-mix(in srgb,var(--seal) 55%,transparent);
+    transition:border-color .2s;}
+  .note a:hover{border-bottom-color:var(--seal);}
+</style>
+
+<style>
+  .rm{display:grid;gap:0;margin:26px 0 0;}
+  .rml{display:grid;grid-template-columns:140px 1fr;gap:22px;padding:26px 0;
+        border-top:1px solid var(--line);}
+  .rml:last-child{border-bottom:1px solid var(--line);}
+  .rml .w{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.13em;
+          text-transform:uppercase;color:var(--muted);padding-top:5px;}
+  .rml .w b{display:block;color:var(--seal);font-size:12.5px;margin-bottom:6px;}
+  .rml h3{margin:0 0 7px;font-size:19px;color:var(--text-strong);}
+  .rml p{margin:0;color:var(--text);font-size:15.5px;line-height:1.62;}
+  .rml.now{background:linear-gradient(90deg,var(--seal-glow),transparent 60%);
+           margin-inline:-18px;padding-inline:18px;border-radius:9px;}
+  @media (max-width:640px){
+    .rml{grid-template-columns:1fr;gap:8px;}
+    /* The highlight bleed assumes the wrapper has >=18px of side padding. Below 640px it
+       does not, so the negative margin pushed the row past the viewport. Drop the bleed
+       rather than shrink it: a 2px overflow is the whole page scrolling sideways. */
+    .rml.now{margin-inline:0;padding-inline:12px;}
+  }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <a href="/case-studies/cortex/a/index.html" class="brand"><span class="dot"></span><span>CORTEX</span></a>
+    <nav class="links" aria-label="Cortex case study">
+      <a href="/case-studies/cortex/a/index.html" >Overview</a>
+      <a href="/case-studies/cortex/a/specs.html">Specs</a>
+      <a href="/case-studies/cortex/a/flowchart.html">Flow</a>
+      <a href="/case-studies/cortex/a/case-study.html">Case&nbsp;study</a>
+      <a href="/case-studies/cortex/a/roadmap.html" aria-current="page">Roadmap</a>
+    </nav>
+    <button class="theme-btn" id="themeToggle" aria-label="Toggle colour theme">◐ theme</button>
+  </div>
+</header>
+
+<section class="reveal">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Roadmap</span>
+      <h2>Where this actually stands.</h2>
+      <p>Three stages, in order. Each one is useful on its own, and each makes the next
+        easier to build. This page is the honest record: it is updated when the status
+        changes, including when it changes for the worse.</p>
+    </div>
+
+    <div class="rm">
+      <div class="rml now"><div class="w"><b>Now</b>Building</div><div>
+        <h3>Control what the agent can change</h3>
+        <p>Approve a task once; every write is checked against that boundary before it
+          lands. This is the part that runs today, and it is what makes unattended work
+          safe rather than merely fast.</p></div></div>
+      <div class="rml"><div class="w"><b>Next</b>~6 months</div><div>
+        <h3>Control what the agent can see</h3>
+        <p>Sensitive material stops at the door. Names and values are masked on the way out
+          and restored on the way back, and a task that cannot be separated from its
+          sensitive context stays local. This is what unlocks regulated buyers.</p></div></div>
+      <div class="rml"><div class="w"><b>Then</b>~12 months</div><div>
+        <h3>Prove it to an auditor</h3>
+        <p>A clean record of every action taken and everything that left the machine, in
+          the shape a compliance team already asks for.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="reveal" id="status">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Status &middot; self-hosting</span>
+      <h2>The kernel is being built by its own rules.</h2>
+      <p>Every module ships as a pull request authored by the broker's own identity and
+        approved through the gates it will use in production. The thing that will build
+        trustworthy software is, right now, building itself that way.</p>
+    </div>
+    <div class="ebound">
+      <h3>What is proven, and at what level</h3>
+      <div class="asof">status as of 2026-07-26</div>
+      <p>The headline counts are <b>module-level</b> claims and they are accurate at that level. They do not say the assembled system works, and an earlier version of this
+        page did not draw that line clearly enough. Drawing it is the whole thesis, so it
+        belongs here.</p>
+      <ul>
+        <li><b>Composition was broken.</b> On 2026-07-25/26 an end-to-end wiring audit found
+          <b>15 failures</b> between modules that each passed their own tests: an
+          authorization call passing one argument where three were required, a caller
+          reading a field that does not exist, and the durable receipt component invoked
+          <b>zero times</b> during a full composed run. The repository's own words for it
+          are <i>"units green, chain hollow."</i></li>
+        <li><b>Since fixed and independently verified:</b> approval receipts now mint,
+          check and consume as separate steps, confirmed by a direct-import run against the
+          kernel with no test pack and no adapter, 6/6 refusal behaviours.</li>
+        <li><b>Still open, and material:</b> an approval is not yet re-bound to its content
+          at apply time, so approved content can be substituted before the write. Sealed
+          test packs also cannot yet distinguish whether the unit or the test harness
+          implements a behaviour.</li>
+        <li><b>Kernel completion:</b> 2 of 10 critical-path steps closed.</li>
+      </ul>
+      <p>Do not read the illustrated broker path on this page as operational. It is the
+        design and the target, not a description of a running production system.</p>
+      <p class="verdict">The reason this section exists: on 2026-07-26 three models from
+        different vendors, given the source and the contract but never the tests,
+        independently raised <b>11 findings, 10 distinct, of which 6 are code defects</b> and
+        4 are contract ambiguities. A 26/26 green sealed-holdout suite had caught none of
+        them. <b>One is fixed so far</b>, and it is the only one with a regression test. An
+        audit of that claim also found the assessors were given a list of attack families, so
+        7 of the 11 map onto a prompted angle rather than an invented one. Tests that pass are
+        not evidence that a system works, and neither is a headline number that has not been
+        audited. Both findings are the case study.</p>
+    </div>
+    <div class="note">This level of detail lives here rather than on the overview on
+      purpose. It is the working record, not the pitch.
+      <a href="/case-studies/cortex/a/index.html"><b>Back to the overview &rarr;</b></a></div>
+  </div>
+</section>
+
+</body>
+</html>

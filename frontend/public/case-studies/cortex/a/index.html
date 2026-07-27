@@ -9,6 +9,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
 <style>
+  .refh{font-size:15px;letter-spacing:.02em;color:var(--text-strong);margin:30px 0 12px;}
+  .refs{margin:0;padding-left:22px;display:grid;gap:14px;}
+  .refs li{color:var(--text);font-size:15px;line-height:1.62;}
+  .refs .rw{display:block;color:var(--muted);font-size:14px;margin-top:4px;}
+  .refs.own li{list-style:none;margin-left:-22px;}
+  .refs.own a{color:var(--text-strong);text-decoration:none;border-bottom:1px solid var(--line);
+              display:inline-block;padding:3px 0;}
+  .refs.own a:hover{color:var(--seal);border-color:var(--seal);}
   :root{
     /* control-plane palette : a blue-biased ink, cool slate neutrals,
        one deliberate accent: the amber "receipt seal". */
@@ -397,6 +405,7 @@
       <a href="/case-studies/cortex/a/specs.html">Specs</a>
       <a href="/case-studies/cortex/a/flowchart.html">Flow</a>
       <a href="/case-studies/cortex/a/case-study.html">Case&nbsp;study</a>
+      <a href="/case-studies/cortex/a/roadmap.html">Roadmap</a>
     </nav>
     <button class="theme-btn" id="themeToggle" aria-label="Toggle colour theme">◐ theme</button>
   </div>
@@ -650,6 +659,84 @@
   </div>
 </section>
 
+
+<section class="reveal" id="references">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">References</span>
+      <h2>Every mechanism here has a paper behind it.</h2>
+      <p>The claim on this page is that Cortex composes long-established security results
+        rather than inventing new ones. That claim is checkable, so here are the sources.</p>
+    </div>
+
+    <h3 class="refh">Prior work the design rests on</h3>
+    <ol class="refs">
+      <li><b>J. P. Anderson.</b> <i>Computer Security Technology Planning Study.</i>
+        ESD-TR-73-51, USAF, 1972.
+        <span class="rw">Defines the reference monitor and its three obligations: mediate
+        every access, resist tampering, be small enough to verify. The broker is this.</span></li>
+      <li><b>J. H. Saltzer and M. D. Schroeder.</b> <i>The Protection of Information in
+        Computer Systems.</i> Proceedings of the IEEE, 63(9), 1975.
+        <span class="rw">Least privilege, fail-safe defaults, complete mediation, economy of
+        mechanism. Deny-by-default is their fail-safe default, not our idea.</span></li>
+      <li><b>B. W. Lampson.</b> <i>Protection.</i> ACM SIGOPS Operating Systems Review,
+        8(1), 1974.
+        <span class="rw">The access matrix. A task boundary is a row of it.</span></li>
+      <li><b>N. Hardy.</b> <i>The Confused Deputy.</i> ACM SIGOPS Operating Systems Review,
+        22(4), 1988.
+        <span class="rw">Why authority must travel with the request instead of being ambient.
+        An agent holding repository credentials is the confused deputy.</span></li>
+      <li><b>M. S. Miller.</b> <i>Robust Composition: Towards a Unified Approach to Access
+        Control and Concurrency Control.</i> PhD thesis, Johns Hopkins University, 2006.
+        <span class="rw">Object-capability security: no ambient authority, permission is
+        the token you were handed.</span></li>
+      <li><b>J. C. Knight and N. G. Leveson.</b> <i>An Experimental Evaluation of the
+        Assumption of Independence in Multiversion Programming.</i> IEEE Transactions on
+        Software Engineering, SE-12(1), 1986.
+        <span class="rw">Independently built versions still fail together. This is why we
+        require a different model family for verification rather than a second opinion.</span></li>
+      <li><b>M. Jackson.</b> <i>The World and the Machine.</i> Proc. 17th International
+        Conference on Software Engineering (ICSE), 1995.
+        <span class="rw">A machine that satisfies its specification can still fail in the
+        world. The reason a green test suite is not the finish line.</span></li>
+      <li><b>R. A. DeMillo, R. J. Lipton and F. G. Sayward.</b> <i>Hints on Test Data
+        Selection: Help for the Practicing Programmer.</i> Computer, 11(4), 1978.
+        <span class="rw">Mutation testing. Break the code deliberately; a suite that stays
+        green was never watching.</span></li>
+      <li><b>R. Niedermayr, E. Juergens and S. Wagner.</b> <i>Will My Tests Tell Me If I
+        Break This Code?</i> Proc. Intl. Workshop on Continuous Software Evolution and
+        Delivery, 2016.
+        <span class="rw">Pseudo-tested methods: covered, exercised, and asserting nothing.
+        Coverage is not verification.</span></li>
+      <li><b>IEEE Std 1012.</b> <i>Standard for System, Software, and Hardware Verification
+        and Validation.</i>
+        <span class="rw">The independence levels our verification is measured against, and
+        deliberately not overclaimed as.</span></li>
+    </ol>
+
+    <h3 class="refh">Our own write-ups</h3>
+    <ol class="refs own">
+      <li><a href="/research/papers/db-r-2026-001"><b>db-r-2026-001</b> &middot; Cortex
+        reliability kernel: composition status and evidence boundaries</a></li>
+      <li><a href="/research/papers/db-r-2026-002"><b>db-r-2026-002</b> &middot;
+        Deny-by-default authorization for tool-using agents</a></li>
+      <li><a href="/research/papers/db-r-2026-003"><b>db-r-2026-003</b> &middot;
+        Mechanically constraining an LLM orchestrator</a></li>
+      <li><a href="/research/papers/db-r-2026-004"><b>db-r-2026-004</b> &middot; Black-box
+        and grey-box validation of autonomous agent work</a></li>
+      <li><a href="/research/papers/db-r-2026-005"><b>db-r-2026-005</b> &middot;
+        Neuro-symbolic control for reliable multi-model coding agents</a></li>
+      <li><a href="/research/papers/db-r-2026-006"><b>db-r-2026-006</b> &middot; Mechanical
+        bias containment for multi-vendor LLM orchestration</a></li>
+      <li><a href="/research/papers/db-r-2026-008"><b>db-r-2026-008</b> &middot;
+        Verification independence without opinion aggregation</a></li>
+      <li><a href="/research/papers/db-r-2026-009"><b>db-r-2026-009</b> &middot; The
+        development cycle of an agent-built system: seating, routing, and the instrument</a></li>
+    </ol>
+    <div class="note"><a href="/research"><b>All research &rarr;</b></a></div>
+  </div>
+</section>
+
 <section class="reveal" id="status">
   <div class="wrap">
     <div class="sec-head">
@@ -670,41 +757,9 @@
       gaps in code that was already merged. <b>The slow verification isn't overhead. It's
       the product.</b></div>
 
-    <div class="ebound">
-      <h3>Evidence boundary: what is proven, and at what level</h3>
-      <div class="asof">status as of 2026-07-26</div>
-      <p>The four numbers above are <b>module-level</b> claims and they are accurate at that
-        level. They do not say the assembled system works, and an earlier version of this
-        page did not draw that line clearly enough. Drawing it is the whole thesis, so it
-        belongs here.</p>
-      <ul>
-        <li><b>Composition was broken.</b> On 2026-07-25/26 an end-to-end wiring audit found
-          <b>15 failures</b> between modules that each passed their own tests: an
-          authorization call passing one argument where three were required, a caller
-          reading a field that does not exist, and the durable receipt component invoked
-          <b>zero times</b> during a full composed run. The repository's own words for it
-          are <i>"units green, chain hollow."</i></li>
-        <li><b>Since fixed and independently verified:</b> approval receipts now mint,
-          check and consume as separate steps, confirmed by a direct-import run against the
-          kernel with no test pack and no adapter, 6/6 refusal behaviours.</li>
-        <li><b>Still open, and material:</b> an approval is not yet re-bound to its content
-          at apply time, so approved content can be substituted before the write. Sealed
-          test packs also cannot yet distinguish whether the unit or the test harness
-          implements a behaviour.</li>
-        <li><b>Kernel completion:</b> 2 of 10 critical-path steps closed.</li>
-      </ul>
-      <p>Do not read the illustrated broker path on this page as operational. It is the
-        design and the target, not a description of a running production system.</p>
-      <p class="verdict">The reason this section exists: on 2026-07-26 three models from
-        different vendors, given the source and the contract but never the tests,
-        independently raised <b>11 findings, 10 distinct, of which 6 are code defects</b> and
-        4 are contract ambiguities. A 26/26 green sealed-holdout suite had caught none of
-        them. <b>One is fixed so far</b>, and it is the only one with a regression test. An
-        audit of that claim also found the assessors were given a list of attack families, so
-        7 of the 11 map onto a prompted angle rather than an invented one. Tests that pass are
-        not evidence that a system works, and neither is a headline number that has not been
-        audited. Both findings are the case study.</p>
-    </div>
+    <div class="note" style="margin-top:18px">Where the kernel actually stands, what is
+      still open, and what ships next is kept on one page and updated as it changes.
+      <a href="/case-studies/cortex/a/roadmap.html"><b>Roadmap &amp; status &rarr;</b></a></div>
   </div>
 </section>
 
