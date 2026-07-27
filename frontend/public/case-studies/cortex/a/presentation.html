@@ -95,6 +95,9 @@
               letter-spacing:-.03em; color:var(--brass); font-variant-numeric:tabular-nums;
               margin-bottom:9px;}
   .stats .cap{display:block; font-size:14.5px; color:var(--ink-2); line-height:1.45;}
+  /* Attribution under a stat row. Small, but present: a number an investor can check
+     is worth more than a bigger number they cannot. */
+  .src{font-size:12.5px; color:var(--ink-3); line-height:1.5; margin:14px 0 0; max-width:none;}
 
   .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
          gap:15px; margin:26px 0 0;}
@@ -208,10 +211,12 @@
       <p class="lead">Cortex gives an AI agent a job, not an account. It works
         unsupervised inside a boundary you set once, and it cannot step outside it.</p>
       <ul class="stats">
-        <li><span class="fig">$50B</span><span class="cap">AI coding market by 2032, compounding around 25% a year</span></li>
-        <li><span class="fig">Most</span><span class="cap">enterprises now use AI somewhere, and still block agents from production</span></li>
-        <li><span class="fig">One</span><span class="cap">approval per task, instead of one per change</span></li>
+        <li><span class="fig">88%</span><span class="cap">of organisations now use AI, up from 78% a year earlier</span></li>
+        <li><span class="fig">1 in 3</span><span class="cap">have actually scaled it. The rest are still stuck in pilots</span></li>
+        <li><span class="fig">$37B</span><span class="cap">AI coding market by 2032, compounding around 25% a year</span></li>
       </ul>
+      <p class="src">Adoption and scaling: McKinsey, The State of AI, 2025. Market size: SNS Insider,
+        2025 (independent forecasts range $27&ndash;37B by 2032 at 22&ndash;26% CAGR).</p>
     </div>
   </section>
 
