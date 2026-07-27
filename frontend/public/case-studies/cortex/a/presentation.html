@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Cortex — Let AI agents work. Keep the keys.</title>
+<title>Cortex: Let AI agents work. Keep the keys.</title>
 <meta name="description" content="AI agents can finally do real work. Almost nobody will let them near the real company. Cortex is the layer that lets you say yes." />
 <style>
   /* ------------------------------------------------------------------
@@ -136,6 +136,16 @@
         padding:26px 24px; margin:28px 0 0; box-shadow:var(--shadow);}
   .pull p{font-size:clamp(17px,2.5vw,20px); color:var(--ink-1); margin:0; line-height:1.5;}
 
+  /* End of deck. The last slide previously just disabled Next and stopped, which reads
+     as a broken page rather than an ending. */
+  .ends{display:flex; flex-wrap:wrap; gap:10px; margin:28px 0 0;}
+  .cta{display:inline-block; font-size:15px; font-weight:600; text-decoration:none;
+       padding:12px 20px; border-radius:9px; border:1px solid var(--rule);
+       background:var(--raise); color:var(--ink-1); transition:border-color .2s, transform .2s;}
+  .cta:hover{border-color:var(--brass); transform:translateY(-1px);}
+  .cta.primary{background:var(--brass); border-color:var(--brass); color:var(--ground);}
+  .cta.primary:hover{opacity:.9;}
+
   .lines{list-style:none; padding:0; margin:24px 0 0;}
   .lines li{display:grid; grid-template-columns:26px 1fr; gap:13px;
             padding:11px 0; border-bottom:1px solid var(--rule); color:var(--ink-2);
@@ -159,9 +169,20 @@
             padding:13px 20px; background:var(--ground);
             border-bottom:1px solid var(--rule);}
   .brandbar .bn{font-family:var(--mono); font-size:12.5px; letter-spacing:.13em;
-                text-transform:uppercase; color:var(--ink-1); font-weight:660;}
+                text-transform:uppercase; color:var(--ink-1); font-weight:660;
+                text-decoration:none; display:inline-flex; align-items:center; gap:8px;}
+  .brandbar .bn:hover{color:var(--brass);}
+  .brandbar .bn .back{color:var(--brass); font-size:14px;}
   .brandbar .ct{font-family:var(--mono); font-size:12px; color:var(--ink-3);
                 font-variant-numeric:tabular-nums;}
+  /* Sibling pages. A deck with no way out is a dead end, and the reader who wants the
+     detail behind a slide is exactly the reader worth keeping. */
+  .sib{display:flex; gap:4px; align-items:center;}
+  .sib a{font-family:var(--mono); font-size:11px; letter-spacing:.09em; text-transform:uppercase;
+         color:var(--ink-3); text-decoration:none; padding:5px 9px; border-radius:6px;
+         border:1px solid transparent; transition:color .18s, border-color .18s;}
+  .sib a:hover{color:var(--brass); border-color:var(--rule);}
+  @media (max-width:700px){ .sib{display:none;} }
   .nav{position:fixed; inset:auto 0 0 0; z-index:40;
        display:flex; align-items:center; justify-content:space-between; gap:14px;
        padding:13px 20px calc(13px + env(safe-area-inset-bottom));
@@ -192,7 +213,12 @@
 
 <div class="top"><i id="progress"></i></div>
 <header class="brandbar">
-  <span class="bn">Cortex</span>
+  <a class="bn" href="/case-studies/cortex/a/index.html"><span class="back">&#8592;</span> Cortex</a>
+  <nav class="sib" aria-label="Related pages">
+    <a href="/case-studies/cortex/a/case-study.html">Case study</a>
+    <a href="/case-studies/cortex/a/specs.html">Specs</a>
+    <a href="/case-studies/cortex/a/flowchart.html">Flowchart</a>
+  </nav>
   <span class="ct" id="count">1 / 10</span>
 </header>
 
@@ -292,7 +318,7 @@
       </div>
       <div class="pull">
         <p>If every AI provider you use turned hostile tomorrow, they would hold whatever
-          you asked them &mdash; and <strong>no credentials, no control, and no way to
+          you asked them, and <strong>no credentials, no control, and no way to
           change a single line of your code.</strong></p>
       </div>
     </div>
@@ -448,6 +474,11 @@
       <div class="pull">
         <p>Let AI agents work. Keep the keys.</p>
       </div>
+      <div class="ends">
+        <a class="cta primary" href="/case-studies/cortex/a/case-study.html">Read the case study</a>
+        <a class="cta" href="/case-studies/cortex/a/index.html">Back to overview</a>
+        <a class="cta" href="/case-studies/cortex/">All Cortex work</a>
+      </div>
     </div>
   </section>
 
@@ -491,14 +522,24 @@
     count.textContent = (i+1) + ' / ' + slides.length;
     progress.style.width = (((i+1) / slides.length) * 100) + '%';
     prev.disabled = i === 0;
-    next.disabled = i === slides.length - 1;
+    // On the last slide Next stops being a dead control and becomes the way onward.
+    var last = i === slides.length - 1;
+    next.textContent = last ? 'Case study →' : 'Next';
+    next.disabled = false;
     if (location.hash !== '#' + (i+1)) history.replaceState(null, '', '#' + (i+1));
   }
 
   prev.addEventListener('click', function(){ go(i-1); });
-  next.addEventListener('click', function(){ go(i+1); });
+  next.addEventListener('click', function(){
+    if (i === slides.length - 1) { location.href = '/case-studies/cortex/a/case-study.html'; return; }
+    go(i+1);
+  });
   document.addEventListener('keydown', function(e){
-    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(i+1); }
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+      e.preventDefault();
+      if (i === slides.length - 1) { location.href = '/case-studies/cortex/a/case-study.html'; return; }
+      go(i+1);
+    }
     if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   { e.preventDefault(); go(i-1); }
     if (e.key === 'Home') { e.preventDefault(); go(0); }
     if (e.key === 'End')  { e.preventDefault(); go(slides.length-1); }
@@ -517,6 +558,14 @@
     if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.6) { go(dx < 0 ? i+1 : i-1); }
     x0 = y0 = null;
   }, {passive:true});
+
+  // A hash change must move the deck. Without this, a hand-edited URL, a shared #5 link
+  // followed from the same page, or browser back/forward all silently do nothing while the
+  // address bar claims otherwise, and the Next label sticks on whatever it last rendered.
+  window.addEventListener('hashchange', function(){
+    var n = parseInt((location.hash || '').slice(1), 10);
+    if (!isNaN(n) && n - 1 !== i) go(n - 1);
+  });
 
   var h = parseInt((location.hash || '').slice(1), 10);
   go(isNaN(h) ? 0 : h - 1);
