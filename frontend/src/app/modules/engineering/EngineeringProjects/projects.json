@@ -151,5 +151,83 @@
       }
     ],
     "links": []
+  },
+  {
+    "id": 5,
+    "title": "FOSSIL",
+    "tagline": "Keep the why",
+    "description": "Human-led technical work already creates the evidence. FOSSIL preserves the sources, tests, rejected paths and changing reasoning behind a decision so months later you can see why you made the call instead of asking AI to invent the story again.",
+    "tech": [
+      "Decision Lineage",
+      "Provenance",
+      "AI-Assisted Work",
+      "Evidence",
+      "RAG"
+    ],
+    "color": "#9B472E",
+    "accentColor": "#D98A68",
+    "stats": [
+      {
+        "label": "Inspectable lineage",
+        "icon": "TrendingUp"
+      },
+      {
+        "label": "Source-grounded",
+        "icon": "Award"
+      },
+      {
+        "label": "Human-led decisions",
+        "icon": "Users"
+      }
+    ],
+    "links": [
+      {
+        "label": "Case Study",
+        "url": "/case-studies/fossil"
+      },
+      {
+        "label": "Presentation",
+        "url": "/case-studies/fossil/presentation"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Study OS",
+    "tagline": "Use the AI. Keep the skill.",
+    "description": "AI can help you finish a hard task before the underlying skill becomes yours. Study OS finds where understanding breaks, changes the help, removes the scaffold, then checks recall, transfer and delayed performance.",
+    "tech": [
+      "Learning Science",
+      "AI Tutoring",
+      "Retrieval Practice",
+      "Transfer",
+      "Adaptive Scaffolding"
+    ],
+    "color": "#6250A4",
+    "accentColor": "#A99BE5",
+    "stats": [
+      {
+        "label": "Find the broken step",
+        "icon": "Sparkles"
+      },
+      {
+        "label": "Fade the scaffold",
+        "icon": "TrendingUp"
+      },
+      {
+        "label": "Verify transfer",
+        "icon": "Award"
+      }
+    ],
+    "links": [
+      {
+        "label": "Case Study",
+        "url": "/case-studies/study-os"
+      },
+      {
+        "label": "Presentation",
+        "url": "/case-studies/study-os/presentation"
+      }
+    ]
   }
 ]
