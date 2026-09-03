@@ -41,6 +41,82 @@
     ]
   },
   {
+    "id": 6,
+    "title": "FOSSIL",
+    "tagline": "Keep the why",
+    "description": "Preserves the research, evidence, rejected paths and changing reasoning behind human-led technical decisions so the reason for a choice stays inspectable months later.",
+    "tech": [
+      "Decision Lineage",
+      "Provenance",
+      "Evidence",
+      "AI-Assisted Work"
+    ],
+    "color": "#9B472E",
+    "accentColor": "#D98A68",
+    "stats": [
+      {
+        "label": "Inspectable lineage",
+        "icon": "TrendingUp"
+      },
+      {
+        "label": "Source-grounded",
+        "icon": "Award"
+      },
+      {
+        "label": "Human-led",
+        "icon": "Users"
+      }
+    ],
+    "links": [
+      {
+        "label": "Case Study",
+        "url": "/case-studies/fossil"
+      },
+      {
+        "label": "Presentation",
+        "url": "/case-studies/fossil/presentation"
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Study OS",
+    "tagline": "Use the AI. Keep the skill.",
+    "description": "A learning system for AI-assisted technical work. It finds where understanding breaks, changes the intervention, fades support, and checks what the learner can still do independently.",
+    "tech": [
+      "Learning Science",
+      "AI Tutoring",
+      "Retrieval Practice",
+      "Transfer"
+    ],
+    "color": "#6250A4",
+    "accentColor": "#A99BE5",
+    "stats": [
+      {
+        "label": "Diagnose the gap",
+        "icon": "Sparkles"
+      },
+      {
+        "label": "Fade support",
+        "icon": "TrendingUp"
+      },
+      {
+        "label": "Verify transfer",
+        "icon": "Award"
+      }
+    ],
+    "links": [
+      {
+        "label": "Case Study",
+        "url": "/case-studies/study-os"
+      },
+      {
+        "label": "Presentation",
+        "url": "/case-studies/study-os/presentation"
+      }
+    ]
+  },
+  {
     "id": 2,
     "title": "ONI vs My Agent Ready Architecture",
     "tagline": "@pukujan/create-modular-monolith",
