@@ -10,13 +10,13 @@ export function FossilCaseStudyRedirect() {
     const rest = clean.startsWith(base) ? clean.slice(base.length) : '';
     const page = rest.split('/').filter(Boolean)[0];
 
-    const asset = page === 'presentation'
-      ? 'presentation.html'
+    const target = page === 'presentation'
+      ? `${base}/v3/presentation.html`
       : page === 'evidence'
-        ? 'evidence.html'
-        : 'index.html';
+        ? `${base}/v2/evidence.html`
+        : `${base}/v3/index.html`;
 
-    window.location.replace(`${base}/v2/${asset}${window.location.search}${window.location.hash}`);
+    window.location.replace(`${target}${window.location.search}${window.location.hash}`);
   }, [pathname]);
 
   return null;
