@@ -17,6 +17,7 @@ import { AiAgentsCaseStudyV4Page } from './modules/case-studies/ai-agents/AiAgen
 import { LegalWorkflowResearchCaseStudyPage } from './modules/case-studies/legal-workflow-research/LegalWorkflowResearchCaseStudyPage';
 import { StaticCaseStudyAssetGuard } from './modules/case-studies/legal-workflow-research/StaticCaseStudyAssetGuard';
 import { CortexCaseStudyRedirect } from './modules/case-studies/cortex/CortexCaseStudyRedirect';
+import { FossilCaseStudyRedirect } from './modules/case-studies/fossil/FossilCaseStudyRedirect';
 import { ResearchListPage } from './modules/research/public/ResearchListPage';
 import { ResearchPaperPage } from './modules/research/public/ResearchPaperPage';
 import { ResearchSourcePage } from './modules/research/public/ResearchSourcePage';
@@ -101,6 +102,11 @@ function publicRoutes(): ReactElement[] {
     <Route path="/case-studies/cortex/specs" element={<CortexCaseStudyRedirect />} />,
     <Route path="/case-studies/cortex/:ver" element={<CortexCaseStudyRedirect />} />,
     <Route path="/case-studies/cortex/:ver/specs" element={<CortexCaseStudyRedirect />} />,
+    // FOSSIL follows the same static-case-study pattern as Cortex, but keeps a separate
+    // presentation and evidence ledger so marketing claims remain inspectable.
+    <Route path="/case-studies/fossil" element={<FossilCaseStudyRedirect />} />,
+    <Route path="/case-studies/fossil/presentation" element={<FossilCaseStudyRedirect />} />,
+    <Route path="/case-studies/fossil/evidence" element={<FossilCaseStudyRedirect />} />,
     <Route key="research-shell" path="/research" element={<PortfolioPublicLayout />}>
       <Route index element={<ResearchListPage />} />
       <Route path="papers/:paperId" element={<ResearchPaperPage />} />
