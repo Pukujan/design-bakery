@@ -11,10 +11,10 @@ export function FossilCaseStudyRedirect() {
     const page = rest.split('/').filter(Boolean)[0];
 
     const target = page === 'presentation'
-      ? `${base}/v3/presentation.html`
+      ? `${base}/v4/presentation.html`
       : page === 'evidence'
-        ? `${base}/v2/evidence.html`
-        : `${base}/v3/index.html`;
+        ? `${base}/v4/evidence.html`
+        : `${base}/v4/index.html`;
 
     window.location.replace(`${target}${window.location.search}${window.location.hash}`);
   }, [pathname]);
