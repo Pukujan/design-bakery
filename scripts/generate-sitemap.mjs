@@ -132,6 +132,13 @@ async function main() {
     '/case-studies/ai-agents/v3',
     '/case-studies/ai-agents/v4',
     '/case-studies/legal-workflow-research',
+    '/case-studies/cortex',
+    '/case-studies/fossil',
+    '/case-studies/fossil/presentation',
+    '/case-studies/fossil/evidence',
+    '/case-studies/study-os',
+    '/case-studies/study-os/presentation',
+    '/case-studies/study-os/evidence',
   ];
 
   const blogRows = await loadBlogRows();
