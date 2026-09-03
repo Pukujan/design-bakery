@@ -18,6 +18,7 @@ import { LegalWorkflowResearchCaseStudyPage } from './modules/case-studies/legal
 import { StaticCaseStudyAssetGuard } from './modules/case-studies/legal-workflow-research/StaticCaseStudyAssetGuard';
 import { CortexCaseStudyRedirect } from './modules/case-studies/cortex/CortexCaseStudyRedirect';
 import { FossilCaseStudyRedirect } from './modules/case-studies/fossil/FossilCaseStudyRedirect';
+import { StudyOsCaseStudyRedirect } from './modules/case-studies/study-os/StudyOsCaseStudyRedirect';
 import { ResearchListPage } from './modules/research/public/ResearchListPage';
 import { ResearchPaperPage } from './modules/research/public/ResearchPaperPage';
 import { ResearchSourcePage } from './modules/research/public/ResearchSourcePage';
@@ -107,6 +108,11 @@ function publicRoutes(): ReactElement[] {
     <Route path="/case-studies/fossil" element={<FossilCaseStudyRedirect />} />,
     <Route path="/case-studies/fossil/presentation" element={<FossilCaseStudyRedirect />} />,
     <Route path="/case-studies/fossil/evidence" element={<FossilCaseStudyRedirect />} />,
+    // Study OS uses the same static case-study pattern, with the marketing story and
+    // research ledger kept separate so product claims stay bounded.
+    <Route path="/case-studies/study-os" element={<StudyOsCaseStudyRedirect />} />,
+    <Route path="/case-studies/study-os/presentation" element={<StudyOsCaseStudyRedirect />} />,
+    <Route path="/case-studies/study-os/evidence" element={<StudyOsCaseStudyRedirect />} />,
     <Route key="research-shell" path="/research" element={<PortfolioPublicLayout />}>
       <Route index element={<ResearchListPage />} />
       <Route path="papers/:paperId" element={<ResearchPaperPage />} />
