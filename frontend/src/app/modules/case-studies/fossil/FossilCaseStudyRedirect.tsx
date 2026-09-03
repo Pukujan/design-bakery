@@ -16,7 +16,7 @@ export function FossilCaseStudyRedirect() {
         ? 'evidence.html'
         : 'index.html';
 
-    window.location.replace(`${base}/${asset}${window.location.search}${window.location.hash}`);
+    window.location.replace(`${base}/v2/${asset}${window.location.search}${window.location.hash}`);
   }, [pathname]);
 
   return null;
