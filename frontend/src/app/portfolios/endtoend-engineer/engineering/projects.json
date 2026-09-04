@@ -1,43 +1,45 @@
 [
   {
+    "id": 7,
+    "title": "Study OS",
+    "tagline": "Find the real point of confusion",
+    "description": "A public research project for technical learning that asks why the learner got stuck before deciding what to teach next. It separates concept difficulty from representation, syntax, source-code, and tutor friction using real learner sessions and source-linked evidence.",
+    "tech": [
+      "Learning Systems",
+      "AI Tutoring",
+      "Representation Learning",
+      "Program Comprehension",
+      "Evidence"
+    ],
+    "color": "#07111A",
+    "accentColor": "#F6C85F",
+    "stats": [
+      {"label": "Built in public", "icon": "Sparkles"},
+      {"label": "Real learner sessions", "icon": "Users"},
+      {"label": "Source-linked evidence", "icon": "Award"}
+    ],
+    "links": [
+      {"label": "Case Study", "url": "/case-studies/study-os"},
+      {"label": "GitHub · Public", "url": "https://github.com/Pukujan/Study-os"},
+      {"label": "Presentation", "url": "/case-studies/study-os/presentation"}
+    ]
+  },
+  {
     "id": 1,
     "title": "Cortex",
     "tagline": "A reliability kernel for AI agents",
-    "description": "Coding agents are capable, but you can't trust their output without reviewing it, and reviewing costs about what the work did. So I inverted the usual bet: instead of a smarter agent, build the machinery around it. A deny-by-default reference monitor, unforgeable content-bound receipts, trust-graded sandboxes, and deterministic oracle gates let interchangeable models do real work on a codebase you never have to read to trust. It composes decades-proven OS-security patterns (reference monitors, privilege separation, capability tokens) into a trust kernel for agent software production, built contract-first and self-hosting: every module ships through the same gates it will one day enforce.",
-    "tech": [
-      "AI Agents",
-      "Reliability Kernel",
-      "Reference Monitor",
-      "Deny-by-default",
-      "Sandboxing",
-      "Formal Invariants",
-      "Contract-first"
-    ],
+    "description": "Coding agents are capable, but you can't trust their output without reviewing it, and reviewing costs about what the work did. So I inverted the usual bet: instead of a smarter agent, build the machinery around it. A deny-by-default reference monitor, unforgeable content-bound receipts, trust-graded sandboxes, and deterministic oracle gates let interchangeable models do real work on a codebase you never have to read to trust. It composes decades-proven OS-security patterns into a trust kernel for agent software production, built contract-first and self-hosting: every module ships through the same gates it will one day enforce.",
+    "tech": ["AI Agents", "Reliability Kernel", "Reference Monitor", "Deny-by-default", "Sandboxing", "Formal Invariants", "Contract-first"],
     "color": "#C98A14",
     "accentColor": "#F5B640",
     "stats": [
-      {
-        "label": "Deny-by-default kernel",
-        "icon": "Sparkles"
-      },
-      {
-        "label": "Unforgeable receipts",
-        "icon": "Award"
-      },
-      {
-        "label": "Evidence-gated · 0 judges",
-        "icon": "TrendingUp"
-      }
+      {"label": "Deny-by-default kernel", "icon": "Sparkles"},
+      {"label": "Unforgeable receipts", "icon": "Award"},
+      {"label": "Evidence-gated · 0 judges", "icon": "TrendingUp"}
     ],
     "links": [
-      {
-        "label": "Case Study",
-        "url": "/case-studies/cortex"
-      },
-      {
-        "label": "Technical Spec",
-        "url": "/case-studies/cortex/specs"
-      }
+      {"label": "Case Study", "url": "/case-studies/cortex"},
+      {"label": "Technical Spec", "url": "/case-studies/cortex/specs"}
     ]
   },
   {
@@ -45,75 +47,17 @@
     "title": "FOSSIL",
     "tagline": "Keep the why",
     "description": "Preserves the research, evidence, rejected paths and changing reasoning behind human-led technical decisions so the reason for a choice stays inspectable months later.",
-    "tech": [
-      "Decision Lineage",
-      "Provenance",
-      "Evidence",
-      "AI-Assisted Work"
-    ],
+    "tech": ["Decision Lineage", "Provenance", "Evidence", "AI-Assisted Work"],
     "color": "#9B472E",
     "accentColor": "#D98A68",
     "stats": [
-      {
-        "label": "Inspectable lineage",
-        "icon": "TrendingUp"
-      },
-      {
-        "label": "Source-grounded",
-        "icon": "Award"
-      },
-      {
-        "label": "Human-led",
-        "icon": "Users"
-      }
+      {"label": "Inspectable lineage", "icon": "TrendingUp"},
+      {"label": "Source-grounded", "icon": "Award"},
+      {"label": "Human-led", "icon": "Users"}
     ],
     "links": [
-      {
-        "label": "Case Study",
-        "url": "/case-studies/fossil"
-      },
-      {
-        "label": "Presentation",
-        "url": "/case-studies/fossil/presentation"
-      }
-    ]
-  },
-  {
-    "id": 7,
-    "title": "Study OS",
-    "tagline": "Use the AI. Keep the skill.",
-    "description": "A learning system for AI-assisted technical work. It finds where understanding breaks, changes the intervention, fades support, and checks what the learner can still do independently.",
-    "tech": [
-      "Learning Science",
-      "AI Tutoring",
-      "Retrieval Practice",
-      "Transfer"
-    ],
-    "color": "#6250A4",
-    "accentColor": "#A99BE5",
-    "stats": [
-      {
-        "label": "Diagnose the gap",
-        "icon": "Sparkles"
-      },
-      {
-        "label": "Fade support",
-        "icon": "TrendingUp"
-      },
-      {
-        "label": "Verify transfer",
-        "icon": "Award"
-      }
-    ],
-    "links": [
-      {
-        "label": "Case Study",
-        "url": "/case-studies/study-os"
-      },
-      {
-        "label": "Presentation",
-        "url": "/case-studies/study-os/presentation"
-      }
+      {"label": "Case Study", "url": "/case-studies/fossil"},
+      {"label": "Presentation", "url": "/case-studies/fossil/presentation"}
     ]
   },
   {
@@ -121,47 +65,19 @@
     "title": "ONI vs My Agent Ready Architecture",
     "tagline": "@pukujan/create-modular-monolith",
     "description": "Software architecture has not caught up with agent-first coding yet. I built an npm package so repos keep agent speed without losing planning time, audit trails, or architecture shape — modular boundaries, contracts, versioned dev logs, agent-readable JSON audits, prompt versioning, evals, and patch/rollback context stronger than git alone. Inspired by Oxygen Not Included systems thinking; tested with multi-agent pipelines up to 500 agents and designed to grow naturally toward microservices.",
-    "tech": [
-      "AI Agents",
-      "Modular Monolith",
-      "Audit Logs",
-      "Prompt Versioning",
-      "Evals",
-      "Microservices"
-    ],
+    "tech": ["AI Agents", "Modular Monolith", "Audit Logs", "Prompt Versioning", "Evals", "Microservices"],
     "color": "#0891B2",
     "accentColor": "#22D3EE",
     "stats": [
-      {
-        "label": "500+ Agents Tested",
-        "icon": "Sparkles"
-      },
-      {
-        "label": "Audit + Rollback",
-        "icon": "TrendingUp"
-      },
-      {
-        "label": "npm Package Release",
-        "icon": "Award"
-      }
+      {"label": "500+ Agents Tested", "icon": "Sparkles"},
+      {"label": "Audit + Rollback", "icon": "TrendingUp"},
+      {"label": "npm Package Release", "icon": "Award"}
     ],
     "links": [
-      {
-        "label": "Case Study",
-        "url": "/case-studies/ai-agents/v3"
-      },
-      {
-        "label": "npm Package",
-        "url": "https://www.npmjs.com/package/@pukujan/create-modular-monolith"
-      },
-      {
-        "label": "Read More",
-        "url": "https://lnkd.in/eXgZgm6N"
-      },
-      {
-        "label": "Source",
-        "url": "https://github.com/Pukujan/create-modular-monolith"
-      }
+      {"label": "Case Study", "url": "/case-studies/ai-agents/v3"},
+      {"label": "npm Package", "url": "https://www.npmjs.com/package/@pukujan/create-modular-monolith"},
+      {"label": "Read More", "url": "https://lnkd.in/eXgZgm6N"},
+      {"label": "Source", "url": "https://github.com/Pukujan/create-modular-monolith"}
     ]
   },
   {
@@ -169,38 +85,17 @@
     "title": "Ekagajpatra",
     "tagline": "Civic-Tech Workflow Platform",
     "description": "Built a civic-tech product that turned complex government and legal-documentation processes into guided workflows for real users.",
-    "tech": [
-      "Workflow Design",
-      "Product Engineering",
-      "Civic Tech",
-      "User Research",
-      "Full-Stack"
-    ],
+    "tech": ["Workflow Design", "Product Engineering", "Civic Tech", "User Research", "Full-Stack"],
     "color": "#4169E1",
     "accentColor": "#8EA7FF",
     "stats": [
-      {
-        "label": "35,000+ Users",
-        "icon": "Users"
-      },
-      {
-        "label": "99% Cost Reduction",
-        "icon": "TrendingUp"
-      },
-      {
-        "label": "5 Awards / Grants",
-        "icon": "Award"
-      }
+      {"label": "35,000+ Users", "icon": "Users"},
+      {"label": "99% Cost Reduction", "icon": "TrendingUp"},
+      {"label": "5 Awards / Grants", "icon": "Award"}
     ],
     "links": [
-      {
-        "label": "Case Study",
-        "url": "/case-studies/ekagajpatra"
-      },
-      {
-        "label": "Live Platform",
-        "url": "https://www.ekagajpatra.com"
-      }
+      {"label": "Case Study", "url": "/case-studies/ekagajpatra"},
+      {"label": "Live Platform", "url": "https://www.ekagajpatra.com"}
     ]
   },
   {
@@ -208,39 +103,17 @@
     "title": "SaaS Dashboard Systems",
     "tagline": "Client Operations Tools",
     "description": "Built dashboards, analytics views, workflow prototypes, and client-specific tools for legal, financial, and business operations teams.",
-    "tech": [
-      "Solutions Engineering",
-      "React",
-      "Node.js",
-      "Dashboards",
-      "SaaS",
-      "APIs"
-    ],
+    "tech": ["Solutions Engineering", "React", "Node.js", "Dashboards", "SaaS", "APIs"],
     "color": "#0D9488",
     "accentColor": "#14B8A6",
     "stats": [
-      {
-        "label": "Client Workflows",
-        "icon": "Sparkles"
-      },
-      {
-        "label": "Custom Tools",
-        "icon": "TrendingUp"
-      },
-      {
-        "label": "Operational Dashboards",
-        "icon": "Award"
-      }
+      {"label": "Client Workflows", "icon": "Sparkles"},
+      {"label": "Custom Tools", "icon": "TrendingUp"},
+      {"label": "Operational Dashboards", "icon": "Award"}
     ],
     "links": [
-      {
-        "label": "Project Notes",
-        "url": "#"
-      },
-      {
-        "label": "System Design",
-        "url": "#"
-      }
+      {"label": "Project Notes", "url": "#"},
+      {"label": "System Design", "url": "#"}
     ]
   },
   {
@@ -248,38 +121,17 @@
     "title": "Legal Workflow Research",
     "tagline": "AI-Assisted Litigation & Document Intelligence",
     "description": "Independent research into safer AI-assisted legal workflows using document intelligence, confidence routing, source authority, human review, and procedural memory.",
-    "tech": [
-      "Legal AI",
-      "RAG",
-      "Workflow Systems",
-      "Python",
-      "Node.js"
-    ],
+    "tech": ["Legal AI", "RAG", "Workflow Systems", "Python", "Node.js"],
     "color": "#9B6DD6",
     "accentColor": "#FF8C42",
     "stats": [
-      {
-        "label": "Workflow Modeling",
-        "icon": "TrendingUp"
-      },
-      {
-        "label": "Confidence Routing",
-        "icon": "Sparkles"
-      },
-      {
-        "label": "Human Review",
-        "icon": "Users"
-      }
+      {"label": "Workflow Modeling", "icon": "TrendingUp"},
+      {"label": "Confidence Routing", "icon": "Sparkles"},
+      {"label": "Human Review", "icon": "Users"}
     ],
     "links": [
-      {
-        "label": "Case Study",
-        "url": "/case-studies/legal-workflow-research"
-      },
-      {
-        "label": "GitHub",
-        "url": "https://github.com/Pukujan/litigation-prompt-engineering-v2"
-      }
+      {"label": "Case Study", "url": "/case-studies/legal-workflow-research"},
+      {"label": "GitHub", "url": "https://github.com/Pukujan/litigation-prompt-engineering-v2"}
     ]
   }
 ]
