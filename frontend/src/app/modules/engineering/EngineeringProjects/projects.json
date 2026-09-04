@@ -1,221 +1,29 @@
 [
   {
-    "id": 1,
-    "title": "Ekagajpatra",
-    "tagline": "Civic Tech Platform",
-    "description": "Architected and built a scalable platform serving 35,000+ users, transforming complex documentation into guided workflows with validation, PDF generation, and multi-role dashboards.",
-    "tech": [
-      "Next.js",
-      "React",
-      "TypeScript",
-      "PostgreSQL"
-    ],
-    "color": "#4169E1",
-    "accentColor": "#FFD93D",
-    "stats": [
-      {
-        "label": "35K+ Users",
-        "icon": "Users"
-      },
-      {
-        "label": "99% Cost Cut",
-        "icon": "TrendingUp"
-      },
-      {
-        "label": "5 Awards",
-        "icon": "Award"
-      }
-    ],
-    "links": [
-      {
-        "label": "Case Study",
-        "url": "/case-studies/ekagajpatra"
-      },
-      {
-        "label": "Live Platform",
-        "url": "https://www.ekagajpatra.com"
-      }
-    ]
-  },
-  {
-    "id": 2,
-    "title": "InvestAI",
-    "tagline": "AI Financial Platform",
-    "description": "Built a working MVP financial learning platform using AI for sentiment analysis and market credibility evaluation, tested by 10+ financial experts.",
-    "tech": [
-      "AI/ML",
-      "Next.js",
-      "Python",
-      "OpenAI"
-    ],
-    "color": "#A8CC00",
-    "accentColor": "#FF6B9D",
-    "stats": [
-      {
-        "label": "Live MVP",
-        "icon": "Sparkles"
-      },
-      {
-        "label": "10+ Experts",
-        "icon": "Users"
-      },
-      {
-        "label": "AI-Powered",
-        "icon": "TrendingUp"
-      }
-    ],
-    "links": [
-      {
-        "label": "View Demo",
-        "url": "https://financial-investment-with-gemini-in.vercel.app/"
-      },
-      {
-        "label": "GitHub",
-        "url": "https://github.com/Pukujan/financial-investment-with-gemini-insights"
-      },
-      {
-        "label": "Case Study",
-        "url": "/case-studies/invest-ai"
-      }
-    ]
-  },
-  {
-    "id": 3,
-    "title": "ONI vs My Agent Ready Architecture",
-    "tagline": "@pukujan/create-modular-monolith",
-    "description": "Software architecture has not caught up with agent-first coding yet. I built an npm package so repos keep agent speed without losing planning time, audit trails, or architecture shape — modular boundaries, contracts, versioned dev logs, agent-readable JSON audits, prompt versioning, evals, and patch/rollback context stronger than git alone. Tested with multi-agent pipelines up to 500 agents.",
-    "tech": [
-      "AI Agents",
-      "Modular Monolith",
-      "Audit Logs",
-      "Prompt Versioning",
-      "Evals",
-      "Microservices"
-    ],
-    "color": "#0891B2",
-    "accentColor": "#22D3EE",
-    "stats": [
-      {
-        "label": "500+ Agents Tested",
-        "icon": "Sparkles"
-      },
-      {
-        "label": "Audit + Rollback",
-        "icon": "TrendingUp"
-      },
-      {
-        "label": "npm Package Release",
-        "icon": "Award"
-      }
-    ],
-    "links": [
-      {
-        "label": "Case Study",
-        "url": "/case-studies/ai-agents/v3"
-      },
-      {
-        "label": "npm Package",
-        "url": "https://www.npmjs.com/package/@pukujan/create-modular-monolith"
-      },
-      {
-        "label": "Read More",
-        "url": "https://lnkd.in/eXgZgm6N"
-      }
-    ]
-  },
-  {
-    "id": 4,
-    "title": "SaaS Dashboard",
-    "tagline": "Multi-Tenant Platform",
-    "description": "Enterprise admin system for legal, financial, and business clients with role-based access and advanced analytics.",
-    "tech": [
-      "Next.js",
-      "PostgreSQL",
-      "Redux",
-      "TailwindCSS"
-    ],
-    "color": "#FF6B9D",
-    "accentColor": "#A8CC00",
-    "stats": [
-      {
-        "label": "Multi-Tenant",
-        "icon": "Users"
-      },
-      {
-        "label": "Analytics",
-        "icon": "TrendingUp"
-      },
-      {
-        "label": "RBAC",
-        "icon": "Award"
-      }
-    ],
-    "links": []
-  },
-  {
-    "id": 5,
-    "title": "FOSSIL",
-    "tagline": "Keep the why",
-    "description": "Human-led technical work already creates the evidence. FOSSIL preserves the sources, tests, rejected paths and changing reasoning behind a decision so months later you can see why you made the call instead of asking AI to invent the story again.",
-    "tech": [
-      "Decision Lineage",
-      "Provenance",
-      "AI-Assisted Work",
-      "Evidence",
-      "RAG"
-    ],
-    "color": "#9B472E",
-    "accentColor": "#D98A68",
-    "stats": [
-      {
-        "label": "Inspectable lineage",
-        "icon": "TrendingUp"
-      },
-      {
-        "label": "Source-grounded",
-        "icon": "Award"
-      },
-      {
-        "label": "Human-led decisions",
-        "icon": "Users"
-      }
-    ],
-    "links": [
-      {
-        "label": "Case Study",
-        "url": "/case-studies/fossil"
-      },
-      {
-        "label": "Presentation",
-        "url": "/case-studies/fossil/presentation"
-      }
-    ]
-  },
-  {
     "id": 6,
     "title": "Study OS",
-    "tagline": "Use the AI. Keep the skill.",
-    "description": "AI can help you finish a hard task before the underlying skill becomes yours. Study OS finds where understanding breaks, changes the help, removes the scaffold, then checks recall, transfer and delayed performance.",
+    "tagline": "Find the real point of confusion",
+    "description": "A public research project asking a harder question than whether an answer is right: was the learner blocked by the concept, the representation, the source code, or the tutor? Built from real learner sessions, source-linked evidence, and an evolving learning system you can inspect on GitHub.",
     "tech": [
-      "Learning Science",
+      "Learning Systems",
       "AI Tutoring",
-      "Retrieval Practice",
-      "Transfer",
-      "Adaptive Scaffolding"
+      "Representation Learning",
+      "Program Comprehension",
+      "Evidence"
     ],
-    "color": "#6250A4",
-    "accentColor": "#A99BE5",
+    "color": "#07111A",
+    "accentColor": "#F6C85F",
     "stats": [
       {
-        "label": "Find the broken step",
+        "label": "Built in public",
         "icon": "Sparkles"
       },
       {
-        "label": "Fade the scaffold",
-        "icon": "TrendingUp"
+        "label": "Real learner sessions",
+        "icon": "Users"
       },
       {
-        "label": "Verify transfer",
+        "label": "Source-linked evidence",
         "icon": "Award"
       }
     ],
@@ -225,9 +33,102 @@
         "url": "/case-studies/study-os"
       },
       {
+        "label": "GitHub · Public",
+        "url": "https://github.com/Pukujan/Study-os"
+      },
+      {
         "label": "Presentation",
         "url": "/case-studies/study-os/presentation"
       }
+    ]
+  },
+  {
+    "id": 1,
+    "title": "Ekagajpatra",
+    "tagline": "Civic Tech Platform",
+    "description": "Architected and built a scalable platform serving 35,000+ users, transforming complex documentation into guided workflows with validation, PDF generation, and multi-role dashboards.",
+    "tech": ["Next.js", "React", "TypeScript", "PostgreSQL"],
+    "color": "#4169E1",
+    "accentColor": "#FFD93D",
+    "stats": [
+      {"label": "35K+ Users", "icon": "Users"},
+      {"label": "99% Cost Cut", "icon": "TrendingUp"},
+      {"label": "5 Awards", "icon": "Award"}
+    ],
+    "links": [
+      {"label": "Case Study", "url": "/case-studies/ekagajpatra"},
+      {"label": "Live Platform", "url": "https://www.ekagajpatra.com"}
+    ]
+  },
+  {
+    "id": 2,
+    "title": "InvestAI",
+    "tagline": "AI Financial Platform",
+    "description": "Built a working MVP financial learning platform using AI for sentiment analysis and market credibility evaluation, tested by 10+ financial experts.",
+    "tech": ["AI/ML", "Next.js", "Python", "OpenAI"],
+    "color": "#A8CC00",
+    "accentColor": "#FF6B9D",
+    "stats": [
+      {"label": "Live MVP", "icon": "Sparkles"},
+      {"label": "10+ Experts", "icon": "Users"},
+      {"label": "AI-Powered", "icon": "TrendingUp"}
+    ],
+    "links": [
+      {"label": "View Demo", "url": "https://financial-investment-with-gemini-in.vercel.app/"},
+      {"label": "GitHub", "url": "https://github.com/Pukujan/financial-investment-with-gemini-insights"},
+      {"label": "Case Study", "url": "/case-studies/invest-ai"}
+    ]
+  },
+  {
+    "id": 3,
+    "title": "ONI vs My Agent Ready Architecture",
+    "tagline": "@pukujan/create-modular-monolith",
+    "description": "Software architecture has not caught up with agent-first coding yet. I built an npm package so repos keep agent speed without losing planning time, audit trails, or architecture shape, with modular boundaries, contracts, versioned dev logs, agent-readable JSON audits, prompt versioning, evals, and patch/rollback context stronger than git alone. Tested with multi-agent pipelines up to 500 agents.",
+    "tech": ["AI Agents", "Modular Monolith", "Audit Logs", "Prompt Versioning", "Evals", "Microservices"],
+    "color": "#0891B2",
+    "accentColor": "#22D3EE",
+    "stats": [
+      {"label": "500+ Agents Tested", "icon": "Sparkles"},
+      {"label": "Audit + Rollback", "icon": "TrendingUp"},
+      {"label": "npm Package Release", "icon": "Award"}
+    ],
+    "links": [
+      {"label": "Case Study", "url": "/case-studies/ai-agents/v3"},
+      {"label": "npm Package", "url": "https://www.npmjs.com/package/@pukujan/create-modular-monolith"},
+      {"label": "Read More", "url": "https://lnkd.in/eXgZgm6N"}
+    ]
+  },
+  {
+    "id": 4,
+    "title": "SaaS Dashboard",
+    "tagline": "Multi-Tenant Platform",
+    "description": "Enterprise admin system for legal, financial, and business clients with role-based access and advanced analytics.",
+    "tech": ["Next.js", "PostgreSQL", "Redux", "TailwindCSS"],
+    "color": "#FF6B9D",
+    "accentColor": "#A8CC00",
+    "stats": [
+      {"label": "Multi-Tenant", "icon": "Users"},
+      {"label": "Analytics", "icon": "TrendingUp"},
+      {"label": "RBAC", "icon": "Award"}
+    ],
+    "links": []
+  },
+  {
+    "id": 5,
+    "title": "FOSSIL",
+    "tagline": "Keep the why",
+    "description": "Human-led technical work already creates the evidence. FOSSIL preserves the sources, tests, rejected paths and changing reasoning behind a decision so months later you can see why you made the call instead of asking AI to invent the story again.",
+    "tech": ["Decision Lineage", "Provenance", "AI-Assisted Work", "Evidence", "RAG"],
+    "color": "#9B472E",
+    "accentColor": "#D98A68",
+    "stats": [
+      {"label": "Inspectable lineage", "icon": "TrendingUp"},
+      {"label": "Source-grounded", "icon": "Award"},
+      {"label": "Human-led decisions", "icon": "Users"}
+    ],
+    "links": [
+      {"label": "Case Study", "url": "/case-studies/fossil"},
+      {"label": "Presentation", "url": "/case-studies/fossil/presentation"}
     ]
   }
 ]
