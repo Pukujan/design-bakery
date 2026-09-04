@@ -4,7 +4,7 @@
 |-------|-------|
 | **Document date** | 2026-09-03 |
 | **Created** | 2026-09-03 |
-| **Last updated** | 2026-09-03 23:25 |
+| **Last updated** | 2026-09-04 00:14 |
 
 ## Summary
 
@@ -105,6 +105,16 @@ Design language:
 
 The intended feeling is: “I am trying, this AI understands that the explanation may be the problem, and we can try another way.”
 
+### Presentation interaction
+
+The presentation should feel obvious to navigate on desktop and mobile:
+
+- large translucent circular arrow controls sit at the left and right edges of the deck;
+- arrow keys, Page Up/Page Down, and Space continue to work;
+- horizontal touch swipes move between slides;
+- vertical scrolling remains native, so a swipe only changes slides when the horizontal gesture clearly dominates;
+- the bottom bar is for progress dots and a subtle interaction hint rather than small text Back/Next buttons.
+
 ## External research shown publicly
 
 The case study/evidence page uses these claims carefully:
@@ -121,11 +131,11 @@ These papers support the problem space. They do not prove Study OS efficacy.
 | File | Notes |
 |------|-------|
 | `frontend/public/case-studies/study-os/index.html` | Complete learner-first rewrite with warm-futurist AI partner design |
-| `frontend/public/case-studies/study-os/presentation.html` | Nine-slide sales and market presentation |
+| `frontend/public/case-studies/study-os/presentation.html` | Nine-slide sales and market presentation with edge-arrow navigation and swipe support |
 | `frontend/public/case-studies/study-os/evidence.html` | Warm visual refresh while keeping provenance and claim boundaries explicit |
 | `frontend/src/app/modules/engineering/EngineeringProjects/projects.json` | Study OS stays first; new AI-learning-partner description and cobalt/yellow palette |
 | `frontend/src/app/portfolios/endtoend-engineer/engineering/projects.json` | Same primary Study OS positioning ahead of Cortex and FOSSIL |
-| `additionals/guidelines/dev-log-2026-09-03-study-os.md` | Updated durable brand and copy guidance |
+| `additionals/guidelines/dev-log-2026-09-03-study-os.md` | Updated durable brand, copy, and presentation interaction guidance |
 
 ## Public URLs
 
