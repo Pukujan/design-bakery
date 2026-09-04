@@ -2,28 +2,28 @@
   {
     "id": 6,
     "title": "Study OS",
-    "tagline": "Find the real point of confusion",
-    "description": "A public research project asking a harder question than whether an answer is right: was the learner blocked by the concept, the representation, the source code, or the tutor? Built from real learner sessions, source-linked evidence, and an evolving learning system you can inspect on GitHub.",
+    "tagline": "When it doesn't click, change the explanation",
+    "description": "A public AI learning project exploring a new market gap: models can generate endless explanations, but learners still need help finding the one that makes sense to them. Study OS learns from where a student gets stuck, tries a different representation, and keeps the evidence tied to real learning sessions.",
     "tech": [
-      "Learning Systems",
-      "AI Tutoring",
-      "Representation Learning",
-      "Program Comprehension",
-      "Evidence"
+      "AI Learning",
+      "Adaptive Tutoring",
+      "Learning Science",
+      "Representation Design",
+      "Python"
     ],
-    "color": "#07111A",
-    "accentColor": "#F6C85F",
+    "color": "#4D6DF6",
+    "accentColor": "#FFD767",
     "stats": [
       {
         "label": "Built in public",
         "icon": "Sparkles"
       },
       {
-        "label": "Real learner sessions",
+        "label": "Real learning sessions",
         "icon": "Users"
       },
       {
-        "label": "Source-linked evidence",
+        "label": "AI learning partner",
         "icon": "Award"
       }
     ],
