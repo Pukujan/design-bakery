@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-05-22 |
-| **Last updated** | 2026-09-03 (FOSSIL problem-framing case study) |
+| **Last updated** | 2026-09-08 (Fluffy System creative gallery experiment) |
 
 **Start here** for agent-facing documentation in this repo.
 
@@ -34,6 +34,7 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 
 | Date | Log |
 |------|-----|
+| 2026-09-08 | [dev-log-2026-09-08-fluffy-system.md](dev-log-2026-09-08-fluffy-system.md) - Fluffy System hidden creative gallery, PAM/Research Assurance candidate bakeoff, Three.js variants |
 | 2026-09-03 | [dev-log-2026-09-03-study-os.md](dev-log-2026-09-03-study-os.md) - Study OS marketing case study, presentation, evidence ledger, homepage integration |
 | 2026-09-03 | [dev-log-2026-09-03.md](dev-log-2026-09-03.md) - FOSSIL problem-framing case study, presentation, evidence ledger |
 | 2026-07-20 | [dev-log-2026-07-20.md](dev-log-2026-07-20.md) - Cortex case-study redesign and composition-status corrections |
