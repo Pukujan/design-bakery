@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-05-22 |
-| **Last updated** | 2026-09-09 (Fluffy System v2 focused gallery) |
+| **Last updated** | 2026-09-09 (Fluffy System v3 media-direction gallery) |
 
 **Start here** for agent-facing documentation in this repo.
 
@@ -21,8 +21,7 @@
 | Engineering blog posts | [agent-devlog-engineering-blog-posts.md](agent-devlog-engineering-blog-posts.md) | — | `src/app/modules/blog/data/`, `content/posts/` |
 | Blog motion & decor | [agent-devlog-blog-motion.md](agent-devlog-blog-motion.md) | `.cursor/rules/blog-motion.mdc` | `src/app/modules/blog/shared/BlogPageMotion.tsx` |
 | CodeGraph usage | [agent-devlog-codegraph.md](agent-devlog-codegraph.md) | `.cursor/rules/codegraph.mdc` | `.codegraph/config.json` |
-| Blog publish kit | [agent-devlog-blog-publish-kit.md](agent-devlog-blog-publish-kit.md) | — | `src/app/modules/blog/studio/`, `backend/services/src/blog/publishKit/` |
-| Cover Studio (exportable) | [packages/cover-studio-kit/README.md](../packages/cover-studio-kit/README.md) | [docs/HISTORY.md](../packages/cover-studio-kit/docs/HISTORY.md) | `packages/cover-studio-kit/`, `pnpm run export:cover-studio` |
+| Blog publish kit | [agent-devlog-blog-publish-kit/README.md](../packages/cover-studio-kit/README.md) | [docs/HISTORY.md](../packages/cover-studio-kit/docs/HISTORY.md) | `packages/cover-studio-kit/`, `pnpm run export:cover-studio` |
 | Supabase migration (Firebase exit) | [agent-devlog-supabase-migration.md](agent-devlog-supabase-migration.md) | `.cursor/rules/supabase-migration.mdc` | `supabase/migrations/`, `backend/services/src/supabaseClient.ts`, `adminContentService.ts` |
 | Blog agents roadmap | [agent-devlog-blog-agents-roadmap.md](agent-devlog-blog-agents-roadmap.md) | — | **Archived** — see [archive/blog-agents/README.md](../archive/blog-agents/README.md) |
 
@@ -34,6 +33,7 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 
 | Date | Log |
 |------|-----|
+| 2026-09-09 | [dev-log-2026-09-09-fluffy-v3-media.md](dev-log-2026-09-09-fluffy-v3-media.md) - Fluffy System v3: generated imagery, custom SVG/vector systems, and mixed-media Three.js gallery |
 | 2026-09-09 | [dev-log-2026-09-09-fluffy-v2-focused.md](dev-log-2026-09-09-fluffy-v2-focused.md) - Fluffy System v2: one deep page per product plus one focused Three.js exploration |
 | 2026-09-09 | [dev-log-2026-09-09-fluffy-round-3.md](dev-log-2026-09-09-fluffy-round-3.md) - Fluffy System round 3: pull costume pages, four product-true PAM/RA studio candidates |
 | 2026-09-09 | [dev-log-2026-09-09-fluffy-round-2.md](dev-log-2026-09-09-fluffy-round-2.md) - Fluffy System round 2: eleven Three.js candidates (later pulled) |
