@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PAM · Assembly Line</title>
+<meta name="description" content="Stop the line when the homework is missing.">
+<style>
+:root{--bg:#f3efe4;--ink:#17140f;--muted:#5c564c;--line:#d7d0c2;--stop:#d32011;--go:#1f7a46;--yel:#e3b014;--sans:"IBM Plex Sans",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans)}
+a{color:inherit}.wrap{width:min(1180px,calc(100% - 28px));margin:auto}
+.top{position:fixed;z-index:20;inset:0 0 auto;background:#f3efe4f0;border-bottom:3px solid var(--ink)}
+.topin{height:54px;display:flex;justify-content:space-between;align-items:center;font:800 12px/1 var(--mono);text-transform:uppercase;letter-spacing:.12em}
+.hero{position:relative;min-height:100vh;padding-top:54px}
+.canvasWrap{position:absolute;inset:54px 0 0}canvas{width:100%;height:100%;display:block}
+.fallback{display:none;position:absolute;inset:0;background:repeating-linear-gradient(90deg,#e8e1d2 0 80px,#d7d0c2 80px 160px)}
+.copy{position:relative;z-index:4;padding:70px 0 40px;max-width:620px;background:linear-gradient(90deg,#f3efe4 70%,transparent)}
+h1{font-size:clamp(46px,7vw,86px);line-height:.9;letter-spacing:-.05em;margin:0;text-transform:uppercase}
+.lead{font-size:20px;color:var(--muted);max-width:520px}
+.btn{display:inline-block;margin-top:8px;padding:12px 14px;background:var(--stop);color:#fff;text-decoration:none;font:800 13px/1 var(--mono);text-transform:uppercase}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--ink);margin-left:8px}
+.banner{background:var(--stop);color:#fff;font:800 13px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:10px 0;overflow:hidden;white-space:nowrap}
+.banner span{display:inline-block;padding-right:40px;animation:marq 14s linear infinite}
+@keyframes marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.banner span{animation:none}}
+section{padding:72px 0;border-top:3px solid var(--ink)}
+h2{font-size:clamp(28px,4vw,44px);margin:0 0 14px;max-width:780px}
+.stations{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.st{border:2px solid var(--ink);padding:16px;min-height:170px;background:#fff}
+.st .k{font:800 11px/1 var(--mono);text-transform:uppercase;color:var(--stop)}
+.stats{display:flex;gap:24px;flex-wrap:wrap}
+.stats b{display:block;font-size:42px}
+.tiny{font:12px/1.4 var(--mono);color:#6b655c;margin-top:18px}
+@media(max-width:800px){.stations{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin"><span>Line 7 · PAM</span><a href="./" style="text-decoration:none">Gallery</a></div></header>
+<div class="banner" aria-hidden="true"><span>ANDON: HOMEWORK MISSING · ANDON: HOMEWORK MISSING · ANDON: HOMEWORK MISSING · ANDON: HOMEWORK MISSING · </span><span>ANDON: HOMEWORK MISSING · ANDON: HOMEWORK MISSING · ANDON: HOMEWORK MISSING · ANDON: HOMEWORK MISSING · </span></div>
+<main>
+<section class="hero">
+  <div class="canvasWrap" id="scene"><div class="fallback" id="fallback"></div></div>
+  <div class="wrap copy">
+    <h1>Pull the cord.</h1>
+    <p class="lead">On a real line, a missing bolt stops the whole plant. In software, a missing search still ships. PAM is the cord you pull before the next agent opens twenty issues.</p>
+    <a class="btn" href="https://github.com/Pukujan/project-assurance-modules" target="_blank" rel="noopener">Stop the line</a>
+    <a class="btn ghost" href="#stations">Walk the stations</a>
+  </div>
+</section>
+<section id="stations"><div class="wrap">
+  <h2>Every station has a job. A blank station is not “agile.” It is scrap.</h2>
+  <div class="stations">
+    <article class="st"><div class="k">Station 01</div><h3>Scope</h3><p>What are we actually building, and what is out.</p></article>
+    <article class="st"><div class="k">Station 02</div><h3>Reuse</h3><p>Did we search a real universe, or invent a fake rival.</p></article>
+    <article class="st"><div class="k">Station 03</div><h3>Proof</h3><p>What evidence closes this, not what paragraph.</p></article>
+    <article class="st"><div class="k">Station 04</div><h3>Handoff</h3><p>Can the next person run this without the chat history.</p></article>
+  </div>
+</div></section>
+<section><div class="wrap">
+  <h2>The defect was a fake search that still passed inspection.</h2>
+  <p>Interview OS produced a reuse register that looked staffed. PAM hardened the contract so “we considered alternatives” cannot mean “we named a generic framework.” That is quality control, not process religion.</p>
+  <div class="stats">
+    <div><b>84%</b>AI in the plant</div>
+    <div><b>69%</b>won’t let AI plan</div>
+    <div><b>66%</b>almost-right parts</div>
+  </div>
+  <p><a href="https://survey.stackoverflow.co/2025/ai" target="_blank" rel="noopener">Stack Overflow 2025 ↗</a></p>
+  <p class="tiny">Conveyor in Three.js. A red crate never advances. Fallback is the andon banner.</p>
+</div></section>
+</main>
+<script type="module">
+const host=document.getElementById('scene'), fallback=document.getElementById('fallback');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+(async()=>{
+  try{
+    const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+    const scene=new THREE.Scene(); scene.background=null;
+    const camera=new THREE.PerspectiveCamera(50, innerWidth/innerHeight, .1, 80);
+    camera.position.set(0, 6.5, 11);
+    const renderer=new THREE.WebGLRenderer({antialias:true, alpha:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+    renderer.setSize(innerWidth, innerHeight);
+    host.prepend(renderer.domElement);
+    scene.add(new THREE.AmbientLight(0xfff4dc, .9));
+    const dir=new THREE.DirectionalLight(0xffffff, 1.1); dir.position.set(-4,10,6); scene.add(dir);
+    const belt=new THREE.Mesh(new THREE.BoxGeometry(22,.2,3.2), new THREE.MeshStandardMaterial({color:0x2a2a28, metalness:.4, roughness:.5}));
+    belt.position.set(2,-.2,-1); scene.add(belt);
+    const rails=new THREE.Mesh(new THREE.BoxGeometry(22,.08,.12), new THREE.MeshStandardMaterial({color:0xd32011}));
+    rails.position.set(2,.0,.5); scene.add(rails);
+    const crates=[];
+    const colors=[0x1f7a46,0x1f7a46,0xd32011,0xe3b014,0x1f7a46];
+    for(let i=0;i<5;i++){
+      const c=new THREE.Mesh(new THREE.BoxGeometry(1.6,1.1,1.6), new THREE.MeshStandardMaterial({color:colors[i], roughness:.45}));
+      c.position.set(-8+i*3.6, .5, -1); scene.add(c); crates.push({m:c, locked:i===2, base:-8+i*3.6});
+    }
+    const andon=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,3.4,10), new THREE.MeshStandardMaterial({color:0x333}));
+    andon.position.set(1.2,1.7,-2.6); scene.add(andon);
+    const lamp=new THREE.Mesh(new THREE.SphereGeometry(.28,16,16), new THREE.MeshBasicMaterial({color:0xd32011}));
+    lamp.position.set(1.2,3.5,-2.6); scene.add(lamp);
+    addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+    const clock=new THREE.Clock();
+    function draw(){
+      const t=clock.getElapsedTime();
+      if(!reduced){
+        crates.forEach((c,i)=>{
+          if(c.locked){ c.m.position.x=c.base; lamp.material.color.set(t%1>.5?0xd32011:0x5a0000); }
+          else { c.m.position.x=((c.base+t*1.4+12)%18)-10; }
+        });
+      }
+      camera.lookAt(1,0,-1);
+      renderer.render(scene,camera);
+      if(!reduced) requestAnimationFrame(draw);
+    }
+    draw();
+  }catch(err){fallback.style.display='block'}
+})();
+</script>
+</body>
+</html>

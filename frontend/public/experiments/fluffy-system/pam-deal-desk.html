@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PAM · Deal Desk</title>
+<meta name="description" content="If this plan walked into a sales deal desk, it would get sent back.">
+<style>
+:root{--bg:#0f1410;--ink:#e8f3e4;--muted:#9bb39a;--line:#2a3a2c;--green:#3dcf7a;--gold:#d4b15a;--red:#e25a4a;--sans:Georgia,"Times New Roman",serif;--ui:"Segoe UI",Inter,sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--ui)}
+a{color:inherit}.wrap{width:min(1160px,calc(100% - 32px));margin:auto}
+.top{position:fixed;inset:0 0 auto;z-index:20;background:#0f1410ee;border-bottom:1px solid var(--line)}
+.topin{height:56px;display:flex;justify-content:space-between;align-items:center}
+.brand{font:800 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.back{color:var(--muted);text-decoration:none;font:700 11px/1 var(--mono);border:1px solid var(--line);padding:8px 11px}
+.hero{min-height:100vh;position:relative;display:flex;align-items:flex-end}
+.canvasWrap{position:absolute;inset:0}canvas{display:block;width:100%;height:100%}
+.fallback{display:none;position:absolute;inset:0;background:radial-gradient(circle at 60% 40%,#1c2a1e,#0f1410)}
+.shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 20%,#0f1410 88%)}
+.copy{position:relative;z-index:3;padding:0 0 70px;max-width:760px}
+h1{font-family:var(--sans);font-size:clamp(42px,6.4vw,78px);line-height:1.02;margin:0}
+.lead{font-size:21px;color:var(--muted);max-width:640px}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.btn{text-decoration:none;padding:12px 16px;font:800 13px/1 var(--ui);border:1px solid var(--ink)}
+.btn.go{background:var(--gold);color:#1a1406;border-color:var(--gold)}
+.stamp{position:absolute;right:8%;top:22%;z-index:4;width:210px;height:210px;border:8px solid var(--red);border-radius:50%;display:grid;place-items:center;transform:rotate(-18deg);font:900 22px/1 var(--mono);color:var(--red);letter-spacing:.08em;text-transform:uppercase;opacity:.92;pointer-events:none}
+section{padding:80px 0;border-top:1px solid var(--line)}
+h2{font-family:var(--sans);font-size:clamp(30px,4.2vw,48px);margin:0 0 16px;max-width:820px}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:28px}
+.obj{border-left:3px solid var(--gold);padding:0 0 0 16px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+th{font:800 11px/1 var(--mono);letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
+.bad{color:var(--red);font-weight:800}.ok{color:var(--green);font-weight:800}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.n{font:900 48px/1 var(--mono);color:var(--gold)}
+.tiny{color:#7d927c;font:12px/1.4 var(--mono);margin-top:20px}
+@media(max-width:760px){.grid,.nums{grid-template-columns:1fr}.stamp{width:140px;height:140px;font-size:14px;right:16px;top:90px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin"><div class="brand">PAM · Deal desk</div><a class="back" href="./">Gallery</a></div></header>
+<main>
+<section class="hero">
+  <div class="canvasWrap" id="scene"><div class="fallback" id="fallback"></div></div>
+  <div class="shade"></div>
+  <div class="stamp">Send back</div>
+  <div class="wrap copy">
+    <h1>If this plan walked into a deal desk, it would get kicked.</h1>
+    <p class="lead">Sales teams already know the move: a pretty proposal that cannot survive one objection. PAM is that same instinct, aimed at the research-to-build handoff.</p>
+    <div class="cta">
+      <a class="btn go" href="https://github.com/Pukujan/project-assurance-modules" target="_blank" rel="noopener">Put the plan on the desk</a>
+      <a class="btn" href="#desk">See the redlines</a>
+    </div>
+  </div>
+</section>
+<section id="desk"><div class="wrap grid">
+  <div>
+    <h2>Your buyer is not a checklist. Your buyer is the next engineer who has to live with this.</h2>
+    <p class="obj">A founder, a tech lead, or an agent just produced a plan that sounds staffed. The question is not “does this read well.” The question is “would I bet a sprint on it.”</p>
+  </div>
+  <table>
+    <thead><tr><th>Line item</th><th>Looks like</th><th>Desk says</th></tr></thead>
+    <tbody>
+      <tr><td>Alternatives searched</td><td>Generic quiz framework</td><td class="bad">No</td></tr>
+      <tr><td>Success definition</td><td>Still in chat</td><td class="bad">No</td></tr>
+      <tr><td>Issues opened</td><td>Twelve, tidy</td><td class="ok">Too early</td></tr>
+      <tr><td>Evidence of closure</td><td>Persuasive prose</td><td class="bad">No</td></tr>
+    </tbody>
+  </table>
+</div></section>
+<section><div class="wrap">
+  <h2>This already happened once.</h2>
+  <p>On Interview OS, a build-vs-reuse register looked complete while the important search never ran. PAM issue #10 exists because wording is not work. If you sell software with agents in the loop, that is your pipeline leak.</p>
+  <div class="nums" style="margin-top:32px">
+    <div><div class="n">84%</div><p>using AI to ship faster</p></div>
+    <div><div class="n">69%</div><p>refuse AI for planning</p></div>
+    <div><div class="n">66%</div><p>hate almost-right answers</p></div>
+  </div>
+  <p><a href="https://survey.stackoverflow.co/2025/ai" target="_blank" rel="noopener">Stack Overflow Developer Survey 2025 ↗</a></p>
+</div></section>
+<section><div class="wrap">
+  <h2>PAM is the redline, not the brochure.</h2>
+  <p>It routes the assurance work that actually applies, freezes what you intend to prove, and refuses to treat a convincing plan as closed. No guarantee of success. No universal governance theater. Just a desk that will not stamp “ready” on empty homework.</p>
+  <div class="cta"><a class="btn go" href="https://github.com/Pukujan/project-assurance-modules" target="_blank" rel="noopener">Open the repo</a><a class="btn" href="./">Next candidate</a></div>
+  <p class="tiny">3D: a physical deal stamp hovering over a contract stack. HTML remains the pitch if WebGL fails.</p>
+</div></section>
+</main>
+<script type="module">
+const host=document.getElementById('scene'), fallback=document.getElementById('fallback');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+(async()=>{
+  try{
+    const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(42, innerWidth/innerHeight, .1, 50);
+    camera.position.set(0, 4.2, 8.4);
+    const renderer=new THREE.WebGLRenderer({antialias:true, alpha:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace=THREE.SRGBColorSpace;
+    host.prepend(renderer.domElement);
+    scene.add(new THREE.AmbientLight(0xb7d8b0, .55));
+    const lamp=new THREE.SpotLight(0xffe7b0, 40, 24, .55, .4); lamp.position.set(2,8,4); scene.add(lamp);
+    const desk=new THREE.Mesh(new THREE.BoxGeometry(10, .35, 6), new THREE.MeshStandardMaterial({color:0x3a2a18, roughness:.7, metalness:.1}));
+    desk.position.y=-1.2; scene.add(desk);
+    const papers=[];
+    for(let i=0;i<6;i++){
+      const p=new THREE.Mesh(new THREE.BoxGeometry(2.8, .04, 3.6), new THREE.MeshStandardMaterial({color: i===5?0xf3e7c4:0xe7dcb8, roughness:.9}));
+      p.position.set(-.4+i*.08, -0.95+i*.05, .2-i*.05);
+      p.rotation.y=(i-3)*.03;
+      scene.add(p); papers.push(p);
+    }
+    const stamp=new THREE.Group();
+    const handle=new THREE.Mesh(new THREE.CylinderGeometry(.18,.22,1.4,16), new THREE.MeshStandardMaterial({color:0x8b1e16, metalness:.3, roughness:.4}));
+    handle.position.y=1.1; stamp.add(handle);
+    const base=new THREE.Mesh(new THREE.CylinderGeometry(.7,.7,.28,24), new THREE.MeshStandardMaterial({color:0xc9a227, metalness:.6, roughness:.3}));
+    stamp.add(base);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(.78,.05,8,40), new THREE.MeshBasicMaterial({color:0xe25a4a}));
+    ring.rotation.x=Math.PI/2; ring.position.y=-.2; stamp.add(ring);
+    stamp.position.set(1.6, 2.4, 1.2); scene.add(stamp);
+    let mx=0,my=0;
+    addEventListener('pointermove',e=>{mx=e.clientX/innerWidth-.5; my=e.clientY/innerHeight-.5});
+    addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+    const clock=new THREE.Clock();
+    function draw(){
+      const t=clock.getElapsedTime();
+      if(!reduced){
+        stamp.position.y=2.2+Math.sin(t*1.6)*.35;
+        stamp.rotation.z=Math.sin(t)*.08;
+        camera.position.x+=(mx*1.4-camera.position.x)*.05;
+        camera.position.z+=(8.4+my*1.2-camera.position.z)*.05;
+      }
+      camera.lookAt(0,.4,0);
+      renderer.render(scene,camera);
+      if(!reduced) requestAnimationFrame(draw);
+    }
+    draw();
+  }catch(err){fallback.style.display='block'; console.warn(err)}
+})();
+</script>
+</body>
+</html>

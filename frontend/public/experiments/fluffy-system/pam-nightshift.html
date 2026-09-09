@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PAM · Night Shift</title>
+<meta name="description" content="The next agent comes on at 2am. Leave them more than a chat log.">
+<style>
+:root{--bg:#07080d;--ink:#dfe7ff;--muted:#8b95b3;--line:#22283a;--neon:#6d8bff;--amber:#ffb25a;--sans:Inter,ui-sans-serif,system-ui,sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--sans)}
+a{color:inherit}.wrap{width:min(1140px,calc(100% - 32px));margin:auto}
+.top{position:fixed;z-index:20;inset:0 0 auto;background:#07080dcc;border-bottom:1px solid var(--line)}
+.topin{height:56px;display:flex;justify-content:space-between;align-items:center}
+.brand{font:800 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
+.hero{min-height:100vh;position:relative;display:flex;align-items:center}
+.canvasWrap{position:absolute;inset:0}canvas{width:100%;height:100%;display:block}
+.fallback{display:none;position:absolute;inset:0;background:radial-gradient(circle at 70% 30%,#182044,#07080d)}
+.shade{position:absolute;inset:0;background:linear-gradient(90deg,#07080d 0 36%,transparent 70%)}
+.copy{position:relative;z-index:3;padding:100px 0;max-width:640px}
+h1{font-size:clamp(44px,7vw,82px);line-height:.92;letter-spacing:-.05em;margin:0}
+.lead{color:var(--muted);font-size:20px}
+.btn{display:inline-block;margin-top:8px;padding:12px 16px;background:var(--amber);color:#1a1208;text-decoration:none;font-weight:800}
+.btn.g{background:transparent;color:var(--ink);border:1px solid var(--line);margin-left:8px}
+section{padding:78px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(28px,4vw,46px);margin:0 0 14px;max-width:800px}
+.chat{font:14px/1.5 var(--mono);background:#10131c;border:1px solid var(--line);padding:18px;max-width:640px}
+.chat .dim{color:#667} .chat .bad{color:#ff7a6e}
+.tiny{color:#66748f;font:12px/1.4 var(--mono);margin-top:16px}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin"><div class="brand">02:14 · Handoff</div><a class="brand" href="./" style="text-decoration:none;color:var(--muted)">Gallery</a></div></header>
+<main>
+<section class="hero">
+  <div class="canvasWrap" id="scene"><div class="fallback" id="fallback"></div></div>
+  <div class="shade"></div>
+  <div class="wrap copy">
+    <h1>The next agent comes on at 2am.</h1>
+    <p class="lead">If the reasons live in a thread, they die at shift change. PAM is what you leave on the bench: what we intended to prove, what was actually searched, what is still open.</p>
+    <a class="btn" href="https://github.com/Pukujan/project-assurance-modules" target="_blank" rel="noopener">Leave a handoff</a>
+    <a class="btn g" href="#shift">See the dead thread</a>
+  </div>
+</section>
+<section id="shift"><div class="wrap">
+  <h2>This is the product of a night with no memory.</h2>
+  <div class="chat">
+    <div class="dim">00:41 agent</div>
+    <div>Reuse considered. Generic quiz framework is worse. Proceeding to issues.</div>
+    <div class="dim" style="margin-top:12px">02:14 next agent</div>
+    <div class="bad">What did we search. Where. Against what. Why is PAM listed as a product alternative.</div>
+  </div>
+  <p style="max-width:680px;color:var(--muted)">That is the Interview OS incident, compressed. A checklist can look complete while the important work never happened. Your overnight coding capacity just became a continuity problem.</p>
+</div></section>
+<section><div class="wrap">
+  <h2>People already refuse to let AI plan. They still let it start the repo.</h2>
+  <p>84% use AI. 69% will not use it for project planning. 66% are stuck with almost-right output. <a href="https://survey.stackoverflow.co/2025/ai" target="_blank" rel="noopener">Stack Overflow 2025 ↗</a>. PAM sits in that gap: not a new planner, a versioned obligation so the night shift does not invent the project again.</p>
+  <a class="btn" href="https://github.com/Pukujan/project-assurance-modules" target="_blank" rel="noopener">Get PAM</a>
+  <p class="tiny">City of monitors in 3D. One desk stays dark. That desk is the missing handoff.</p>
+</div></section>
+</main>
+<script type="module">
+const host=document.getElementById('scene'), fallback=document.getElementById('fallback');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+(async()=>{
+  try{
+    const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+    const scene=new THREE.Scene(); scene.fog=new THREE.FogExp2(0x07080d, 0.06);
+    const camera=new THREE.PerspectiveCamera(50, innerWidth/innerHeight, .1, 60);
+    camera.position.set(-6, 5, 12);
+    const renderer=new THREE.WebGLRenderer({antialias:true, alpha:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+    renderer.setSize(innerWidth, innerHeight);
+    host.prepend(renderer.domElement);
+    scene.add(new THREE.AmbientLight(0x334, .8));
+    const moon=new THREE.DirectionalLight(0x8aa4ff, .5); moon.position.set(-8,12,-4); scene.add(moon);
+    const desks=[];
+    for(let z=0;z<4;z++){
+      for(let x=0;x<5;x++){
+        const g=new THREE.Group();
+        const table=new THREE.Mesh(new THREE.BoxGeometry(2.2,.12,1.2), new THREE.MeshStandardMaterial({color:0x1a1e2a}));
+        g.add(table);
+        const lit=!(x===3 && z===1);
+        const screen=new THREE.Mesh(new THREE.BoxGeometry(1.4,.9,.06), new THREE.MeshBasicMaterial({color: lit?0x6d8bff:0x141820}));
+        screen.position.set(0,.7,-.2); g.add(screen);
+        if(lit){
+          const glow=new THREE.PointLight(x%2?0x6d8bff:0xffb25a, 6, 5);
+          glow.position.set(0,.8,0); g.add(glow);
+        }
+        g.position.set(x*2.6-2, 0, -z*2.8);
+        scene.add(g); desks.push({g, lit});
+      }
+    }
+    addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+    const clock=new THREE.Clock();
+    function draw(){
+      const t=clock.getElapsedTime();
+      if(!reduced){
+        camera.position.x=-6+Math.sin(t*.15)*1.2;
+        camera.position.y=5+Math.sin(t*.2)*.3;
+      }
+      camera.lookAt(3, .4, -3);
+      renderer.render(scene,camera);
+      if(!reduced) requestAnimationFrame(draw);
+    }
+    draw();
+  }catch(err){fallback.style.display='block'}
+})();
+</script>
+</body>
+</html>

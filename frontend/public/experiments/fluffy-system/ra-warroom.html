@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Research Assurance · Situation Table</title>
+<meta name="description" content="Stop briefing a green number. Brief the layers that are still dark.">
+<style>
+:root{--bg:#10140f;--ink:#e7f0d8;--muted:#a3b392;--line:#2a3324;--lime:#c6e04a;--red:#e25b3a;--sans:"News Gothic","Franklin Gothic Medium",Arial,sans-serif;--mono:ui-monospace,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans)}
+a{color:var(--lime)}.wrap{width:min(1140px,calc(100% - 32px));margin:auto}
+.top{position:fixed;z-index:20;inset:0 0 auto;background:#10140fee;border-bottom:1px solid var(--line)}
+.topin{height:56px;display:flex;justify-content:space-between;align-items:center;font:800 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase}
+.hero{min-height:100vh;position:relative;display:flex;align-items:flex-end}
+.canvasWrap{position:absolute;inset:0}canvas{width:100%;height:100%;display:block}
+.fallback{display:none;position:absolute;inset:0;background:#182016}
+.shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,#10140f 90%)}
+.copy{position:relative;z-index:3;padding:0 0 64px;max-width:700px}
+h1{font-size:clamp(42px,6.6vw,78px);line-height:.94;margin:0;text-transform:uppercase}
+.lead{color:var(--muted);font-size:20px}
+.btn{display:inline-block;padding:12px 16px;background:var(--lime);color:#14180c;text-decoration:none;font-weight:800}
+section{padding:74px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(28px,4vw,44px);max-width:800px;text-transform:uppercase}
+.brief{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.b{border:1px solid var(--line);padding:16px;background:#161b14}
+.b .k{font:800 11px/1 var(--mono);color:var(--lime);letter-spacing:.1em}
+.tiny{color:#7a8a70;font:12px/1.4 var(--mono)}
+@media(max-width:760px){.brief{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin"><span>Sitrep · RA</span><a href="./" style="text-decoration:none;color:var(--muted)">Gallery</a></div></header>
+<main>
+<section class="hero">
+  <div class="canvasWrap" id="scene"><div class="fallback" id="fallback"></div></div>
+  <div class="shade"></div>
+  <div class="wrap copy">
+    <h1>Brief the dark squares.</h1>
+    <p class="lead">Executives get a green eval. Engineers know a layer never ran. Research Assurance is the table in the middle: exact stack, distinct dimensions, no silent promotion of a public score into a holdout win.</p>
+    <a class="btn" href="#sitrep">Open the sitrep</a>
+  </div>
+</section>
+<section id="sitrep"><div class="wrap">
+  <h2>If you cannot say what is unproven, you are not ready to sell the result.</h2>
+  <div class="brief">
+    <article class="b"><div class="k">Known</div><p>Source identity frozen. Retrieval candidates named. Public set size: 5,074.</p></article>
+    <article class="b"><div class="k">Held back</div><p>100-case confirmatory holdout stays out of the public repo. On purpose.</p></article>
+    <article class="b"><div class="k">Unproven</div><p>End-to-end truth is not claimed. Semantic support is a separate lamp. Campaign still active.</p></article>
+  </div>
+  <p style="margin-top:28px;max-width:740px">This is how you talk to a buyer without lying. The category is crowded with eval tools. The wedge is stack-level identity and the refusal to collapse dimensions. Incidents rose to 362 in 2025. Measurement is the scarce asset. <a href="https://hai.stanford.edu/ai-index/2026-ai-index-report/responsible-ai" target="_blank" rel="noopener">AI Index</a>.</p>
+  <a class="btn" href="./">Compare another direction</a>
+  <p class="tiny">Situation table in 3D. Tokens on a map. One sector never lights. That is the untested layer.</p>
+</div></section>
+</main>
+<script type="module">
+const host=document.getElementById('scene'), fallback=document.getElementById('fallback');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+(async()=>{
+  try{
+    const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(40, innerWidth/innerHeight, .1, 50);
+    camera.position.set(0, 8.5, 8.5);
+    const renderer=new THREE.WebGLRenderer({antialias:true, alpha:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+    renderer.setSize(innerWidth, innerHeight);
+    host.prepend(renderer.domElement);
+    scene.add(new THREE.AmbientLight(0x445533, .8));
+    const lamp=new THREE.SpotLight(0xc6e04a, 40, 24, .55, .5); lamp.position.set(0,12,2); scene.add(lamp);
+    const table=new THREE.Mesh(new THREE.BoxGeometry(10,.2,6.4), new THREE.MeshStandardMaterial({color:0x1c2418, roughness:.7}));
+    scene.add(table);
+    const grid=new THREE.GridHelper(10, 10, 0x3a4a30, 0x243020); grid.position.y=.12; scene.add(grid);
+    const tokens=[];
+    const spots=[[-2.5,.4,-1,0xc6e04a],[0,.4,-1.4,0xc6e04a],[2.2,.4,-.6,0xe25b3a],[ -1,.4,1.4,0xffb45a],[1.6,.4,1.2,0x88a]];
+    spots.forEach(([x,y,z,c])=>{
+      const m=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.16,16), new THREE.MeshStandardMaterial({color:c, emissive:c, emissiveIntensity:.35}));
+      m.position.set(x,y,z); scene.add(m); tokens.push(m);
+    });
+    const dark=new THREE.Mesh(new THREE.BoxGeometry(1.8, .02, 1.4), new THREE.MeshBasicMaterial({color:0x0a0e09}));
+    dark.position.set(2.4, .12, 1.6); scene.add(dark);
+    addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+    const clock=new THREE.Clock();
+    function draw(){
+      const t=clock.getElapsedTime();
+      if(!reduced){
+        camera.position.x=Math.sin(t*.15)*1.2;
+        tokens[2].position.y=.4+Math.abs(Math.sin(t*2))*0.08;
+      }
+      camera.lookAt(0,0,0);
+      renderer.render(scene,camera);
+      if(!reduced) requestAnimationFrame(draw);
+    }
+    draw();
+  }catch(err){fallback.style.display='block'}
+})();
+</script>
+</body>
+</html>

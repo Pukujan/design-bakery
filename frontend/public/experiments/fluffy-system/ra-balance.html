@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Research Assurance · Assay Balance</title>
+<meta name="description" content="Weigh each claim on its own pan. Never dump them into one score.">
+<style>
+:root{--bg:#f4f0e8;--ink:#1b1a16;--muted:#6b675e;--brass:#b08d4a;--red:#b42318;--sans:"Didot","Bodoni MT",Georgia,serif;--ui:Georgia,serif;--mono:ui-monospace,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.55 var(--ui)}
+a{color:var(--red)}.wrap{width:min(1080px,calc(100% - 32px));margin:auto}
+.top{position:fixed;z-index:20;inset:0 0 auto;background:#f4f0e8f0;border-bottom:1px solid #ddd6c8}
+.topin{height:54px;display:flex;justify-content:space-between;align-items:center;font:700 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase}
+.hero{min-height:100vh;position:relative;display:grid;place-items:end center}
+.canvasWrap{position:absolute;inset:0}canvas{width:100%;height:100%;display:block}
+.fallback{display:none;position:absolute;inset:0;background:radial-gradient(circle,#e7dcc4,#f4f0e8)}
+.copy{position:relative;z-index:3;text-align:center;padding:0 0 60px;max-width:740px}
+h1{font-family:var(--sans);font-size:clamp(48px,7.5vw,90px);line-height:.9;margin:0}
+.lead{color:var(--muted)}
+.btn{display:inline-block;margin-top:8px;padding:12px 18px;background:var(--ink);color:#f4f0e8;text-decoration:none;font:700 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+section{padding:76px 0}
+h2{font-family:var(--sans);font-size:clamp(32px,5vw,52px);margin:0 0 12px}
+.tiny{font:12px/1.4 var(--mono);color:#7a756a;margin-top:16px}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin"><span>Assay lab · RA</span><a href="./" style="color:inherit;text-decoration:none">Gallery</a></div></header>
+<main>
+<section class="hero">
+  <div class="canvasWrap" id="scene"><div class="fallback" id="fallback"></div></div>
+  <div class="copy">
+    <h1>Do not pour the gold together.</h1>
+    <p class="lead">A sourced answer and a true answer are different metals. Research Assurance keeps them on separate pans so a heavy citation cannot fake a light claim.</p>
+    <a class="btn" href="#assay">See the weighing</a>
+  </div>
+</section>
+<section id="assay"><div class="wrap">
+  <h2>The buyer already has dashboards. They do not have honest mass.</h2>
+  <p>Eval platforms will give you a number. Observability will give you a trace. Neither tells you which exact stack revision produced the result, or which assurance layer was never on the pan. That is the job: pin known-good component revisions, keep dimensions distinct, refuse <em>verified=true</em>.</p>
+  <p>M2 freezes identities before expensive runs. Public campaign: 5,074 cases. Hidden holdout: 100. Six base retrieval candidates. Protocol size is not a medal.</p>
+  <p>External pressure is real: 362 AI incidents in 2025, per the <a href="https://hai.stanford.edu/ai-index/2026-ai-index-report/responsible-ai" target="_blank" rel="noopener">Stanford AI Index</a>. NIST wants measurements. ARES already splits RAG scores. We are selling the control plane that keeps those splits from collapsing in production.</p>
+  <a class="btn" href="./">Compare another direction</a>
+  <p class="tiny">Balance beam in 3D. One pan drops when citation weight is dumped onto truth. That tilt is the product.</p>
+</div></section>
+</main>
+<script type="module">
+const host=document.getElementById('scene'), fallback=document.getElementById('fallback');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+(async()=>{
+  try{
+    const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(36, innerWidth/innerHeight, .1, 40);
+    camera.position.set(0, 2.2, 10);
+    const renderer=new THREE.WebGLRenderer({antialias:true, alpha:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+    renderer.setSize(innerWidth, innerHeight);
+    host.prepend(renderer.domElement);
+    scene.add(new THREE.HemisphereLight(0xfff6e4, 0x6a6048, 1.05));
+    const key=new THREE.DirectionalLight(0xffffff, .8); key.position.set(3,8,5); scene.add(key);
+    const stand=new THREE.Mesh(new THREE.CylinderGeometry(.12,.22,3.2,12), new THREE.MeshStandardMaterial({color:0xb08d4a, metalness:.7, roughness:.3}));
+    stand.position.y=-.4; scene.add(stand);
+    const beam=new THREE.Mesh(new THREE.BoxGeometry(6.4,.12,.12), new THREE.MeshStandardMaterial({color:0xb08d4a, metalness:.7}));
+    beam.position.y=1.2; scene.add(beam);
+    function pan(x){
+      const g=new THREE.Group();
+      const disk=new THREE.Mesh(new THREE.CylinderGeometry(.7,.7,.06,24), new THREE.MeshStandardMaterial({color:0xd9c48a, metalness:.4, roughness:.4}));
+      disk.position.y=-1.3; g.add(disk);
+      const chain=new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,1.3,6), new THREE.MeshStandardMaterial({color:0x888}));
+      chain.position.y=-.65; g.add(chain);
+      g.position.set(x,1.2,0); scene.add(g); return {g,disk};
+    }
+    const left=pan(-2.8), right=pan(2.8);
+    const weight=new THREE.Mesh(new THREE.BoxGeometry(.5,.5,.5), new THREE.MeshStandardMaterial({color:0x444}));
+    weight.position.set(-2.8, -0.8, 0); scene.add(weight);
+    addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+    const clock=new THREE.Clock();
+    function draw(){
+      const t=clock.getElapsedTime();
+      if(!reduced){
+        const tilt=Math.sin(t*.7)*.22;
+        beam.rotation.z=tilt;
+        left.g.position.y=1.2+tilt*2.6;
+        right.g.position.y=1.2-tilt*2.6;
+        weight.position.y=left.g.position.y-2;
+      }
+      camera.lookAt(0,.4,0);
+      renderer.render(scene,camera);
+      if(!reduced) requestAnimationFrame(draw);
+    }
+    draw();
+  }catch(err){fallback.style.display='block'}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PAM · Hangar Cutaway</title>
+<meta name="description" content="You can start the build. That does not mean it is ready to leave the hangar.">
+<style>
+:root{
+  --bg:#1a1712;--ink:#f4ead6;--muted:#b7a78a;--line:#3a3428;--rust:#c45a2a;--steel:#8ea3b5;--warn:#e8b84a;
+  --sans:"Arial Narrow","Helvetica Neue",Arial,sans-serif;--display:Impact,"Arial Black",sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--sans)}
+a{color:inherit}img{max-width:100%}.wrap{width:min(1180px,calc(100% - 32px));margin:auto}
+.top{position:fixed;inset:0 0 auto;z-index:20;background:rgba(26,23,18,.82);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+.topin{height:58px;display:flex;justify-content:space-between;align-items:center}
+.brand{font:800 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase}
+.back{font:700 11px/1 var(--mono);text-decoration:none;border:1px solid var(--line);padding:8px 11px}
+.hero{position:relative;min-height:100vh;display:grid;place-items:end start}
+.canvasWrap{position:absolute;inset:0}.canvasWrap canvas{display:block;width:100%;height:100%}
+.fallback{display:none;position:absolute;inset:0;background:radial-gradient(circle at 70% 40%,#3a2a1c,#1a1712 60%)}
+.fallback .bay{position:absolute;right:8%;top:22%;width:42vw;max-width:520px;height:38vh;border:12px solid var(--rust);transform:perspective(700px) rotateY(-18deg)}
+.shade{position:absolute;inset:0;background:linear-gradient(90deg,#1a1712 0%,rgba(26,23,18,.88) 38%,rgba(26,23,18,.08) 72%)}
+.heroCopy{position:relative;z-index:4;padding:110px 0 72px;max-width:720px}
+.kicker{font:800 11px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--warn);margin:0 0 16px}
+h1{font-family:var(--display);font-size:clamp(52px,9vw,108px);line-height:.86;letter-spacing:-.03em;margin:0;text-transform:uppercase}
+.lead{font-size:22px;max-width:560px;color:var(--muted);margin:22px 0 28px}
+.cta{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-block;text-decoration:none;padding:12px 16px;font:800 13px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--ink);background:transparent;color:var(--ink)}
+.btn.go{background:var(--rust);border-color:var(--rust);color:#fff}
+.plate{position:absolute;right:24px;bottom:24px;z-index:5;width:min(320px,calc(100% - 48px));border:1px solid var(--line);background:rgba(18,15,11,.78);padding:14px 16px;font:12px/1.4 var(--mono)}
+.plate b{display:block;color:var(--warn);margin-bottom:6px}
+section{padding:86px 0;border-top:1px solid var(--line)}
+h2{font-family:var(--display);font-size:clamp(34px,5vw,58px);line-height:.95;text-transform:uppercase;margin:0 0 18px;max-width:900px}
+.sub{color:var(--muted);font-size:19px;max-width:680px}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px}
+.card{border:1px solid var(--line);padding:20px;min-height:180px;background:#221e18}
+.card strong{display:block;font:800 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--warn);margin-bottom:10px}
+.statrow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:28px}
+.stat{border-top:4px solid var(--rust);padding:16px 0}
+.stat .n{font-family:var(--display);font-size:56px;line-height:1}
+.stat a{font:700 11px/1 var(--mono);color:var(--steel)}
+.quote{font-size:clamp(28px,4vw,44px);line-height:1.15;max-width:860px;margin:0}
+.final{background:#120f0c}
+.tiny{margin-top:22px;color:#8a7b64;font:12px/1.4 var(--mono)}
+@media(max-width:760px){.cols,.statrow{grid-template-columns:1fr}h1{font-size:52px}.plate{position:relative;right:auto;bottom:auto;margin:18px 16px 0;width:auto}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin"><div class="brand">PAM · Hangar 05</div><a class="back" href="./">Gallery</a></div></header>
+<main>
+<section class="hero" aria-label="Hangar scene">
+  <div class="canvasWrap" id="scene"><div class="fallback" id="fallback"><div class="bay"></div></div></div>
+  <div class="shade"></div>
+  <div class="wrap heroCopy">
+    <p class="kicker">Project Assurance Modules</p>
+    <h1>The build is already in the hangar.</h1>
+    <p class="lead">Code started. Issues opened. Nobody can point to the missing panel. PAM exists for the moment before the project rolls out onto the tarmac.</p>
+    <div class="cta">
+      <a class="btn go" href="https://github.com/Pukujan/project-assurance-modules" target="_blank" rel="noopener">See the methodology</a>
+      <a class="btn" href="#moment">What you are forgetting</a>
+    </div>
+  </div>
+  <aside class="plate"><b>BAY 04 · UNCLEARED</b>Scope frozen? Reuse actually searched? Evidence of closure? Handoff written down? One empty bay still holds the expensive part.</aside>
+</section>
+
+<section id="moment"><div class="wrap">
+  <p class="kicker">The buyer moment</p>
+  <h2>You are about to spend a month building the wrong thing, with a plan that looks finished.</h2>
+  <p class="sub">This is not a documentation problem. It is a sales problem inside your own team: the plan closed the deal, and the homework never happened.</p>
+  <div class="cols">
+    <article class="card"><strong>01 · The close</strong><p>Someone wrote a convincing build-vs-reuse note. It named a generic alternative, skipped the real search, and still read as complete.</p></article>
+    <article class="card"><strong>02 · The cost</strong><p>Once the repo exists, every later argument is swimming upstream. The first commit already spent the decision budget.</p></article>
+    <article class="card"><strong>03 · The ask</strong><p>Before you staff the build, force the plan to show its work. Not a vibe. Receipts.</p></article>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <p class="kicker">What actually happened</p>
+  <p class="quote">The plan said it searched. The search was not there. That is a real PAM defect, caught on Interview OS, then hardened into the build-vs-reuse contract.</p>
+  <p class="sub" style="margin-top:22px">If an agent can satisfy the wording without doing the work, your launch process is already leaking money. PAM’s job is to close that leak without turning planning into a second product.</p>
+</div></section>
+
+<section><div class="wrap">
+  <p class="kicker">Why this is a market now</p>
+  <h2>AI made starting cheap. Leaving the hangar is still expensive.</h2>
+  <div class="statrow">
+    <article class="stat"><div class="n">84%</div><p>of developers use or plan to use AI tools.</p><a href="https://survey.stackoverflow.co/2025/ai" target="_blank" rel="noopener">Stack Overflow 2025 ↗</a></article>
+    <article class="stat"><div class="n">69%</div><p>will not use AI for project planning. They already know generation is not judgment.</p><a href="https://survey.stackoverflow.co/2025/ai" target="_blank" rel="noopener">Source ↗</a></article>
+    <article class="stat"><div class="n">66%</div><p>are tired of answers that are almost right. Almost-right plans ship almost-right products.</p><a href="https://survey.stackoverflow.co/2025/ai" target="_blank" rel="noopener">Source ↗</a></article>
+  </div>
+</div></section>
+
+<section class="final"><div class="wrap">
+  <p class="kicker">The offer</p>
+  <h2>A versioned preflight for the research-to-build handoff.</h2>
+  <p class="sub">PAM routes only the assurance work that applies, freezes what the project intends to prove, and asks for evidence-backed closure. It does not stamp the idea as true. It does not replace you. It keeps the missing panel visible while there is still time to bolt it on.</p>
+  <div class="cta" style="margin-top:28px">
+    <a class="btn go" href="https://github.com/Pukujan/project-assurance-modules" target="_blank" rel="noopener">Open PAM</a>
+    <a class="btn" href="./">Steal another direction</a>
+  </div>
+  <p class="tiny">Three.js hangar cutaway. If WebGL is off, the page still sells. Reduced motion stops the orbit.</p>
+</div></section>
+</main>
+<script type="module">
+const host=document.getElementById('scene'), fallback=document.getElementById('fallback');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+(async()=>{
+  try{
+    const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+    const scene=new THREE.Scene(); scene.fog=new THREE.FogExp2(0x1a1712,0.045);
+    const camera=new THREE.PerspectiveCamera(48, innerWidth/innerHeight, .1, 80);
+    camera.position.set(-8.2, 3.4, 11);
+    const renderer=new THREE.WebGLRenderer({antialias:true, alpha:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace=THREE.SRGBColorSpace;
+    host.prepend(renderer.domElement);
+    scene.add(new THREE.AmbientLight(0xc9b48a, .7));
+    const sun=new THREE.DirectionalLight(0xffd9a0, 1.6); sun.position.set(-6,10,4); scene.add(sun);
+    const rust=new THREE.PointLight(0xc45a2a, 40, 22); rust.position.set(4,3,-2); scene.add(rust);
+
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(60,40), new THREE.MeshStandardMaterial({color:0x2a241c, metalness:.2, roughness:.8}));
+    floor.rotation.x=-Math.PI/2; floor.position.y=-1.6; scene.add(floor);
+    scene.add(new THREE.GridHelper(40, 20, 0x6a5a3a, 0x332c22));
+
+    const body=new THREE.Group();
+    const hull=new THREE.Mesh(new THREE.CylinderGeometry(1.35,1.55,9.2,12,1,true), new THREE.MeshStandardMaterial({color:0x8ea3b5, metalness:.55, roughness:.35, side:THREE.DoubleSide}));
+    hull.rotation.z=Math.PI/2; body.add(hull);
+    const nose=new THREE.Mesh(new THREE.ConeGeometry(1.35,2.2,12), new THREE.MeshStandardMaterial({color:0xb7c6d2, metalness:.5, roughness:.3}));
+    nose.rotation.z=-Math.PI/2; nose.position.x=5.6; body.add(nose);
+    const missing=new THREE.Mesh(new THREE.BoxGeometry(2.4,1.6,.08), new THREE.MeshBasicMaterial({color:0xc45a2a, transparent:true, opacity:.85}));
+    missing.position.set(-.2,.15,1.52); body.add(missing);
+    const edge=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(2.5,1.7,.2)), new THREE.LineBasicMaterial({color:0xe8b84a}));
+    edge.position.copy(missing.position); body.add(edge);
+    body.position.set(3.2,.1,-1.4); scene.add(body);
+
+    const gantry=new THREE.Mesh(new THREE.BoxGeometry(.18,6,.18), new THREE.MeshStandardMaterial({color:0x6d6454}));
+    gantry.position.set(-1.2,1.4,-3.2); scene.add(gantry);
+    const beam=new THREE.Mesh(new THREE.BoxGeometry(8,.16,.16), new THREE.MeshStandardMaterial({color:0x6d6454}));
+    beam.position.set(2.4,4.2,-3.2); scene.add(beam);
+
+    const panel=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.4,.12), new THREE.MeshStandardMaterial({color:0xc45a2a, emissive:0x4a1808, emissiveIntensity:.8}));
+    panel.position.set(-3.6,1.2,2.4); scene.add(panel);
+
+    let mx=0,my=0;
+    addEventListener('pointermove',e=>{mx=e.clientX/innerWidth-.5; my=e.clientY/innerHeight-.5});
+    addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight)});
+    const clock=new THREE.Clock();
+    function draw(){
+      const t=clock.getElapsedTime();
+      if(!reduced){
+        body.rotation.y=Math.sin(t*.18)*.08;
+        panel.position.y=1.2+Math.sin(t*.9)*.15;
+        missing.material.opacity=.55+.35*Math.abs(Math.sin(t*1.4));
+        camera.position.x+=(-8.2+mx*1.6-camera.position.x)*.04;
+        camera.position.y+=(3.4-my*.8-camera.position.y)*.04;
+      }
+      camera.lookAt(2.2,.4,-1);
+      renderer.render(scene,camera);
+      if(!reduced) requestAnimationFrame(draw);
+    }
+    draw();
+  }catch(err){fallback.style.display='block'; console.warn('Three.js enhancement unavailable', err)}
+})();
+</script>
+</body>
+</html>
