@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PAM · Candidate register</title>
+<meta name="description" content="A named alternative is a thing you can open. A category is a shrug. PAM makes that difference physical before the first commit.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#d5dbe3; --ink:#16181d; --paper:#f4efe6; --miss:#c42b22;
+  --mute:#5a616c; --line:#c9d0d8;
+  --display:"Sora",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Serif 4",Georgia,serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#eef1f5;color:var(--ink);font:17px/1.55 var(--body)}
+a{color:inherit}
+.wrap{width:min(1100px,calc(100% - 36px));margin:auto}
+nav{position:fixed;inset:0 0 auto;z-index:20;height:58px;display:flex;align-items:center;background:linear-gradient(#eef1f5ee,#eef1f500)}
+.navin{width:min(1100px,calc(100% - 36px));margin:auto;display:flex;justify-content:space-between;align-items:center;font-family:var(--display);font-size:13px;font-weight:600}
+.navin a{text-decoration:none;border:1px solid var(--line);padding:7px 11px;border-radius:999px;background:#fff}
+.hero{position:relative;min-height:100vh;display:grid;grid-template-rows:1fr auto}
+.canvasWrap{position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,#e7ebf0,#cfd6de 72%)}
+canvas{width:100%;height:100%;display:block}
+.fallback{display:none;position:absolute;inset:0;background:linear-gradient(#dfe4ea,#c5ccd5)}
+.fallback .table{position:absolute;left:10%;right:10%;bottom:18%;height:42%;background:#8a7460;border-radius:8px 8px 0 0}
+.fallback .c{position:absolute;width:22%;height:34%;background:var(--paper);border:1px solid #d7d0c4;box-shadow:0 10px 24px #0002}
+.fallback .c1{left:16%;bottom:38%;transform:rotate(-6deg)}
+.fallback .c2{left:39%;bottom:42%;transform:rotate(3deg)}
+.fallback .c3{left:62%;bottom:36%;background:transparent;border:2px dashed var(--miss)}
+.copy{position:relative;z-index:2;padding:0 0 56px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(36px,5.6vw,64px);line-height:.98;letter-spacing:-.045em;margin:0;max-width:14ch}
+.lead{max-width:34em;color:var(--mute);font-size:20px;margin:16px 0 0}
+.btn{display:inline-block;margin-top:20px;text-decoration:none;font-family:var(--display);font-weight:600;font-size:14px;background:var(--ink);color:#f4f6f8;padding:12px 16px;border-radius:10px}
+section{padding:80px 0;border-top:1px solid var(--line);background:#f7f8fa}
+h2{font-family:var(--display);font-weight:700;font-size:clamp(28px,4vw,44px);letter-spacing:-.04em;margin:0 0 14px;max-width:16ch}
+.prose{max-width:38em;color:var(--mute)}
+.tiny{margin-top:28px;font-family:var(--display);font-size:12px;color:#7a8290}
+@media(max-width:640px){.copy{padding:0 0 36px}h1{font-size:clamp(32px,11vw,48px)}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<nav><div class="navin"><span>PAM · register</span><a href="./">Gallery</a></div></nav>
+<main>
+<section class="hero" aria-label="Physical candidate cards">
+  <div class="canvasWrap" id="scene">
+    <div class="fallback" id="fallback"><div class="table"></div><div class="c c1"></div><div class="c c2"></div><div class="c c3"></div></div>
+  </div>
+  <div class="wrap copy">
+    <h1>A named alternative is a thing you can open.</h1>
+    <p class="lead">A category is a shrug. The 3D register keeps three concrete cards on the table and leaves the fourth as a dashed hole. That hole is the Interview OS defect. PAM exists so it cannot count as research.</p>
+    <a class="btn" href="https://github.com/Pukujan/project-assurance-modules" target="_blank" rel="noopener">Pin a PAM revision</a>
+  </div>
+</section>
+<section><div class="wrap">
+  <h2>The table is the product thesis.</h2>
+  <div class="prose">
+    <p>If WebGL is off, the hole is still there. Three.js is not decoration here. It is the candidate register you can walk around: Expo, Flutter, a real option, and a missing search.</p>
+    <p>PAM does not decide whether your idea is good. Once you decide to projectize, it asks for locators, receipts, and a freeze that later sessions can reopen. <code>build-vs-reuse@0.2.0</code> exists because v0.1 let a fluent file stand in for that table.</p>
+  </div>
+  <p class="tiny">Three.js 0.180.0 from jsDelivr. Semantic copy stays in HTML. Reduced motion holds the camera still.</p>
+</div></section>
+</main>
+<script type="module">
+const host=document.getElementById('scene');
+const fallback=document.getElementById('fallback');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function cardTexture(title, sub, ghost){
+  const c=document.createElement('canvas');
+  c.width=512; c.height=704;
+  const g=c.getContext('2d');
+  g.fillStyle=ghost?'#f7f1ea':'#f3ece1';
+  g.fillRect(0,0,512,704);
+  g.strokeStyle=ghost?'#c42b22':'#d5cbb8';
+  g.lineWidth=ghost?6:2;
+  if(ghost) g.setLineDash([18,12]);
+  g.strokeRect(18,18,476,668);
+  g.fillStyle=ghost?'#c42b22':'#1b1e24';
+  g.font='700 42px Sora, sans-serif';
+  const words=title.split(' ');
+  let y=140, line='';
+  for(const w of words){
+    const t=line?line+' '+w:w;
+    if(g.measureText(t).width>400){ g.fillText(line,48,y); y+=52; line=w; }
+    else line=t;
+  }
+  g.fillText(line,48,y);
+  g.fillStyle='#6a6358';
+  g.font='400 28px "Source Serif 4", serif';
+  g.fillText(sub,48,y+70);
+  return c;
+}
+(async()=>{
+  try{
+    const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+    const scene=new THREE.Scene();
+    scene.background=new THREE.Color(0xd5dbe3);
+    const camera=new THREE.PerspectiveCamera(32, innerWidth/innerHeight, .1, 40);
+    camera.position.set(0, 4.2, 6.4);
+    const renderer=new THREE.WebGLRenderer({antialias:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace=THREE.SRGBColorSpace;
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure=1.05;
+    host.prepend(renderer.domElement);
+    scene.add(new THREE.HemisphereLight(0xf3f6fa, 0x8a8076, 1.1));
+    const key=new THREE.DirectionalLight(0xfff6ea, 1.35); key.position.set(4,8,3); scene.add(key);
+    const fill=new THREE.DirectionalLight(0xc9d6e6, .45); fill.position.set(-6,3,4); scene.add(fill);
+    const table=new THREE.Mesh(new THREE.BoxGeometry(8.4,.18,4.2), new THREE.MeshStandardMaterial({color:0x8a7460, roughness:.72, metalness:.05}));
+    table.position.y=-0.4; scene.add(table);
+    const lip=new THREE.Mesh(new THREE.BoxGeometry(8.5,.08,4.3), new THREE.MeshStandardMaterial({color:0x6f5c4c, roughness:.8}));
+    lip.position.y=-0.52; scene.add(lip);
+    const specs=[
+      ['Expo / React Native','named candidate', false, -2.05, -0.18],
+      ['Flutter','named candidate', false, -0.15, 0.12],
+      ['generic quiz framework','not a search', true, 1.95, -0.08]
+    ];
+    specs.forEach(([t,s,ghost,x,z])=>{
+      const tex=new THREE.CanvasTexture(cardTexture(t,s,ghost));
+      tex.colorSpace=THREE.SRGBColorSpace;
+      const mat=new THREE.MeshStandardMaterial({
+        map:tex, roughness:ghost?.92:.82, metalness:0,
+        transparent:ghost, opacity:ghost?.55:1
+      });
+      const mesh=new THREE.Mesh(new THREE.BoxGeometry(1.55, 2.14, .03), mat);
+      mesh.position.set(x, 0.72, z);
+      mesh.rotation.x=-0.52;
+      mesh.rotation.z=ghost?0.08:-0.04;
+      scene.add(mesh);
+    });
+    addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+    const clock=new THREE.Clock();
+    function draw(){
+      const t=clock.getElapsedTime();
+      if(!reduced){
+        camera.position.x=Math.sin(t*0.18)*0.55;
+        camera.position.y=4.2+Math.sin(t*0.12)*0.12;
+      }
+      camera.lookAt(0,0.4,0);
+      renderer.render(scene,camera);
+      if(!reduced) requestAnimationFrame(draw);
+    }
+    draw();
+  }catch(err){
+    fallback.style.display='block';
+    console.warn('Three.js enhancement unavailable', err);
+  }
+})();
+</script>
+</body>
+</html>

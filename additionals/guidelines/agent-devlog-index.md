@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-05-22 |
-| **Last updated** | 2026-09-09 (Fluffy System round 2 Three.js bakeoff) |
+| **Last updated** | 2026-09-09 (Fluffy System round 3 studio pages; round 2 pulled) |
 
 **Start here** for agent-facing documentation in this repo.
 
@@ -34,7 +34,8 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 
 | Date | Log |
 |------|-----|
-| 2026-09-09 | [dev-log-2026-09-09-fluffy-round-2.md](dev-log-2026-09-09-fluffy-round-2.md) - Fluffy System round 2: eleven Three.js candidates, frontend-design plugin extra |
+| 2026-09-09 | [dev-log-2026-09-09-fluffy-round-3.md](dev-log-2026-09-09-fluffy-round-3.md) - Fluffy System round 3: pull costume pages, four product-true PAM/RA studio candidates |
+| 2026-09-09 | [dev-log-2026-09-09-fluffy-round-2.md](dev-log-2026-09-09-fluffy-round-2.md) - Fluffy System round 2: eleven Three.js candidates (later pulled) |
 | 2026-09-08 | [dev-log-2026-09-08-fluffy-system.md](dev-log-2026-09-08-fluffy-system.md) - Fluffy System hidden creative gallery, PAM/Research Assurance candidate bakeoff, Three.js variants |
 | 2026-09-03 | [dev-log-2026-09-03-study-os.md](dev-log-2026-09-03-study-os.md) - Study OS marketing case study, presentation, evidence ledger, homepage integration |
 | 2026-09-03 | [dev-log-2026-09-03.md](dev-log-2026-09-03.md) - FOSSIL problem-framing case study, presentation, evidence ledger |

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PAM · The search that never happened</title>
+<meta name="description" content="A complete-looking plan is not proof the research happened. Project Assurance Modules makes the missing work visible before the repo exists.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f7f8fa; --ink:#111318; --miss:#dc3a2a; --ok:#1a7a52;
+  --rule:#e3e6ec; --mute:#5e6774; --card:#fff; --found:#0f6b4c;
+  --display:"Syne",ui-sans-serif,system-ui,sans-serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.55 var(--body)}
+a{color:inherit}
+.wrap{width:min(1120px,calc(100% - 40px));margin:auto}
+nav{position:sticky;top:0;z-index:20;background:rgba(247,248,250,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--rule)}
+.navin{height:64px;display:flex;justify-content:space-between;align-items:center}
+.brand{font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:-.02em}
+.navin a{font:600 14px/1 var(--display);text-decoration:none;border:1px solid var(--rule);background:var(--card);padding:8px 12px;border-radius:999px}
+.hero{padding:72px 0 28px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7.2vw,88px);line-height:.92;letter-spacing:-.055em;margin:0;max-width:16ch}
+.lead{font-size:clamp(19px,2.1vw,24px);line-height:1.4;color:var(--mute);max-width:38em;margin:22px 0 0}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+.btn{display:inline-flex;align-items:center;text-decoration:none;padding:12px 16px;border-radius:10px;font-family:var(--display);font-weight:700;font-size:14px;border:1px solid var(--ink);background:var(--ink);color:var(--paper)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.strip{margin:48px 0 8px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.cand{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:16px 16px 18px;min-height:148px;display:flex;flex-direction:column;justify-content:space-between}
+.cand .who{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.03em}
+.cand .why{font-size:14px;color:var(--mute);margin-top:6px}
+.mark{font-family:var(--display);font-weight:700;font-size:11px;letter-spacing:.02em}
+.mark.ok{color:var(--ok)}
+.ghost{background:repeating-linear-gradient(-45deg,transparent,transparent 6px,rgba(220,58,42,.06) 6px,rgba(220,58,42,.06) 7px);border-style:dashed;border-color:#f0b4ad}
+.ghost .who{color:var(--miss)}
+.ghost .mark{color:var(--miss)}
+.caption{font-size:14px;color:var(--mute);max-width:46em;margin:14px 0 0}
+section{padding:88px 0;border-top:1px solid var(--rule)}
+h2{font-family:var(--display);font-weight:800;font-size:clamp(30px,4.4vw,52px);line-height:1.02;letter-spacing:-.04em;margin:0 0 16px;max-width:18ch}
+.prose{max-width:38em;color:var(--mute)}
+.prose p{margin:0 0 1em}
+.incident{display:grid;grid-template-columns:1fr 1.15fr;gap:36px;align-items:start}
+.sheet{background:var(--card);border:1px solid var(--rule);border-radius:18px;padding:22px 24px}
+.row{display:grid;grid-template-columns:1fr auto;gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-size:16px}
+.row:last-child{border-bottom:0}
+.row b{font-family:var(--display);font-weight:700;letter-spacing:-.02em}
+.row span{color:var(--mute);font-size:14px}
+.row.bad b{color:var(--miss)}
+.call{margin-top:22px;font-size:22px;line-height:1.35;max-width:22em}
+.market p{font-size:22px;line-height:1.4;max-width:28em;margin:0}
+.market p + p{margin-top:18px}
+.market a{color:var(--ink);text-underline-offset:3px}
+.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:28px}
+.step{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:20px}
+.step b{display:block;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.03em;margin-bottom:8px}
+.step p{margin:0;color:var(--mute);font-size:16px}
+.final{padding:96px 0 80px}
+.finalbox{background:var(--card);border:1px solid var(--rule);border-radius:24px;padding:40px}
+.receipt{margin-top:28px;padding-top:18px;border-top:1px solid var(--rule);display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--mute)}
+.receipt a{color:var(--ink)}
+footer{padding:28px 0 48px;color:var(--mute);font-size:13px;border-top:1px solid var(--rule)}
+@media(max-width:860px){
+  .strip,.incident,.flow{grid-template-columns:1fr 1fr}
+  .strip .ghost{grid-column:1/-1}
+}
+@media(max-width:560px){
+  .wrap{width:min(100% - 28px,1120px)}
+  .strip,.incident,.flow{grid-template-columns:1fr}
+  .hero{padding-top:48px}
+  .finalbox{padding:26px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<nav><div class="wrap navin"><div class="brand">Project Assurance Modules</div><a href="./">Gallery</a></div></nav>
+<main>
+<header class="hero wrap">
+  <h1>The plan said it searched.</h1>
+  <p class="lead">Then we looked. The most important alternative was a category name. Project Assurance Modules exists for that moment: before research becomes a repo, what work did we skip while the checklist still looked finished?</p>
+  <div class="actions">
+    <a class="btn" href="https://github.com/Pukujan/project-assurance-modules" target="_blank" rel="noopener">Open the public repo</a>
+    <a class="btn ghost" href="#incident">Read the incident</a>
+  </div>
+  <div class="strip" aria-label="Candidate register from a real preflight">
+    <article class="cand"><div><div class="who">Expo / React Native</div><p class="why">Named. Versioned. You can open it.</p></div><div class="mark ok">concrete</div></article>
+    <article class="cand"><div><div class="who">Flutter</div><p class="why">Named. Compared. Still in the file.</p></div><div class="mark ok">concrete</div></article>
+    <article class="cand"><div><div class="who">PWA</div><p class="why">A real option with a locator.</p></div><div class="mark ok">concrete</div></article>
+    <article class="cand ghost"><div><div class="who">generic quiz framework</div><p class="why">The bespoke engine was compared to a shrug.</p></div><div class="mark">not a search</div></article>
+  </div>
+  <p class="caption">This is the Interview OS preflight. The register looked serious. The search behind the hardest decision was not there. That defect is PAM issue 10. It produced <code>projectization.build-vs-reuse@0.2.0</code>.</p>
+</header>
+
+<section id="incident"><div class="wrap incident">
+  <div>
+    <h2>A checkbox can pass while the work never happened.</h2>
+    <div class="prose">
+      <p>An agent wrote a plausible candidate list. Frameworks had names. The mission engine, the actual product, was justified against an abstract category. PAM itself showed up as if it were a runtime alternative. Dataset discovery was skipped.</p>
+      <p>That is not a cute process miss. It is how AI-assisted planning fails in public: fluent, complete-looking, and empty where it counted.</p>
+    </div>
+    <p class="call">PAM is the versioned preflight that refuses to treat a self-authored decision file as proof that research occurred.</p>
+  </div>
+  <div class="sheet">
+    <div class="row"><div><b>Named frameworks</b><span>Expo, Flutter, native, PWA</span></div><span class="mark ok">present</span></div>
+    <div class="row bad"><div><b>Mission / game engine</b><span>justified as “generic quiz framework”</span></div><span class="mark">empty</span></div>
+    <div class="row bad"><div><b>PAM in the register</b><span>methodology counted as a product option</span></div><span class="mark">wrong class</span></div>
+    <div class="row bad"><div><b>Reusable datasets</b><span>use declared, discovery not required</span></div><span class="mark">skipped</span></div>
+  </div>
+</div></section>
+
+<section class="market"><div class="wrap">
+  <h2>People already know generation is not judgment.</h2>
+  <p>84% of developers use or plan to use AI tools. 69% still will not let those tools plan the project. 66% are stuck with answers that are almost right. 87% worry about agent accuracy.</p>
+  <p>Starting a repo got cheap. Starting the right project did not. <a href="https://survey.stackoverflow.co/2025/ai" target="_blank" rel="noopener">Stack Overflow 2025</a></p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Make the project earn its shape before the backlog hardens.</h2>
+  <p class="prose">PAM is not a runtime stamp and not a promise that the research conclusion is true. It is a versioned methodology registry: pin an exact revision, route only the work that applies, close it with evidence a later human or agent can reopen.</p>
+  <div class="flow">
+    <article class="step"><b>Declare the project</b><p>What are we trying to prove, and what is out of scope?</p></article>
+    <article class="step"><b>Search for real</b><p>Named alternatives. Locators. Receipts that are not the decision document.</p></article>
+    <article class="step"><b>Hand off the state</b><p>The next session inherits the freeze, not a chat that evaporated.</p></article>
+  </div>
+</div></section>
+
+<section class="final"><div class="wrap">
+  <div class="finalbox">
+    <h2>Before you open issues, prove the homework.</h2>
+    <p class="prose">PAM is public and pre-v1. Pin a commit. Do not treat a branch name as methodology identity. The pitch is narrower than “better planning.” It is harder to fake: knowing what you meant to build, what you actually compared, and what evidence will count when someone says the work is done.</p>
+    <div class="actions">
+      <a class="btn" href="https://github.com/Pukujan/project-assurance-modules" target="_blank" rel="noopener">Explore PAM on GitHub</a>
+      <a class="btn ghost" href="./">Compare another direction</a>
+    </div>
+    <div class="receipt">
+      <span>Product source: public PAM repo</span>
+      <a href="https://github.com/Pukujan/project-assurance-modules/issues/10" target="_blank" rel="noopener">Issue 10, the reuse loophole</a>
+      <a href="https://dora.dev/insights/balancing-ai-tensions/" target="_blank" rel="noopener">DORA on AI as amplifier</a>
+    </div>
+  </div>
+</div></section>
+</main>
+<footer><div class="wrap">Fluffy System candidate · PAM studio · frontend-design informed · not featured</div></footer>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Research Assurance · Pinned stack</title>
+<meta name="description" content="Submodules answer which revisions were tested together. One dark pin is not a failed product. It is an untested layer that must stay untested in the story.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a1628; --ink:#e8eef4; --mute:#8ea0b3; --line:#1d3148;
+  --copper:#c4844a; --silver:#c5d0dc; --brass:#c6a15b;
+  --display:"Fraunces",Georgia,serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--mono)}
+a{color:var(--brass)}
+.wrap{width:min(1080px,calc(100% - 36px));margin:auto}
+nav{position:fixed;inset:0 0 auto;z-index:20;height:56px;display:flex;align-items:center;background:linear-gradient(#0a1628f2,#0a162800)}
+.navin{width:min(1080px,calc(100% - 36px));margin:auto;display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.navin a{color:var(--ink);text-decoration:none;border:1px solid var(--line);padding:7px 11px}
+.hero{min-height:100vh;position:relative;display:flex;align-items:flex-end}
+.canvasWrap{position:absolute;inset:0}
+canvas{width:100%;height:100%;display:block}
+.fallback{display:none;position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,#163050,#0a1628)}
+.fallback i{position:absolute;bottom:22%;width:10px;border-radius:6px;background:var(--copper)}
+.fallback i:nth-child(1){left:28%;height:28%;background:var(--copper)}
+.fallback i:nth-child(2){left:42%;height:34%;background:var(--silver)}
+.fallback i:nth-child(3){left:56%;height:22%;background:var(--brass)}
+.fallback i:nth-child(4){left:70%;height:10%;background:#243246}
+.shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 42%,#0a1628 92%);pointer-events:none}
+.copy{position:relative;z-index:3;padding:0 0 56px;max-width:720px}
+h1{font-family:var(--display);font-size:clamp(34px,5.5vw,62px);line-height:1.02;margin:0;font-weight:700;max-width:16ch}
+.lead{color:var(--mute);font-size:15px;max-width:40em;margin:16px 0 0}
+.btn{display:inline-block;margin-top:20px;text-decoration:none;background:var(--copper);color:#140c08;padding:11px 14px;font-weight:600;font-size:13px}
+section{padding:76px 0;border-top:1px solid var(--line)}
+h2{font-family:var(--display);font-size:clamp(26px,3.8vw,40px);margin:0 0 14px;max-width:18ch}
+.prose{color:var(--mute);max-width:40em}
+.tiny{margin-top:24px;font-size:12px;color:#6d7f93}
+@media(max-width:640px){.copy{padding:0 0 36px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<nav><div class="navin"><span>RA · pins</span><a href="./">Gallery</a></div></nav>
+<main>
+<section class="hero" aria-label="Pinned component revisions">
+  <div class="canvasWrap" id="scene">
+    <div class="fallback" id="fallback"><i></i><i></i><i></i><i></i></div>
+  </div>
+  <div class="shade"></div>
+  <div class="wrap copy">
+    <h1>They only count if they were tested together.</h1>
+    <p class="lead">Four pins on a plate: evidence, source suitability, retrieval evaluation, domain application. The short dark one is claim verification, intentionally not invented as an empty repo. A result belongs to this composition, not to a vibe that the stack is “the same.”</p>
+    <a class="btn" href="#note">Read the composition rule</a>
+  </div>
+</section>
+<section id="note"><div class="wrap">
+  <h2>Submodules are not runtime. Runtime is not proof.</h2>
+  <p class="prose">Gitlinks answer which revisions sat in the same campaign. Contracts answer how the systems talk. Evaluation receipts answer what a layer established. None of those quietly become semantic truth. The dark pin is honest residual risk, not a missing feature to airbrush out of the pitch.</p>
+  <p class="prose">Public pages do not link a private repository. External support for the market pain sits with Stanford, NIST, and ARES. Product proof stays in the stack’s own pins and receipts.</p>
+  <p class="tiny">Three.js 0.180.0. Metal pins, not particle garnish. If WebGL fails, the four heights still read.</p>
+</div></section>
+</main>
+<script type="module">
+const host=document.getElementById('scene');
+const fallback=document.getElementById('fallback');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function labelTexture(text){
+  const c=document.createElement('canvas');
+  c.width=512; c.height=128;
+  const g=c.getContext('2d');
+  g.clearRect(0,0,512,128);
+  g.fillStyle='#e8eef4';
+  g.font='600 36px "IBM Plex Mono", monospace';
+  g.fillText(text, 8, 80);
+  return c;
+}
+(async()=>{
+  try{
+    const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+    const scene=new THREE.Scene();
+    scene.background=new THREE.Color(0x0a1628);
+    scene.fog=new THREE.Fog(0x0a1628, 8, 18);
+    const camera=new THREE.PerspectiveCamera(30, innerWidth/innerHeight, .1, 40);
+    camera.position.set(0, 3.6, 8.2);
+    const renderer=new THREE.WebGLRenderer({antialias:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace=THREE.SRGBColorSpace;
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;
+    host.prepend(renderer.domElement);
+    scene.add(new THREE.HemisphereLight(0x6f88a8, 0x0a1628, .7));
+    const key=new THREE.DirectionalLight(0xffe1c4, 1.6); key.position.set(3,6,4); scene.add(key);
+    const rim=new THREE.DirectionalLight(0x7aa7d6, .55); rim.position.set(-5,2,-3); scene.add(rim);
+    const plate=new THREE.Mesh(new THREE.CylinderGeometry(3.4,3.4,.12,64), new THREE.MeshStandardMaterial({color:0x1a2a3d, metalness:.55, roughness:.35}));
+    plate.position.y=-0.7; scene.add(plate);
+    const pins=[
+      {x:-1.6, h:2.2, color:0xc4844a, metal:.85, rough:.28, name:'fossil-core'},
+      {x:-0.45, h:2.6, color:0xc5d0dc, metal:.9, rough:.22, name:'source-ranker'},
+      {x:0.7, h:1.7, color:0xc6a15b, metal:.8, rough:.32, name:'retrieval-eval'},
+      {x:1.85, h:0.55, color:0x243246, metal:.2, rough:.7, name:'claim-verifier'}
+    ];
+    pins.forEach(p=>{
+      const mat=new THREE.MeshStandardMaterial({color:p.color, metalness:p.metal, roughness:p.rough});
+      const mesh=new THREE.Mesh(new THREE.CylinderGeometry(.16,.18,p.h,32), mat);
+      mesh.position.set(p.x, p.h/2-0.64, 0);
+      scene.add(mesh);
+      const cap=new THREE.Mesh(new THREE.SphereGeometry(.17,24,16), mat);
+      cap.position.set(p.x, p.h-0.64, 0);
+      scene.add(cap);
+      const tex=new THREE.CanvasTexture(labelTexture(p.name));
+      tex.colorSpace=THREE.SRGBColorSpace;
+      const lab=new THREE.Mesh(new THREE.PlaneGeometry(1.7,.42), new THREE.MeshBasicMaterial({map:tex, transparent:true}));
+      lab.position.set(p.x, -0.95, 1.05);
+      lab.rotation.x=-0.4;
+      scene.add(lab);
+    });
+    addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+    const clock=new THREE.Clock();
+    function draw(){
+      const t=clock.getElapsedTime();
+      if(!reduced){
+        camera.position.x=Math.sin(t*0.16)*1.1;
+        camera.position.z=8.2+Math.cos(t*0.16)*0.4;
+      }
+      camera.lookAt(0,0.5,0);
+      renderer.render(scene,camera);
+      if(!reduced) requestAnimationFrame(draw);
+    }
+    draw();
+  }catch(err){
+    fallback.style.display='block';
+    console.warn('Three.js enhancement unavailable', err);
+  }
+})();
+</script>
+</body>
+</html>

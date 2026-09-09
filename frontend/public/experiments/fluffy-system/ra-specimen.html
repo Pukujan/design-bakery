@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Research Assurance · Specimen</title>
+<meta name="description" content="This answer has a citation. That is one fact, not a stack. Research Assurance keeps each measurement from inheriting the others.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#eef2f6; --ink:#10202b; --card:#fff; --teal:#0e7c6b;
+  --gold:#b8891f; --fail:#c5362b; --mute:#5b6a75; --line:#d5dde4;
+  --display:"Fraunces",Georgia,serif; --body:"Figtree",ui-sans-serif,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ground);color:var(--ink);font:17px/1.55 var(--body)}
+a{color:inherit}
+.wrap{width:min(1120px,calc(100% - 40px));margin:auto}
+nav{position:sticky;top:0;z-index:10;background:rgba(238,242,246,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.navin{height:62px;display:flex;justify-content:space-between;align-items:center}
+.brand{font-family:var(--display);font-weight:650;font-size:18px}
+.navin a{text-decoration:none;font-weight:600;font-size:13px;border:1px solid var(--line);background:var(--card);padding:8px 12px;border-radius:999px}
+.hero{padding:64px 0 40px;display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(36px,5.4vw,64px);line-height:1.02;letter-spacing:-.03em;margin:0;max-width:14ch}
+.lead{color:var(--mute);font-size:19px;max-width:34em;margin:18px 0 0}
+.btn{display:inline-block;margin-top:24px;text-decoration:none;background:var(--ink);color:#f3f7f8;padding:12px 16px;border-radius:10px;font-weight:700;font-size:14px}
+.specimen{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 24px 10px;box-shadow:0 24px 50px rgba(16,32,43,.08)}
+.specimen .src{font-size:12px;font-weight:700;color:var(--teal);letter-spacing:.02em}
+.specimen blockquote{margin:12px 0 18px;font-family:var(--display);font-size:26px;line-height:1.2;font-weight:650}
+.layer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-size:14px}
+.layer b{font-weight:700}
+.st{font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px}
+.st.pass{background:#e5f5f1;color:var(--teal)}
+.st.unk{background:#f8efd6;color:#8a6814}
+.st.fail{background:#fde8e6;color:var(--fail)}
+section{padding:82px 0;border-top:1px solid var(--line)}
+h2{font-family:var(--display);font-weight:700;font-size:clamp(28px,4.2vw,46px);line-height:1.08;margin:0 0 16px;max-width:16ch}
+.prose{max-width:38em;color:var(--mute)}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px}
+.col{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+.col h3{font-family:var(--display);font-weight:650;font-size:24px;margin:0 0 8px}
+.col p{margin:0;color:var(--mute)}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:28px}
+.num{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.num b{display:block;font-family:var(--display);font-size:42px;line-height:1}
+.num p{margin:8px 0 0;color:var(--mute);font-size:14px}
+.note{margin-top:16px;font-size:14px;color:var(--mute);max-width:42em}
+.final{padding:90px 0 70px}
+.finalbox{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:40px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.ghost{display:inline-block;text-decoration:none;border:1px solid var(--ink);padding:12px 16px;border-radius:10px;font-weight:700;font-size:14px}
+footer{padding:28px 0 48px;color:var(--mute);font-size:13px;border-top:1px solid var(--line)}
+@media(max-width:860px){.hero,.split,.nums{grid-template-columns:1fr}}
+@media(max-width:560px){.wrap{width:min(100% - 28px,1120px)}.hero{padding-top:40px}.finalbox{padding:26px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<nav><div class="wrap navin"><div class="brand">Research Assurance</div><a href="./">Gallery</a></div></nav>
+<main>
+<header class="hero wrap">
+  <div>
+    <h1>This answer has a citation. That is one fact, not a stack.</h1>
+    <p class="lead">A modern research system can look well supported while different layers answer different questions. Research Assurance is the control plane that refuses to collapse those questions into one green light.</p>
+    <a class="btn" href="#layers">Inspect the specimen</a>
+  </div>
+  <aside class="specimen" aria-label="Example result with independent checks">
+    <div class="src">Cited passage · reputable source</div>
+    <blockquote>The filing shows revenue grew 18% year over year.</blockquote>
+    <div class="layer"><span><b>Source</b> appropriate for the claim</span><span class="st pass">pass</span></div>
+    <div class="layer"><span><b>Citation</b> exact bytes still resolve</span><span class="st pass">pass</span></div>
+    <div class="layer"><span><b>Retrieval</b> relevant evidence surfaced</span><span class="st pass">pass</span></div>
+    <div class="layer"><span><b>Time</b> valid for the question’s date</span><span class="st unk">unknown</span></div>
+    <div class="layer"><span><b>Semantics</b> the passage actually supports it</span><span class="st fail">fail</span></div>
+  </aside>
+</header>
+
+<section id="layers"><div class="wrap">
+  <h2>Provenance is not entailment.</h2>
+  <p class="prose">The bytes can be intact. The retriever can be good. The model can still write a claim the passage does not support, from a stack that is not the one you benchmarked, against a corpus that has since moved. Specialized systems make scoped decisions. None of them get to promote their own output into truth.</p>
+  <div class="split">
+    <article class="col"><h3>What the product is</h3><p>An integration and assurance control plane for independently versioned research systems. It pins known-good revisions, defines stack contracts, and keeps the receipt for why a particular composition was called usable.</p></article>
+    <article class="col"><h3>What it refuses</h3><p>A universal <code>verified=true</code>. Source suitability, retrieval quality, temporal validity, numeric consistency, semantic support, and downstream correctness stay distinct dimensions.</p></article>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>A result only belongs to the stack that produced it.</h2>
+  <p class="prose">The first domain slice is financial intelligence on real SEC-like evidence. Claim verification is not pretended into existence. Retrieval benchmarking stays a research and CI dependency, not a per-request production service. Public protocol numbers describe campaign scope, not a winner.</p>
+  <div class="nums">
+    <article class="num"><b>5,074</b><p>public campaign cases frozen for selection work</p></article>
+    <article class="num"><b>6</b><p>base retrieval candidates under comparison</p></article>
+    <article class="num"><b>100</b><p>hidden confirmatory holdout, kept out of the public set</p></article>
+  </div>
+  <p class="note">Those figures are protocol scope. They do not mean the campaign selected a system. Incidents documented in 2025 rose to 362, from 233 the year before. Measurement is lagging deployment. <a href="https://hai.stanford.edu/ai-index/2026-ai-index-report/responsible-ai" target="_blank" rel="noopener">Stanford AI Index 2026</a></p>
+</div></section>
+
+<section class="final"><div class="wrap">
+  <div class="finalbox">
+    <h2>Know what was tested together. Stop there.</h2>
+    <p class="prose">The public story is not that one control plane makes AI trustworthy. It is that research gets easier to trust when every layer is explicit about what it established and what it left untouched. ARES already splits RAG into context relevance, faithfulness, and answer relevance. NIST treats assurance as multiple measurements, not one property.</p>
+    <div class="btns">
+      <a class="btn" href="./">Compare another direction</a>
+      <a class="ghost" href="https://www.nist.gov/ai-measurement-and-evaluation" target="_blank" rel="noopener">NIST measurement program</a>
+    </div>
+  </div>
+</div></section>
+</main>
+<footer><div class="wrap">Fluffy System candidate · Research Assurance specimen · public-safe page · frontend-design informed</div></footer>
+</body>
+</html>
