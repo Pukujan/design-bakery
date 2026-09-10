@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   materialize:
+    # Temporary branch-only workflow used to turn the prototype data URIs into real files.
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
