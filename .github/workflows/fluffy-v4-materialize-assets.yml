@@ -1,0 +1,53 @@
+name: Materialize Fluffy V4 image assets
+
+on:
+  push:
+    branches:
+      - fix/fluffy-v4-hires-assets
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install image tooling
+        run: python -m pip install --disable-pip-version-check 'Pillow==11.3.0'
+
+      - name: Extract and prepare V4 artwork
+        run: python scripts/prepare-fluffy-v4-assets.py
+
+      - name: Verify generated assets
+        run: |
+          set -euo pipefail
+          test "$(find frontend/public/experiments/fluffy-system-v4/assets -maxdepth 1 -name '*.webp' | wc -l)" -eq 8
+          if grep -R --include='*.html' -n 'data:image/.*;base64' frontend/public/experiments/fluffy-system-v4; then
+            echo 'Inline image data remains in V4 HTML.' >&2
+            exit 1
+          fi
+
+      - name: Commit generated image assets
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add frontend/public/experiments/fluffy-system-v4
+          if git diff --cached --quiet; then
+            echo 'No generated changes.'
+            exit 0
+          fi
+          git commit -m 'Externalize Fluffy V4 high-resolution artwork'
+          git push origin HEAD:${{ github.ref_name }}
