@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-05-22 |
-| **Last updated** | 2026-09-09 (Fluffy System v3 media-direction gallery) |
+| **Last updated** | 2026-09-10 (Fluffy V4 visual rebuild handoff) |
 
 **Start here** for agent-facing documentation in this repo.
 
@@ -17,6 +17,7 @@
 
 | Topic | Doc | Cursor rule | Main code |
 |-------|-----|-------------|-----------|
+| Fluffy V4 visual rebuild | [agent-devlog-fluffy-v4-visual-rebuild.md](agent-devlog-fluffy-v4-visual-rebuild.md) | `.cursor/rules/fluffy-v4-visual-rebuild.mdc` | `frontend/public/experiments/fluffy-system-v4/` |
 | Blog Mermaid diagrams | [agent-devlog-mermaid.md](agent-devlog-mermaid.md) | `.cursor/rules/blog-mermaid.mdc` | `src/app/modules/blog/render/`, `public/detail/`, `globals.css` |
 | Engineering blog posts | [agent-devlog-engineering-blog-posts.md](agent-devlog-engineering-blog-posts.md) | — | `src/app/modules/blog/data/`, `content/posts/` |
 | Blog motion & decor | [agent-devlog-blog-motion.md](agent-devlog-blog-motion.md) | `.cursor/rules/blog-motion.mdc` | `src/app/modules/blog/shared/BlogPageMotion.tsx` |

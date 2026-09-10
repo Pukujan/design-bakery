@@ -1,0 +1,17 @@
+{
+  "bundle": "fluffy-v4-visual-rebuild",
+  "created": "2026-09-10",
+  "sourceOfTruth": "references/study-partner-reference.webp is the first-milestone visual specification. The currently merged Study Partner AVIF is known-wrong art and is not a reference.",
+  "references": {
+    "studyPartner": "references/study-partner-reference.webp",
+    "allDirections": "references/v4-all-directions-contact-sheet.webp"
+  },
+  "starterIcons": [
+    "icons/book.svg",
+    "icons/users.svg",
+    "icons/lightning.svg",
+    "icons/arrow-right.svg",
+    "icons/check.svg"
+  ],
+  "firstMilestone": "frontend/public/experiments/fluffy-system-v4/fluffy-study-partner.html"
+}

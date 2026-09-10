@@ -1,0 +1,13 @@
+---
+description: Fluffy V4 visual rebuild rules
+globs:
+  - frontend/public/experiments/fluffy-system-v4/**
+alwaysApply: false
+---
+
+Before editing Fluffy V4, read:
+
+- `additionals/guidelines/agent-devlog-fluffy-v4-visual-rebuild.md`
+- `additionals/handoffs/fluffy-v4-visual-rebuild/README.md`
+
+Key constraints: real image files instead of inline base64, important copy/controls as HTML, SVG icons for UI symbols, intentional responsive/mobile layout, and browser screenshot comparison against the bundled reference before calling the work finished.
