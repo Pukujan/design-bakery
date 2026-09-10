@@ -1,0 +1,81 @@
+name: Prepare Fluffy V4 assets
+
+on:
+  push:
+    branches:
+      - fix/fluffy-v4-hires-assets
+    paths:
+      - .github/workflows/fluffy-v4-assets.yml
+      - scripts/prepare-fluffy-v4-assets.py
+      - frontend/public/experiments/fluffy-system-v4/**
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install image tooling
+        run: python -m pip install --disable-pip-version-check pillow
+
+      - name: Generate and externalize V4 artwork
+        run: python scripts/prepare-fluffy-v4-assets.py
+
+      - name: Verify generated WebPs
+        shell: python
+        run: |
+          from pathlib import Path
+          from PIL import Image
+
+          expected = [
+              'fluffy-study-partner',
+              'fluffy-editorial',
+              'fluffy-3d',
+              'pam-preflight',
+              'pam-proof',
+              'ra-control-room',
+              'ra-lab',
+              'mixed-media',
+          ]
+          root = Path('frontend/public/experiments/fluffy-system-v4')
+          for slug in expected:
+              asset = root / 'assets' / f'{slug}.webp'
+              if not asset.is_file():
+                  raise SystemExit(f'missing {asset}')
+              with Image.open(asset) as image:
+                  image.load()
+                  if image.format != 'WEBP':
+                      raise SystemExit(f'{asset}: expected WEBP, got {image.format}')
+                  if image.width < 1920:
+                      raise SystemExit(f'{asset}: expected width >= 1920, got {image.width}')
+              html = (root / f'{slug}.html').read_text(encoding='utf-8')
+              expected_url = f'--art:url("./assets/{slug}.webp")'
+              if expected_url not in html:
+                  raise SystemExit(f'{slug}: HTML was not rewired to external asset')
+              if '--art:url("data:image/' in html:
+                  raise SystemExit(f'{slug}: inline --art data URI remains')
+          print('Verified 8 V4 WebP assets and HTML references.')
+
+      - name: Commit generated assets
+        run: |
+          if git diff --quiet -- frontend/public/experiments/fluffy-system-v4; then
+            echo "No generated changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/experiments/fluffy-system-v4
+          git commit -m "Generate Fluffy V4 WebP assets"
+          git push origin HEAD:${{ github.ref_name }}
