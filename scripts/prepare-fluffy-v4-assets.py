@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
-"""Externalize and prepare Fluffy System V4 artwork.
+"""Prepare Fluffy System V4 artwork and externalize inline art references.
 
-The V4 experiments began as single-file prototypes with generated page renders
-embedded as CSS data URIs. Some later inline WebP replacements are malformed in
-Git history, and every page asks the browser to scale a 960px prototype render
-well beyond its native dimensions.
-
-This script turns the artwork into real files. It prefers the current inline
-source, falls back to each page's original creation commit if the current data
-URI is not decodable, creates a 1920px-wide high-quality WebP derivative, and
-rewrites ``--art`` to the external asset path.
+When a real asset already exists, the script treats that file as the source of
+truth and only rewrites the HTML to reference it. Otherwise it tries the current
+inline image and then the page's original creation commit before generating a
+1920px WebP derivative.
 """
 
 from __future__ import annotations
@@ -20,13 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-try:
-    from PIL import Image, ImageFilter, ImageOps
-except ImportError as exc:  # pragma: no cover - exercised by CI setup
-    raise SystemExit(
-        "Pillow is required. Install it with: python -m pip install Pillow"
-    ) from exc
-
+from PIL import Image, ImageFilter, ImageOps
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 V4_DIR = REPO_ROOT / "frontend" / "public" / "experiments" / "fluffy-system-v4"
@@ -34,8 +23,6 @@ ASSET_DIR = V4_DIR / "assets"
 TARGET_WIDTH = 1920
 WEBP_QUALITY = 92
 
-# First commits that introduced each V4 page. These preserve the original
-# generated render before the later one-line image-quality replacement commits.
 SOURCE_COMMITS = {
     "fluffy-study-partner": "337e955d5f5380b5e0bd37c71e1956b8cda99168",
     "fluffy-editorial": "52914cd1b3dfe72bfb8365d0e205537bdfdb61ce",
@@ -46,40 +33,30 @@ SOURCE_COMMITS = {
     "ra-lab": "74ff3e59797326a714cc90c9a9011b9bc73dce99",
     "mixed-media": "3e95605cdb8f67a243b140dcfa67770955705b89",
 }
-
 PAGES = tuple(SOURCE_COMMITS)
-BASE64_CHARS = frozenset(
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-)
+BASE64_CHARS = frozenset("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=")
 
 
 def find_inline_art(html: str) -> tuple[int, int, str] | None:
-    """Return the CSS art span and encoded payload without regexing a huge line."""
-    art_start = html.find("--art")
+    marker = '--art:url("data:image/'
+    art_start = html.find(marker)
     if art_start < 0:
         return None
-
-    data_start = html.find("data:image/", art_start)
-    if data_start < 0:
-        return None
-
     base64_marker = ";base64,"
-    payload_start = html.find(base64_marker, data_start)
+    payload_start = html.find(base64_marker, art_start)
     if payload_start < 0:
-        return None
+        raise RuntimeError("Inline --art image is not base64 encoded")
     payload_start += len(base64_marker)
-
     css_end = html.find(")", payload_start)
     if css_end < 0:
         raise RuntimeError("Inline --art data URI is not terminated correctly")
-
-    payload = html[payload_start:css_end].strip().rstrip("\"'").strip()
+    payload = html[payload_start:css_end]
+    if payload.endswith('"'):
+        payload = payload[:-1]
     return art_start, css_end + 1, payload
 
 
 def decode_payload(payload: str) -> bytes:
-    # Historical HTML snapshots sometimes wrapped/escaped the enormous line.
-    # The CSS boundary has already been isolated, so filtering is safe here.
     clean = "".join(ch for ch in payload if ch in BASE64_CHARS)
     clean += "=" * ((-len(clean)) % 4)
     if not clean:
@@ -98,11 +75,8 @@ def historical_html(slug: str, page_path: Path) -> str:
     rel = page_path.relative_to(REPO_ROOT).as_posix()
     commit = SOURCE_COMMITS[slug]
     proc = subprocess.run(
-        ["git", "show", f"{commit}:{rel}"],
-        cwd=REPO_ROOT,
-        check=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        ["git", "show", f"{commit}:{rel}"], cwd=REPO_ROOT, check=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
     return proc.stdout.decode("utf-8")
 
@@ -121,8 +95,7 @@ def load_source_image(slug: str, page_path: Path, payload: str) -> tuple[Image.I
             return image_from_payload(old_art[2]), f"history:{SOURCE_COMMITS[slug][:8]}"
         except Exception as old_error:
             raise RuntimeError(
-                f"Neither current nor original historical art decodes; "
-                f"current={current_error!r}, history={old_error!r}"
+                f"Neither current nor original historical art decodes; current={current_error!r}, history={old_error!r}"
             ) from old_error
 
 
@@ -130,12 +103,28 @@ def prepare_page(slug: str) -> tuple[bool, str]:
     page_path = V4_DIR / f"{slug}.html"
     asset_path = ASSET_DIR / f"{slug}.webp"
     html = page_path.read_text(encoding="utf-8")
+    expected = f'--art:url("./assets/{slug}.webp")'
     found = find_inline_art(html)
 
+    # A committed real asset is authoritative. This allows us to repair HTML
+    # even when its historical inline payload is irrecoverably malformed.
+    if asset_path.exists():
+        with Image.open(asset_path) as image:
+            image.load()
+            if image.format != "WEBP":
+                raise RuntimeError(f"{asset_path.relative_to(REPO_ROOT)} is not a WebP")
+            size = image.size
+        if expected in html and not found:
+            return False, f"{slug}: already externalized ({size[0]}x{size[1]})"
+        if not found:
+            raise RuntimeError(
+                f"{page_path.relative_to(REPO_ROOT)} does not contain the expected external reference"
+            )
+        art_start, art_end, _ = found
+        page_path.write_text(html[:art_start] + expected + html[art_end:], encoding="utf-8")
+        return True, f"{slug}: rewired to committed asset ({size[0]}x{size[1]})"
+
     if not found:
-        expected = f'--art:url("./assets/{slug}.webp")'
-        if expected in html and asset_path.exists():
-            return False, f"{slug}: already externalized"
         raise RuntimeError(
             f"{page_path.relative_to(REPO_ROOT)} has neither inline art nor a valid external asset"
         )
@@ -143,52 +132,28 @@ def prepare_page(slug: str) -> tuple[bool, str]:
     art_start, art_end, payload = found
     image, source_label = load_source_image(slug, page_path, payload)
     source_size = image.size
-
     if image.width < TARGET_WIDTH:
         target_height = round(image.height * TARGET_WIDTH / image.width)
-        image = image.resize(
-            (TARGET_WIDTH, target_height),
-            resample=Image.Resampling.LANCZOS,
-        )
-        # Mild sharpening counters interpolation softness without producing
-        # conspicuous halos around the generated render's fine details.
-        image = image.filter(
-            ImageFilter.UnsharpMask(radius=1.15, percent=75, threshold=3)
-        )
+        image = image.resize((TARGET_WIDTH, target_height), resample=Image.Resampling.LANCZOS)
+        image = image.filter(ImageFilter.UnsharpMask(radius=1.15, percent=75, threshold=3))
 
     asset_path.parent.mkdir(parents=True, exist_ok=True)
-    image.save(
-        asset_path,
-        format="WEBP",
-        quality=WEBP_QUALITY,
-        method=6,
-        exact=True,
-    )
+    image.save(asset_path, format="WEBP", quality=WEBP_QUALITY, method=6, exact=True)
     output_size = image.size
-
-    replacement = f'--art:url("./assets/{slug}.webp")'
-    rewritten = html[:art_start] + replacement + html[art_end:]
-    page_path.write_text(rewritten, encoding="utf-8")
-
-    return (
-        True,
+    page_path.write_text(html[:art_start] + expected + html[art_end:], encoding="utf-8")
+    return True, (
         f"{slug}: {source_label} {source_size[0]}x{source_size[1]} -> "
-        f"{output_size[0]}x{output_size[1]} ({asset_path.stat().st_size // 1024} KiB)",
+        f"{output_size[0]}x{output_size[1]} ({asset_path.stat().st_size // 1024} KiB)"
     )
 
 
 def main() -> int:
-    if not V4_DIR.is_dir():
-        raise SystemExit(f"V4 directory not found: {V4_DIR}")
-
-    ASSET_DIR.mkdir(parents=True, exist_ok=True)
     changed = 0
     for slug in PAGES:
         did_change, message = prepare_page(slug)
         changed += int(did_change)
         print(message)
-
-    print(f"Prepared {changed} Fluffy V4 page(s).")
+    print(f"Prepared {len(PAGES)} V4 pages; {changed} changed.")
     return 0
 
 
