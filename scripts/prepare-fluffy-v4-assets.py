@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import base64
 import io
-import re
 import sys
 from pathlib import Path
 
@@ -44,22 +43,45 @@ PAGES = (
     "mixed-media",
 )
 
-ART_RE = re.compile(
-    r"--art\s*:\s*url\(\s*[\"']?"
-    r"data:image/(?P<format>webp|jpeg|jpg|png);base64,"
-    r"(?P<data>[A-Za-z0-9+/=]+)"
-    r"[\"']?\s*\)",
-    re.IGNORECASE,
-)
+
+def find_inline_art(html: str) -> tuple[int, int, str] | None:
+    """Return the CSS art span and base64 payload without regexing a huge line."""
+    art_start = html.find("--art")
+    if art_start < 0:
+        return None
+
+    data_start = html.find("data:image/", art_start)
+    if data_start < 0:
+        return None
+
+    base64_marker = ";base64,"
+    payload_start = html.find(base64_marker, data_start)
+    if payload_start < 0:
+        return None
+    payload_start += len(base64_marker)
+
+    quote = html[data_start - 1] if data_start > 0 and html[data_start - 1] in {'"', "'"} else None
+    if quote:
+        payload_end = html.find(quote, payload_start)
+        css_end = html.find(")", payload_end)
+    else:
+        css_end = html.find(")", payload_start)
+        payload_end = css_end
+
+    if payload_end < 0 or css_end < 0:
+        raise RuntimeError("Inline --art data URI is not terminated correctly")
+
+    # Replace exactly the CSS custom-property value, from `--art` through `url(...)`.
+    return art_start, css_end + 1, html[payload_start:payload_end]
 
 
 def prepare_page(slug: str) -> tuple[bool, str]:
     page_path = V4_DIR / f"{slug}.html"
     asset_path = ASSET_DIR / f"{slug}.webp"
     html = page_path.read_text(encoding="utf-8")
-    match = ART_RE.search(html)
+    found = find_inline_art(html)
 
-    if not match:
+    if not found:
         expected = f'--art:url("./assets/{slug}.webp")'
         if expected in html and asset_path.exists():
             return False, f"{slug}: already externalized"
@@ -67,7 +89,9 @@ def prepare_page(slug: str) -> tuple[bool, str]:
             f"{page_path.relative_to(REPO_ROOT)} has neither inline art nor a valid external asset"
         )
 
-    raw = base64.b64decode(match.group("data"), validate=True)
+    art_start, art_end, payload = found
+    raw = base64.b64decode("".join(payload.split()), validate=True)
+
     with Image.open(io.BytesIO(raw)) as source:
         image = ImageOps.exif_transpose(source).convert("RGB")
         source_size = image.size
@@ -78,8 +102,8 @@ def prepare_page(slug: str) -> tuple[bool, str]:
                 (TARGET_WIDTH, target_height),
                 resample=Image.Resampling.LANCZOS,
             )
-            # A restrained pass compensates for browser/prototype resampling softness
-            # without inventing hard halos around type-like edges in generated art.
+            # A restrained pass compensates for prototype/browser resampling softness
+            # without creating hard halos around generated details.
             image = image.filter(
                 ImageFilter.UnsharpMask(radius=1.15, percent=75, threshold=3)
             )
@@ -95,7 +119,7 @@ def prepare_page(slug: str) -> tuple[bool, str]:
         output_size = image.size
 
     replacement = f'--art:url("./assets/{slug}.webp")'
-    rewritten = ART_RE.sub(replacement, html, count=1)
+    rewritten = html[:art_start] + replacement + html[art_end:]
     page_path.write_text(rewritten, encoding="utf-8")
 
     return (
