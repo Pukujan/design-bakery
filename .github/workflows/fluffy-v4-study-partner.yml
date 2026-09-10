@@ -1,0 +1,87 @@
+name: Materialize Fluffy V4 Study Partner asset
+
+on:
+  push:
+    branches:
+      - fix/fluffy-v4-study-partner-asset
+    paths:
+      - .asset-staging/study-partner.READY
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Decode source render
+        shell: bash
+        run: |
+          set -euo pipefail
+          out='frontend/public/experiments/fluffy-system-v4/assets'
+          mkdir -p "$out"
+          cat .asset-staging/fluffy-study-partner.b64.part* | tr -d '\r\n' | base64 --decode > "$out/fluffy-study-partner.webp"
+
+      - name: Rewire Study Partner page
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          page = Path('frontend/public/experiments/fluffy-system-v4/fluffy-study-partner.html')
+          html = page.read_text(encoding='utf-8')
+          html, count = re.subn(
+              r'--art:url\("data:image/[^\"]+"\)',
+              '--art:url("./assets/fluffy-study-partner.webp")',
+              html,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit(f'expected one inline --art replacement, got {count}')
+          html = html.replace(
+              'var(--art) right center/64% 100% no-repeat',
+              'var(--art) right center/64% auto no-repeat',
+              1,
+          )
+          page.write_text(html, encoding='utf-8')
+          PY
+
+      - name: Verify image and page
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pillow >/dev/null
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          asset = Path('frontend/public/experiments/fluffy-system-v4/assets/fluffy-study-partner.webp')
+          with Image.open(asset) as image:
+              image.load()
+              assert image.format == 'WEBP', image.format
+              assert image.size == (1448, 1086), image.size
+          html = Path('frontend/public/experiments/fluffy-system-v4/fluffy-study-partner.html').read_text(encoding='utf-8')
+          assert '--art:url("./assets/fluffy-study-partner.webp")' in html
+          assert 'data:image/' not in html
+          assert 'var(--art) right center/64% auto no-repeat' in html
+          print('Study Partner verified: 1448x1086 WebP, external asset, aspect ratio preserved')
+          PY
+
+      - name: Commit clean result
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .asset-staging
+          rm -f .github/workflows/fluffy-v4-study-partner.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A .asset-staging .github/workflows/fluffy-v4-study-partner.yml frontend/public/experiments/fluffy-system-v4
+          git commit -m 'Fix Fluffy V4 Study Partner artwork'
+          git push origin HEAD:${{ github.ref_name }}
