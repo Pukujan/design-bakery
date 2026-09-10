@@ -43,9 +43,13 @@ PAGES = (
     "mixed-media",
 )
 
+BASE64_CHARS = frozenset(
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+)
+
 
 def find_inline_art(html: str) -> tuple[int, int, str] | None:
-    """Return the CSS art span and base64 payload without regexing a huge line."""
+    """Return the CSS art span and encoded payload without regexing a huge line."""
     art_start = html.find("--art")
     if art_start < 0:
         return None
@@ -60,19 +64,24 @@ def find_inline_art(html: str) -> tuple[int, int, str] | None:
         return None
     payload_start += len(base64_marker)
 
-    quote = html[data_start - 1] if data_start > 0 and html[data_start - 1] in {'"', "'"} else None
-    if quote:
-        payload_end = html.find(quote, payload_start)
-        css_end = html.find(")", payload_end)
-    else:
-        css_end = html.find(")", payload_start)
-        payload_end = css_end
-
-    if payload_end < 0 or css_end < 0:
+    # The prototypes consistently use url("data:image/..."). Use the first CSS
+    # close-paren as the hard boundary, then strip the optional wrapping quote.
+    css_end = html.find(")", payload_start)
+    if css_end < 0:
         raise RuntimeError("Inline --art data URI is not terminated correctly")
 
-    # Replace exactly the CSS custom-property value, from `--art` through `url(...)`.
-    return art_start, css_end + 1, html[payload_start:payload_end]
+    payload = html[payload_start:css_end].strip().rstrip("\"'").strip()
+    return art_start, css_end + 1, payload
+
+
+def decode_payload(payload: str) -> bytes:
+    # A few historical HTML snapshots wrapped/escaped the very long base64 line.
+    # Keep only legal base64 characters; the CSS boundary was already isolated above.
+    clean = "".join(ch for ch in payload if ch in BASE64_CHARS)
+    clean += "=" * ((-len(clean)) % 4)
+    if not clean:
+        raise RuntimeError("Inline --art payload is empty")
+    return base64.b64decode(clean, validate=False)
 
 
 def prepare_page(slug: str) -> tuple[bool, str]:
@@ -90,7 +99,7 @@ def prepare_page(slug: str) -> tuple[bool, str]:
         )
 
     art_start, art_end, payload = found
-    raw = base64.b64decode("".join(payload.split()), validate=True)
+    raw = decode_payload(payload)
 
     with Image.open(io.BytesIO(raw)) as source:
         image = ImageOps.exif_transpose(source).convert("RGB")
