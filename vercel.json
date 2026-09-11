@@ -12,6 +12,26 @@
   ],
   "rewrites": [
     {
+      "source": "/ai-for-good/",
+      "destination": "https://ai-for-good-livid.vercel.app/"
+    },
+    {
+      "source": "/ai-for-good/assets/:path*",
+      "destination": "https://ai-for-good-livid.vercel.app/assets/:path*"
+    },
+    {
+      "source": "/ai-for-good/brand/:path*",
+      "destination": "https://ai-for-good-livid.vercel.app/brand/:path*"
+    },
+    {
+      "source": "/ai-for-good/robots.txt",
+      "destination": "https://ai-for-good-livid.vercel.app/robots.txt"
+    },
+    {
+      "source": "/ai-for-good/sitemap.xml",
+      "destination": "https://ai-for-good-livid.vercel.app/sitemap.xml"
+    },
+    {
       "source": "/ai-for-good/:path*",
       "destination": "https://ai-for-good-livid.vercel.app/:path*"
     },
