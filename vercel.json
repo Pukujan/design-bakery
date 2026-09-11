@@ -3,7 +3,18 @@
   "installCommand": "pnpm install",
   "buildCommand": "pnpm --dir frontend run build",
   "outputDirectory": "frontend/dist",
+  "redirects": [
+    {
+      "source": "/ai-for-good",
+      "destination": "/ai-for-good/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
+    {
+      "source": "/ai-for-good/:path*",
+      "destination": "https://ai-for-good-livid.vercel.app/:path*"
+    },
     {
       "source": "/case-studies/cortex",
       "destination": "/case-studies/cortex/a/index.html"
