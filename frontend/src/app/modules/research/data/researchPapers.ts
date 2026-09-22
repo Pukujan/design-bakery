@@ -253,7 +253,7 @@ const PAPER_010: ResearchPaper = {
   status: 'pending',
   tags: ['benchmarks', 'objective-evaluation', 'grok', 'jev', 'qwen', 'calibration'],
   abstract:
-    'A consolidated benchmark comparison over a frozen typed objective-decision pool. The study reports correctness separately from coverage, compares Grok Build, Jev, Qwen, and low-cost InferHub routes, documents a preregistered Grok protocol diagnostic, and separates calibration evidence from accuracy. It is a working paper pending the final Grok blind rerun; recommendation policy and unrelated reliability material are intentionally out of scope.',
+    'A consolidated benchmark comparison over a frozen typed objective-decision pool. The study reports correctness separately from coverage, compares Grok Build, Jev, Qwen, and low-cost InferHub routes, documents a completed preregistered Grok protocol diagnostic and blind rerun, and separates calibration evidence from accuracy. It is a working paper pending owner review; recommendation policy and unrelated reliability material are intentionally out of scope.',
   content: PAPER_010_MD,
 };
 
