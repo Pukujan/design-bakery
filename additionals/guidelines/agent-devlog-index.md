@@ -35,6 +35,7 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 
 | Date | Log |
 |------|-----|
+| 2026-09-22 | [dev-log-2026-09-22.md](dev-log-2026-09-22.md) - Consolidated Eval Lab benchmark-comparison paper added to the Research module |
 | 2026-09-09 | [dev-log-2026-09-09-fluffy-v3-media.md](dev-log-2026-09-09-fluffy-v3-media.md) - Fluffy System v3: generated imagery, custom SVG/vector systems, and mixed-media Three.js gallery |
 | 2026-09-09 | [dev-log-2026-09-09-fluffy-v2-focused.md](dev-log-2026-09-09-fluffy-v2-focused.md) - Fluffy System v2: one deep page per product plus one focused Three.js exploration |
 | 2026-09-09 | [dev-log-2026-09-09-fluffy-round-3.md](dev-log-2026-09-09-fluffy-round-3.md) - Fluffy System round 3: pull costume pages, four product-true PAM/RA studio candidates |

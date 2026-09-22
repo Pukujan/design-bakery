@@ -23,6 +23,7 @@ import PAPER_006_MD from '../content/db-r-2026-006.md?raw';
 import PAPER_007_MD from '../content/db-r-2026-007.md?raw';
 import PAPER_008_MD from '../content/db-r-2026-008.md?raw';
 import PAPER_009_MD from '../content/db-r-2026-009.md?raw';
+import PAPER_010_MD from '../content/db-r-2026-010.md?raw';
 
 import SOURCE_EMOTION_MD from '../content/sources/ai-emotional-development-landscape.md?raw';
 import SOURCE_SELFLEARN_MD from '../content/sources/self-learning-ai-survey.md?raw';
@@ -243,8 +244,22 @@ const PAPER_009: ResearchPaper = {
 }`,
 };
 
+const PAPER_010: ResearchPaper = {
+  id: 'db-r-2026-010',
+  title:
+    'Benchmark performance of typed objective judges: Grok Build, Jev, Qwen, and low-cost routes',
+  authors: ['Pujan', 'Design Bakery'],
+  submitted: '2026-09-22',
+  status: 'pending',
+  tags: ['benchmarks', 'objective-evaluation', 'grok', 'jev', 'qwen', 'calibration'],
+  abstract:
+    'A consolidated benchmark comparison over a frozen typed objective-decision pool. The study reports correctness separately from coverage, compares Grok Build, Jev, Qwen, and low-cost InferHub routes, documents a preregistered Grok protocol diagnostic, and separates calibration evidence from accuracy. It is a working paper pending the final Grok blind rerun; recommendation policy and unrelated reliability material are intentionally out of scope.',
+  content: PAPER_010_MD,
+};
+
 /** Newest first. */
 export const RESEARCH_PAPERS: ResearchPaper[] = [
+  PAPER_010,
   PAPER_009,
   PAPER_008,
   PAPER_007,
