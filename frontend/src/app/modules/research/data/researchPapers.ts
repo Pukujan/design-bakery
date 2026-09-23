@@ -246,14 +246,13 @@ const PAPER_009: ResearchPaper = {
 
 const PAPER_010: ResearchPaper = {
   id: 'db-r-2026-010',
-  title:
-    'Objective and calibrated judgment under frozen rubrics: Grok Build, Jev, Qwen, and selective escalation',
+  title: 'Jev among contemporary model judges: comparative evaluation on frozen objective-decision tasks',
   authors: ['Pujan', 'Design Bakery'],
   submitted: '2026-09-22',
   status: 'pending',
   tags: ['benchmarks', 'objective-evaluation', 'grok', 'jev', 'qwen', 'calibration'],
   abstract:
-    'A consolidated benchmark comparison over a frozen typed objective-decision pool. The study asks whether judges can be accurate, calibrated, auditable, and safely routed under explicit rubrics. It reports correctness separately from coverage, compares Grok Build, Jev, Qwen, and independently routed providers, documents a completed preregistered Grok protocol diagnostic and blind rerun, and treats price and latency as secondary operational metrics. It is a working paper pending owner review; recommendation policy and unrelated reliability material are intentionally out of scope.',
+    'A comparative evaluation of Jev, Qwen, Grok, and other contemporary model judges on a frozen typed objective-decision pool. The study reports correctness and coverage separately, documents a preregistered Grok protocol diagnostic, and evaluates split-safe confidence calibration for a local Qwen 4B judge. It is a working paper pending owner review.',
   content: PAPER_010_MD,
 };
 

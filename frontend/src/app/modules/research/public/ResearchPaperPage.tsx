@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, RotateCcw, X, ZoomIn, ZoomOut } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -71,11 +71,83 @@ export function ResearchPaperPage() {
   const { paperId } = useParams<{ paperId: string }>();
   const paper = paperId ? getResearchPaper(paperId) : undefined;
   const [showBib, setShowBib] = useState(false);
+  const [activeFigure, setActiveFigure] = useState<{ src: string; alt: string } | null>(null);
+  const [figureZoom, setFigureZoom] = useState(1);
+  const closeFigureButtonRef = useRef<HTMLButtonElement>(null);
+  const figureDialogPanelRef = useRef<HTMLDivElement>(null);
+  const paperMarkdownComponents = useMemo(
+    () => ({
+      ...markdownComponents,
+      img({ src, alt, ...props }: any) {
+        if (!src) return null;
+        const label = alt || 'Research figure';
+        return (
+          <button
+            type="button"
+            className="research-figure-trigger"
+            aria-label={`Open figure: ${label}`}
+            onClick={() => {
+              setActiveFigure({ src, alt: label });
+              setFigureZoom(1);
+            }}
+          >
+            <img {...props} src={src} alt={label} />
+          </button>
+        );
+      },
+    }),
+    [setActiveFigure, setFigureZoom],
+  );
 
   useEffect(() => {
     if (paper) document.title = `${paper.id} · ${paper.title}`;
     window.scrollTo({ top: 0 });
   }, [paper]);
+
+  useEffect(() => {
+    if (!activeFigure) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const previousActiveElement = document.activeElement as HTMLElement | null;
+    document.body.style.overflow = 'hidden';
+    closeFigureButtonRef.current?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setActiveFigure(null);
+      if (event.key === 'Tab') {
+        const focusableElements = figureDialogPanelRef.current?.querySelectorAll<HTMLElement>(
+          'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+        );
+        const firstElement = focusableElements?.[0];
+        const lastElement = focusableElements?.[focusableElements.length - 1];
+        if (!firstElement || !lastElement) {
+          event.preventDefault();
+        } else if (event.shiftKey && document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+        } else if (!event.shiftKey && document.activeElement === lastElement) {
+          event.preventDefault();
+          firstElement.focus();
+        }
+      }
+      if (event.key === '+' || event.key === '=') {
+        event.preventDefault();
+        setFigureZoom((value) => Math.min(3, Number((value + 0.25).toFixed(2))));
+      }
+      if (event.key === '-') {
+        event.preventDefault();
+        setFigureZoom((value) => Math.max(1, Number((value - 0.25).toFixed(2))));
+      }
+      if (event.key === '0') setFigureZoom(1);
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousActiveElement?.focus();
+    };
+  }, [activeFigure]);
 
   if (!paper) {
     return (
@@ -128,7 +200,7 @@ export function ResearchPaperPage() {
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw]}
-            components={markdownComponents}
+            components={paperMarkdownComponents}
           >
             {stripLeadingTitle(paper.content, paper.title)}
           </ReactMarkdown>
@@ -151,6 +223,87 @@ export function ResearchPaperPage() {
           </div>
         ) : null}
       </div>
+
+      {activeFigure ? (
+        <div
+          className="research-figure-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Enlarged figure: ${activeFigure.alt}`}
+          onClick={() => setActiveFigure(null)}
+        >
+          <div
+            ref={figureDialogPanelRef}
+            className="research-figure-dialog-panel"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="research-figure-dialog-toolbar">
+              <p className="research-figure-dialog-title">{activeFigure.alt}</p>
+              <div className="research-figure-dialog-controls">
+                <button
+                  type="button"
+                  className="research-figure-dialog-button"
+                  onClick={() => setFigureZoom((value) => Math.max(1, Number((value - 0.25).toFixed(2))))}
+                  disabled={figureZoom <= 1}
+                  aria-label="Zoom out"
+                  title="Zoom out"
+                >
+                  <ZoomOut aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  className="research-figure-dialog-zoom"
+                  onClick={() => setFigureZoom(1)}
+                  aria-label="Reset zoom"
+                  title="Reset zoom"
+                >
+                  {Math.round(figureZoom * 100)}%
+                </button>
+                <button
+                  type="button"
+                  className="research-figure-dialog-button"
+                  onClick={() => setFigureZoom((value) => Math.min(3, Number((value + 0.25).toFixed(2))))}
+                  disabled={figureZoom >= 3}
+                  aria-label="Zoom in"
+                  title="Zoom in"
+                >
+                  <ZoomIn aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  className="research-figure-dialog-button"
+                  onClick={() => setFigureZoom(1)}
+                  aria-label="Reset zoom"
+                  title="Reset zoom"
+                >
+                  <RotateCcw aria-hidden />
+                </button>
+                <button
+                  ref={closeFigureButtonRef}
+                  type="button"
+                  className="research-figure-dialog-button"
+                  onClick={() => setActiveFigure(null)}
+                  aria-label="Close figure viewer"
+                  title="Close"
+                >
+                  <X aria-hidden />
+                </button>
+              </div>
+            </div>
+            <div className="research-figure-dialog-stage">
+              <img
+                src={activeFigure.src}
+                alt={activeFigure.alt}
+                className="research-figure-dialog-image"
+                style={{ width: `${figureZoom * 100}%` }}
+              />
+            </div>
+            <p className="research-figure-dialog-hint">
+              Use the controls or +/− keys to inspect the figure. Press Escape or click outside to close.
+            </p>
+          </div>
+        </div>
+      ) : null}
     </article>
   );
 }
