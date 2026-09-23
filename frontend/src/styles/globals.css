@@ -1464,12 +1464,179 @@ body::before {
   background: #f5f7fb;
 }
 
+.research-paper .research-figure-trigger {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: zoom-in;
+}
+
+.research-paper .research-figure-trigger:focus-visible {
+  outline: 3px solid var(--rp-link);
+  outline-offset: 4px;
+}
+
+.research-paper .research-figure-trigger:hover img {
+  border-color: var(--rp-link);
+}
+
 .research-paper .research-figure figcaption {
   margin-top: 0.65em;
   color: var(--rp-muted);
   font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   font-size: 0.78em;
   line-height: 1.45;
+}
+
+.research-figure-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgb(0 0 0 / 82%);
+}
+
+.research-figure-dialog-panel {
+  display: flex;
+  width: min(1400px, 100%);
+  max-height: calc(100vh - 24px);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 10px;
+  background: #11151d;
+  color: #f7f6f2;
+  box-shadow: 0 20px 70px rgb(0 0 0 / 45%);
+}
+
+.research-figure-dialog-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgb(255 255 255 / 14%);
+  font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+.research-figure-dialog-title {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: #f7f6f2;
+  font-size: 0.86rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.research-figure-dialog-controls {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+}
+
+.research-figure-dialog-button,
+.research-figure-dialog-zoom {
+  display: inline-flex;
+  min-width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: 5px;
+  color: #f7f6f2;
+  background: rgb(255 255 255 / 8%);
+  font: 600 0.76rem/1 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.research-figure-dialog-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.research-figure-dialog-button:hover:not(:disabled),
+.research-figure-dialog-zoom:hover {
+  background: rgb(255 255 255 / 18%);
+}
+
+.research-figure-dialog-button:focus-visible,
+.research-figure-dialog-zoom:focus-visible {
+  outline: 2px solid #a8c8f0;
+  outline-offset: 2px;
+}
+
+.research-figure-dialog-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.research-figure-dialog-stage {
+  min-height: 0;
+  overflow: auto;
+  padding: 20px;
+  background: #f5f7fb;
+  overscroll-behavior: contain;
+}
+
+.research-figure-dialog-image {
+  display: block;
+  min-width: 0;
+  max-width: none;
+  height: auto;
+  margin: 0 auto;
+}
+
+.research-figure-dialog-hint {
+  margin: 0;
+  padding: 8px 12px 10px;
+  color: rgb(247 246 242 / 72%);
+  font: 0.72rem/1.4 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .research-figure-dialog {
+    padding: 0;
+  }
+
+  .research-figure-dialog-panel {
+    width: 100%;
+    max-height: 100vh;
+    min-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .research-figure-dialog-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .research-figure-dialog-title {
+    width: 100%;
+  }
+
+  .research-figure-dialog-controls {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .research-figure-dialog-stage {
+    display: flex;
+    flex: 1;
+    align-items: flex-start;
+    padding: 12px;
+  }
 }
 
 /* Cortex spec page uses the case-study red accent for links; research keeps arXiv blue. */
