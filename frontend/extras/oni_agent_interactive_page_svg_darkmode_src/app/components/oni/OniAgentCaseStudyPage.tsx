@@ -686,20 +686,17 @@ export function OniAgentCaseStudyPage() {
               />
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-4">
-              {[
+              {([
                 ["What changed", History],
                 ["What failed", AlertTriangle],
                 ["What was reviewed", ShieldCheck],
                 ["What to do next", Rocket],
-              ].map(([label, Icon]) => {
-                const RealIcon = Icon as typeof History;
-                return (
+              ] as const).map(([label, Icon]) => (
                   <div key={String(label)} className="rounded-3xl bg-white/10 p-5">
-                    <RealIcon className="mb-4 h-6 w-6 text-cyan-300" />
+                    <Icon className="mb-4 h-6 w-6 text-cyan-300" />
                     <p className="font-bold">{label}</p>
                   </div>
-                );
-              })}
+              ))}
             </div>
           </div>
         </SectionShell>

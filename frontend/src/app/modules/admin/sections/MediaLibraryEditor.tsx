@@ -253,7 +253,6 @@ export function MediaLibraryEditor() {
     if (!selectedQueue.length) return;
     setBatchBusy(true);
     for (const item of selectedQueue) {
-      // eslint-disable-next-line no-await-in-loop
       await runPreviewFor(item.id);
     }
     setBatchBusy(false);

@@ -245,7 +245,7 @@ export function BlogEditor() {
   async function handleSave() {
     if (!editPost) return;
     setSaveError(null);
-    let working = postWithKitImagesApplied(editPost);
+    const working = postWithKitImagesApplied(editPost);
     if (working !== editPost) {
       setEditPost(working);
       patchKitDraft({ appliedToForm: true });

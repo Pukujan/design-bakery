@@ -72,7 +72,7 @@ function runFcMatch(query: string): string | null {
   }
 }
 
-async function probeSvgRasterize(fontDir: string): Promise<PublishKitFontDiagnostics['svgProbe']> {
+async function probeSvgRasterize(): Promise<PublishKitFontDiagnostics['svgProbe']> {
   const label = `${FONT_FAMILY} overlay probe`;
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="80">
@@ -156,7 +156,7 @@ export async function collectPublishKitFontDiagnosticsAsync(
 ): Promise<PublishKitFontDiagnostics> {
   const base = collectPublishKitFontDiagnostics(context);
   if (options?.runSvgProbe !== false) {
-    base.svgProbe = await probeSvgRasterize(base.fontDir);
+    base.svgProbe = await probeSvgRasterize();
   }
   return base;
 }

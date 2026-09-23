@@ -30,7 +30,7 @@ export function SectionPage<T extends object>({
     setStatus('');
     try {
       setItems(await load());
-    } catch (e) {
+    } catch {
       setStatus('Failed to load. Check Firebase config.');
     } finally {
       setLoading(false);

@@ -31,7 +31,7 @@ export function GalleryPageEditor() {
             <TabsTrigger key={key} value={key}>{label}</TabsTrigger>
           ))}
         </TabsList>
-        {GALLERY_KEYS.map(({ key, label }) => (
+        {GALLERY_KEYS.map(({ key }) => (
           <TabsContent key={key} value={key}>
             <SectionPage
               title=""

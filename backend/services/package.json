@@ -5,7 +5,7 @@
   "main": "lib/blog/publishKit/handler.js",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": "24.x"
   },
   "scripts": {
     "build": "tsc && node scripts/copy-publish-kit-inter-ttf.mjs",

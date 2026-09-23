@@ -7,7 +7,7 @@ interface BakeryItemProps {
 }
 
 export function Cupcake({ size = 100, animate = true, className = '' }: BakeryItemProps) {
-  const MotionComponent = animate ? motion.div : 'div';
+  const MotionComponent = motion.div;
   const animationProps = animate ? {
     animate: {
       y: [0, -10, 0],
@@ -16,7 +16,7 @@ export function Cupcake({ size = 100, animate = true, className = '' }: BakeryIt
     transition: {
       duration: 3,
       repeat: Infinity,
-      ease: "easeInOut"
+      ease: "easeInOut" as const
     }
   } : {};
 
@@ -45,7 +45,7 @@ export function Cupcake({ size = 100, animate = true, className = '' }: BakeryIt
 }
 
 export function Donut({ size = 100, animate = true, className = '' }: BakeryItemProps) {
-  const MotionComponent = animate ? motion.div : 'div';
+  const MotionComponent = motion.div;
   const animationProps = animate ? {
     animate: {
       rotate: [0, 360],
@@ -53,7 +53,7 @@ export function Donut({ size = 100, animate = true, className = '' }: BakeryItem
     transition: {
       duration: 10,
       repeat: Infinity,
-      ease: "linear"
+      ease: "linear" as const
     }
   } : {};
 
@@ -85,7 +85,7 @@ export function Donut({ size = 100, animate = true, className = '' }: BakeryItem
 }
 
 export function Cookie({ size = 100, animate = true, className = '' }: BakeryItemProps) {
-  const MotionComponent = animate ? motion.div : 'div';
+  const MotionComponent = motion.div;
   const animationProps = animate ? {
     animate: {
       scale: [1, 1.1, 1],
@@ -93,7 +93,7 @@ export function Cookie({ size = 100, animate = true, className = '' }: BakeryIte
     transition: {
       duration: 2,
       repeat: Infinity,
-      ease: "easeInOut"
+      ease: "easeInOut" as const
     }
   } : {};
 
@@ -120,7 +120,7 @@ export function Cookie({ size = 100, animate = true, className = '' }: BakeryIte
 }
 
 export function Croissant({ size = 100, animate = true, className = '' }: BakeryItemProps) {
-  const MotionComponent = animate ? motion.div : 'div';
+  const MotionComponent = motion.div;
   const animationProps = animate ? {
     animate: {
       rotate: [-5, 5, -5],
@@ -128,7 +128,7 @@ export function Croissant({ size = 100, animate = true, className = '' }: Bakery
     transition: {
       duration: 4,
       repeat: Infinity,
-      ease: "easeInOut"
+      ease: "easeInOut" as const
     }
   } : {};
 
@@ -150,7 +150,7 @@ export function Croissant({ size = 100, animate = true, className = '' }: Bakery
 }
 
 export function IceCream({ size = 100, animate = true, className = '' }: BakeryItemProps) {
-  const MotionComponent = animate ? motion.div : 'div';
+  const MotionComponent = motion.div;
   const animationProps = animate ? {
     animate: {
       y: [0, -8, 0],
@@ -158,7 +158,7 @@ export function IceCream({ size = 100, animate = true, className = '' }: BakeryI
     transition: {
       duration: 2.5,
       repeat: Infinity,
-      ease: "easeInOut"
+      ease: "easeInOut" as const
     }
   } : {};
 

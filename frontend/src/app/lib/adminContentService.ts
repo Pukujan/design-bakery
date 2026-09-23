@@ -197,7 +197,7 @@ function normalizeBlogPostForSave(post: BlogPost): Omit<BlogPost, 'id'> {
 export async function getBlogs(): Promise<BlogPost[]> {
   const fallbackBlogs = (_blogsJson as unknown as BlogPost[]).map((p, i) => ({
     ...p,
-    numericId: p.numericId ?? (p as { id?: number }).id ?? i + 1,
+    numericId: p.numericId ?? (Number(p.id) || i + 1),
   }));
 
   if (!isSupabaseContentEnabled()) return fallbackBlogs;
@@ -227,7 +227,7 @@ async function seedMissingFallbackBlogs(): Promise<number> {
   const existingKeys = new Set(existing.map((p) => blogPostMergeKey(p)));
   const fallback = (_blogsJson as unknown as BlogPost[]).map((p, i) => ({
     ...p,
-    numericId: p.numericId ?? (p as { id?: number }).id ?? i + 1,
+    numericId: p.numericId ?? (Number(p.id) || i + 1),
   }));
   const missing = fallback.filter((post) => !existingKeys.has(blogPostMergeKey(post)));
   if (missing.length === 0) return 0;

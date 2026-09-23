@@ -94,7 +94,7 @@ export function CoverStudioPanel({
   draft: controlledDraft,
   onDraftChange,
   mirrorCoverToOg = true,
-  onMirrorCoverToOgChange,
+  onMirrorCoverToOgChange: _onMirrorCoverToOgChange,
   onGallerySaved,
   className = '',
 }: CoverStudioPanelProps) {

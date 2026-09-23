@@ -1,1 +1,1 @@
-export * from '../modules/design/data/galleryData';
+export * from '../modules/design/DesignPortfolio/galleryData';

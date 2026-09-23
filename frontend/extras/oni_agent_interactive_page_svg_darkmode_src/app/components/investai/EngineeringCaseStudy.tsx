@@ -1,6 +1,6 @@
 import React from "react";
-import { Section } from "@/app/components/investai/Section";
-import { MVPArchitecture } from "@/app/components/investai/Diagrams";
+import { Section } from "./Section";
+import { MVPArchitecture } from "./Diagrams";
 import {
   CheckCircle2,
   TrendingUp,

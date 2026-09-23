@@ -6,3 +6,4 @@ export { CoverStudioPanel, type CoverStudioInput, type CoverStudioPanelProps } f
 export { ImagePreview } from './ImagePreview.js';
 export { SocialAppPreview, type SocialVariantPreview as SocialAppVariant } from './SocialAppPreview.js';
 export { getCoverStudioReadiness, type CoverStudioReadiness } from './readiness.js';
+export type { GalleryPack } from '../types.js';

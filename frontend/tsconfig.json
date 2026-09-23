@@ -12,14 +12,14 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "composite": true,
-    "types": ["vite/client", "react", "react-dom"],
-    "baseUrl": ".",
+    "types": ["vite/client", "react", "react-dom", "node"],
     "paths": {
-      "@/*": ["src/app/*"],
-      "@ekagajpatra-case-study/*": ["extras/Create Presentation Case Study/src/*"],
-      "@invest-ai-case-study/*": ["extras/invest-ai-case-study/src/*"],
-      "@oni-agent-case-study-v3/*": ["extras/oni_agent_interactive_page_svg_darkmode_src/*"],
-      "@oni-agent-case-study-v4/*": ["extras/oni_agent_interactive_page_svg_darkmode_v4_src/*"]
+      "@/*": ["./src/app/*"],
+      "@og/*": ["./src/og/*"],
+      "@ekagajpatra-case-study/*": ["./extras/Create Presentation Case Study/src/*"],
+      "@invest-ai-case-study/*": ["./extras/invest-ai-case-study/src/*"],
+      "@oni-agent-case-study-v3/*": ["./extras/oni_agent_interactive_page_svg_darkmode_src/*"],
+      "@oni-agent-case-study-v4/*": ["./extras/oni_agent_interactive_page_svg_darkmode_v4_src/*"]
     }
   },
   "include": [

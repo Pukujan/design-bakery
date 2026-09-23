@@ -29,7 +29,6 @@ rmSync(outRoot, { recursive: true, force: true });
 mkdirSync(outRoot, { recursive: true });
 
 console.log('[export:cover-studio] Copying cover-studio-kit package…');
-const kitSkip = new Set(['export-bundle', 'node_modules']);
 for (const name of ['src', 'docs', 'examples', 'package.json', 'tsconfig.json', 'README.md', 'EXPORT.md', 'export-manifest.json']) {
   const src = join(kitRoot, name);
   const dest = join(outRoot, 'packages/cover-studio-kit', name);
