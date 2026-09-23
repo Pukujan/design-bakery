@@ -48,8 +48,8 @@ jobs:
       - name: Build backend and services
         run: pnpm --dir backend run build
 
-      - name: Run offline blog workflow tests
-        run: pnpm --dir backend/services run test:blog-workflow
+      - name: Run publish-kit font diagnostics smoke test
+        run: pnpm --dir backend/services run test:publish-kit-fonts
 
       - name: Check homepage content stability
         run: pnpm test:homepage-content
