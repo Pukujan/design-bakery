@@ -247,13 +247,13 @@ const PAPER_009: ResearchPaper = {
 const PAPER_010: ResearchPaper = {
   id: 'db-r-2026-010',
   title:
-    'Benchmark performance of typed objective judges: Grok Build, Jev, Qwen, and low-cost routes',
+    'Objective and calibrated judgment under frozen rubrics: Grok Build, Jev, Qwen, and selective escalation',
   authors: ['Pujan', 'Design Bakery'],
   submitted: '2026-09-22',
   status: 'pending',
   tags: ['benchmarks', 'objective-evaluation', 'grok', 'jev', 'qwen', 'calibration'],
   abstract:
-    'A consolidated benchmark comparison over a frozen typed objective-decision pool. The study reports correctness separately from coverage, compares Grok Build, Jev, Qwen, and low-cost InferHub routes, documents a completed preregistered Grok protocol diagnostic and blind rerun, and separates calibration evidence from accuracy. It is a working paper pending owner review; recommendation policy and unrelated reliability material are intentionally out of scope.',
+    'A consolidated benchmark comparison over a frozen typed objective-decision pool. The study asks whether judges can be accurate, calibrated, auditable, and safely routed under explicit rubrics. It reports correctness separately from coverage, compares Grok Build, Jev, Qwen, and independently routed providers, documents a completed preregistered Grok protocol diagnostic and blind rerun, and treats price and latency as secondary operational metrics. It is a working paper pending owner review; recommendation policy and unrelated reliability material are intentionally out of scope.',
   content: PAPER_010_MD,
 };
 
