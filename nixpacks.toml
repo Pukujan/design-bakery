@@ -1,6 +1,6 @@
 # Railway/Nixpacks — Express API from monorepo root (see railway.toml)
 [phases.setup]
-nixPkgs = ["nodejs_20", "pnpm-10_x", "fontconfig"]
+nixPkgs = ["nodejs_24", "pnpm-10_x", "fontconfig"]
 # Nix dejavu_fonts fails on Railway's nixpkgs pin; apt fonts work with system fontconfig.
 aptPkgs = ["fonts-dejavu-core"]
 

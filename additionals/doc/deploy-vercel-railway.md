@@ -32,7 +32,7 @@ Firebase (Auth, Firestore, Storage) stays on the **Spark** plan. You do **not** 
 3. **Build / Start** — set automatically from the chosen `railway.toml`, or manually:
    - **Build command:** `pnpm --dir backend/services run build && pnpm --dir backend run build` (Nixpacks runs `pnpm install` automatically)
    - **Start command:** `node backend/lib/server.js`
-   - Node **20+** (`.node-version` + `nixpacks.toml` at repo root)
+   - Node **24 LTS** (`.node-version` + `nixpacks.toml` at repo root)
 4. **Networking** → **Generate Domain** (or attach a custom domain). Copy the HTTPS URL, e.g. `https://design-bakery-api-production.up.railway.app` (no trailing slash).
 
 ### Environment variables (Railway)
