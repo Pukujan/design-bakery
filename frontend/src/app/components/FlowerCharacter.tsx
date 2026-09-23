@@ -21,7 +21,7 @@ export function FlowerCharacter({
   const centerSize = size * 0.35;
   const petalSize = size * 0.35;
 
-  const MotionComponent = animate ? motion.div : 'div';
+  const MotionComponent = motion.div;
   const animationProps = animate ? {
     animate: {
       rotate: [0, 5, -5, 0],
@@ -30,7 +30,7 @@ export function FlowerCharacter({
     transition: {
       duration: 3,
       repeat: Infinity,
-      ease: "easeInOut"
+      ease: "easeInOut" as const
     }
   } : {};
 

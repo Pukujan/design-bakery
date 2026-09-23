@@ -318,8 +318,9 @@ export function MermaidDiagram({ chart }: { chart: string }) {
       const dist = Math.max(pointerDistance(pts[0], pts[1]), 1);
       const ratio = dist / pinchStartRef.current.distance;
       const center = pointerCenter(pts[0], pts[1]);
-      lastPinchFocalRef.current = center;
-      applyZoom(pinchStartRef.current.zoom * ratio, false, center);
+      const focal = { clientX: center.x, clientY: center.y };
+      lastPinchFocalRef.current = focal;
+      applyZoom(pinchStartRef.current.zoom * ratio, false, focal);
     }
   };
 
