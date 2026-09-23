@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-05-22 |
-| **Last updated** | 2026-09-10 (Fluffy V4 visual rebuild handoff) |
+| **Last updated** | 2026-09-23 (DB-R-2026-010 chart viewer merged; CI follow-up) |
 
 **Start here** for agent-facing documentation in this repo.
 
@@ -35,7 +35,7 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 
 | Date | Log |
 |------|-----|
-| 2026-09-23 | [dev-log-2026-09-23.md](dev-log-2026-09-23.md) - DB-R-2026-010 comparative rewrite and research-figure viewer |
+| 2026-09-23 | [dev-log-2026-09-23.md](dev-log-2026-09-23.md) - DB-R-2026-010 comparative rewrite, live chart verification, CI follow-up |
 | 2026-09-22 | [dev-log-2026-09-22.md](dev-log-2026-09-22.md) - Consolidated Eval Lab benchmark-comparison paper added to the Research module |
 | 2026-09-09 | [dev-log-2026-09-09-fluffy-v3-media.md](dev-log-2026-09-09-fluffy-v3-media.md) - Fluffy System v3: generated imagery, custom SVG/vector systems, and mixed-media Three.js gallery |
 | 2026-09-09 | [dev-log-2026-09-09-fluffy-v2-focused.md](dev-log-2026-09-09-fluffy-v2-focused.md) - Fluffy System v2: one deep page per product plus one focused Three.js exploration |

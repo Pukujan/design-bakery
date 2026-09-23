@@ -246,13 +246,13 @@ const PAPER_009: ResearchPaper = {
 
 const PAPER_010: ResearchPaper = {
   id: 'db-r-2026-010',
-  title: 'Jev among contemporary model judges: comparative evaluation on frozen objective-decision tasks',
+  title: 'Comparing Jev with contemporary model judges on objective decision tasks',
   authors: ['Pujan', 'Design Bakery'],
   submitted: '2026-09-22',
   status: 'pending',
   tags: ['benchmarks', 'objective-evaluation', 'grok', 'jev', 'qwen', 'calibration'],
   abstract:
-    'A comparative evaluation of Jev, Qwen, Grok, and other contemporary model judges on a frozen typed objective-decision pool. The study reports correctness and coverage separately, documents a preregistered Grok protocol diagnostic, and evaluates split-safe confidence calibration for a local Qwen 4B judge. It is a working paper pending owner review.',
+    'Comparison of Jev with Qwen Flash, Grok 4.6 and 4.7, and an eight-route extended wave on a frozen 760-record holdout. Jev reached 89.87% accuracy with complete coverage; the paper reports accuracy and coverage together, alongside the Grok protocol ablation and Qwen 4B calibration results.',
   content: PAPER_010_MD,
 };
 
