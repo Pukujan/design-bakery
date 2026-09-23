@@ -1449,6 +1449,29 @@ body::before {
   margin: 0;
 }
 
+/* Data figures are deliberately quiet and inspectable; the anime cover art
+ * remains branding, while benchmark evidence gets a responsive paper treatment. */
+.research-paper .research-figure {
+  margin: 1.6em 0 1.9em;
+}
+
+.research-paper .research-figure img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--rp-line);
+  background: #f5f7fb;
+}
+
+.research-paper .research-figure figcaption {
+  margin-top: 0.65em;
+  color: var(--rp-muted);
+  font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.78em;
+  line-height: 1.45;
+}
+
 /* Cortex spec page uses the case-study red accent for links; research keeps arXiv blue. */
 .cortex-spec {
   --rp-link: #d43c24;
