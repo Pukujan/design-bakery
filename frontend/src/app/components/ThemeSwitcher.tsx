@@ -1,17 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Moon, Sun, Info, Phone, MapPin } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Moon, Sun } from 'lucide-react';
 import { Button } from './ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from './ui/dropdown-menu';
 
 export function ThemeSwitcher() {
   const [isDark, setIsDark] = useState(false);
-  const [isContactOpen, setIsContactOpen] = useState(true);
 
   useEffect(() => {
     const savedMode = localStorage.getItem('mode');

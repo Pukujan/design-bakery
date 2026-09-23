@@ -1,7 +1,6 @@
 /** Crawler-facing Open Graph HTML for blog URLs (Vercel Edge middleware). */
 
 import {
-  collectPageSocialMetaTags,
   collectBlogSocialMetaTags,
   escapeHtml,
   readEdgeSocialEnv,
@@ -181,7 +180,7 @@ export function injectSocialMetaIntoHtmlHead(
     ? `\n    <link rel="image_src" href="${escapeHtml(meta.ogImage)}" />`
     : '';
 
-  let out = html
+  const out = html
     .replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`)
     .replace(/<meta\s+name="description"[^>]*>/gi, '')
     .replace(/<meta\s+name="robots"[^>]*>/gi, '')

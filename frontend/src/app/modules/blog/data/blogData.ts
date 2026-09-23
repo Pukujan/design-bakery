@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import blogDataJson from './blog-data.json';
 import categoriesJson from './blog-categories.json';
 import { fetchPublic } from '@/lib/contentApi';

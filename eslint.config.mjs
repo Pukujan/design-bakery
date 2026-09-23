@@ -17,6 +17,8 @@ export default defineConfig([
       '**/coverage/**',
       '**/public/**',
       '**/temp/**',
+      'additionals/archive/**',
+      'frontend/extras/**',
       '**/*.d.ts',
       '**/tsconfig.tsbuildinfo',
       '**/.codegraph/**',
@@ -28,12 +30,33 @@ export default defineConfig([
     languageOptions: {
       globals: runtimeGlobals,
     },
+    rules: {
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+    },
   },
   {
     files: ['**/*.{ts,tsx,mts,cts}'],
     extends: [...tseslint.configs.recommended],
     languageOptions: {
       globals: runtimeGlobals,
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+          varsIgnorePattern: '^_',
+        },
+      ],
     },
   },
 ]);

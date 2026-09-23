@@ -115,7 +115,7 @@ export function DesignPortfolio() {
         <Advocacy onGalleryClick={handleGalleryClick} />
       </div>
 
-      <ArtGallery onGalleryClick={handleGalleryClick} />
+      <ArtGallery />
 
       <Skills />
 

@@ -5,11 +5,7 @@ import { Star, Squiggle } from '../../../components/GraphicElements';
 import { Palette } from 'lucide-react';
 import artPieces from './art-pieces.json';
 
-interface ArtGalleryProps {
-  onGalleryClick?: (galleryId: string) => void;
-}
-
-export function ArtGallery({ onGalleryClick }: ArtGalleryProps) {
+export function ArtGallery() {
   return (
     <section id="gallery" className="py-24 px-6 bg-gradient-to-br from-purple-100 via-blue-100 to-green-100 dark:from-purple-950 dark:via-blue-950 dark:to-green-950 relative overflow-hidden">
       {/* Decorative elements */}

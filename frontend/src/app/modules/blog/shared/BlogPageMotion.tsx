@@ -148,7 +148,7 @@ export function BlogPageDecor({ variant, seed = variant }: BlogPageDecorProps) {
       };
     });
 
-    const stars = STAR_SLOTS[variant].map((slot, i) => ({
+    const stars = STAR_SLOTS[variant].map((slot) => ({
       ...slot,
       color: STAR_COLORS[Math.floor(rng() * STAR_COLORS.length)],
       animate:

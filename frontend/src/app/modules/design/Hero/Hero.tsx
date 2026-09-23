@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
@@ -69,14 +70,14 @@ export function Hero({ onNavigate }: HeroProps) {
           <h1 className="text-[clamp(3rem,10vw,8rem)] leading-none mb-6 text-white drop-shadow-lg">
             <span className="playful-text block" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
               {['D','E','S','I','G','N'].map((letter, i) => (
-                <span key={i} style={{ '--index': i } as any} className="inline-block">
+                <span key={i} style={{ '--index': i } as CSSProperties & { '--index': number }} className="inline-block">
                   {letter}
                 </span>
               ))}
             </span>
             <span className="playful-text block text-yellow-300" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
               {['B','A','K','E','R'].map((letter, i) => (
-                <span key={i} style={{ '--index': i + 6 } as any} className="inline-block">
+                <span key={i} style={{ '--index': i + 6 } as CSSProperties & { '--index': number }} className="inline-block">
                   {letter}
                 </span>
               ))}

@@ -21,7 +21,6 @@ import {
   WorkflowReporter,
   SAMPLE_BLOG,
   TINY_PNG_BASE64,
-  functionsDir,
   loadAllEnv,
   parseArgs,
   readFirebaseProjectId,
@@ -107,6 +106,19 @@ Options:
   } catch (err) {
     r.fail('build', err);
     process.exit(1);
+  }
+
+  if (flags.emulator) {
+    r.step('Functions emulator HTTP probe');
+    try {
+      const result = await probeEmulator(readFirebaseProjectId());
+      if (!result.ok) {
+        throw new Error(`emulator returned ${result.status}: ${result.text}`);
+      }
+      r.ok('emulator returned a successful response');
+    } catch (err) {
+      r.fail('emulator', err);
+    }
   }
 
   const { supabaseStorageBucket } = await import('../lib/supabaseClient.js');

@@ -179,7 +179,7 @@ export async function upsertBlogPost(post: BlogPostDto): Promise<string> {
 }
 
 export async function deleteBlogPost(docId: string): Promise<void> {
-  let query = supabaseAdmin().from('blog_posts').delete().eq('legacy_doc_id', docId);
+  const query = supabaseAdmin().from('blog_posts').delete().eq('legacy_doc_id', docId);
   let { error } = await query;
   if (error) throw new Error(`Blog delete failed: ${error.message}`);
 
