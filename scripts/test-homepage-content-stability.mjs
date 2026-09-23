@@ -51,7 +51,7 @@ assert.equal(
   about.roleTitle,
   'I build AI agents that improve through data, testing, and human feedback.',
 );
-assert.equal(projects[0].title, 'ONI vs My Agent Ready Architecture');
+assert.equal(projects[0].title, 'Study OS');
 assert.equal(relevantExperience.experiences[0].company, 'Nepasoft LLC');
 assert.equal(skillMeta.headingRight, 'SYSTEMS');
 assert.ok(
