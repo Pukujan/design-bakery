@@ -16,11 +16,9 @@ flowchart LR
   end
   subgraph admin [Admin auth required]
     login["/admin/login"]
-    adminDef["/admin/*"]
-    adminLwe["/admin/legal-workflow-engineer/*"]
+    adminDef["/admin/* and /admin/endtoend-engineer/*"]
   end
   login --> adminDef
-  login --> adminLwe
 ```
 
 ---
@@ -67,57 +65,28 @@ Hash links (`#section-id`) scroll within the current engineering home. Navbar **
 
 Requires Firebase auth (except `/admin/login`). Unauthenticated users are redirected to login.
 
-**Portfolio switcher** (sidebar only): links between `/admin`, `/admin/legal-workflow-engineer`, and `/admin/endtoend-engineer`. Not shown on public pages.
+Single profile (`endtoend-engineer`) since TASK-DB-0049 — no portfolio switcher. `/admin/*` and `/admin/endtoend-engineer/*` mount the same editors; sidebar links use the `/admin/endtoend-engineer` base.
 
-### Default portfolio admin — `/admin`
-
-Parent layout: `AdminLayoutShell` → `AdminLayout`.  
-**Content scope:** default engineering Firestore collections + global design collections + shared blogs.
-
-| URL | Editor | Content |
-|-----|--------|---------|
-| `/admin` | `BlogEditor` | Blog posts (index route) |
-| `/admin/blog` | `BlogEditor` | Blog posts |
-| `/admin/blog-categories` | `BlogCategoriesEditor` | Blog categories (shared) |
-| `/admin/projects` | `ProjectsEditor` | Engineering projects |
-| `/admin/hero` | `EngineeringHeroEditor` | Hero banner |
-| `/admin/community` | `EngineeringCommunityEditor` | Community and advisory |
-| `/admin/about-content` | `EngineeringAboutEditor` | About me copy |
-| `/admin/engineering-skills-meta` | `EngineeringSkillsMetaEditor` | Skills section heading |
-| `/admin/contact-section` | `ContactSectionEditor` | Let's connect copy |
-| `/admin/footer` | `FooterEditor` | Footer |
-| `/admin/relevant-experience` | `RelevantExperienceEditor` | Relevant experience |
-| `/admin/engineering-skills` | `EngineeringSkillsEditor` | Skill categories |
-| `/admin/about` | `AboutEditor` | Design about timeline |
-| `/admin/skills` | `SkillsEditor` | Design skills |
-| `/admin/advocacy` | `AdvocacyEditor` | Advocacy images |
-| `/admin/art-gallery` | `ArtGalleryEditor` | Art gallery |
-| `/admin/web-showcase` | `WebShowcaseEditor` | Web showcase projects |
-| `/admin/ai-showcase` | `WebShowcaseEditor` | AI showcase projects (same editor) |
-| `/admin/gallery` | `GalleryPageEditor` | Gallery page items |
-| `/admin/contact` | `ContactEditor` | Social links (default portfolio) |
-
-### Legal-workflow-engineer admin — `/admin/legal-workflow-engineer`
-
-Same engineering editors as above; **no design editors**. Uses `lwe__*` Firestore collections for engineering fields.
-
-| URL | Editor |
+| Path (relative to admin base) | Editor |
 |-----|--------|
-| `/admin/legal-workflow-engineer` | `BlogEditor` (index) |
-| `/admin/legal-workflow-engineer/blog` | `BlogEditor` |
-| `/admin/legal-workflow-engineer/blog-categories` | `BlogCategoriesEditor` |
-| `/admin/legal-workflow-engineer/projects` | `ProjectsEditor` |
-| `/admin/legal-workflow-engineer/hero` | `EngineeringHeroEditor` |
-| `/admin/legal-workflow-engineer/community` | `EngineeringCommunityEditor` |
-| `/admin/legal-workflow-engineer/about-content` | `EngineeringAboutEditor` |
-| `/admin/legal-workflow-engineer/engineering-skills-meta` | `EngineeringSkillsMetaEditor` |
-| `/admin/legal-workflow-engineer/contact-section` | `ContactSectionEditor` |
-| `/admin/legal-workflow-engineer/footer` | `FooterEditor` |
-| `/admin/legal-workflow-engineer/relevant-experience` | `RelevantExperienceEditor` |
-| `/admin/legal-workflow-engineer/engineering-skills` | `EngineeringSkillsEditor` |
-| `/admin/legal-workflow-engineer/contact` | `ContactEditor` (LWE social links) |
+| *(index)*, `blog` | `BlogEditor` |
+| `blog-categories` | `BlogCategoriesEditor` |
+| `projects` | `ProjectsEditor` |
+| `hero` | `EngineeringHeroEditor` |
+| `community` | `EngineeringCommunityEditor` |
+| `about-content` | `EngineeringAboutEditor` |
+| `engineering-skills-meta` | `EngineeringSkillsMetaEditor` |
+| `contact-section` | `ContactSectionEditor` |
+| `footer` | `FooterEditor` |
+| `relevant-experience` | `RelevantExperienceEditor` |
+| `engineering-skills` | `EngineeringSkillsEditor` |
+| `media-library` | `MediaLibraryEditor` |
+| `cover-studio`, `cover-studio/pack/:packId` | `CoverStudioEditor`, `CoverStudioPackEditor` |
+| `contact` | `ContactEditor` (social links) |
 
-Blog editors on both admins edit the **same** shared `blog_posts` / `blog_categories` data.
+The design-portfolio editors (`AboutEditor`, `SkillsEditor`, `AdvocacyEditor`, `ArtGalleryEditor`, `WebShowcaseEditor`, `GalleryPageEditor`) are no longer routed.
+
+Blog editors edit the **same** shared `blog_posts` / `blog_categories` data.
 
 ---
 

@@ -12,4 +12,4 @@ Active dev and deploy helpers. Run from repo root (`pnpm run …`).
 | `apply-storage-cors.mjs` | `pnpm run storage:cors` |
 | `migrations/migrate-firestore-to-supabase.ts` | `pnpm run migrate:firestore-to-supabase` |
 
-Legacy / one-off scripts live in [`additionals/archive/`](../additionals/archive/).
+Legacy Firebase config used by the migration/CORS scripts lives in [`additionals/archive/firebase/`](../additionals/archive/firebase/). Older one-off scripts were removed in TASK-DB-0049 (see git history).

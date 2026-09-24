@@ -128,4 +128,4 @@ List grid cards use **`animate`** + stagger delay (filter changes re-animate). D
 
 - `guidelines/agent-devlog-index.md` — master index + agent workflow
 - `guidelines/agent-devlog-mermaid.md` — blog detail diagrams (separate concern)
-- `guidelines/dev-log-2026-05-20.md` — session log when motion was added
+- `dev-log-2026-05-20.md` — session log when motion was added (pruned in TASK-DB-0049; see git history)
