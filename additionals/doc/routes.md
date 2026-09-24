@@ -84,7 +84,7 @@ Single profile (`endtoend-engineer`) since TASK-DB-0049 — no portfolio switche
 | `cover-studio`, `cover-studio/pack/:packId` | `CoverStudioEditor`, `CoverStudioPackEditor` |
 | `contact` | `ContactEditor` (social links) |
 
-The design-portfolio editors (`AboutEditor`, `SkillsEditor`, `AdvocacyEditor`, `ArtGalleryEditor`, `WebShowcaseEditor`, `GalleryPageEditor`) are no longer routed.
+The design-portfolio editors and `frontend/src/app/modules/design/` were deleted in TASK-DB-0049 (unreachable; recover from git history).
 
 Blog editors edit the **same** shared `blog_posts` / `blog_categories` data.
 

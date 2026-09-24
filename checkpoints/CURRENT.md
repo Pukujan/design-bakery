@@ -21,6 +21,6 @@
 
 ## Open threads
 
-- Is the Fluffy V4 visual rebuild finished? If yes, prune `additionals/handoffs/fluffy-v4-visual-rebuild/`, `.cursor/rules/fluffy-v4-visual-rebuild.mdc` and the 2026-09-08 fluffy log.
-- Homepage "Relevant experience" renders the list in `relevant-experience-rendered-list.json` (formerly the legal-workflow profile's list) with the subtitle from `relevant-experience.json`; the `experiences` array in `relevant-experience.json` is not rendered. Decide which list is intended.
+- Fluffy V4 handoff/notes stay (source material for the Fluffy V4 showcase page).
+- Homepage "Relevant experience": the rendered list (`relevant-experience-rendered-list.json`, Fitzgerald first) is confirmed correct by the owner.
 - Size/modularization follow-ups: [additionals/doc/modularization-plan.md](../additionals/doc/modularization-plan.md).

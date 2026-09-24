@@ -20,10 +20,6 @@ import { normalizeBlogSeo } from '@/modules/blog/seo/blogMeta';
 import { normalizeProjectLinks } from './caseStudyRoutes';
 
 // Local JSON fallbacks (used when Firestore collection is empty / not yet seeded)
-import _timelineJson from '../modules/design/About/timeline.json';
-import _skillsJson from '../modules/design/Skills/skills.json';
-import _advocacyJson from '../modules/design/Advocacy/advocacy-images.json';
-import _artJson from '../modules/design/ArtGallery/art-pieces.json';
 import _socialLinksJson from '../components/social-links.json';
 import {
   PROJECT_FALLBACKS,
@@ -33,16 +29,7 @@ import {
   getSkillsMetaFallback,
   getExperienceFallback,
 } from '../portfolios/portfolioDefaults';
-import _webProjectsJson from '../modules/design/WebDesignShowcase/showcase-web-projects.json';
-import _aiProjectsJson from '../modules/design/WebDesignShowcase/showcase-ai-projects.json';
 import _blogCategoriesJson from '@/modules/blog/data/blog-categories.json';
-import _abstractCollageJson from '../modules/design/DesignPortfolio/gallery-abstract-collage.json';
-import _communityEventsJson from '../modules/design/DesignPortfolio/gallery-community-events.json';
-import _communityWorkshopsJson from '../modules/design/DesignPortfolio/gallery-community-workshops.json';
-import _mixedMediaJson from '../modules/design/DesignPortfolio/gallery-mixed-media.json';
-import _posterArtJson from '../modules/design/DesignPortfolio/gallery-poster-art.json';
-import _prideCommunityJson from '../modules/design/DesignPortfolio/gallery-pride-community.json';
-import _prideMonthJson from '../modules/design/DesignPortfolio/gallery-pride-month.json';
 import _blogsJson from '@/modules/blog/data/blog-data.json';
 
 type DocumentData = Record<string, unknown>;
@@ -291,32 +278,6 @@ export const getBlogCategories = () => getArrayDoc<BlogCategory>('blog_categorie
 export const setBlogCategories = (items: BlogCategory[]) => setArrayDoc('blog_categories', items);
 
 // ─────────────────────────────────────────────────────────────
-// About / Timeline
-// ─────────────────────────────────────────────────────────────
-
-export interface TimelineEntry {
-  org: string;
-  role: string;
-  color: string;
-  [key: string]: unknown;
-}
-
-export const getTimeline = () => getArrayDoc<TimelineEntry>('about_timeline', _timelineJson as TimelineEntry[]);
-export const setTimeline = (items: TimelineEntry[]) => setArrayDoc('about_timeline', items);
-
-// ─────────────────────────────────────────────────────────────
-// Skills (design)
-// ─────────────────────────────────────────────────────────────
-
-export interface Skill {
-  name: string;
-  color: string;
-}
-
-export const getSkills = () => getArrayDoc<Skill>('skills', _skillsJson as Skill[]);
-export const setSkills = (items: Skill[]) => setArrayDoc('skills', items);
-
-// ─────────────────────────────────────────────────────────────
 // Engineering Skills
 // ─────────────────────────────────────────────────────────────
 
@@ -334,29 +295,6 @@ export const getEngineeringSkills = (portfolioId: PortfolioId = DEFAULT_PORTFOLI
   );
 export const setEngineeringSkills = (portfolioId: PortfolioId, items: SkillCategory[]) =>
   setArrayDoc(col(portfolioId, 'engineering_skills'), items);
-
-// ─────────────────────────────────────────────────────────────
-// Advocacy Images
-// ─────────────────────────────────────────────────────────────
-
-export interface AdvocacyImage {
-  id: number;
-  src: string;
-  caption: string;
-  color: string;
-}
-
-export const getAdvocacyImages = () => getArrayDoc<AdvocacyImage>('advocacy_images', _advocacyJson as unknown as AdvocacyImage[]);
-export const setAdvocacyImages = (items: AdvocacyImage[]) => setArrayDoc('advocacy_images', items);
-
-// ─────────────────────────────────────────────────────────────
-// Art Gallery
-// ─────────────────────────────────────────────────────────────
-
-export type ArtPiece = AdvocacyImage;
-
-export const getArtPieces = () => getArrayDoc<ArtPiece>('art_gallery', _artJson as unknown as ArtPiece[]);
-export const setArtPieces = (items: ArtPiece[]) => setArrayDoc('art_gallery', items);
 
 // ─────────────────────────────────────────────────────────────
 // Engineering Projects
@@ -400,62 +338,6 @@ export const getSocialLinks = (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) 
   getArrayDoc<SocialLink>(col(portfolioId, 'social_links'), _socialLinksJson as SocialLink[]);
 export const setSocialLinks = (portfolioId: PortfolioId, items: SocialLink[]) =>
   setArrayDoc(col(portfolioId, 'social_links'), items);
-
-// ─────────────────────────────────────────────────────────────
-// Web Design Showcase
-// ─────────────────────────────────────────────────────────────
-
-export interface ShowcaseProject {
-  id: number;
-  title: string;
-  description: string;
-  image: string;
-  color: string;
-  link: string;
-  type: string;
-}
-
-export const getWebProjects = () => getArrayDoc<ShowcaseProject>('web_projects', _webProjectsJson as ShowcaseProject[]);
-export const setWebProjects = (items: ShowcaseProject[]) => setArrayDoc('web_projects', items);
-
-export const getAiProjects = () => getArrayDoc<ShowcaseProject>('ai_projects', _aiProjectsJson as ShowcaseProject[]);
-export const setAiProjects = (items: ShowcaseProject[]) => setArrayDoc('ai_projects', items);
-
-// ─────────────────────────────────────────────────────────────
-// Gallery Page (7 categories stored individually)
-// ─────────────────────────────────────────────────────────────
-
-export interface GalleryItem {
-  id: number;
-  image: string;
-  title: string;
-  description: string;
-  date: string;
-  link?: string;
-  comingSoon?: boolean;
-}
-
-export type GalleryKey =
-  | 'abstract_collage'
-  | 'community_events'
-  | 'community_workshops'
-  | 'mixed_media'
-  | 'poster_art'
-  | 'pride_community'
-  | 'pride_month';
-
-const _galleryFallbacks: Record<GalleryKey, GalleryItem[]> = {
-  abstract_collage: (_abstractCollageJson as unknown as { items: GalleryItem[] }).items,
-  community_events: (_communityEventsJson as unknown as { items: GalleryItem[] }).items,
-  community_workshops: (_communityWorkshopsJson as unknown as { items: GalleryItem[] }).items,
-  mixed_media: (_mixedMediaJson as unknown as { items: GalleryItem[] }).items,
-  poster_art: (_posterArtJson as unknown as { items: GalleryItem[] }).items,
-  pride_community: (_prideCommunityJson as unknown as { items: GalleryItem[] }).items,
-  pride_month: (_prideMonthJson as unknown as { items: GalleryItem[] }).items,
-};
-export const getGallery = (key: GalleryKey) => getArrayDoc<GalleryItem>(`gallery_${key}`, _galleryFallbacks[key]);
-export const setGallery = (key: GalleryKey, items: GalleryItem[]) =>
-  setArrayDoc(`gallery_${key}`, items);
 
 // ─────────────────────────────────────────────────────────────
 // Engineering Hero (singleton)
