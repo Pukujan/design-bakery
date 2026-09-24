@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-09-24 (TASK-DB-0050) |
-| **Active tasks** | [TASK-DB-0049 repo cleanup](../tasks/TASK-DB-0049-repo-cleanup.md) — PR #42 open, awaiting review · [TASK-DB-0050 showcase projects](../tasks/TASK-DB-0050-showcase-projects.md) — PR open, depends on #42 |
+| **Last updated** | 2026-09-24 (TASK-DB-0051) |
+| **Active tasks** | [TASK-DB-0051 consolidated judge paper](../tasks/TASK-DB-0051-consolidated-judge-paper.md) — PR open, squash-merge on green CI. TASK-DB-0049 (#42) and TASK-DB-0050 (#43) are merged. |
 
 ## Repo shape
 
@@ -20,6 +20,7 @@
 - Homepage project cards come from `frontend/src/app/portfolios/endtoend-engineer/engineering/projects.json` (static; no CMS fetch). Optional `status: "ongoing"` renders an "Ongoing" badge. Rendered newest first by `startedAt` (`lib/projectOrder.ts`, stable sort) — JSON order doesn't matter; every entry needs `startedAt` + `startedAtSource` (enforced by `test:homepage-content`). 4 per carousel page; deep link `/#project-<id>`.
 - Static case studies live in `frontend/public/case-studies/<slug>/` (study-os, fossil, fluffy-v4); a tiny redirect component in `modules/case-studies/<slug>/` + routes in `App.tsx` map `/case-studies/<slug>` to the `.html` file; add the path to `scripts/generate-sitemap.mjs`.
 - `frontend/src/app/modules/engineering/EngineeringProjects/projects.json` is not imported anywhere (candidate for deletion; owner to confirm).
+- Research paper `db-r-2026-010` mirrors Eval Lab `paper/paper.md` (consolidated judge accuracy/coverage paper, source commit `50aeb98`). Figures + `manifest.json` in `frontend/public/research/figures/benchmark/` are copied from Eval Lab `paper/figures/benchmark/`; do not hand-edit numbers — regenerate from Eval Lab.
 - `additionals/archive/firebase/` is still read by migration / storage-CORS / publish-kit-upload scripts — keep until those scripts are retired.
 
 ## Open threads
