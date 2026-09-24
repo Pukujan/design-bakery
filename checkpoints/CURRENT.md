@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-09-24 (TASK-DB-0052) |
-| **Active task** | [TASK-DB-0052 Study OS Live App link](../tasks/TASK-DB-0052-study-os-live-app.md) (#46) — PR #47 open, auto-merge. TASK-DB-0049 (#42), 0050 (#43) and 0051 (#44) are merged. |
+| **Last updated** | 2026-09-24 (TASK-DB-0053) |
+| **Active task** | [TASK-DB-0053 readable paper rendering](../tasks/TASK-DB-0053-readable-paper-rendering.md) (#48) — PR #51 open, owner review before merge. Next: TASK-DB-0054 interactive charts (#49). TASK-DB-0052 (#47) is merged. |
 
 ## Repo shape
 
@@ -20,7 +20,8 @@
 - Homepage project cards come from `frontend/src/app/portfolios/endtoend-engineer/engineering/projects.json` (static; no CMS fetch). Optional `status: "ongoing"` renders an "Ongoing" badge. Rendered newest first by `startedAt` (`lib/projectOrder.ts`, stable sort) — JSON order doesn't matter; every entry needs `startedAt` + `startedAtSource` (enforced by `test:homepage-content`). 4 per carousel page; deep link `/#project-<id>`.
 - Static case studies live in `frontend/public/case-studies/<slug>/` (study-os, fossil, fluffy-v4); a tiny redirect component in `modules/case-studies/<slug>/` + routes in `App.tsx` map `/case-studies/<slug>` to the `.html` file; add the path to `scripts/generate-sitemap.mjs`.
 - `frontend/src/app/modules/engineering/EngineeringProjects/projects.json` is not imported anywhere (candidate for deletion; owner to confirm).
-- Research paper `db-r-2026-010` mirrors Eval Lab `paper/paper.md` (consolidated judge accuracy/coverage paper, source commit `50aeb98`). Figures + `manifest.json` in `frontend/public/research/figures/benchmark/` are copied from Eval Lab `paper/figures/benchmark/`; do not hand-edit numbers — regenerate from Eval Lab.
+- Research paper `db-r-2026-010` mirrors Eval Lab `paper/paper.md` (two-layer judge accuracy/coverage paper, source commit `348676c`). Figures (`NAME.{light,dark}.{wide,tall}.svg`, `NAME.data.json`, `manifest.json`) in `frontend/public/research/figures/benchmark/` are copied from Eval Lab `paper/figures/benchmark/`; do not hand-edit numbers — regenerate from Eval Lab.
+- Research paper rendering lives in `frontend/src/app/modules/research/render/` (figures, tables, contents, GitHub alerts, Quick/Full read) with styles in the `.rp-*` / `.research-paper.rp-body` block at the end of `globals.css`. Interactive charts register in `render/figureRenderers.ts`.
 - `additionals/archive/firebase/` is still read by migration / storage-CORS / publish-kit-upload scripts — keep until those scripts are retired.
 
 ## Open threads
