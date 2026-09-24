@@ -24,4 +24,5 @@
 - One task file per unit of work: `tasks/TASK-DB-####-short-slug.md` (goal, done, evidence, next step).
 - Branch `task/TASK-DB-####-slug`; commit messages start with `TASK-DB-####:`; PR against `main`.
 - Update `checkpoints/CURRENT.md` when a task finishes or the repo state changes meaningfully.
+- New showcase project: add an entry to `frontend/src/app/portfolios/endtoend-engineer/engineering/projects.json` (exactly 3 stats; icons `Users|TrendingUp|Award|Sparkles`; `"status": "ongoing"` for in-progress work). Only use facts from the project's repo. For a standalone case study, copy the study-os / fluffy-v4 static-page pattern (see `checkpoints/CURRENT.md`).
 - Git history is the archive — delete stale material instead of copying it into archive folders.
