@@ -310,6 +310,8 @@ export interface Project {
   accentColor: string;
   stats: { label: string; icon: string }[];
   links: { label: string; url: string }[];
+  /** Optional lifecycle marker; `ongoing` renders an "Ongoing" badge on the project card. */
+  status?: 'ongoing';
 }
 
 export const getProjects = async (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) => {

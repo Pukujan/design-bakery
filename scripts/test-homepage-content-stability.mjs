@@ -52,6 +52,28 @@ assert.equal(
   'I build AI agents that improve through data, testing, and human feedback.',
 );
 assert.equal(projects[0].title, 'Study OS');
+// Project cards: unique ids, exactly 3 stats (the card grid and icon assume it), and a
+// known status value. Case-study links to static pages must point at a real file.
+assert.equal(new Set(projects.map((p) => p.id)).size, projects.length, 'project ids must be unique');
+for (const project of projects) {
+  assert.equal(project.stats.length, 3, `${project.title} should have exactly 3 stats`);
+  assert.ok(
+    project.status === undefined || project.status === 'ongoing',
+    `${project.title} has an unknown status: ${project.status}`,
+  );
+}
+const fluffy = projects.find((p) => p.title === 'Fluffy V4');
+assert.ok(fluffy, 'Fluffy V4 should be in the showcase');
+assert.ok(
+  fluffy.links.some((link) => link.url === '/case-studies/fluffy-v4'),
+  'Fluffy V4 should link to its case study',
+);
+await readFile(new URL('./frontend/public/case-studies/fluffy-v4/index.html', root), 'utf8');
+for (const title of ['Eval Lab', 'Project Continuity Modules', 'Inference Recommendation Engine']) {
+  const project = projects.find((p) => p.title === title);
+  assert.ok(project, `${title} should be in the showcase`);
+  assert.equal(project.status, 'ongoing', `${title} should be marked ongoing`);
+}
 assert.equal(relevantExperience.experiences[0].company, 'Nepasoft LLC');
 assert.equal(skillMeta.headingRight, 'SYSTEMS');
 assert.ok(

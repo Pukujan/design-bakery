@@ -127,5 +127,80 @@
       {"label": "Case Study", "url": "/case-studies/legal-workflow-research"},
       {"label": "GitHub", "url": "https://github.com/Pukujan/litigation-prompt-engineering-v2"}
     ]
+  },
+  {
+    "id": 8,
+    "title": "Fluffy V4",
+    "tagline": "Same product. Different worlds.",
+    "description": "Fluffy is an agent workflow that researches a product, its buyers, market and proof before it writes any marketing, then renders several genuinely different directions for a human to judge. V4 is an eight-direction review gallery covering Fluffy itself and two pilot products, and it is now being rebuilt one page at a time with a reference-first visual pipeline.",
+    "tech": ["AI Agents", "Product Marketing", "HTML/CSS", "Three.js", "SVG", "Generated Imagery"],
+    "color": "#B4561F",
+    "accentColor": "#FFC56B",
+    "status": "ongoing",
+    "stats": [
+      {"label": "8 V4 directions", "icon": "Sparkles"},
+      {"label": "Research before copy", "icon": "Users"},
+      {"label": "Human taste call", "icon": "Award"}
+    ],
+    "links": [
+      {"label": "Case Study", "url": "/case-studies/fluffy-v4"},
+      {"label": "Live V4 Gallery", "url": "/case-studies/fluffy-v4/gallery"},
+      {"label": "GitHub \u00b7 Public", "url": "https://github.com/Pukujan/fluffy-system"}
+    ]
+  },
+  {
+    "id": 9,
+    "title": "Eval Lab",
+    "tagline": "When should we trust the judge?",
+    "description": "A reproducible research lab for lightweight AI judges. It compares judge decisions with objective evidence such as answer keys, deterministic verifiers and executable tests, checks whether confidence is calibrated, and studies when an uncertain case should escalate to a stronger judge or a person. Selective escalation is still an active research direction.",
+    "tech": ["Python", "LLM Judges", "Calibration", "Selective Escalation", "ARC-Challenge"],
+    "color": "#1F7A5C",
+    "accentColor": "#7BE0B5",
+    "status": "ongoing",
+    "stats": [
+      {"label": "Objective gold labels", "icon": "Award"},
+      {"label": "Calibrated confidence", "icon": "TrendingUp"},
+      {"label": "Selective escalation", "icon": "Users"}
+    ],
+    "links": [
+      {"label": "GitHub \u00b7 Public", "url": "https://github.com/Pukujan/Eval-lab"},
+      {"label": "Research Paper", "url": "/research/papers/db-r-2026-010"}
+    ]
+  },
+  {
+    "id": 10,
+    "title": "Project Continuity Modules",
+    "tagline": "Projects outlast agent sessions",
+    "description": "A protocol and a small Python CLI (continuity) that keep a project's working memory in Git as plain Markdown and JSON: what the project is, where it stands, the active task and the last checkpoint, so any fresh human or agent session can resume the work. Source-only for now; not a replacement for Git or a hosted memory service.",
+    "tech": ["Python", "CLI", "Git", "Markdown/JSON", "Agent Workflows"],
+    "color": "#5B4BB7",
+    "accentColor": "#FFB547",
+    "status": "ongoing",
+    "stats": [
+      {"label": "Repo-native memory", "icon": "Sparkles"},
+      {"label": "Resume any session", "icon": "Users"},
+      {"label": "No runtime dependencies", "icon": "Award"}
+    ],
+    "links": [
+      {"label": "GitHub \u00b7 Public", "url": "https://github.com/Pukujan/project-continuity-modules"}
+    ]
+  },
+  {
+    "id": 11,
+    "title": "Inference Recommendation Engine",
+    "tagline": "The lowest price is not the decision",
+    "description": "A local, provider-neutral engine that ranks inference routes from price ladders, observed supply, runtime evidence and an editable, versioned policy. It returns deterministic scores, evidence status and gate reasons so a recommendation can be inspected and reproduced. It is a small core package, not a hosted router.",
+    "tech": ["JavaScript", "Node.js", "Python", "Property Testing", "Inference Routing"],
+    "color": "#0E6B8C",
+    "accentColor": "#F2C94C",
+    "status": "ongoing",
+    "stats": [
+      {"label": "Provider-neutral", "icon": "Sparkles"},
+      {"label": "Deterministic ranking", "icon": "TrendingUp"},
+      {"label": "Editable policy", "icon": "Award"}
+    ],
+    "links": [
+      {"label": "GitHub \u00b7 Public", "url": "https://github.com/Pukujan/inference-recommendation-engine"}
+    ]
   }
 ]
