@@ -1,15 +1,9 @@
 import type { RouteObject } from 'react-router-dom';
 import { BlogEditor } from '@/modules/blog/admin/sections/BlogEditor';
 import { BlogCategoriesEditor } from '@/modules/blog/admin/sections/BlogCategoriesEditor';
-import { AboutEditor } from './sections/AboutEditor';
-import { SkillsEditor } from './sections/SkillsEditor';
 import { EngineeringSkillsEditor } from './sections/EngineeringSkillsEditor';
-import { AdvocacyEditor } from './sections/AdvocacyEditor';
-import { ArtGalleryEditor } from './sections/ArtGalleryEditor';
 import { ProjectsEditor } from './sections/ProjectsEditor';
 import { ContactEditor } from './sections/ContactEditor';
-import { WebShowcaseEditor } from './sections/WebShowcaseEditor';
-import { GalleryPageEditor } from './sections/GalleryPageEditor';
 import { EngineeringHeroEditor } from './sections/EngineeringHeroEditor';
 import { EngineeringCommunityEditor } from './sections/EngineeringCommunityEditor';
 import { EngineeringAboutEditor } from './sections/EngineeringAboutEditor';
@@ -40,24 +34,10 @@ const ENGINEERING_ROUTES: RouteObject[] = [
   { path: 'cover-studio/pack/:packId', element: <CoverStudioPackEditor /> },
 ];
 
-const DESIGN_ROUTES: RouteObject[] = [
-  { path: 'about', element: <AboutEditor /> },
-  { path: 'skills', element: <SkillsEditor /> },
-  { path: 'advocacy', element: <AdvocacyEditor /> },
-  { path: 'art-gallery', element: <ArtGalleryEditor /> },
-  { path: 'web-showcase', element: <WebShowcaseEditor /> },
-  { path: 'ai-showcase', element: <WebShowcaseEditor /> },
-  { path: 'gallery', element: <GalleryPageEditor /> },
+const PROFILE_EXTRA_ROUTES: RouteObject[] = [
   { path: 'contact', element: <ContactEditor /> },
 ];
 
-const LWE_EXTRA_ROUTES: RouteObject[] = [
-  { path: 'contact', element: <ContactEditor /> },
-];
-
-export function buildAdminChildRoutes(portfolioId: PortfolioId): RouteObject[] {
-  if (portfolioId === 'default') {
-    return [...ENGINEERING_ROUTES, ...DESIGN_ROUTES];
-  }
-  return [...ENGINEERING_ROUTES, ...LWE_EXTRA_ROUTES];
+export function buildAdminChildRoutes(_portfolioId: PortfolioId): RouteObject[] {
+  return [...ENGINEERING_ROUTES, ...PROFILE_EXTRA_ROUTES];
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, Navigate, Link, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useAdminAuth } from '../../lib/adminAuth';
 import { ADMIN_IDLE_TIMEOUT_MS } from '../../lib/adminSession';
 import { Button } from '../../components/ui/button';
@@ -7,22 +7,16 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../../components/u
 import {
   BookOpen,
   Tag,
-  User,
-  Stars,
   Image,
   Briefcase,
   Wrench,
   Share2,
-  Globe,
-  Cpu,
-  GalleryHorizontal,
   LogOut,
   LayoutTemplate,
   Users,
   FileUser,
   MessageCircleHeart,
   PanelsTopLeft,
-  ArrowLeftRight,
   Menu,
   Images,
 } from 'lucide-react';
@@ -30,7 +24,6 @@ import { useAdminPortfolio } from './AdminPortfolioContext';
 import { AdminPushDefaults } from './components/AdminPushDefaults';
 import {
   getAdminBasePath,
-  PORTFOLIO_LIST,
   getPortfolioConfig,
 } from '../../portfolios/registry';
 
@@ -52,17 +45,6 @@ const ENGINEERING_NAV: NavItem[] = [
   { path: 'cover-studio', label: 'Cover Studio', icon: Image },
 ];
 
-const DESIGN_NAV: NavItem[] = [
-  { path: 'about', label: 'About Timeline', icon: User },
-  { path: 'skills', label: 'Design Skills', icon: Stars },
-  { path: 'advocacy', label: 'Advocacy', icon: Image },
-  { path: 'art-gallery', label: 'Art Gallery', icon: GalleryHorizontal },
-  { path: 'web-showcase', label: 'Web Showcase', icon: Globe },
-  { path: 'ai-showcase', label: 'AI Showcase', icon: Cpu },
-  { path: 'gallery', label: 'Gallery Page', icon: Image },
-  { path: 'contact', label: 'Social Links', icon: Share2 },
-];
-
 export function AdminLayout() {
   const { user, loading, signOut } = useAdminAuth();
   const portfolioId = useAdminPortfolio();
@@ -71,10 +53,10 @@ export function AdminLayout() {
   const portfolioLabel = getPortfolioConfig(portfolioId).label;
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const navItems: NavItem[] =
-    portfolioId === 'default'
-      ? [...ENGINEERING_NAV, ...DESIGN_NAV]
-      : [...ENGINEERING_NAV, { path: 'contact', label: 'Social Links', icon: Share2 }];
+  const navItems: NavItem[] = [
+    ...ENGINEERING_NAV,
+    { path: 'contact', label: 'Social Links', icon: Share2 },
+  ];
 
   useEffect(() => {
     setMobileNavOpen(false);
@@ -98,34 +80,6 @@ export function AdminLayout() {
       <div className="px-4 py-5">
         <p className="text-lg font-bold tracking-tight">Admin Panel</p>
         <p className="mt-1 text-xs text-gray-500">{portfolioLabel}</p>
-      </div>
-
-      <div className="px-3 pb-3">
-        <p className="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
-          <ArrowLeftRight className="h-3 w-3" />
-          Switch portfolio
-        </p>
-        <div className="flex flex-col gap-1">
-          {PORTFOLIO_LIST.map((p) => {
-            const target = getAdminBasePath(p.id);
-            const active = adminBase === target;
-            return (
-              <Link
-                key={p.id}
-                to={target}
-                onClick={closeMobileNav}
-                className={[
-                  'rounded-md px-3 py-2 text-sm transition-colors',
-                  active
-                    ? 'bg-indigo-50 font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300'
-                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800',
-                ].join(' ')}
-              >
-                {p.label}
-              </Link>
-            );
-          })}
-        </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2 pb-4">

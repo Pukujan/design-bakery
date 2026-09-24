@@ -773,13 +773,7 @@ export const setRelevantExperienceContent = (
 // Push repo JSON fallbacks → Firestore (admin + seed script)
 // ─────────────────────────────────────────────────────────────
 
-const SEED_PORTFOLIO_IDS: PortfolioId[] = [
-  'default',
-  'legal-workflow-engineer',
-  'endtoend-engineer',
-  'ai-engineer',
-  'forward-deployed-engineer',
-];
+const SEED_PORTFOLIO_IDS: PortfolioId[] = ['endtoend-engineer'];
 
 async function verifyPushedHero(portfolioId: PortfolioId): Promise<void> {
   const collectionName = col(portfolioId, 'engineering_hero_content');
