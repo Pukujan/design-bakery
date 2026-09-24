@@ -20,6 +20,7 @@ import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useProjectsContent } from '../../../lib/contentHooks';
 import { isInternalAppPath } from '../../../lib/caseStudyRoutes';
+import { sortProjectsByStartedAtDesc } from '../../../lib/projectOrder';
 import {
   OPEN_FEATURED_PROJECT_EVENT,
   parseProjectHash,
@@ -36,10 +37,24 @@ const projectIconMap = {
 
 const PROJECTS_PAGE_SIZE = 4;
 
+function OngoingBadge({ size = 'md' }: { size?: 'sm' | 'md' }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border-black bg-[#FFE45C] font-black uppercase tracking-wide text-gray-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+        size === 'sm' ? 'border-2 px-2 py-0.5 text-[10px]' : 'border-3 px-3 py-1 text-xs'
+      }`}
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-gray-900 animate-pulse" aria-hidden="true" />
+      Ongoing
+    </span>
+  );
+}
+
 export function EngineeringProjects() {
   const location = useLocation();
   const rawProjects = useProjectsContent();
-  const allProjects = rawProjects.map((project) => ({
+  // Newest first by `startedAt` (stable for ties), so new entries sort themselves.
+  const allProjects = sortProjectsByStartedAtDesc(rawProjects).map((project) => ({
     ...project,
     stats: (project.stats ?? []).map((stat) => ({
       ...stat,
@@ -245,8 +260,9 @@ export function EngineeringProjects() {
                           <Icon className="w-8 h-8 text-white" />
                         </motion.div>
                         <div>
-                          <h3 className="text-3xl md:text-4xl font-black text-white">
+                          <h3 className="text-3xl md:text-4xl font-black text-white flex flex-wrap items-center gap-3">
                             {featuredProject.title}
+                            {featuredProject.status === 'ongoing' && <OngoingBadge />}
                           </h3>
                           <p className="text-lg font-bold text-white/90">
                             {featuredProject.tagline}
@@ -418,6 +434,11 @@ export function EngineeringProjects() {
                           <Icon className="w-6 h-6 text-white" />
                         </motion.div>
                         <div className="flex-1 min-w-0">
+                          {project.status === 'ongoing' && (
+                            <div className="mb-1">
+                              <OngoingBadge size="sm" />
+                            </div>
+                          )}
                           <h3 className="text-xl font-black text-white truncate">
                             {project.title}
                           </h3>
