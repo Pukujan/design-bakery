@@ -8,6 +8,16 @@
       "source": "/ai-for-good",
       "destination": "/ai-for-good/",
       "permanent": true
+    },
+    {
+      "source": "/studyos",
+      "destination": "https://study.design-bakery.com/",
+      "permanent": false
+    },
+    {
+      "source": "/studyos/:path*",
+      "destination": "https://study.design-bakery.com/:path*",
+      "permanent": false
     }
   ],
   "rewrites": [

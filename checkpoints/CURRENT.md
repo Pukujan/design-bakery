@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-09-24 (TASK-DB-0051) |
-| **Active tasks** | [TASK-DB-0051 consolidated judge paper](../tasks/TASK-DB-0051-consolidated-judge-paper.md) — PR open, squash-merge on green CI. TASK-DB-0049 (#42) and TASK-DB-0050 (#43) are merged. |
+| **Last updated** | 2026-09-24 (TASK-DB-0052) |
+| **Active task** | [TASK-DB-0052 Study OS Live App link](../tasks/TASK-DB-0052-study-os-live-app.md) (#46) — PR #47 open, auto-merge. TASK-DB-0049 (#42), 0050 (#43) and 0051 (#44) are merged. |
 
 ## Repo shape
 
@@ -25,6 +25,7 @@
 
 ## Open threads
 
+- Study OS live app → `https://study.design-bakery.com/` (Study-os D018; not deployed yet as of 2026-09-24). `/studyos` redirects there (`vercel.json`, non-permanent).
 - Fluffy V4 handoff/notes stay: they drive the ongoing visual rebuild (Study Partner first). The showcase case study (`/case-studies/fluffy-v4`) uses thumbnails of the current pages — re-capture after each rebuilt direction.
 - Homepage "Relevant experience": the rendered list (`relevant-experience-rendered-list.json`, Fitzgerald first) is confirmed correct by the owner.
 - Size/modularization follow-ups: [additionals/doc/modularization-plan.md](../additionals/doc/modularization-plan.md).

@@ -16,6 +16,7 @@
     ],
     "links": [
       {"label": "Case Study", "url": "/case-studies/study-os"},
+      {"label": "Live App", "url": "https://study.design-bakery.com/"},
       {"label": "GitHub · Public", "url": "https://github.com/Pukujan/Study-os"},
       {"label": "Presentation", "url": "/case-studies/study-os/presentation"}
     ]
