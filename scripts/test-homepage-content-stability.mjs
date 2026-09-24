@@ -99,6 +99,27 @@ for (const project of projects) {
     `${project.title} has an unknown status: ${project.status}`,
   );
 }
+// Study OS live web app (TASK-DB-0052): served by Study OS itself at study.design-bakery.com
+// (Study-os decision D018, Vite base '/'), so design-bakery links/redirects to it rather
+// than proxying it under a sub-path.
+const STUDY_OS_LIVE_APP = 'https://study.design-bakery.com/';
+const studyOs = projects.find((p) => p.title === 'Study OS');
+assert.ok(
+  studyOs.links.some((link) => link.label === 'Live App' && link.url === STUDY_OS_LIVE_APP),
+  'Study OS card should have a Live App link to study.design-bakery.com',
+);
+const vercelConfig = await readJson('./vercel.json');
+for (const [source, destination] of [
+  ['/studyos', STUDY_OS_LIVE_APP],
+  ['/studyos/:path*', `${STUDY_OS_LIVE_APP}:path*`],
+]) {
+  assert.ok(
+    vercelConfig.redirects.some(
+      (r) => r.source === source && r.destination === destination && r.permanent === false,
+    ),
+    `vercel.json should redirect ${source} to the Study OS live app (non-permanent)`,
+  );
+}
 const fluffy = projects.find((p) => p.title === 'Fluffy V4');
 assert.ok(fluffy, 'Fluffy V4 should be in the showcase');
 assert.ok(

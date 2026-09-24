@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-09-24 (TASK-DB-0050) |
-| **Active tasks** | [TASK-DB-0049 repo cleanup](../tasks/TASK-DB-0049-repo-cleanup.md) — PR #42 open, awaiting review · [TASK-DB-0050 showcase projects](../tasks/TASK-DB-0050-showcase-projects.md) — PR open, depends on #42 |
+| **Last updated** | 2026-09-24 (TASK-DB-0052) |
+| **Active task** | [TASK-DB-0052 Study OS Live App link](../tasks/TASK-DB-0052-study-os-live-app.md) (#46) — PR open, auto-merge |
 
 ## Repo shape
 
@@ -23,6 +23,8 @@
 - `additionals/archive/firebase/` is still read by migration / storage-CORS / publish-kit-upload scripts — keep until those scripts are retired.
 
 ## Open threads
+
+- Study OS live app → `https://study.design-bakery.com/` (Study-os D018; not deployed yet as of 2026-09-24). `/studyos` redirects there (`vercel.json`, non-permanent).
 
 - Fluffy V4 handoff/notes stay: they drive the ongoing visual rebuild (Study Partner first). The showcase case study (`/case-studies/fluffy-v4`) uses thumbnails of the current pages — re-capture after each rebuilt direction.
 - Homepage "Relevant experience": the rendered list (`relevant-experience-rendered-list.json`, Fitzgerald first) is confirmed correct by the owner.
