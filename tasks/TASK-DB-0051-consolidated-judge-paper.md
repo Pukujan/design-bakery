@@ -3,6 +3,8 @@
 | Field | Value |
 |-------|-------|
 | **Created** | 2026-09-24 |
+| **Issue** | [#45](https://github.com/Pukujan/design-bakery/issues/45) |
+| **PR** | [#44](https://github.com/Pukujan/design-bakery/pull/44) |
 | **Branch** | `task/TASK-DB-0051-consolidated-judge-paper` |
 | **Source** | Eval Lab TASK-0056, PR [Pukujan/Eval-lab#64](https://github.com/Pukujan/Eval-lab/pull/64), merge commit `50aeb9876592f99cd1a3a0201305ad69585afd70` |
 | **Status** | PR open against `main`; squash-merge once CI is green (owner-approved). |
