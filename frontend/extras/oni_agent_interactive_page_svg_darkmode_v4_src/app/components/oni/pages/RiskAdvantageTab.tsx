@@ -1,6 +1,6 @@
 import React from "react";
 import { ExternalLink, Network, Split } from "lucide-react";
-import astronautTool from "../../../assets/pukujan-astronaut-tool.svg";
+import astronautTool from "@oni-agent-assets/pukujan-astronaut-tool.svg";
 import { BrandMark } from "../BrandMark";
 import { sources } from "../caseStudyData";
 import { agentUseCases, narrativeCards } from "../waterLoopsData";

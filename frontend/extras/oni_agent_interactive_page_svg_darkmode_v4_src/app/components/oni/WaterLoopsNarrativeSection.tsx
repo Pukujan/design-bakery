@@ -1,6 +1,6 @@
 import React from "react";
 import { ExternalLink } from "lucide-react";
-import decorOrbit from "../../assets/pukujan-decor-orbit.svg";
+import decorOrbit from "@oni-agent-assets/pukujan-decor-orbit.svg";
 import {
   aiSystemLayers,
   narrativeCards,

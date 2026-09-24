@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ExternalLink } from "lucide-react";
-import astronautLogo from "../../assets/pukujan-astronaut-logo.svg";
-import decorOrbit from "../../assets/pukujan-decor-orbit.svg";
-import decorSystem from "../../assets/pukujan-decor-system.svg";
+import astronautLogo from "@oni-agent-assets/pukujan-astronaut-logo.svg";
+import decorOrbit from "@oni-agent-assets/pukujan-decor-orbit.svg";
+import decorSystem from "@oni-agent-assets/pukujan-decor-system.svg";
 import { BrandMark } from "./BrandMark";
 import { CaseStudyTabNav, CaseStudyPageJump } from "./CaseStudyTabNav";
 import { getPageNavItems, type CaseStudyPageId } from "./caseStudyData";

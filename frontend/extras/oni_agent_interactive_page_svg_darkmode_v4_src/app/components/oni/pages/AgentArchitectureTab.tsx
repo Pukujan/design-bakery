@@ -1,5 +1,5 @@
 import React from "react";
-import astronautLogo from "../../../assets/pukujan-astronaut-logo.svg";
+import astronautLogo from "@oni-agent-assets/pukujan-astronaut-logo.svg";
 import { BrandMark } from "../BrandMark";
 import {
   architectureCards,
