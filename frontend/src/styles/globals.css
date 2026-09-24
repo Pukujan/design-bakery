@@ -1649,3 +1649,752 @@ body::before {
   --rp-link: #ff735b;
   --rp-link-h: #ff9280;
 }
+
+/*
+ * Research paper reading view (TASK-DB-0053). Scoped to /research pages:
+ * `.rp-*` layout classes live only on ResearchPaperPage, and `.research-paper`
+ * rules below override the shared doc typography above for research papers
+ * only (the Cortex spec page keeps its own). Theme follows `html.dark`.
+ */
+.rp-page {
+  --rp-nav-offset: 92px;
+  --rp-accent: #1a4a8a;
+  --rp-surface: #fbfaf6;
+  --rp-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --rp-serif: 'Source Serif 4', Georgia, Cambria, 'Times New Roman', serif;
+  /* ~68 characters of 18px Source Serif; a fixed length so headings, prose and
+   * captions (different font sizes) share one left edge. */
+  --rp-measure: 680px;
+  --rp-wide: 960px;
+}
+
+@media (min-width: 1280px) {
+  .rp-page {
+    --rp-measure: 720px;
+  }
+}
+
+.dark .rp-page {
+  --rp-accent: #7eb0e8;
+  --rp-surface: #161616;
+}
+
+/* Reading progress, above the fixed site nav. */
+.rp-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  height: 3px;
+  pointer-events: none;
+}
+
+.rp-progress-bar {
+  height: 100%;
+  background: var(--rp-accent);
+  transform-origin: 0 50%;
+  transition: transform 80ms linear;
+}
+
+/* Layout: one centred column; a sticky contents rail joins it at ≥1200px.
+ * The top padding clears the fixed site nav (bottom edge at 92px). */
+.rp-layout {
+  display: grid;
+  grid-template-columns: minmax(0, var(--rp-wide));
+  justify-content: center;
+  gap: 48px;
+  padding: calc(var(--rp-nav-offset) + 28px) 20px 96px;
+}
+
+.rp-layout-toc {
+  display: none;
+}
+
+@media (min-width: 1200px) {
+  .rp-layout {
+    grid-template-columns: 220px minmax(0, var(--rp-wide));
+    padding-right: 28px;
+    padding-left: 28px;
+  }
+
+  .rp-layout-toc {
+    display: block;
+  }
+
+  .rp-toc-mobile {
+    display: none;
+  }
+}
+
+.rp-header,
+.rp-after {
+  max-width: var(--rp-measure);
+  margin-inline: auto;
+  font-size: 18px;
+}
+
+.rp-title {
+  margin-top: 0.75rem;
+  font-family: var(--rp-sans);
+  font-size: clamp(1.7rem, 1.2rem + 1.6vw, 2.35rem);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.rp-byline {
+  margin-top: 0.6rem;
+  color: #5a5a5a;
+  font-family: var(--rp-sans);
+  font-size: 15px;
+}
+
+.dark .rp-byline {
+  color: #9a968c;
+}
+
+/* Contents rail */
+.rp-toc-rail {
+  position: sticky;
+  top: calc(var(--rp-nav-offset) + 24px);
+  max-height: calc(100vh - var(--rp-nav-offset) - 48px);
+  overflow-y: auto;
+  padding-right: 6px;
+  font-family: var(--rp-sans);
+}
+
+.rp-toc-title {
+  margin: 0 0 10px;
+  color: #6b6b6b;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rp-toc-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-toc-item a {
+  display: block;
+  padding: 4px 0 4px 12px;
+  border-left: 2px solid transparent;
+  color: #5a5a5a;
+  font-size: 13.5px;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.rp-toc-level-3 a {
+  padding-left: 24px;
+  font-size: 12.5px;
+}
+
+.rp-toc-item a:hover {
+  color: #1a1a1a;
+}
+
+.rp-toc-item a[aria-current='location'] {
+  border-left-color: var(--rp-accent);
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.dark .rp-toc-title,
+.dark .rp-toc-item a {
+  color: #9a968c;
+}
+
+.dark .rp-toc-item a:hover,
+.dark .rp-toc-item a[aria-current='location'] {
+  color: #e8e6df;
+}
+
+/* Contents button + sheet below 1200px */
+.rp-toc-button {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid #d8d4c8;
+  border-radius: 999px;
+  background: #fbfaf6;
+  color: #1a1a1a;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 14%);
+  font: 600 14px/1 var(--rp-sans);
+}
+
+.rp-toc-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.rp-toc-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 46;
+  background: rgb(0 0 0 / 35%);
+}
+
+.rp-toc-sheet {
+  position: fixed;
+  right: 12px;
+  bottom: 68px;
+  left: 12px;
+  z-index: 47;
+  max-width: 420px;
+  max-height: min(70vh, 560px);
+  margin-left: auto;
+  overflow-y: auto;
+  padding: 14px 12px;
+  border: 1px solid #d8d4c8;
+  border-radius: 12px;
+  background: #fbfaf6;
+  font-family: var(--rp-sans);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 22%);
+}
+
+.dark .rp-toc-button,
+.dark .rp-toc-sheet {
+  border-color: #2c3040;
+  background: #1b1d24;
+  color: #e8e6df;
+}
+
+/* Body typography */
+.research-paper.rp-body {
+  font-size: 18px;
+  line-height: 1.65;
+  font-variant-numeric: lining-nums;
+  font-optical-sizing: auto;
+}
+
+@media (min-width: 1280px) {
+  .research-paper.rp-body,
+  .rp-header,
+  .rp-after {
+    font-size: 19px;
+  }
+}
+
+/* Prose keeps a comfortable measure; figures, tables and callout-free wide
+ * blocks use the full ~960px column. */
+.research-paper.rp-body > * {
+  max-width: var(--rp-measure);
+  margin-inline: auto;
+}
+
+.research-paper.rp-body > :is(figure, .research-figure, .rp-table, details) {
+  max-width: var(--rp-wide);
+}
+
+.research-paper.rp-body :is(h2, h3, h4) {
+  scroll-margin-top: calc(var(--rp-nav-offset) + 20px);
+  font-family: var(--rp-sans);
+  border: 0;
+  padding: 0;
+}
+
+.research-paper.rp-body h2 {
+  margin-top: 3rem;
+  margin-bottom: 0.8rem;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.research-paper.rp-body h3 {
+  margin-top: 2.1rem;
+  margin-bottom: 0.5rem;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.research-paper.rp-body h4 {
+  margin-top: 1.6rem;
+  font-size: 17px;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.04em;
+}
+
+.research-paper.rp-body .rp-secnum {
+  margin-right: 0.15em;
+  color: var(--rp-muted);
+  font-weight: 500;
+}
+
+.research-paper.rp-body p {
+  margin: 0 auto 1.05em;
+}
+
+.research-paper.rp-body code {
+  font-size: 0.82em;
+}
+
+/* Callouts: GitHub alerts (> [!NOTE] …) and <aside> */
+.research-paper.rp-body :is(aside, .rp-callout) {
+  margin-block: 1.6em;
+  padding: 16px 20px;
+  border: 1px solid var(--rp-line);
+  border-left: 4px solid var(--rp-callout, var(--rp-line));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--rp-callout, var(--rp-line)) 7%, transparent);
+  font-size: 0.94em;
+}
+
+.research-paper.rp-body :is(aside, .rp-callout) > :first-child {
+  margin-top: 0;
+}
+
+.research-paper.rp-body :is(aside, .rp-callout) > :last-child {
+  margin-bottom: 0;
+}
+
+.research-paper.rp-body :is(aside, .rp-callout) li {
+  margin: 0.45em 0;
+}
+
+.research-paper.rp-body .rp-callout-note {
+  --rp-callout: #3b6fb6;
+}
+
+.research-paper.rp-body .rp-callout-tip {
+  --rp-callout: #2f8a5b;
+}
+
+.research-paper.rp-body :is(.rp-callout-warning, .rp-callout-caution) {
+  --rp-callout: #b7791f;
+}
+
+/* "At a glance" (IMPORTANT / KEY / SUMMARY): the paper's summary card. */
+.research-paper.rp-body :is(.rp-callout-important, .rp-callout-key, .rp-callout-summary) {
+  --rp-callout: #0f8a7c;
+  padding: 20px 24px;
+  border-left-width: 1px;
+  border-top: 4px solid var(--rp-callout);
+  background: var(--rp-surface);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+  font-family: var(--rp-sans);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.research-paper.rp-body :is(.rp-callout-important, .rp-callout-key, .rp-callout-summary) > p:first-child strong:only-child {
+  display: block;
+  color: var(--rp-callout);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.research-paper.rp-body :is(.rp-callout-important, .rp-callout-key, .rp-callout-summary) ul {
+  padding-left: 1.1em;
+}
+
+.dark .research-paper.rp-body :is(.rp-callout-important, .rp-callout-key, .rp-callout-summary) {
+  --rp-callout: #3dd6bf;
+}
+
+/* Status / evidence / repository line (METR-style meta callout). */
+.research-paper.rp-body aside.rp-meta {
+  padding: 12px 16px;
+  border-left: 1px solid var(--rp-line);
+  background: transparent;
+  color: var(--rp-muted);
+  font-family: var(--rp-sans);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.research-paper.rp-body aside.rp-meta strong {
+  color: var(--rp-ink);
+  font-weight: 600;
+}
+
+/* Figures */
+.research-paper.rp-body .research-figure {
+  margin-block: 2em 2.2em;
+}
+
+.research-paper.rp-body .research-figure img {
+  border: 1px solid var(--rp-line);
+  border-radius: 6px;
+  background: var(--rp-surface);
+}
+
+.research-paper.rp-body .research-figure figcaption {
+  max-width: var(--rp-measure);
+  margin: 0.8em auto 0;
+  color: var(--rp-muted);
+  font-family: var(--rp-sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.research-paper.rp-body .rp-fig-label {
+  font-weight: 600;
+}
+
+.research-paper.rp-body .rp-fig-takeaway {
+  color: var(--rp-ink);
+  font-weight: 600;
+}
+
+.research-figure-print {
+  display: none;
+}
+
+.research-figure-dialog-stage[data-theme='dark'] {
+  background: #161616;
+}
+
+.research-figure-dialog-stage[data-theme='light'] {
+  background: #fbfaf6;
+}
+
+/* Tables: booktabs rules, tabular numbers, sticky header + first column. */
+.research-paper .rp-table {
+  position: relative;
+}
+
+.research-paper .rp-table-scroll {
+  max-height: 75vh;
+  overflow: auto;
+  border-top: 1.5px solid var(--rp-ink);
+  border-bottom: 1.5px solid var(--rp-ink);
+}
+
+.research-paper .rp-table-scroll:focus-visible {
+  outline: 2px solid var(--rp-link);
+  outline-offset: 2px;
+}
+
+.research-paper .rp-table-scroll > table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: var(--rp-sans);
+  font-size: 14.5px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.research-paper .rp-table-scroll :is(th, td) {
+  padding: 6px 10px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rp-line) 70%, transparent);
+  background: var(--rp-page-bg, #f7f6f2);
+  vertical-align: baseline;
+}
+
+.dark .research-paper .rp-table-scroll :is(th, td) {
+  --rp-page-bg: #12141a;
+}
+
+.research-paper .rp-table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 1px solid var(--rp-ink);
+  background: var(--rp-page-bg, #f7f6f2);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.research-paper .rp-table-scroll tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.research-paper .rp-table-scroll :is(th, td):first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 9rem;
+}
+
+.research-paper .rp-table-scroll thead th:first-child {
+  z-index: 3;
+}
+
+.research-paper .rp-table[data-scrolled] .rp-table-scroll :is(th, td):first-child {
+  box-shadow: 6px 0 8px -6px rgb(0 0 0 / 22%);
+}
+
+.research-paper .rp-table-scroll :is(th, td)[style*='right'] {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.research-paper .rp-table-scroll tr.highlight td,
+.research-paper .rp-table-scroll td.highlight {
+  background: color-mix(in srgb, #0f8a7c 10%, var(--rp-page-bg, #f7f6f2));
+}
+
+.research-paper .rp-ci {
+  color: var(--rp-muted);
+  font-size: 0.84em;
+}
+
+.research-paper .rp-table[data-more-right]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 36px;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--rp-page-bg, #f7f6f2));
+}
+
+.dark .research-paper .rp-table[data-more-right]::after {
+  --rp-page-bg: #12141a;
+}
+
+.research-paper .rp-table:has(.rp-table-toggle)[data-more-right]::after {
+  bottom: 40px;
+}
+
+.research-paper .rp-table-scroll[data-collapsed] tbody tr:nth-child(n + 9) {
+  display: none;
+}
+
+.research-paper .rp-table-toggle {
+  margin-top: 8px;
+  padding: 5px 12px;
+  border: 1px solid var(--rp-line);
+  border-radius: 999px;
+  color: var(--rp-link);
+  background: transparent;
+  font: 500 13.5px/1.3 var(--rp-sans);
+  cursor: pointer;
+}
+
+.research-paper .rp-table-toggle:hover {
+  border-color: var(--rp-link);
+}
+
+/* <details> appendices: quiet disclosure rows, collapsed by default. */
+.research-paper.rp-body details {
+  margin-block: 1em;
+  border: 1px solid var(--rp-line);
+  border-radius: 6px;
+}
+
+.research-paper.rp-body details > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  color: var(--rp-ink);
+  font-family: var(--rp-sans);
+  font-size: 15px;
+  font-weight: 500;
+  list-style: none;
+  cursor: pointer;
+}
+
+.research-paper.rp-body details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.research-paper.rp-body details > summary::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-right: 2px solid var(--rp-muted);
+  border-bottom: 2px solid var(--rp-muted);
+  transform: rotate(-45deg);
+  transition: transform 120ms ease;
+}
+
+.research-paper.rp-body details[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+.research-paper.rp-body details[open] > summary {
+  border-bottom: 1px solid var(--rp-line);
+}
+
+.research-paper.rp-body details > :not(summary) {
+  margin-inline: 14px;
+}
+
+.research-paper.rp-body details .rp-table {
+  margin-block: 14px;
+}
+
+/* Two reading layers: subtitle, deep-dive blocks and the Quick/Full switch. */
+.research-paper.rp-body p.paper-subtitle {
+  margin-bottom: 1.4em;
+  color: var(--rp-muted);
+  font-size: 1.12em;
+  line-height: 1.5;
+}
+
+.research-paper.rp-body p.paper-subtitle em {
+  font-style: normal;
+}
+
+.research-paper.rp-body details.deep-dive {
+  border: 0;
+  border-left: 3px solid color-mix(in srgb, var(--rp-accent) 45%, transparent);
+  border-radius: 0 6px 6px 0;
+  background: color-mix(in srgb, var(--rp-accent) 5%, transparent);
+}
+
+.research-paper.rp-body details.deep-dive > summary {
+  color: var(--rp-link);
+  font-size: 14.5px;
+}
+
+.research-paper.rp-body details.deep-dive[open] > summary {
+  border-bottom-color: color-mix(in srgb, var(--rp-accent) 20%, transparent);
+}
+
+.research-paper.rp-body details.deep-dive > :not(summary) {
+  font-size: 0.95em;
+}
+
+/* Prose inside any <details> keeps the reading measure; tables use the width. */
+.research-paper.rp-body details > :is(p, ul, ol) {
+  max-width: var(--rp-measure);
+  margin-inline: auto;
+}
+
+/* Finding takeaway: the bold one-liner that opens each finding. */
+.research-paper.rp-body h3 + p > strong:only-child {
+  display: block;
+  font-size: 1.05em;
+  line-height: 1.45;
+}
+
+.rp-readmode-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-top: 1.4rem;
+}
+
+.rp-readmode {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid #d8d4c8;
+  border-radius: 999px;
+  background: #fbfaf6;
+}
+
+.rp-readmode-option {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 999px;
+  color: #5a5a5a;
+  background: transparent;
+  font: 500 14px/1.2 var(--rp-sans);
+  cursor: pointer;
+}
+
+.rp-readmode-option[aria-pressed='true'] {
+  color: #fff;
+  background: var(--rp-accent);
+}
+
+.rp-readmode-option:focus-visible {
+  outline: 2px solid var(--rp-accent);
+  outline-offset: 2px;
+}
+
+.rp-readmode-hint {
+  color: #6b6b6b;
+  font: 13.5px/1.4 var(--rp-sans);
+}
+
+.dark .rp-readmode {
+  border-color: #2c3040;
+  background: #1b1d24;
+}
+
+.dark .rp-readmode-option {
+  color: #9a968c;
+}
+
+.dark .rp-readmode-option[aria-pressed='true'] {
+  color: #0f0f0f;
+}
+
+.dark .rp-readmode-hint {
+  color: #9a968c;
+}
+
+[data-read-mode='quick'] .research-paper.rp-body details.deep-dive,
+[data-read-mode='quick'] .research-paper.rp-body h2[id^='appendix'],
+[data-read-mode='quick'] .research-paper.rp-body h2[id^='appendix'] ~ * {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .research-paper.rp-body h2 {
+    font-size: 23px;
+  }
+
+  .research-paper.rp-body .research-figure figcaption {
+    font-size: 13.5px;
+  }
+
+  .research-paper .rp-table-scroll > table {
+    font-size: 14px;
+  }
+
+  .research-paper .rp-table-scroll :is(th, td):first-child {
+    min-width: 7.5rem;
+    max-width: 11rem;
+  }
+
+  .research-paper.rp-body details > :not(summary) {
+    margin-inline: 8px;
+  }
+}
+
+@media print {
+  .rp-progress,
+  .rp-layout-toc,
+  .rp-toc-mobile {
+    display: none !important;
+  }
+
+  .rp-layout {
+    display: block;
+    padding: 0;
+  }
+
+  .research-figure-interactive {
+    display: none;
+  }
+
+  .research-figure-print {
+    display: block;
+  }
+
+  .research-paper .rp-table-scroll {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .research-paper .rp-table-scroll[data-collapsed] tbody tr {
+    display: table-row;
+  }
+
+  .rp-table-toggle {
+    display: none;
+  }
+}

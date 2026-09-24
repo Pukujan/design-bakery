@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, RotateCcw, X, ZoomIn, ZoomOut } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -6,6 +7,12 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { MermaidDiagram } from '@/modules/blog/render/MermaidDiagram';
 import { getResearchPaper } from '../data/researchPapers';
+import { remarkGithubAlerts } from '../render/remarkGithubAlerts';
+import { PaperCell, PaperTable, isElementOfType } from '../render/PaperTable';
+import { FigureCaption, PaperFigure, figureBase } from '../render/PaperFigure';
+import type { OpenFigure } from '../render/PaperFigure';
+import { ReadModeToggle, useReadMode } from '../render/ReadMode';
+import { PaperTocRail, PaperTocSheet, ReadingProgress, slugify, useActiveHeading, useTocEntries } from '../render/PaperToc';
 
 /** Markdown renderer: prose styles the prose; we only intercept fenced code
  *  (mermaid → diagram, other → styled block) and keep inline code compact.
@@ -39,17 +46,72 @@ export const markdownComponents = {
       </code>
     );
   },
-  /** Wrap every table so a wide one scrolls inside its own box rather than
-   *  pushing the page sideways at 390px. Never overflow-x:hidden, that clips
-   *  a column instead of letting the reader reach it. */
-  table({ children, ...props }: any) {
-    return (
-      <div className="rp-table-scroll my-5">
-        <table {...props}>{children}</table>
-      </div>
-    );
-  },
+  /** Every table gets its own scroll box (never overflow-x:hidden, which clips a
+   *  column), booktabs rules, sticky header/first column and, when long, a
+   *  "Show all N rows" toggle. Confidence intervals render smaller and muted. */
+  table: PaperTable,
+  td: PaperCell,
 };
+
+type HastNode = { type: string; tagName?: string; value?: string; properties?: Record<string, unknown>; children?: HastNode[] };
+
+function hastText(node: HastNode | undefined): string {
+  if (!node) return '';
+  if (node.type === 'text') return node.value ?? '';
+  return (node.children ?? []).map(hastText).join('');
+}
+
+function findTag(node: HastNode | undefined, tagName: string): HastNode | undefined {
+  if (!node) return undefined;
+  if (node.tagName === tagName) return node;
+  for (const child of node.children ?? []) {
+    const found = findTag(child, tagName);
+    if (found) return found;
+  }
+  return undefined;
+}
+
+const SECTION_NUMBER = /^((?:Appendix\s+)?[A-Z0-9]{1,2}\.)\s+([\s\S]*)$/;
+
+/** h2/h3 with a stable id (for the contents rail) and the section number as a muted prefix. */
+function makeHeading(Tag: 'h2' | 'h3') {
+  return function PaperHeading({ node, children, ...props }: { node?: HastNode; children?: ReactNode }) {
+    const text = hastText(node).trim();
+    const parts = Array.isArray(children) ? children : [children];
+    const match = typeof parts[0] === 'string' ? SECTION_NUMBER.exec(parts[0]) : null;
+    return (
+      <Tag {...props} id={slugify(text)} data-toc-label={text}>
+        {match ? (
+          <>
+            <span className="rp-secnum">{match[1]}</span> {match[2]}
+            {parts.slice(1)}
+          </>
+        ) : (
+          children
+        )}
+      </Tag>
+    );
+  };
+}
+
+const PaperH2 = makeHeading('h2');
+const PaperH3 = makeHeading('h3');
+
+const FONT_LINK_ID = 'research-paper-fonts';
+const FONT_HREF =
+  'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap';
+
+/** Load the paper faces (Source Serif 4, IBM Plex Sans) only on research pages. */
+function usePaperFonts() {
+  useEffect(() => {
+    if (document.getElementById(FONT_LINK_ID)) return;
+    const link = document.createElement('link');
+    link.id = FONT_LINK_ID;
+    link.rel = 'stylesheet';
+    link.href = FONT_HREF;
+    document.head.appendChild(link);
+  }, []);
+}
 
 const STATUS_LABEL: Record<string, string> = {
   pending: 'pending · not owner-approved',
@@ -71,13 +133,70 @@ export function ResearchPaperPage() {
   const { paperId } = useParams<{ paperId: string }>();
   const paper = paperId ? getResearchPaper(paperId) : undefined;
   const [showBib, setShowBib] = useState(false);
-  const [activeFigure, setActiveFigure] = useState<{ src: string; alt: string } | null>(null);
+  const [activeFigure, setActiveFigure] = useState<OpenFigure | null>(null);
   const [figureZoom, setFigureZoom] = useState(1);
   const closeFigureButtonRef = useRef<HTMLButtonElement>(null);
   const figureDialogPanelRef = useRef<HTMLDivElement>(null);
-  const paperMarkdownComponents = useMemo(
-    () => ({
+  const mainRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  usePaperFonts();
+  const [readMode, setReadMode] = useReadMode();
+
+  const paperMarkdownComponents = useMemo(() => {
+    const openFigure = (figure: OpenFigure) => {
+      setActiveFigure(figure);
+      setFigureZoom(1);
+    };
+    return {
       ...markdownComponents,
+      h2: PaperH2,
+      h3: PaperH3,
+      figcaption: FigureCaption,
+      /** `<figure data-figure="NAME"><picture>…<img src="….light.wide.svg">` from the
+       *  paper becomes a theme- and width-aware PaperFigure. */
+      figure({ node, children, ...props }: { node?: HastNode; children?: ReactNode }) {
+        const name = node?.properties?.dataFigure;
+        const img = findTag(node, 'img');
+        const base = figureBase(img?.properties?.src as string | undefined);
+        if (typeof name !== 'string' || !base) {
+          return <figure {...props}>{children}</figure>;
+        }
+        const caption = (Array.isArray(children) ? children : [children]).filter((child) =>
+          isElementOfType(child, FigureCaption),
+        );
+        return (
+          <PaperFigure
+            name={name}
+            base={base}
+            alt={String(img?.properties?.alt || 'Research figure')}
+            caption={caption}
+            onOpen={openFigure}
+          />
+        );
+      },
+      /** ```chart {"figure": "NAME", "base": "/research/figures/…/NAME", "alt": "…", "caption": "…"}
+       *  renders the same PaperFigure (and, later, an interactive renderer). */
+      code(props: any) {
+        const language = /language-(\w+)/.exec(props.className || '')?.[1];
+        if (language === 'chart') {
+          try {
+            const spec = JSON.parse(String(props.children));
+            return (
+              <PaperFigure
+                name={spec.figure}
+                base={spec.base}
+                alt={spec.alt || 'Research figure'}
+                renderer={spec.renderer}
+                caption={spec.caption ? <FigureCaption>{spec.caption}</FigureCaption> : null}
+                onOpen={openFigure}
+              />
+            );
+          } catch {
+            return markdownComponents.code(props);
+          }
+        }
+        return markdownComponents.code(props);
+      },
       img({ src, alt, ...props }: any) {
         if (!src) return null;
         const label = alt || 'Research figure';
@@ -86,18 +205,19 @@ export function ResearchPaperPage() {
             type="button"
             className="research-figure-trigger"
             aria-label={`Open figure: ${label}`}
-            onClick={() => {
-              setActiveFigure({ src, alt: label });
-              setFigureZoom(1);
-            }}
+            onClick={() => openFigure({ src, alt: label, theme: 'light' })}
           >
             <img {...props} src={src} alt={label} />
           </button>
         );
       },
-    }),
-    [setActiveFigure, setFigureZoom],
-  );
+    };
+  }, []);
+
+  const content = paper ? stripLeadingTitle(paper.content, paper.title) : '';
+  const hasDeepDives = content.includes('class="deep-dive"');
+  const tocEntries = useTocEntries(bodyRef, `${content}|${readMode}`);
+  const activeHeading = useActiveHeading(tocEntries);
 
   useEffect(() => {
     if (paper) document.title = `${paper.id} · ${paper.title}`;
@@ -163,66 +283,87 @@ export function ResearchPaperPage() {
   }
 
   return (
-    <article className="min-h-screen bg-[#f7f6f2] dark:bg-[#12141a] text-neutral-900 dark:text-neutral-100">
-      <div className="mx-auto min-w-0 max-w-3xl px-5 sm:px-6 pt-10 pb-24">
-        <Link
-          to="/research"
-          className="inline-flex items-center gap-1.5 text-sm text-blue-700 dark:text-blue-400 hover:underline underline-offset-2 mb-7"
-        >
-          <ArrowLeft className="w-4 h-4" aria-hidden />
-          Research index
-        </Link>
+    <article data-read-mode={readMode} className="rp-page min-h-screen bg-[#f7f6f2] dark:bg-[#12141a] text-neutral-900 dark:text-neutral-100">
+      <ReadingProgress targetRef={mainRef} />
+      <div className="rp-layout">
+        <aside className="rp-layout-toc">
+          <PaperTocRail entries={tocEntries} active={activeHeading} />
+        </aside>
 
-        <span className="inline-block rounded-full bg-neutral-200 dark:bg-neutral-800 px-3 py-0.5 font-mono text-[11px] uppercase tracking-wide text-amber-700 dark:text-amber-500">
-          {STATUS_LABEL[paper.status] ?? paper.status}
-        </span>
-
-        <h1 className="mt-3 text-2xl sm:text-3xl font-bold leading-tight tracking-tight text-balance">
-          {paper.title}
-        </h1>
-        <p className="mt-2 text-neutral-500 dark:text-neutral-400">{paper.authors.join(' · ')}</p>
-        <p className="mt-1 font-mono text-[12px] text-neutral-500 dark:text-neutral-400 break-words">
-          {paper.id} · submitted {paper.submitted} · status {paper.status}
-        </p>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          {paper.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full border border-neutral-300 dark:border-neutral-700 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-neutral-600 dark:text-neutral-400"
+        <div ref={mainRef} className="rp-layout-main min-w-0">
+          <header className="rp-header">
+            <Link
+              to="/research"
+              className="inline-flex items-center gap-1.5 text-sm text-blue-700 dark:text-blue-400 hover:underline underline-offset-2 mb-6"
             >
-              {tag}
-            </span>
-          ))}
-        </div>
+              <ArrowLeft className="w-4 h-4" aria-hidden />
+              Research index
+            </Link>
 
-        <div className="research-paper mt-8 min-w-0">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw]}
-            components={paperMarkdownComponents}
-          >
-            {stripLeadingTitle(paper.content, paper.title)}
-          </ReactMarkdown>
-        </div>
+            <div>
+              <span className="inline-block rounded-full bg-neutral-200 dark:bg-neutral-800 px-3 py-0.5 font-mono text-[11px] uppercase tracking-wide text-amber-700 dark:text-amber-500">
+                {STATUS_LABEL[paper.status] ?? paper.status}
+              </span>
+            </div>
 
-        {paper.bibtex ? (
-          <div className="mt-10 border-t border-neutral-300 dark:border-neutral-700 pt-5">
-            <button
-              type="button"
-              onClick={() => setShowBib((v) => !v)}
-              className="font-mono text-[13px] text-blue-700 dark:text-blue-400 hover:underline underline-offset-2"
-            >
-              {showBib ? 'Hide' : 'Show'} BibTeX
-            </button>
-            {showBib ? (
-              <pre className="mt-3 overflow-x-auto rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 p-4 text-[12px] leading-relaxed font-mono">
-                <code>{paper.bibtex}</code>
-              </pre>
+            <h1 className="rp-title">{paper.title}</h1>
+            <p className="rp-byline">{paper.authors.join(' · ')}</p>
+            <p className="mt-1 font-mono text-[12px] text-neutral-500 dark:text-neutral-400 break-words">
+              {paper.id} · submitted {paper.submitted} · status {paper.status}
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {paper.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full border border-neutral-300 dark:border-neutral-700 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-neutral-600 dark:text-neutral-400"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+            {hasDeepDives ? (
+              <div className="rp-readmode-row">
+                <ReadModeToggle mode={readMode} onChange={setReadMode} />
+                <span className="rp-readmode-hint">
+                  {readMode === 'quick' ? 'Showing the short version and main findings.' : 'Deep-dive details are collapsed; open any to read more.'}
+                </span>
+              </div>
             ) : null}
+          </header>
+
+          <div ref={bodyRef} className="research-paper rp-body mt-8 min-w-0">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm, remarkGithubAlerts]}
+              rehypePlugins={[rehypeRaw]}
+              components={paperMarkdownComponents}
+            >
+              {content}
+            </ReactMarkdown>
           </div>
-        ) : null}
+
+          <div className="rp-after">
+          {paper.bibtex ? (
+            <div className="mt-10 border-t border-neutral-300 dark:border-neutral-700 pt-5">
+              <button
+                type="button"
+                onClick={() => setShowBib((v) => !v)}
+                className="font-mono text-[13px] text-blue-700 dark:text-blue-400 hover:underline underline-offset-2"
+              >
+                {showBib ? 'Hide' : 'Show'} BibTeX
+              </button>
+              {showBib ? (
+                <pre className="mt-3 overflow-x-auto rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 p-4 text-[12px] leading-relaxed font-mono">
+                  <code>{paper.bibtex}</code>
+                </pre>
+              ) : null}
+            </div>
+          ) : null}
+          </div>
+        </div>
       </div>
+
+      <PaperTocSheet entries={tocEntries} active={activeHeading} />
 
       {activeFigure ? (
         <div
@@ -290,7 +431,7 @@ export function ResearchPaperPage() {
                 </button>
               </div>
             </div>
-            <div className="research-figure-dialog-stage">
+            <div className="research-figure-dialog-stage" data-theme={activeFigure.theme}>
               <img
                 src={activeFigure.src}
                 alt={activeFigure.alt}
