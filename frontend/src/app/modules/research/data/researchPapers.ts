@@ -246,13 +246,14 @@ const PAPER_009: ResearchPaper = {
 
 const PAPER_010: ResearchPaper = {
   id: 'db-r-2026-010',
-  title: 'Comparing Jev with contemporary model judges on objective decision tasks',
+  title:
+    'Accuracy is not enough: correctness and coverage of independent judges on identical objective decisions',
   authors: ['Pujan', 'Design Bakery'],
   submitted: '2026-09-22',
   status: 'pending',
-  tags: ['benchmarks', 'objective-evaluation', 'grok', 'jev', 'qwen', 'calibration'],
+  tags: ['benchmarks', 'objective-evaluation', 'llm-judges', 'coverage', 'reproducibility', 'jev', 'qwen', 'grok'],
   abstract:
-    'Comparison of Jev with Qwen Flash, Grok 4.6 and 4.7, and an eight-route extended wave on a frozen 760-record holdout. Jev reached 89.87% accuracy with complete coverage; the paper reports accuracy and coverage together, alongside the Grok protocol ablation and Qwen 4B calibration results.',
+    '25 judge arms, from sub-billion-parameter local models to frontier APIs, judged the same 760 blind typed decisions with objective gold labels. Coverage and unresolved states are reported next to accuracy, with Wilson intervals and paired McNemar tests from a committed script. The best full-coverage routes reached 99.21% (Qwen3.8 Flash) and 99.08% (Qwen 3.8 Max); the highest conditional accuracy (DeepSeek V4 Flash, 99.84%) came with 80.39% coverage, local Verdict models fell below a majority-label reference once abstentions counted, and the same Qwen model scored 84.48% or 97.36% depending only on its request configuration.',
   content: PAPER_010_MD,
 };
 

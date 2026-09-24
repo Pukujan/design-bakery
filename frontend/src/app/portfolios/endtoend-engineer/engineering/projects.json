@@ -169,8 +169,8 @@
     "id": 9,
     "title": "Eval Lab",
     "tagline": "When should we trust the judge?",
-    "description": "A reproducible research lab for lightweight AI judges. It compares judge decisions with objective evidence such as answer keys, deterministic verifiers and executable tests, checks whether confidence is calibrated, and studies when an uncertain case should escalate to a stronger judge or a person. Selective escalation is still an active research direction.",
-    "tech": ["Python", "LLM Judges", "Calibration", "Selective Escalation", "ARC-Challenge"],
+    "description": "A reproducible research lab for lightweight AI judges. It compares judge decisions with objective evidence such as answer keys, deterministic verifiers and executable tests, and reports accuracy together with coverage and failure states. The current paper gives 25 judges, from small local models to frontier APIs, the same 760 objective decisions. Selective escalation to a stronger judge or a person is future work.",
+    "tech": ["Python", "LLM Judges", "Benchmarks", "Coverage", "Reproducibility"],
     "color": "#1F7A5C",
     "accentColor": "#7BE0B5",
     "startedAt": "2026-07-30",
@@ -178,8 +178,8 @@
     "status": "ongoing",
     "stats": [
       {"label": "Objective gold labels", "icon": "Award"},
-      {"label": "Calibrated confidence", "icon": "TrendingUp"},
-      {"label": "Selective escalation", "icon": "Users"}
+      {"label": "25 judges, same records", "icon": "TrendingUp"},
+      {"label": "Accuracy + coverage", "icon": "Users"}
     ],
     "links": [
       {"label": "GitHub \u00b7 Public", "url": "https://github.com/Pukujan/Eval-lab"},

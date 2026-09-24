@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Last updated** | 2026-09-24 (TASK-DB-0052) |
-| **Active task** | [TASK-DB-0052 Study OS Live App link](../tasks/TASK-DB-0052-study-os-live-app.md) (#46) — PR open, auto-merge |
+| **Active task** | [TASK-DB-0052 Study OS Live App link](../tasks/TASK-DB-0052-study-os-live-app.md) (#46) — PR #47 open, auto-merge. TASK-DB-0049 (#42), 0050 (#43) and 0051 (#44) are merged. |
 
 ## Repo shape
 
@@ -20,12 +20,12 @@
 - Homepage project cards come from `frontend/src/app/portfolios/endtoend-engineer/engineering/projects.json` (static; no CMS fetch). Optional `status: "ongoing"` renders an "Ongoing" badge. Rendered newest first by `startedAt` (`lib/projectOrder.ts`, stable sort) — JSON order doesn't matter; every entry needs `startedAt` + `startedAtSource` (enforced by `test:homepage-content`). 4 per carousel page; deep link `/#project-<id>`.
 - Static case studies live in `frontend/public/case-studies/<slug>/` (study-os, fossil, fluffy-v4); a tiny redirect component in `modules/case-studies/<slug>/` + routes in `App.tsx` map `/case-studies/<slug>` to the `.html` file; add the path to `scripts/generate-sitemap.mjs`.
 - `frontend/src/app/modules/engineering/EngineeringProjects/projects.json` is not imported anywhere (candidate for deletion; owner to confirm).
+- Research paper `db-r-2026-010` mirrors Eval Lab `paper/paper.md` (consolidated judge accuracy/coverage paper, source commit `50aeb98`). Figures + `manifest.json` in `frontend/public/research/figures/benchmark/` are copied from Eval Lab `paper/figures/benchmark/`; do not hand-edit numbers — regenerate from Eval Lab.
 - `additionals/archive/firebase/` is still read by migration / storage-CORS / publish-kit-upload scripts — keep until those scripts are retired.
 
 ## Open threads
 
 - Study OS live app → `https://study.design-bakery.com/` (Study-os D018; not deployed yet as of 2026-09-24). `/studyos` redirects there (`vercel.json`, non-permanent).
-
 - Fluffy V4 handoff/notes stay: they drive the ongoing visual rebuild (Study Partner first). The showcase case study (`/case-studies/fluffy-v4`) uses thumbnails of the current pages — re-capture after each rebuilt direction.
 - Homepage "Relevant experience": the rendered list (`relevant-experience-rendered-list.json`, Fitzgerald first) is confirmed correct by the owner.
 - Size/modularization follow-ups: [additionals/doc/modularization-plan.md](../additionals/doc/modularization-plan.md).
