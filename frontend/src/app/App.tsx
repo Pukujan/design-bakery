@@ -19,6 +19,7 @@ import { StaticCaseStudyAssetGuard } from './modules/case-studies/legal-workflow
 import { CortexCaseStudyRedirect } from './modules/case-studies/cortex/CortexCaseStudyRedirect';
 import { FossilCaseStudyRedirect } from './modules/case-studies/fossil/FossilCaseStudyRedirect';
 import { StudyOsCaseStudyRedirect } from './modules/case-studies/study-os/StudyOsCaseStudyRedirect';
+import { FluffyV4CaseStudyRedirect } from './modules/case-studies/fluffy-v4/FluffyV4CaseStudyRedirect';
 import { ResearchListPage } from './modules/research/public/ResearchListPage';
 import { ResearchPaperPage } from './modules/research/public/ResearchPaperPage';
 import { ResearchSourcePage } from './modules/research/public/ResearchSourcePage';
@@ -107,6 +108,8 @@ function publicRoutes(): ReactElement[] {
     <Route path="/case-studies/study-os" element={<StudyOsCaseStudyRedirect />} />,
     <Route path="/case-studies/study-os/presentation" element={<StudyOsCaseStudyRedirect />} />,
     <Route path="/case-studies/study-os/evidence" element={<StudyOsCaseStudyRedirect />} />,
+    <Route path="/case-studies/fluffy-v4" element={<FluffyV4CaseStudyRedirect />} />,
+    <Route path="/case-studies/fluffy-v4/gallery" element={<FluffyV4CaseStudyRedirect />} />,
     <Route key="research-shell" path="/research" element={<PortfolioPublicLayout />}>
       <Route index element={<ResearchListPage />} />
       <Route path="papers/:paperId" element={<ResearchPaperPage />} />

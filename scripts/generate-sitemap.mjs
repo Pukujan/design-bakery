@@ -139,6 +139,7 @@ async function main() {
     '/case-studies/study-os',
     '/case-studies/study-os/presentation',
     '/case-studies/study-os/evidence',
+    '/case-studies/fluffy-v4',
   ];
 
   const blogRows = await loadBlogRows();

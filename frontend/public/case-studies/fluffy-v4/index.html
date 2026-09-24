@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fluffy V4 | Same product. Different worlds.</title>
+<meta name="description" content="Fluffy is an agent workflow that researches a product, its buyers, market and proof before it writes marketing, then renders genuinely different directions for a human to judge. V4 is its eight-direction review gallery, now being rebuilt page by page.">
+<style>
+:root{
+  --cream:#fff8ec;--paper:#ffffff;--ink:#1b1410;--muted:#6b5d52;--line:#1b1410;
+  --rust:#b4561f;--amber:#ffc56b;--sun:#ffd93d;--pink:#ff6b9d;--lav:#9b6dd6;--mint:#7be0b5;--sky:#dff1ff;--peach:#ffe7d4;
+  --hard:6px 6px 0 0 #1b1410;--hard-lg:10px 10px 0 0 #1b1410;
+  --sans:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.62 var(--sans)}a{color:inherit}img{max-width:100%;display:block}
+.wrap{width:min(1180px,calc(100% - 38px));margin:auto}
+.top{position:sticky;top:0;z-index:30;background:rgba(255,248,236,.94);backdrop-filter:blur(12px);border-bottom:3px solid var(--line)}
+.topin{height:68px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;font:900 13px/1 var(--mono);letter-spacing:.14em;text-decoration:none}
+.brand i{width:26px;height:26px;border-radius:50%;background:var(--amber);border:3px solid var(--line);display:inline-block}
+.nav{display:flex;align-items:center;gap:18px}.nav a{font:800 11px/1 var(--mono);letter-spacing:.06em;text-decoration:none;color:var(--muted);text-transform:uppercase}.nav a:hover{color:var(--ink)}
+.nav .gh{padding:10px 14px;border-radius:999px;background:var(--ink);color:#fff;border:3px solid var(--line)}
+.kicker{font:900 11px/1.35 var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--rust);margin-bottom:16px}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.pill{padding:7px 11px;border:3px solid var(--line);border-radius:999px;background:#fff;font:900 10px/1 var(--mono);letter-spacing:.06em;box-shadow:2px 2px 0 0 var(--line)}
+.pill.ongoing{background:var(--sun)}.pill.ongoing:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ink);margin-right:7px;vertical-align:1px;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+h1{font-size:clamp(50px,7.6vw,98px);line-height:.95;letter-spacing:-.055em;margin:0;font-weight:900}
+h1 span{color:var(--rust)}
+h2{font-size:clamp(34px,4.8vw,58px);line-height:1.04;letter-spacing:-.045em;margin:0 0 18px;max-width:960px;font-weight:900}
+h3{font-size:21px;line-height:1.2;margin:0 0 8px;font-weight:900}
+.lead{font-size:clamp(19px,2.3vw,24px);line-height:1.5;color:var(--muted);max-width:760px;margin:26px 0}
+.sub{font-size:19px;color:var(--muted);max-width:840px}
+.actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 18px;border-radius:999px;border:3px solid var(--line);background:#fff;font-weight:900;font-size:14px;text-decoration:none;box-shadow:4px 4px 0 0 var(--line);transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 0 var(--line)}
+.btn.primary{background:var(--rust);color:#fff}.btn.sun{background:var(--amber)}
+.hero{padding:76px 0 84px;display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:center}
+.collage{position:relative;min-height:470px}
+.shot{position:absolute;border:4px solid var(--line);border-radius:22px;overflow:hidden;background:#111;box-shadow:var(--hard-lg)}
+.shot img{width:100%;height:100%;object-fit:cover;object-position:top left}
+.shot.a{width:78%;aspect-ratio:4/3;left:0;top:0;transform:rotate(-3deg);z-index:1}
+.shot.b{width:58%;aspect-ratio:4/3;right:0;top:34%;transform:rotate(4deg);z-index:2}
+.shot.c{width:48%;aspect-ratio:4/3;left:8%;bottom:0;transform:rotate(-1deg);z-index:3}
+.sticker{position:absolute;z-index:4;right:4%;top:2%;background:var(--sun);border:3px solid var(--line);border-radius:18px;padding:12px 14px;font:900 14px/1.25 var(--sans);box-shadow:var(--hard);transform:rotate(5deg);max-width:210px}
+section{padding:84px 0;border-top:3px solid var(--line)}
+.card{background:#fff;border:3px solid var(--line);border-radius:26px;padding:24px;box-shadow:var(--hard)}
+.problem{display:grid;grid-template-columns:1.1fr .9fr;gap:34px;align-items:start}
+.stat{background:var(--amber);border:3px solid var(--line);border-radius:26px;padding:26px;box-shadow:var(--hard)}
+.stat b{display:block;font-size:clamp(46px,6vw,72px);line-height:1;letter-spacing:-.04em}
+.stat p{margin:10px 0 0;font-weight:700}
+.stat small{display:block;margin-top:14px;font:700 11px/1.5 var(--mono);color:#5c3b16}.stat small a{color:#5c3b16}
+.quote{margin-top:26px;padding:22px 24px;border-left:8px solid var(--rust);background:#fff;border-radius:0 18px 18px 0;font-size:clamp(22px,3vw,30px);line-height:1.25;letter-spacing:-.02em;font-weight:800}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:30px;counter-reset:s}
+.step{position:relative;background:#fff;border:3px solid var(--line);border-radius:22px;padding:22px 18px 18px;box-shadow:4px 4px 0 0 var(--line)}
+.step:nth-child(5n+1){background:var(--peach)}.step:nth-child(5n+2){background:var(--sky)}.step:nth-child(5n+3){background:#fff3c4}.step:nth-child(5n+4){background:#e9fbf2}.step:nth-child(5n+5){background:#f1e9ff}
+.step b{display:block;font-size:16px;line-height:1.25;margin-bottom:6px}.step p{margin:0;font-size:14px;color:var(--muted)}
+.step:before{counter-increment:s;content:counter(s,decimal-leading-zero);display:inline-block;font:900 11px/1 var(--mono);background:var(--ink);color:#fff;padding:6px 8px;border-radius:999px;margin-bottom:12px}
+.owner{margin-top:22px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:16px 20px;border:3px dashed var(--line);border-radius:18px;font-weight:800}
+.timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:30px}
+.ver{background:#fff;border:3px solid var(--line);border-radius:24px;padding:22px;box-shadow:var(--hard);display:flex;flex-direction:column}
+.ver .tag{align-self:flex-start;font:900 12px/1 var(--mono);padding:7px 10px;border-radius:999px;border:3px solid var(--line);background:var(--sun);margin-bottom:12px}
+.ver.now{background:var(--rust);color:#fff}.ver.now p{color:#ffe9d6}.ver.now .tag{background:#fff;color:var(--ink)}
+.ver p{margin:0 0 12px;font-size:14.5px;color:var(--muted)}.ver .date{font:800 11px/1.4 var(--mono);opacity:.8}
+.ver a{margin-top:auto;font:900 11px/1.4 var(--mono);text-decoration:none}.ver a:hover{text-decoration:underline}
+.lesson-line{margin-top:22px;padding:18px 22px;border-radius:18px;background:var(--ink);color:#fff;font-size:clamp(19px,2.4vw,24px);font-weight:800;line-height:1.35}
+.lesson-line em{color:var(--amber);font-style:normal}
+.dirs{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:30px}
+.dir{display:flex;flex-direction:column;background:#fff;border:3px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:var(--hard);text-decoration:none;transition:transform .15s,box-shadow .15s}
+.dir:hover{transform:translate(-3px,-3px) rotate(-.4deg);box-shadow:9px 9px 0 0 var(--line)}
+.dir .thumb{aspect-ratio:4/3;border-bottom:3px solid var(--line);background:#111;overflow:hidden}
+.dir .thumb img{width:100%;height:100%;object-fit:cover;object-position:top left}
+.dir .body{padding:16px 16px 18px;display:flex;flex-direction:column;flex:1}
+.dir .lab{font:900 10px/1 var(--mono);letter-spacing:.1em;color:var(--rust);margin-bottom:8px}
+.dir h3{font-size:18px;margin-bottom:6px}.dir p{margin:0 0 12px;font-size:13.5px;color:var(--muted);flex:1}
+.dir .open{font:900 11px/1 var(--mono)}
+.note{margin-top:18px;padding:14px 18px;border-radius:16px;background:#fff3c4;border:3px solid var(--line);font-size:14px}
+.pipes{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:30px}
+.pipe h3{display:flex;align-items:center;gap:10px}.pipe h3 i{font-style:normal;width:30px;height:30px;border-radius:50%;border:3px solid var(--line);display:grid;place-items:center;font-size:14px}
+.pipe.bad{background:#ffe3e3}.pipe.bad h3 i{background:#ff8a8a}.pipe.good{background:#e3f8ec}.pipe.good h3 i{background:var(--mint)}
+.pipe ul{margin:10px 0 0;padding-left:20px}.pipe li{margin:6px 0}
+.flow{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}.flow span{padding:8px 11px;border:3px solid var(--line);border-radius:12px;background:#fff;font:800 12px/1.2 var(--mono)}.flow b{font-size:18px}
+.status{display:grid;grid-template-columns:.95fr 1.05fr;gap:26px;align-items:start}
+.order{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.order li{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:12px 14px;background:#fff;border:3px solid var(--line);border-radius:16px;font-weight:800}
+.order li .n{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);display:grid;place-items:center;font:900 12px/1 var(--mono);background:var(--cream)}
+.order li .s{font:900 10px/1 var(--mono);padding:6px 8px;border-radius:999px;border:2px solid var(--line);background:#fff}
+.order li.cur{background:var(--sun)}.order li.cur .s{background:var(--ink);color:#fff}
+.bounds{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:26px}
+.bounds .card{box-shadow:4px 4px 0 0 var(--line);padding:20px}.bounds p{margin:0;font-size:14.5px;color:var(--muted)}
+.final{padding:96px 0}
+.final-card{display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:center;padding:42px;border-radius:32px;background:var(--amber);border:4px solid var(--line);box-shadow:var(--hard-lg)}
+.final-card p{font-size:18px;margin:0 0 22px;color:#4a3017}
+.final-card .fluff{justify-self:center;width:190px}
+.foot{padding:30px 0 50px;border-top:3px solid var(--line);display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted);font-weight:700}
+.foot a{text-decoration:none}.foot a:hover{text-decoration:underline}
+@media(max-width:1000px){.dirs{grid-template-columns:repeat(2,1fr)}.steps{grid-template-columns:repeat(2,1fr)}.timeline{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.hero,.problem,.status,.final-card,.pipes{grid-template-columns:1fr}.collage{min-height:420px}}
+@media(max-width:620px){.wrap{width:min(100% - 28px,1180px)}.nav a:not(.gh){display:none}.hero{padding-top:52px}.dirs,.steps,.timeline,.bounds{grid-template-columns:1fr}.collage{min-height:330px}.sticker{font-size:12px;max-width:160px}.final-card{padding:26px}.order li{grid-template-columns:40px 1fr}.order li .s{grid-column:2;justify-self:start}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin">
+  <a class="brand" href="/case-studies/fluffy-v4"><i aria-hidden="true"></i>FLUFFY V4</a>
+  <nav class="nav"><a href="/">Design Bakery</a><a href="#directions">Directions</a><a href="#evolution">Evolution</a><a href="#status">Status</a><a class="gh" href="https://github.com/Pukujan/fluffy-system" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav>
+</div></header>
+<main>
+<div class="wrap hero">
+  <div>
+    <div class="pills"><span class="pill ongoing">ONGOING</span><span class="pill">AI AGENT WORKFLOW</span><span class="pill">UNLISTED REVIEW GALLERY</span></div>
+    <div class="kicker">Fluffy System · Design Gallery V4</div>
+    <h1>Same product. <span>Different worlds.</span></h1>
+    <p class="lead">Coding agents can already produce a polished landing page in minutes. Fluffy gives them the harder, upstream job: research the product, the buyer, the market and the proof first, then render several genuinely different directions for a human to judge. V4 is the eight-direction gallery that came out of that loop.</p>
+    <div class="actions"><a class="btn primary" href="/experiments/fluffy-system-v4/index.html">Open the live V4 gallery ↗</a><a class="btn sun" href="#directions">See the eight directions</a><a class="btn" href="https://github.com/Pukujan/fluffy-system" target="_blank" rel="noopener noreferrer">Fluffy on GitHub ↗</a></div>
+  </div>
+  <div class="collage" aria-label="Screenshots of three Fluffy V4 directions">
+    <div class="shot a"><img src="/case-studies/fluffy-v4/assets/v4-fluffy-3d.webp" alt="Fluffy V4 Interactive 3D direction: From fuzzy to sharp" width="724" height="543"></div>
+    <div class="shot b"><img src="/case-studies/fluffy-v4/assets/v4-mixed-media.webp" alt="Fluffy V4 Experimental Mixed Media direction" width="724" height="543"></div>
+    <div class="shot c"><img src="/case-studies/fluffy-v4/assets/v4-pam-preflight.webp" alt="Fluffy V4 PAM Project Preflight direction" width="724" height="543"></div>
+    <div class="sticker">Human context for AI work.</div>
+  </div>
+</div>
+
+<section id="problem">
+  <div class="wrap problem">
+    <div>
+      <div class="kicker">The problem</div>
+      <h2>AI made marketing pages cheap. It didn't make them worth reading.</h2>
+      <p class="sub">The hard part is deciding what deserves to be on the page: who the buyer is, what they are struggling with, what they use today, where the market leaves them short, which proof matters, and what visual world makes the product feel distinct. An agent that skips that work produces copy that is fluent, generic and about the system instead of the buyer.</p>
+      <div class="quote">“The agent has to understand the buyer before it gets to decorate the page.”</div>
+    </div>
+    <div class="stat">
+      <b>87%</b>
+      <p>of 879 marketers surveyed by Ahrefs in 2025 were already using AI to help create content, and AI users published 42% more per month.</p>
+      <small>More output is not the same as better output. Source cited in the Fluffy README: <a href="https://ahrefs.com/blog/marketers-using-ai-publish-more-content/" target="_blank" rel="noopener noreferrer">ahrefs.com ↗</a></small>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="kicker">How Fluffy works</div>
+    <h2>Research, positioning, copy and art direction as one creative job.</h2>
+    <p class="sub">You point Fluffy at the product source and the place the marketing should live. The workflow is written for coding agents (Claude Code, Codex, Cursor and others) and asks them to do the homework in order.</p>
+    <div class="steps">
+      <div class="step"><b>Read the real product</b><p>Docs, PRs, incidents, usage and current limitations, not just the README headline.</p></div>
+      <div class="step"><b>Find the buyer's words</b><p>How the audience describes the problem in the wild, and what they use today.</p></div>
+      <div class="step"><b>Make the pain concrete</b><p>Credible market data and external research, with sources kept alongside the claim.</p></div>
+      <div class="step"><b>Branch the creative</b><p>Several positioning angles and at least 20 brand and interaction references per major direction.</p></div>
+      <div class="step"><b>Render, then publish</b><p>Working HTML candidates, an anti-AI-pattern copy pass, and a review gallery.</p></div>
+    </div>
+    <div class="owner"><span class="pill ongoing" style="animation:none">HUMAN IN THE LOOP</span> The final taste call stays with the owner: keep, combine, revise or delete any candidate.</div>
+  </div>
+</section>
+
+<section id="evolution">
+  <div class="wrap">
+    <div class="kicker">Four galleries in two days</div>
+    <h2>From eight polished candidates to eight different worlds.</h2>
+    <p class="sub">Every gallery was published as an unlisted, <code>noindex</code> review surface on this site. The pilot products were Project Assurance Modules (public) and Research Assurance (a private product, so it is never linked).</p>
+    <div class="timeline">
+      <div class="ver"><span class="tag">V1</span><h3>Creative bakeoff</h3><p>Eight candidates, four per pilot product, including two Three.js directions. The review exposed the real failure: the instructions were too easy to satisfy with polished, generic, system-centric copy.</p><span class="date">2026-09-08</span><a href="/experiments/fluffy-system/">Open V1 gallery ↗</a></div>
+      <div class="ver"><span class="tag">V2</span><h3>One deep page each</h3><p>Buyer language, market framing, copy examples and brand research became explicit requirements. One focused page per product plus one Three.js exploration, built serially instead of in bulk.</p><span class="date">2026-09-09</span><a href="/experiments/fluffy-system-v2/">Open V2 gallery ↗</a></div>
+      <div class="ver"><span class="tag">V3</span><h3>A media strategy</h3><p>A visual-media stage was added to the workflow: image-led, vector-led and mixed-media pages, so the art direction is chosen on purpose instead of by default.</p><span class="date">2026-09-09</span><a href="/experiments/fluffy-system-v3/">Open V3 gallery ↗</a></div>
+      <div class="ver now"><span class="tag">V4 · NOW</span><h3>Eight full experiences</h3><p>Three directions for Fluffy itself, two for PAM, two for Research Assurance and one experimental mixed-media world. Same product truth, deliberately different visual worlds.</p><span class="date">2026-09-09 → ongoing</span><a href="/experiments/fluffy-system-v4/index.html">Open V4 gallery ↗</a></div>
+    </div>
+    <div class="lesson-line">The lesson from V1 became the product rule: <em>a failure in the gallery is a defect in the workflow</em>, not something to polish over in the page.</div>
+  </div>
+</section>
+
+<section id="directions">
+  <div class="wrap">
+    <div class="kicker">The V4 gallery</div>
+    <h2>Eight directions, one product truth.</h2>
+    <p class="sub">Each card opens the live V4 page. Thumbnails are browser screenshots of the pages as they are today, including art that is still being rebuilt.</p>
+    <div class="dirs">
+      <a class="dir" href="/experiments/fluffy-system-v4/fluffy-study-partner.html"><div class="thumb"><img src="/case-studies/fluffy-v4/assets/v4-fluffy-study-partner.webp" alt="The Study Partner direction" loading="lazy" width="724" height="543"></div><div class="body"><span class="lab">01 · FLUFFY</span><h3>The Study Partner</h3><p>Warm, image-led product storytelling with a visible human center.</p><span class="open">Open page →</span></div></a>
+      <a class="dir" href="/experiments/fluffy-system-v4/fluffy-editorial.html"><div class="thumb"><img src="/case-studies/fluffy-v4/assets/v4-fluffy-editorial.webp" alt="The Editorial direction" loading="lazy" width="724" height="543"></div><div class="body"><span class="lab">02 · FLUFFY</span><h3>Editorial</h3><p>Paper, collage and serif-led storytelling for a more thoughtful brand voice.</p><span class="open">Open page →</span></div></a>
+      <a class="dir" href="/experiments/fluffy-system-v4/fluffy-3d.html"><div class="thumb"><img src="/case-studies/fluffy-v4/assets/v4-fluffy-3d.webp" alt="The Interactive 3D direction" loading="lazy" width="724" height="543"></div><div class="body"><span class="lab">03 · FLUFFY</span><h3>Interactive 3D</h3><p>Product, buyer, market, brand and proof become one spatial system.</p><span class="open">Open page →</span></div></a>
+      <a class="dir" href="/experiments/fluffy-system-v4/pam-preflight.html"><div class="thumb"><img src="/case-studies/fluffy-v4/assets/v4-pam-preflight.webp" alt="The PAM Project Preflight direction" loading="lazy" width="724" height="543"></div><div class="body"><span class="lab">04 · PAM</span><h3>Project Preflight</h3><p>Research is done. The next question is whether the project is ready to build.</p><span class="open">Open page →</span></div></a>
+      <a class="dir" href="/experiments/fluffy-system-v4/pam-proof.html"><div class="thumb"><img src="/case-studies/fluffy-v4/assets/v4-pam-proof.webp" alt="The PAM Proof of Homework direction" loading="lazy" width="724" height="543"></div><div class="body"><span class="lab">05 · PAM</span><h3>Proof of Homework</h3><p>A real projectization failure, PAM's build-vs-reuse loophole, becomes the market story.</p><span class="open">Open page →</span></div></a>
+      <a class="dir" href="/experiments/fluffy-system-v4/ra-control-room.html"><div class="thumb"><img src="/case-studies/fluffy-v4/assets/v4-ra-control-room.webp" alt="The Research Assurance Control Room direction" loading="lazy" width="724" height="543"></div><div class="body"><span class="lab">06 · RESEARCH ASSURANCE</span><h3>The Control Room</h3><p>Independent assurance dimensions stay visible instead of collapsing into one score.</p><span class="open">Open page →</span></div></a>
+      <a class="dir" href="/experiments/fluffy-system-v4/ra-lab.html"><div class="thumb"><img src="/case-studies/fluffy-v4/assets/v4-ra-lab.webp" alt="The Research Assurance Lab direction" loading="lazy" width="724" height="543"></div><div class="body"><span class="lab">07 · RESEARCH ASSURANCE</span><h3>The Lab</h3><p>A brighter, scientific visual world for the same assurance model.</p><span class="open">Open page →</span></div></a>
+      <a class="dir" href="/experiments/fluffy-system-v4/mixed-media.html"><div class="thumb"><img src="/case-studies/fluffy-v4/assets/v4-mixed-media.webp" alt="The Experimental Mixed Media direction" loading="lazy" width="724" height="543"></div><div class="body"><span class="lab">08 · EXPERIMENTAL</span><h3>Mixed Media</h3><p>Generated art, real HTML, vector thinking and spatial composition in one direction.</p><span class="open">Open page →</span></div></a>
+    </div>
+    <div class="note"><strong>Known issue:</strong> the current Study Partner hero art is a placeholder that does not match its reference direction, and some V4 pages still carry inline image payloads from the first build. Both are the reason for the rebuild below.</div>
+  </div>
+</section>
+
+<section id="lessons">
+  <div class="wrap">
+    <div class="kicker">What V4 taught</div>
+    <h2>Concept art has to survive the trip into production.</h2>
+    <p class="sub">V4 looked right as concept art and went wrong in the build. The failures were concrete, so the fix is a pipeline rather than another round of patches.</p>
+    <div class="pipes">
+      <div class="card pipe bad"><h3><i>✕</i>What went wrong</h3><ul>
+        <li>Detail pages embedded large <code>data:image</code> base64 payloads inside CSS.</li>
+        <li>Gallery previews were, at one point, whole pages rendered inside scaled iframes.</li>
+        <li>A replacement Study Partner image fixed the file format but not the visual direction.</li>
+        <li>Work was judged from code changes instead of repeated browser screenshots.</li>
+      </ul><div class="flow"><span>one full-page image</span><b>→</b><span>CSS background</span><b>→</b><span>unrelated HTML</span></div></div>
+      <div class="card pipe good"><h3><i>✓</i>The rebuild pipeline</h3><ul>
+        <li>Important copy, buttons, navigation and cards stay real HTML.</li>
+        <li>Generated imagery supplies scenes and supporting art as normal image files.</li>
+        <li>Phone layouts are rearranged on purpose, not shrunk.</li>
+        <li>Nothing is called finished until desktop and mobile screenshots match the reference.</li>
+      </ul><div class="flow"><span>reference</span><b>→</b><span>separate assets</span><b>→</b><span>real HTML/CSS</span><b>→</b><span>mobile layout</span><b>→</b><span>screenshot loop</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="status">
+  <div class="wrap status">
+    <div>
+      <div class="kicker">Status · ongoing</div>
+      <h2>Rebuilding one direction at a time.</h2>
+      <p class="sub">The rebuild is planned in the repo handoff. The first milestone is the Study Partner page, matched against its visual reference on desktop and designed intentionally for phones. The other directions follow in order, without forcing them into one template, and the gallery moves to real image thumbnails at the end.</p>
+      <div class="actions" style="margin-top:22px"><a class="btn primary" href="/experiments/fluffy-system-v4/index.html">See the current gallery ↗</a></div>
+    </div>
+    <ol class="order">
+      <li class="cur"><span class="n">1</span>The Study Partner<span class="s">NEXT</span></li>
+      <li><span class="n">2</span>Editorial<span class="s">QUEUED</span></li>
+      <li><span class="n">3</span>Interactive 3D<span class="s">QUEUED</span></li>
+      <li><span class="n">4</span>PAM Preflight<span class="s">QUEUED</span></li>
+      <li><span class="n">5</span>PAM Proof of Homework<span class="s">QUEUED</span></li>
+      <li><span class="n">6</span>Research Assurance Control Room<span class="s">QUEUED</span></li>
+      <li><span class="n">7</span>Research Assurance Lab<span class="s">QUEUED</span></li>
+      <li><span class="n">8</span>Mixed Media + gallery consolidation<span class="s">QUEUED</span></li>
+    </ol>
+  </div>
+</section>
+
+<section id="boundaries">
+  <div class="wrap">
+    <div class="kicker">Claim boundaries</div>
+    <h2>What this page does not claim.</h2>
+    <div class="bounds">
+      <div class="card"><h3>No usage or conversion numbers</h3><p>This page reports no traffic, usage or conversion results for Fluffy. Any stats that appear inside design reference mockups are placeholder design content, not results.</p></div>
+      <div class="card"><h3>Candidates, not a launched site</h3><p>The gallery pages are unlisted review candidates. None of them has been promoted as the final marketing page for its product.</p></div>
+      <div class="card"><h3>Private sources stay private</h3><p>Research Assurance is a private product. Its pages describe it, but nothing here links to its repository.</p></div>
+      <div class="card"><h3>Screenshots show today's state</h3><p>Thumbnails were captured from the live pages as they are now, including art that is known to be wrong and scheduled for rebuild.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap final-card">
+    <div>
+      <div class="kicker" style="color:#6b3410">Fluffy System</div>
+      <h2>Give an AI your product repo. Get a story a buyer might actually care about.</h2>
+      <p>The workflow is public on GitHub. The galleries are where it gets tested, failures included.</p>
+      <div class="actions"><a class="btn primary" href="https://github.com/Pukujan/fluffy-system" target="_blank" rel="noopener noreferrer">Read the workflow on GitHub ↗</a><a class="btn" href="/experiments/fluffy-system-v4/index.html">Open the V4 gallery ↗</a><a class="btn" href="/#projects">Back to projects</a></div>
+    </div>
+    <svg class="fluff" viewBox="0 0 200 200" role="img" aria-label="Fluffy mascot">
+      <g stroke="#1b1410" stroke-width="6" stroke-linejoin="round">
+        <path d="M52 150c-26 0-38-22-30-40-14-12-8-38 12-42 0-24 26-36 44-24 12-18 44-18 54 4 22-6 42 12 36 34 18 10 16 40-4 46 0 22-22 32-40 22-14 14-44 14-56 0z" fill="#fff"/>
+        <circle cx="78" cy="100" r="8" fill="#1b1410"/><circle cx="124" cy="100" r="8" fill="#1b1410"/>
+        <path d="M88 124c8 8 20 8 28 0" fill="none" stroke-linecap="round"/>
+      </g>
+      <circle cx="64" cy="120" r="9" fill="#ff9a8a"/><circle cx="138" cy="120" r="9" fill="#ff9a8a"/>
+    </svg>
+  </div>
+</section>
+</main>
+<footer><div class="wrap foot"><span>Fluffy V4 · ongoing agent-marketing experiment</span><span><a href="/">Design Bakery</a> · <a href="/#projects">Projects</a> · <a href="https://github.com/Pukujan/fluffy-system" target="_blank" rel="noopener noreferrer">GitHub</a></span></div></footer>
+</body>
+</html>
