@@ -1,9 +1,9 @@
-export type PortfolioId =
-  | 'default'
-  | 'legal-workflow-engineer'
-  | 'endtoend-engineer'
-  | 'ai-engineer'
-  | 'forward-deployed-engineer';
+/**
+ * Single active home profile. Other profiles (default, ai-engineer,
+ * legal-workflow-engineer, forward-deployed-engineer) were archived in
+ * TASK-DB-0049 — recover them from git history if needed.
+ */
+export type PortfolioId = 'endtoend-engineer';
 
 export type PortfolioConfig = {
   id: PortfolioId;
@@ -13,43 +13,15 @@ export type PortfolioConfig = {
   collectionPrefix: string;
 };
 
-export const DEFAULT_PORTFOLIO_ID: PortfolioId = 'default';
+export const DEFAULT_PORTFOLIO_ID: PortfolioId = 'endtoend-engineer';
 
 export const PORTFOLIOS: Record<PortfolioId, PortfolioConfig> = {
-  default: {
-    id: 'default',
-    label: 'Design Bakery',
-    basePath: '',
-    defaultBlogCategory: 'all',
-    collectionPrefix: '',
-  },
-  'legal-workflow-engineer': {
-    id: 'legal-workflow-engineer',
-    label: 'Legal Workflow Engineer',
-    basePath: '/legal-workflow-engineer',
-    defaultBlogCategory: 'all',
-    collectionPrefix: 'lwe__',
-  },
   'endtoend-engineer': {
     id: 'endtoend-engineer',
     label: 'End-to-End Engineer',
     basePath: '',
     defaultBlogCategory: 'all',
     collectionPrefix: 'ete__',
-  },
-  'ai-engineer': {
-    id: 'ai-engineer',
-    label: 'AI Engineer',
-    basePath: '/ai-engineer',
-    defaultBlogCategory: 'all',
-    collectionPrefix: 'aie__',
-  },
-  'forward-deployed-engineer': {
-    id: 'forward-deployed-engineer',
-    label: 'Forward-Deployed Engineer',
-    basePath: '/forward-deployed-engineer',
-    defaultBlogCategory: 'all',
-    collectionPrefix: 'fde__',
   },
 };
 
@@ -59,31 +31,16 @@ export function getPortfolioConfig(id: PortfolioId): PortfolioConfig {
   return PORTFOLIOS[id];
 }
 
-export function getPortfolioFromPathname(pathname: string): PortfolioId {
-  if (pathname.startsWith('/admin')) {
-    return 'default';
-  }
-  return 'endtoend-engineer';
+export function getPortfolioFromPathname(_pathname: string): PortfolioId {
+  return DEFAULT_PORTFOLIO_ID;
 }
 
 export function getAdminBasePath(portfolioId: PortfolioId): string {
-  return portfolioId === 'default' ? '/admin' : `/admin/${portfolioId}`;
+  return `/admin/${portfolioId}`;
 }
 
-export function getPortfolioIdFromAdminPath(pathname: string): PortfolioId {
-  if (pathname.startsWith('/admin/legal-workflow-engineer')) {
-    return 'legal-workflow-engineer';
-  }
-  if (pathname.startsWith('/admin/endtoend-engineer')) {
-    return 'endtoend-engineer';
-  }
-  if (pathname.startsWith('/admin/ai-engineer')) {
-    return 'ai-engineer';
-  }
-  if (pathname.startsWith('/admin/forward-deployed-engineer')) {
-    return 'forward-deployed-engineer';
-  }
-  return 'endtoend-engineer';
+export function getPortfolioIdFromAdminPath(_pathname: string): PortfolioId {
+  return DEFAULT_PORTFOLIO_ID;
 }
 
 export function portfolioPath(basePath: string, segment: string): string {

@@ -23,13 +23,7 @@ import { ResearchListPage } from './modules/research/public/ResearchListPage';
 import { ResearchPaperPage } from './modules/research/public/ResearchPaperPage';
 import { ResearchSourcePage } from './modules/research/public/ResearchSourcePage';
 
-const ADMIN_PORTFOLIOS = [
-  'default',
-  'legal-workflow-engineer',
-  'endtoend-engineer',
-  'ai-engineer',
-  'forward-deployed-engineer',
-] as const;
+const ADMIN_PORTFOLIOS = ['endtoend-engineer'] as const;
 
 function buildAdminRoutes(portfolioId: (typeof ADMIN_PORTFOLIOS)[number]): ReactElement {
   return (
@@ -59,7 +53,7 @@ function adminRoutes(): ReactElement[] {
         />
       ))}
     </Route>,
-    ...ADMIN_PORTFOLIOS.filter((portfolioId) => portfolioId !== 'default').map(buildAdminRoutes),
+    ...ADMIN_PORTFOLIOS.map(buildAdminRoutes),
   ];
 }
 

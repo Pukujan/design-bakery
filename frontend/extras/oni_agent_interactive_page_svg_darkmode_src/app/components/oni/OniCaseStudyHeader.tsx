@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { ChevronDown, ExternalLink, Moon, Sun } from "lucide-react";
-import astronautLogo from "../../assets/pukujan-astronaut-logo.svg";
+import astronautLogo from "@oni-agent-assets/pukujan-astronaut-logo.svg";
 import { BrandMark } from "./BrandMark";
 import { ProjectLinkButtons } from "./ProjectLinkButtons";
 

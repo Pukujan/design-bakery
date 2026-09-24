@@ -1,6 +1,6 @@
 # Design Bakery — documentation
 
-Personal portfolio site with multiple engineering “skins” on one codebase.
+Personal portfolio site (single `endtoend-engineer` home profile), blog + CMS, case studies and research pages.
 
 **Copyright** — Proprietary; © Pukujan (Design Baker). See [`../LICENSE`](../LICENSE). Third-party notices: [`../frontend/src/app/Attributions.md`](../frontend/src/app/Attributions.md).
 
@@ -24,4 +24,4 @@ Copy `frontend/.env.example` → `frontend/.env` and `backend/.env.example` → 
 | [deploy-vercel-railway.md](./deploy-vercel-railway.md) | **Production** — same repo: Vercel (frontend) + Railway (Express API) |
 | [routes.md](./routes.md) | **All routes** — public URLs, admin paths, section anchors, navbar |
 | [project-guide.md](./project-guide.md) | Architecture, portfolios, content/data, how to extend |
-| [useful-prompts/study-blog-creator-prompt-v1.md](./useful-prompts/study-blog-creator-prompt-v1.md) | **Prompt** — study / learning-in-public blog draft template (v1) |
+| [modularization-plan.md](./modularization-plan.md) | **Plan** — proposed package/repo splits and dependency trimming (TASK-DB-0049) |

@@ -89,7 +89,7 @@ Re-run `codegraph sync` after moving modules between `src`, `extras`, and `archi
 |----------|----------------|
 | Why did Mermaid break? | [agent-devlog-mermaid.md](agent-devlog-mermaid.md) |
 | How do blog floats work? | [agent-devlog-blog-motion.md](agent-devlog-blog-motion.md) |
-| What shipped on a date? | [dev-log-YYYY-MM-DD.md](dev-log-2026-05-20.md) |
+| What shipped on a date? | `dev-log-YYYY-MM-DD.md` — see [agent-devlog-index.md](agent-devlog-index.md) |
 
 ---
 

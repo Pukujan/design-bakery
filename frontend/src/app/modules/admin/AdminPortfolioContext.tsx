@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
-import type { PortfolioId } from '../../portfolios/registry';
+import { DEFAULT_PORTFOLIO_ID, type PortfolioId } from '../../portfolios/registry';
 
-const AdminPortfolioContext = createContext<PortfolioId>('default');
+const AdminPortfolioContext = createContext<PortfolioId>(DEFAULT_PORTFOLIO_ID);
 
 export function AdminPortfolioProvider({
   portfolioId,

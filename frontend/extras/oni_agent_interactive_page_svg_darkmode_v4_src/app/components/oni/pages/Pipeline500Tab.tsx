@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import decorOrbit from "../../../assets/pukujan-decor-orbit.svg";
-import astronautSystem from "../../../assets/pukujan-astronaut-system.svg";
+import decorOrbit from "@oni-agent-assets/pukujan-decor-orbit.svg";
+import astronautSystem from "@oni-agent-assets/pukujan-astronaut-system.svg";
 import { BrandMark } from "../BrandMark";
 import { PipelineFlowDiagram } from "../PipelineFlowDiagram";
 import { agentFamilies, pipelineStages } from "../caseStudyData";

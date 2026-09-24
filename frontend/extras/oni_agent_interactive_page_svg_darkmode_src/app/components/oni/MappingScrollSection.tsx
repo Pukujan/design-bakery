@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowDown } from "lucide-react";
-import decorOrbit from "../../assets/pukujan-decor-orbit.svg";
-import astronautTool from "../../assets/pukujan-astronaut-tool.svg";
+import decorOrbit from "@oni-agent-assets/pukujan-decor-orbit.svg";
+import astronautTool from "@oni-agent-assets/pukujan-astronaut-tool.svg";
 import { BrandMark } from "./BrandMark";
 import { MAPPING_STEP_VH, mappingRows, type MappingRow } from "./mappingData";
 

@@ -3,13 +3,13 @@
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-05-22 |
-| **Last updated** | 2026-09-23 (DB-R-2026-010 chart viewer merged; CI follow-up) |
+| **Last updated** | 2026-09-24 (TASK-DB-0049 repo cleanup: pruned May + superseded fluffy session logs) |
 
 **Start here** for agent-facing documentation in this repo.
 
 **Workflow contract:** [`agent-devlog-contract.md`](agent-devlog-contract.md) — all topic and session logs require **Created** / **Last updated** dates (time optional).
 
-**Root pointer for agents:** [`../AGENTS.md`](../AGENTS.md)
+**Root pointer for agents:** [`../../AGENTS.md`](../../AGENTS.md) · fresh session: [`../../HANDOFF.md`](../../HANDOFF.md)
 
 ---
 
@@ -23,9 +23,9 @@
 | Blog motion & decor | [agent-devlog-blog-motion.md](agent-devlog-blog-motion.md) | `.cursor/rules/blog-motion.mdc` | `src/app/modules/blog/shared/BlogPageMotion.tsx` |
 | CodeGraph usage | [agent-devlog-codegraph.md](agent-devlog-codegraph.md) | `.cursor/rules/codegraph.mdc` | `.codegraph/config.json` |
 | Blog publish kit | [agent-devlog-blog-publish-kit.md](agent-devlog-blog-publish-kit.md) | — | `src/app/modules/blog/studio/`, `backend/services/src/blog/publishKit/` |
-| Cover Studio (exportable) | [packages/cover-studio-kit/README.md](../packages/cover-studio-kit/README.md) | [docs/HISTORY.md](../packages/cover-studio-kit/docs/HISTORY.md) | `packages/cover-studio-kit/`, `pnpm run export:cover-studio` |
+| Cover Studio (exportable) | [packages/cover-studio-kit/README.md](../../packages/cover-studio-kit/README.md) | [docs/HISTORY.md](../../packages/cover-studio-kit/docs/HISTORY.md) | `packages/cover-studio-kit/`, `pnpm run export:cover-studio` |
 | Supabase migration (Firebase exit) | [agent-devlog-supabase-migration.md](agent-devlog-supabase-migration.md) | `.cursor/rules/supabase-migration.mdc` | `supabase/migrations/`, `backend/services/src/supabaseClient.ts`, `adminContentService.ts` |
-| Blog agents roadmap | [agent-devlog-blog-agents-roadmap.md](agent-devlog-blog-agents-roadmap.md) | — | **Archived** — see [archive/blog-agents/README.md](../archive/blog-agents/README.md) |
+| Blog agents roadmap | [agent-devlog-blog-agents-roadmap.md](agent-devlog-blog-agents-roadmap.md) | — | **Archived** (archive README removed in TASK-DB-0049; see git history) |
 
 ---
 
@@ -37,22 +37,12 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 |------|-----|
 | 2026-09-23 | [dev-log-2026-09-23.md](dev-log-2026-09-23.md) - DB-R-2026-010 comparative rewrite, live chart verification, CI follow-up |
 | 2026-09-22 | [dev-log-2026-09-22.md](dev-log-2026-09-22.md) - Consolidated Eval Lab benchmark-comparison paper added to the Research module |
-| 2026-09-09 | [dev-log-2026-09-09-fluffy-v3-media.md](dev-log-2026-09-09-fluffy-v3-media.md) - Fluffy System v3: generated imagery, custom SVG/vector systems, and mixed-media Three.js gallery |
-| 2026-09-09 | [dev-log-2026-09-09-fluffy-v2-focused.md](dev-log-2026-09-09-fluffy-v2-focused.md) - Fluffy System v2: one deep page per product plus one focused Three.js exploration |
-| 2026-09-09 | [dev-log-2026-09-09-fluffy-round-3.md](dev-log-2026-09-09-fluffy-round-3.md) - Fluffy System round 3: pull costume pages, four product-true PAM/RA studio candidates |
-| 2026-09-09 | [dev-log-2026-09-09-fluffy-round-2.md](dev-log-2026-09-09-fluffy-round-2.md) - Fluffy System round 2: eleven Three.js candidates (later pulled) |
 | 2026-09-08 | [dev-log-2026-09-08-fluffy-system.md](dev-log-2026-09-08-fluffy-system.md) - Fluffy System hidden creative gallery, PAM/Research Assurance candidate bakeoff, Three.js variants |
 | 2026-09-03 | [dev-log-2026-09-03-study-os.md](dev-log-2026-09-03-study-os.md) - Study OS marketing case study, presentation, evidence ledger, homepage integration |
 | 2026-09-03 | [dev-log-2026-09-03.md](dev-log-2026-09-03.md) - FOSSIL problem-framing case study, presentation, evidence ledger |
 | 2026-07-20 | [dev-log-2026-07-20.md](dev-log-2026-07-20.md) - Cortex case-study redesign and composition-status corrections |
-| 2026-05-22 | [dev-log-2026-05-22.md](dev-log-2026-05-22.md) - publish kit Tier 2, inline blog editor, agents nav |
-| 2026-05-21 | [dev-log-2026-05-21.md](dev-log-2026-05-21.md) |
-| 2026-05-20 | [dev-log-2026-05-20-regulatory-blog-investai.md](dev-log-2026-05-20-regulatory-blog-investai.md) — post id 8, InvestAI scroll fixes |
-| 2026-05-20 | [dev-log-2026-05-20-blog-agents.md](dev-log-2026-05-20-blog-agents.md) — Blog agents hub, OpenRouter, SEO audit |
-| 2026-05-20 | [dev-log-2026-05-20.md](dev-log-2026-05-20.md) — blog detail v2, port 5300, sort, skeleton |
-| 2026-05-18 | [dev-log-2026-05-18.md](dev-log-2026-05-18.md) |
-| 2026-05-11 | [dev-log-2026-05-11.md](dev-log-2026-05-11.md) |
-| 2026-05-06 | [dev-log-2026-05-06.md](dev-log-2026-05-06.md) |
+
+Pruned in TASK-DB-0049 (recover from git history): all May 2026 session logs (05-06 … 05-22) and the superseded Fluffy round-2 / round-3 / v2 / v3 logs (replaced by the Fluffy V4 topic devlog + handoff).
 
 ---
 
@@ -67,5 +57,5 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 ## Local dev
 
 - **Port:** first free from **5300** (`scripts/resolve-dev-port.mjs`); see Vite startup log for the URL
-- **Blog list:** http://localhost:5300/endtoend-engineer/blogs (or next free port)
-- **Blog detail:** http://localhost:5300/endtoend-engineer/blogs/1
+- **Blog list:** http://localhost:5300/blogs (or next free port)
+- **Blog detail:** http://localhost:5300/blogs/1

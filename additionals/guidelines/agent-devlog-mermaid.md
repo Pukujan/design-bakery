@@ -127,6 +127,6 @@ For **new long-form posts**, default to **`flowchart TD`** or **`sequenceDiagram
 - `src/app/modules/engineering/BlogDetailPage/MermaidDiagram.tsx` — render + scroll viewport
 - `src/app/modules/engineering/BlogDetailPage/BlogDetailPage.tsx` — markdown `code` for `language-mermaid`
 - `src/styles/globals.css` — `.blog-mermaid-chart` rules
-- `guidelines/dev-log-2026-05-20.md` — broader blog detail session log
+- `dev-log-2026-05-20.md` — broader blog detail session log (pruned in TASK-DB-0049; see git history)
 - `guidelines/agent-devlog-index.md` — master agent index
 - `guidelines/agent-devlog-contract.md` — devlog + CodeGraph workflow

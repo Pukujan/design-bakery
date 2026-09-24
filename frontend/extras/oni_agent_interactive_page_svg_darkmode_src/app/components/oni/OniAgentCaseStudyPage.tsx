@@ -19,14 +19,14 @@ import {
   ShieldCheck,
   Split,
 } from "lucide-react";
-import astronautLogo from "../../assets/pukujan-astronaut-logo.svg";
-import astronautRocket from "../../assets/pukujan-astronaut-rocket.svg";
-import astronautPlanet from "../../assets/pukujan-astronaut-planet.svg";
-import astronautFloat from "../../assets/pukujan-astronaut-float.svg";
-import astronautSystem from "../../assets/pukujan-astronaut-system.svg";
-import astronautLab from "../../assets/pukujan-astronaut-lab.svg";
-import decorOrbit from "../../assets/pukujan-decor-orbit.svg";
-import decorSystem from "../../assets/pukujan-decor-system.svg";
+import astronautLogo from "@oni-agent-assets/pukujan-astronaut-logo.svg";
+import astronautRocket from "@oni-agent-assets/pukujan-astronaut-rocket.svg";
+import astronautPlanet from "@oni-agent-assets/pukujan-astronaut-planet.svg";
+import astronautFloat from "@oni-agent-assets/pukujan-astronaut-float.svg";
+import astronautSystem from "@oni-agent-assets/pukujan-astronaut-system.svg";
+import astronautLab from "@oni-agent-assets/pukujan-astronaut-lab.svg";
+import decorOrbit from "@oni-agent-assets/pukujan-decor-orbit.svg";
+import decorSystem from "@oni-agent-assets/pukujan-decor-system.svg";
 import { BrandMark } from "./BrandMark";
 import { MappingScrollSection } from "./MappingScrollSection";
 import { mappingRows } from "./mappingData";

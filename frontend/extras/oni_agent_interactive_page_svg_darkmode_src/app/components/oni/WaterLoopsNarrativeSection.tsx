@@ -1,8 +1,8 @@
 import React from "react";
 import { ArrowDown, ExternalLink } from "lucide-react";
-import decorOrbit from "../../assets/pukujan-decor-orbit.svg";
-import astronautTool from "../../assets/pukujan-astronaut-tool.svg";
-import astronautSystem from "../../assets/pukujan-astronaut-system.svg";
+import decorOrbit from "@oni-agent-assets/pukujan-decor-orbit.svg";
+import astronautTool from "@oni-agent-assets/pukujan-astronaut-tool.svg";
+import astronautSystem from "@oni-agent-assets/pukujan-astronaut-system.svg";
 import { BrandMark } from "./BrandMark";
 import { PROJECT_NPM_NAME, PROJECT_NPM_URL } from "./projectLinks";
 import {

@@ -19,7 +19,8 @@
       "@ekagajpatra-case-study/*": ["./extras/Create Presentation Case Study/src/*"],
       "@invest-ai-case-study/*": ["./extras/invest-ai-case-study/src/*"],
       "@oni-agent-case-study-v3/*": ["./extras/oni_agent_interactive_page_svg_darkmode_src/*"],
-      "@oni-agent-case-study-v4/*": ["./extras/oni_agent_interactive_page_svg_darkmode_v4_src/*"]
+      "@oni-agent-case-study-v4/*": ["./extras/oni_agent_interactive_page_svg_darkmode_v4_src/*"],
+      "@oni-agent-assets/*": ["./extras/oni_agent_shared_assets/*"]
     }
   },
   "include": [

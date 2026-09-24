@@ -1,6 +1,6 @@
 import OniAgentCaseStudyV4App from '@oni-agent-case-study-v4/app/App';
 import '@oni-agent-case-study-v4/styles/index.css';
-import ogThumbnail from '@oni-agent-case-study-v4/app/assets/pukujan-astronaut-saturn.png';
+import ogThumbnail from '@oni-agent-assets/pukujan-astronaut-saturn.png';
 import { PageSeo } from '@/seo/PageSeo';
 import { CASE_STUDY_SEO } from '@/seo/pageSeoConfig';
 

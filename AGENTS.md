@@ -2,20 +2,26 @@
 
 Instructions for **Cursor** and other coding agents working in this repository.
 
+## Session continuity
+
+- **[HANDOFF.md](HANDOFF.md)** — where a fresh session starts (setup, commands, conventions)
+- **[checkpoints/CURRENT.md](checkpoints/CURRENT.md)** — current state of the repo / open threads
+- **[tasks/](tasks/)** — one file per task (`TASK-DB-####-slug.md`: goal, done, evidence, next step)
+
 ## Read first
 
-1. **[guidelines/agent-devlog-index.md](guidelines/agent-devlog-index.md)** — index of topic devlogs and session logs (each log has **Created** / **Last updated** dates)  
-2. **[guidelines/agent-devlog-contract.md](guidelines/agent-devlog-contract.md)** — when to write devlogs, date metadata, pointers, CodeGraph workflow  
+1. **[additionals/guidelines/agent-devlog-index.md](additionals/guidelines/agent-devlog-index.md)** — index of topic devlogs and session logs (each log has **Created** / **Last updated** dates)  
+2. **[additionals/guidelines/agent-devlog-contract.md](additionals/guidelines/agent-devlog-contract.md)** — when to write devlogs, date metadata, pointers, CodeGraph workflow  
 
 ## Before fragile edits
 
 | Area | Doc |
 |------|-----|
-| Blog Mermaid | [guidelines/agent-devlog-mermaid.md](guidelines/agent-devlog-mermaid.md) |
-| Blog motion / `BlogPageMotion` | [guidelines/agent-devlog-blog-motion.md](guidelines/agent-devlog-blog-motion.md) |
-| CodeGraph | [guidelines/agent-devlog-codegraph.md](guidelines/agent-devlog-codegraph.md) |
-| Blog publish kit | [guidelines/agent-devlog-blog-publish-kit.md](guidelines/agent-devlog-blog-publish-kit.md) |
-| Supabase migration | [guidelines/agent-devlog-supabase-migration.md](guidelines/agent-devlog-supabase-migration.md) |
+| Blog Mermaid | [additionals/guidelines/agent-devlog-mermaid.md](additionals/guidelines/agent-devlog-mermaid.md) |
+| Blog motion / `BlogPageMotion` | [additionals/guidelines/agent-devlog-blog-motion.md](additionals/guidelines/agent-devlog-blog-motion.md) |
+| CodeGraph | [additionals/guidelines/agent-devlog-codegraph.md](additionals/guidelines/agent-devlog-codegraph.md) |
+| Blog publish kit | [additionals/guidelines/agent-devlog-blog-publish-kit.md](additionals/guidelines/agent-devlog-blog-publish-kit.md) |
+| Supabase migration | [additionals/guidelines/agent-devlog-supabase-migration.md](additionals/guidelines/agent-devlog-supabase-migration.md) |
 
 ## CodeGraph
 
@@ -26,7 +32,7 @@ If not initialized: `npx @colbymchenry/codegraph` then `codegraph init -i` (see 
 
 ## Layout
 
-See **[doc/architecture.md](doc/architecture.md)** for MVC mapping and folder roles.
+See **[additionals/doc/architecture.md](additionals/doc/architecture.md)** for MVC mapping and folder roles.
 
 - **`frontend/`** — Vite/React app (`src/`, `vite.config.ts`)
 - **`backend/`** — Express API (`src/server.ts`, `src/api/`, `src/middleware/`) + `services/` (publish kit, CMS)
@@ -35,12 +41,12 @@ See **[doc/architecture.md](doc/architecture.md)** for MVC mapping and folder ro
 
 ## Dev server
 
-- **Env:** `frontend/.env` (`VITE_*`); `backend/.env` (secrets) — [doc/env.md](doc/env.md).
+- **Env:** `frontend/.env` (`VITE_*`); `backend/.env` (secrets) — [additionals/doc/env.md](additionals/doc/env.md).
 - **`pnpm run dev`** — Vite only (static JSON fallbacks when API unset).
 - **`pnpm run dev:stack`** — Vite + Express on **8787**; set `VITE_BLOG_API_URL=http://localhost:8787` in **`frontend/.env`**.
 - **`pnpm run dev:api`** — Express API only.
 - **`pnpm run dev:web`** — Vite only.
-- **Production:** Railway Express + `VITE_BLOG_API_URL` on Vercel — **[doc/deploy-vercel-railway.md](doc/deploy-vercel-railway.md)**.
+- **Production:** Railway Express + `VITE_BLOG_API_URL` on Vercel — **[additionals/doc/deploy-vercel-railway.md](additionals/doc/deploy-vercel-railway.md)**.
 - Dev port: first free from **5300** (`vite.config.ts`).
 
 ## Publish kit tests
@@ -48,4 +54,4 @@ See **[doc/architecture.md](doc/architecture.md)** for MVC mapping and folder ro
 - **`pnpm run test:blog-workflow`** — offline: fonts, template visual, commit (Storage optional).
 - **`pnpm run test:blog-workflow:live`** — OpenRouter meta/tags.
 - **`pnpm run test:blog-workflow:storage`** — Supabase Storage uploads (needs `SUPABASE_*` in `backend/.env`).
-- Matrix: [guidelines/agent-devlog-blog-publish-kit.md](guidelines/agent-devlog-blog-publish-kit.md) § Automated workflow test.
+- Matrix: [additionals/guidelines/agent-devlog-blog-publish-kit.md](additionals/guidelines/agent-devlog-blog-publish-kit.md) § Automated workflow test.
