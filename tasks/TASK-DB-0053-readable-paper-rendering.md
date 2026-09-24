@@ -4,7 +4,7 @@
 |-------|-------|
 | **Created** | 2026-09-24 |
 | **Issue** | [#48](https://github.com/Pukujan/design-bakery/issues/48) |
-| **PR** | _pending_ |
+| **PR** | [#51](https://github.com/Pukujan/design-bakery/pull/51) |
 | **Branch** | `task/TASK-DB-0053-readable-paper-rendering` |
 | **Source** | Eval Lab TASK-0058, PRs [Pukujan/Eval-lab#68](https://github.com/Pukujan/Eval-lab/pull/68) and [#72](https://github.com/Pukujan/Eval-lab/pull/72), merge commit `348676ce7602c133038346d1e95b0dc953e7f188` |
 | **Status** | PR open; do not merge until the owner reviews the preview. |

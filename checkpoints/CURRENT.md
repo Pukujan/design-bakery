@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Last updated** | 2026-09-24 (TASK-DB-0053) |
-| **Active task** | [TASK-DB-0053 readable paper rendering](../tasks/TASK-DB-0053-readable-paper-rendering.md) (#48) — PR open, owner review before merge. Next: TASK-DB-0054 interactive charts (#49). TASK-DB-0052 (#47) is merged. |
+| **Active task** | [TASK-DB-0053 readable paper rendering](../tasks/TASK-DB-0053-readable-paper-rendering.md) (#48) — PR #51 open, owner review before merge. Next: TASK-DB-0054 interactive charts (#49). TASK-DB-0052 (#47) is merged. |
 
 ## Repo shape
 
