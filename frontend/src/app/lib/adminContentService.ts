@@ -312,6 +312,10 @@ export interface Project {
   links: { label: string; url: string }[];
   /** Optional lifecycle marker; `ongoing` renders an "Ongoing" badge on the project card. */
   status?: 'ongoing';
+  /** Project start, `YYYY-MM-DD` or `YYYY-MM`. The showcase sorts newest first by this. */
+  startedAt?: string;
+  /** Where `startedAt` came from (repo creation date, experience entry, …). Not rendered. */
+  startedAtSource?: string;
 }
 
 export const getProjects = async (portfolioId: PortfolioId = DEFAULT_PORTFOLIO_ID) => {

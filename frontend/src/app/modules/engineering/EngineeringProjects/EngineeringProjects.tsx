@@ -20,6 +20,7 @@ import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useProjectsContent } from '../../../lib/contentHooks';
 import { isInternalAppPath } from '../../../lib/caseStudyRoutes';
+import { sortProjectsByStartedAtDesc } from '../../../lib/projectOrder';
 import {
   OPEN_FEATURED_PROJECT_EVENT,
   parseProjectHash,
@@ -52,7 +53,8 @@ function OngoingBadge({ size = 'md' }: { size?: 'sm' | 'md' }) {
 export function EngineeringProjects() {
   const location = useLocation();
   const rawProjects = useProjectsContent();
-  const allProjects = rawProjects.map((project) => ({
+  // Newest first by `startedAt` (stable for ties), so new entries sort themselves.
+  const allProjects = sortProjectsByStartedAtDesc(rawProjects).map((project) => ({
     ...project,
     stats: (project.stats ?? []).map((stat) => ({
       ...stat,

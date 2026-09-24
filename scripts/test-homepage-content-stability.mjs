@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import {
+  STARTED_AT_PATTERN,
+  sortProjectsByStartedAtDesc,
+} from '../frontend/src/app/lib/projectOrder.ts';
 
 const root = new URL('..', import.meta.url);
 
@@ -51,7 +55,40 @@ assert.equal(
   about.roleTitle,
   'I build AI agents that improve through data, testing, and human feedback.',
 );
-assert.equal(projects[0].title, 'Study OS');
+// Showcase order: every project has a start date (plus its evidence) and the carousel
+// renders newest first. The sort is done in code, so the JSON order does not matter.
+for (const project of projects) {
+  assert.match(
+    project.startedAt ?? '',
+    STARTED_AT_PATTERN,
+    `${project.title} needs startedAt as YYYY-MM-DD or YYYY-MM`,
+  );
+  assert.ok(project.startedAtSource, `${project.title} needs startedAtSource (evidence for startedAt)`);
+}
+const rendered = sortProjectsByStartedAtDesc(projects);
+for (let i = 1; i < rendered.length; i += 1) {
+  assert.ok(
+    rendered[i - 1].startedAt >= rendered[i].startedAt,
+    `showcase must be newest first: ${rendered[i - 1].title} (${rendered[i - 1].startedAt}) before ${rendered[i].title} (${rendered[i].startedAt})`,
+  );
+}
+const newestStart = projects.map((p) => p.startedAt).sort().at(-1);
+assert.equal(rendered[0].startedAt, newestStart, 'the newest project should be first');
+// Ties keep data order (stable sort).
+const tie = sortProjectsByStartedAtDesc([
+  { title: 'a', startedAt: '2026-01' },
+  { title: 'b', startedAt: '2026-01' },
+]);
+assert.deepEqual(tie.map((p) => p.title), ['a', 'b'], 'ties must keep data order');
+assert.ok(projects.some((p) => p.title === 'Study OS'), 'Study OS should stay in the showcase');
+const projectsCarouselSource = await readFile(
+  new URL('./frontend/src/app/modules/engineering/EngineeringProjects/EngineeringProjects.tsx', root),
+  'utf8',
+);
+assert.ok(
+  projectsCarouselSource.includes('sortProjectsByStartedAtDesc(rawProjects)'),
+  'the projects carousel should render projects sorted by startedAt (newest first)',
+);
 // Project cards: unique ids, exactly 3 stats (the card grid and icon assume it), and a
 // known status value. Case-study links to static pages must point at a real file.
 assert.equal(new Set(projects.map((p) => p.id)).size, projects.length, 'project ids must be unique');
