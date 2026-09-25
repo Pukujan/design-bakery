@@ -1,0 +1,14 @@
+[Unit]
+Description=design-bakery auto-deploy timer (polls origin/main every 5 minutes)
+Documentation=file:///home/yoav/apps/design-bakery/docs/self-hosting.md
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+# Spread the load; the deploy checkout is small but the build is not.
+RandomizedDelaySec=90
+Persistent=true
+Unit=design-bakery-autodeploy.service
+
+[Install]
+WantedBy=timers.target

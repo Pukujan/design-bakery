@@ -1,0 +1,16 @@
+[Unit]
+Description=design-bakery auto-deploy (pull origin/main and deploy if it moved)
+Documentation=file:///home/yoav/apps/design-bakery/docs/self-hosting.md
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=yoav
+WorkingDirectory=/home/yoav/apps/design-bakery
+Environment=DEPLOY_REPO_DIR=/home/yoav/apps/design-bakery
+ExecStart=/home/yoav/apps/design-bakery/deploy/gravebuster/autodeploy.sh
+# A failing deploy exits non-zero on purpose: `systemctl status
+# design-bakery-autodeploy` and deploy/gravebuster/autodeploy.log are the source of
+# truth, and the timer keeps firing either way.
+TimeoutStartSec=1800
