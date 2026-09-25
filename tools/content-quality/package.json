@@ -1,0 +1,35 @@
+{
+  "name": "@design-bakery/content-quality",
+  "version": "0.1.0",
+  "private": true,
+  "description": "De-AI writing and chart linter (plus optional model-assisted fixer) for Markdown/MDX posts, papers and chart files",
+  "type": "module",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "bin": {
+    "content-quality": "./dist/cli.js"
+  },
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "GUIDE.md",
+    "rules.json",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "node dist/cli.js check",
+    "fix": "node dist/cli.js fix",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "25.6.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.1"
+  }
+}

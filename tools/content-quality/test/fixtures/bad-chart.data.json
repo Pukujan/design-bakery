@@ -1,0 +1,36 @@
+{
+  "title": "Judge accuracy: a breakdown by provider",
+  "subtitle": "Accuracy over all 760 questions, 95% Wilson interval, Holm-corrected",
+  "type": "whisker",
+  "relationship": "ranking",
+  "legend": true,
+  "series": [
+    { "key": "api", "label": "API" },
+    { "key": "local", "label": "Local" },
+    { "key": "baseline", "label": "Baseline" },
+    { "key": "ablation", "label": "Ablation" },
+    { "key": "other", "label": "Other" }
+  ],
+  "annotations": ["a", "b", "c", "d"],
+  "rows": [
+    { "key": "ali_glm52_exp024", "label": "GLM 5.2", "value": 0.9486842105263158 },
+    { "key": "ali_qwen38_exp024", "label": "Qwen3.8 Flash", "value": 0.9921052631578947 },
+    { "key": "cbcn_deepseek_v4_flash_exp024", "label": "DeepSeek V4 Flash", "value": 0.8026315789473685 },
+    { "key": "qwen_flash_exp015", "label": "Qwen3.8 Flash, one pass", "value": 0.5763157894736842 },
+    { "key": "verdict_14_exp027", "label": "Verdict 1.4 (local)", "value": 0.38552631578947366 },
+    { "key": "verdict_original_exp027", "label": "Verdict pre-v1.4 (local)", "value": 0.34868421052631576 },
+    { "key": "row_7", "label": "Row 7", "value": 0.3 },
+    { "key": "row_8", "label": "Row 8", "value": 0.28 },
+    { "key": "row_9", "label": "Row 9", "value": 0.26 },
+    { "key": "row_10", "label": "Row 10", "value": 0.24 },
+    { "key": "row_11", "label": "Row 11", "value": 0.22 },
+    { "key": "row_12", "label": "Row 12", "value": 0.2 },
+    { "key": "row_13", "label": "Row 13", "value": 0.18 },
+    { "key": "row_14", "label": "Row 14", "value": 0.16 },
+    { "key": "row_15", "label": "Row 15", "value": 0.14 },
+    { "key": "row_16", "label": "Row 16", "value": 0.12 },
+    { "key": "row_17", "label": "Row 17", "value": 0.1 },
+    { "key": "row_18", "label": "Row 18", "value": 0.08 }
+  ],
+  "y_domain": [0.1, 1.0]
+}

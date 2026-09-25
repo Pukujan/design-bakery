@@ -1,0 +1,44 @@
+{
+  "$schema": "./tools/content-quality/config.schema.json",
+  "profiles": {
+    "paper": {
+      "checks": ["words", "patterns", "readability", "jargon"],
+      "chartDescription": true,
+      "firstPerson": true,
+      "numbersPerParagraph": true,
+      "numbersPerParagraphMinWords": 40
+    },
+    "blog": {
+      "checks": ["words", "patterns", "readability", "jargon"],
+      "firstPerson": false,
+      "numbersPerParagraph": false,
+      "subjectVerbGap": false
+    },
+    "page": {
+      "checks": ["words", "patterns", "readability"],
+      "firstPerson": false,
+      "numbersPerParagraph": false,
+      "subjectVerbGap": false,
+      "passiveVoice": false,
+      "suspiciousWordMaxPerPage": 2
+    },
+    "chart": {
+      "checks": [],
+      "chartChecks": true
+    }
+  },
+  "targets": [
+    { "glob": "frontend/src/app/modules/research/content/*.md", "profile": "paper" },
+    { "glob": "frontend/src/app/modules/research/content/sources/*.md", "profile": "paper" },
+    { "glob": "frontend/src/app/modules/blog/content/posts/*.md", "profile": "blog" },
+    { "glob": "frontend/public/case-studies/*/index.html", "profile": "page" },
+    { "glob": "frontend/public/research/**/*.svg", "profile": "chart" },
+    { "glob": "frontend/public/research/**/*.data.json", "profile": "chart" }
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "frontend/extras/**",
+    "additionals/**"
+  ]
+}

@@ -1,0 +1,2499 @@
+{
+ "name": "eval-lab-writing-lint",
+ "version": "1.0.0",
+ "generated": "2026-09-24",
+ "notes": "Severity: error = must fix; warn = fix or justify in a comment; info = density signal only. Regexes are ECMAScript/Python-compatible (no lookbehind). 'scope' tells the linter what unit to test. Contrast rules are warn, not error: pickles.news argues banning 'not X but Y' at generation time can remove real reasoning, so apply them in an edit pass after drafting.",
+ "sources": {
+  "wp_aisigns": {
+   "title": "Wikipedia: Signs of AI writing (WP:AISIGNS)",
+   "url": "https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing"
+  },
+  "kobak": {
+   "title": "Kobak et al., Delving into LLM-assisted writing in biomedical publications through excess vocabulary (Science Advances 2025; arXiv 2406.07016)",
+   "url": "https://arxiv.org/abs/2406.07016"
+  },
+  "reinhart": {
+   "title": "Reinhart et al., Do LLMs write like humans? Variation in grammatical and rhetorical styles (PNAS 2025; arXiv 2410.16107)",
+   "url": "https://arxiv.org/html/2410.16107"
+  },
+  "liang": {
+   "title": "Liang et al., Mapping the Increasing Use of LLMs in Scientific Papers (arXiv 2404.01268)",
+   "url": "https://arxiv.org/abs/2404.01268"
+  },
+  "juzek": {
+   "title": "Juzek & Ward, Why Does ChatGPT 'Delve' So Much? (arXiv 2412.11385)",
+   "url": "https://arxiv.org/abs/2412.11385"
+  },
+  "economist": {
+   "title": "The Economist, How to spot AI writing (Jul 2026; reprinted by Hindustan Times)",
+   "url": "https://www.hindustantimes.com/lifestyle/art-culture/how-to-spot-ai-writing-101785491459334.html"
+  },
+  "kriss": {
+   "title": "Sam Kriss, Why Does A.I. Write Like ... That? (NYT Magazine, Dec 2025; full text via Business Standard)",
+   "url": "https://www.business-standard.com/world-news/why-does-ai-write-like-that-exploring-strange-patterns-of-machine-text-125120700170_1.html"
+  },
+  "bednar": {
+   "title": "Ed Bednar, Why AI Writing Sounds Like AI Writing (Aug 2026)",
+   "url": "https://edbednar.com/why-ai-writing-sounds-like-ai-writing/"
+  },
+  "uzh": {
+   "title": "Marco Weber, Do I Sound Like an AI? (UB Zurich blog, Sep 2026)",
+   "url": "https://www.uzh.ch/blog/ub/2026/09/10/schreibe-ich-schon-wie-eine-ki/?lang=en"
+  },
+  "pickles": {
+   "title": "The Thinking Inside the LLM Cliches (pickles.news, May 2026)",
+   "url": "https://pickles.news/posts/the-thinking-inside-the-cliches/"
+  },
+  "orwell": {
+   "title": "George Orwell, Politics and the English Language (1946)",
+   "url": "https://www.orwellfoundation.com/the-orwell-foundation/orwell/essays-and-other-works/politics-and-the-english-language/"
+  },
+  "plainlang": {
+   "title": "Digital.gov plain language guide: Writing for understanding",
+   "url": "https://digital.gov/guides/plain-language/writing"
+  },
+  "gopen": {
+   "title": "Gopen & Swan, The Science of Scientific Writing (American Scientist 1990)",
+   "url": "https://www.gatsby.ucl.ac.uk/~pel/misc/gopen_swan.pdf"
+  },
+  "dw_text": {
+   "title": "Lisa Charlotte Muth, What to consider when using text in data visualizations (Datawrapper)",
+   "url": "https://www.datawrapper.de/blog/text-in-data-visualizations"
+  },
+  "dw_types": {
+   "title": "Lisa Charlotte Muth, A friendly guide to choosing a chart type (Datawrapper)",
+   "url": "https://www.datawrapper.de/blog/chart-types-guide"
+  },
+  "swd": {
+   "title": "Elizabeth Ricks, declutter! (and question default settings) (Storytelling with Data)",
+   "url": "https://www.storytellingwithdata.com/blog/2019/5/13/declutter-and-question-defaults"
+  },
+  "ft_vv": {
+   "title": "Financial Times Visual Vocabulary (chart-doctor repo and poster)",
+   "url": "https://github.com/Financial-Times/chart-doctor/tree/main/visual-vocabulary"
+  },
+  "uk_af": {
+   "title": "UK Government Analysis Function, Data visualisation: charts",
+   "url": "https://analysisfunction.civilservice.gov.uk/policy-store/data-visualisation-charts/"
+  },
+  "muscatello": {
+   "title": "Muscatello et al., Communicating population health statistics through graphs: a randomised controlled trial (BMC Medicine 2006)",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1766925/"
+  },
+  "pudding": {
+   "title": "Ilia Blinderman, Making Internet Things, part 3: Storytelling (The Pudding)",
+   "url": "https://pudding.cool/process/how-to-make-dope-shit-part-3/"
+  },
+  "belia": {
+   "title": "Belia et al., Researchers Misunderstand Confidence Intervals and Standard Error Bars (Psychological Methods 2005; abstract)",
+   "url": "https://www.sci.utah.edu/~kpotter/Library/Papers/belia:2005:RMCI/index.html"
+  },
+  "newman": {
+   "title": "Newman & Scholl, Bar Graphs Depicting Averages are Perceptually Misinterpreted: The Within-the-Bar Bias (2012; abstract)",
+   "url": "https://www.sci.utah.edu/~kpotter/Library/Papers/newman:2012:WTBB/index.html"
+  },
+  "hofman": {
+   "title": "Hofman, Goldstein & Hullman, How Visualizing Inferential Uncertainty Can Mislead Readers About Treatment Effects (CHI 2020)",
+   "url": "https://www.dangoldstein.com/papers/Hofman_Goldstein_Hullman_Visualizing_Uncertainty_Mislead_Scientific.pdf"
+  }
+ },
+ "words": [
+  {
+   "term": "delve",
+   "match": "word",
+   "severity": "error",
+   "fix": "Say 'look at' or just state the finding.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "delves",
+   "match": "word",
+   "severity": "error",
+   "fix": "Say 'look at' or just state the finding.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "delving",
+   "match": "word",
+   "severity": "error",
+   "fix": "Say 'look at' or just state the finding.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "delved",
+   "match": "word",
+   "severity": "error",
+   "fix": "Say 'look at' or just state the finding.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "underscore",
+   "match": "word",
+   "severity": "error",
+   "fix": "Say 'shows' or delete; let the number speak.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "wp_aisigns"
+   ],
+   "note": "Grok still overuses this per WP:AISIGNS; allowed only for the literal _ character."
+  },
+  {
+   "term": "underscores",
+   "match": "word",
+   "severity": "error",
+   "fix": "Say 'shows' or delete; let the number speak.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "wp_aisigns"
+   ],
+   "note": "Grok still overuses this per WP:AISIGNS; allowed only for the literal _ character."
+  },
+  {
+   "term": "underscoring",
+   "match": "word",
+   "severity": "error",
+   "fix": "Say 'shows' or delete; let the number speak.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "wp_aisigns"
+   ],
+   "note": "Grok still overuses this per WP:AISIGNS; allowed only for the literal _ character."
+  },
+  {
+   "term": "underscored",
+   "match": "word",
+   "severity": "error",
+   "fix": "Say 'shows' or delete; let the number speak.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "wp_aisigns"
+   ],
+   "note": "Grok still overuses this per WP:AISIGNS; allowed only for the literal _ character."
+  },
+  {
+   "term": "showcase",
+   "match": "word",
+   "severity": "error",
+   "fix": "Say 'shows'.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "showcases",
+   "match": "word",
+   "severity": "error",
+   "fix": "Say 'shows'.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "showcasing",
+   "match": "word",
+   "severity": "error",
+   "fix": "Say 'shows'.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "showcased",
+   "match": "word",
+   "severity": "error",
+   "fix": "Say 'shows'.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "highlight",
+   "match": "word",
+   "severity": "error",
+   "fix": "As a verb: say 'shows' or delete. Allowed only for literal visual highlighting in chart instructions.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "term": "highlights",
+   "match": "word",
+   "severity": "error",
+   "fix": "As a verb: say 'shows' or delete. Allowed only for literal visual highlighting in chart instructions.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "term": "highlighting",
+   "match": "word",
+   "severity": "error",
+   "fix": "As a verb: say 'shows' or delete. Allowed only for literal visual highlighting in chart instructions.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "term": "highlighted",
+   "match": "word",
+   "severity": "error",
+   "fix": "As a verb: say 'shows' or delete. Allowed only for literal visual highlighting in chart instructions.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "term": "tapestry",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "intricate",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "intricacies",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "realm",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "pivotal",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "meticulous",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "meticulously",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "testament",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "vibrant",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "palpable",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "camaraderie",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "amidst",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "multifaceted",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "groundbreaking",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "boasts",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "garnered",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "garner",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "bolster",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "bolstered",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "foster",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "fostering",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "seamless",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "seamlessly",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "holistic",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "paradigm",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "game-changer",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "game-changing",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "unprecedented",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "transformative",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "nuanced",
+   "match": "word",
+   "severity": "error",
+   "fix": "Delete or replace with a plain, literal word.",
+   "sources": [
+    "kobak",
+    "juzek",
+    "reinhart",
+    "liang",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "landscape",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "interplay",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "leverage",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "leverages",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "leveraging",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "enhance",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "enhances",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "enhancing",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "align with",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "aligns with",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "crucial",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "robust",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "robustness",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "insights",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "comprehensive",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "notably",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "additionally",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "furthermore",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "moreover",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "ultimately",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "essentially",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "key",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Usually replaceable: 'use' for leverage, 'improve' for enhance, 'important' or nothing for crucial/key. 'robust' only in its statistical sense and only in methods.",
+   "sources": [
+    "kobak",
+    "wp_aisigns",
+    "economist"
+   ],
+   "note": "'key' as an adjective; 'robust' allowed in methods with a definition."
+  },
+  {
+   "term": "quiet",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Say what actually happened ('skipped 4 in 10 questions'), not a mood word.",
+   "sources": [
+    "kriss",
+    "uzh"
+   ]
+  },
+  {
+   "term": "quietly",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Say what actually happened ('skipped 4 in 10 questions'), not a mood word.",
+   "sources": [
+    "kriss",
+    "uzh"
+   ]
+  },
+  {
+   "term": "silently",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Say what actually happened ('skipped 4 in 10 questions'), not a mood word.",
+   "sources": [
+    "kriss",
+    "uzh"
+   ]
+  },
+  {
+   "term": "whisper",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Say what actually happened ('skipped 4 in 10 questions'), not a mood word.",
+   "sources": [
+    "kriss",
+    "uzh"
+   ]
+  },
+  {
+   "term": "echo",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Say what actually happened ('skipped 4 in 10 questions'), not a mood word.",
+   "sources": [
+    "kriss",
+    "uzh"
+   ]
+  },
+  {
+   "term": "echoes",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Say what actually happened ('skipped 4 in 10 questions'), not a mood word.",
+   "sources": [
+    "kriss",
+    "uzh"
+   ]
+  },
+  {
+   "term": "hum",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Say what actually happened ('skipped 4 in 10 questions'), not a mood word.",
+   "sources": [
+    "kriss",
+    "uzh"
+   ]
+  },
+  {
+   "term": "ghost",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Say what actually happened ('skipped 4 in 10 questions'), not a mood word.",
+   "sources": [
+    "kriss",
+    "uzh"
+   ]
+  },
+  {
+   "term": "liminal",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Say what actually happened ('skipped 4 in 10 questions'), not a mood word.",
+   "sources": [
+    "kriss",
+    "uzh"
+   ]
+  },
+  {
+   "term": "significant",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Use 'big', 'more and more', 'method', 'setting'. Keep 'significant' only for a stated statistical test, in methods.",
+   "sources": [
+    "economist",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "significantly",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Use 'big', 'more and more', 'method', 'setting'. Keep 'significant' only for a stated statistical test, in methods.",
+   "sources": [
+    "economist",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "increasingly",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Use 'big', 'more and more', 'method', 'setting'. Keep 'significant' only for a stated statistical test, in methods.",
+   "sources": [
+    "economist",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "consequences",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Use 'big', 'more and more', 'method', 'setting'. Keep 'significant' only for a stated statistical test, in methods.",
+   "sources": [
+    "economist",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "methodology",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Use 'big', 'more and more', 'method', 'setting'. Keep 'significant' only for a stated statistical test, in methods.",
+   "sources": [
+    "economist",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "parameter",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Use 'big', 'more and more', 'method', 'setting'. Keep 'significant' only for a stated statistical test, in methods.",
+   "sources": [
+    "economist",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "empirical",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Use 'big', 'more and more', 'method', 'setting'. Keep 'significant' only for a stated statistical test, in methods.",
+   "sources": [
+    "economist",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "causal",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Use 'big', 'more and more', 'method', 'setting'. Keep 'significant' only for a stated statistical test, in methods.",
+   "sources": [
+    "economist",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "framework",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Use 'big', 'more and more', 'method', 'setting'. Keep 'significant' only for a stated statistical test, in methods.",
+   "sources": [
+    "economist",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "landscape",
+   "match": "word",
+   "severity": "warn",
+   "fix": "Use 'big', 'more and more', 'method', 'setting'. Keep 'significant' only for a stated statistical test, in methods.",
+   "sources": [
+    "economist",
+    "wp_aisigns"
+   ]
+  },
+  {
+   "term": "serves as",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Use 'is' or 'was'.",
+   "sources": [
+    "wp_aisigns",
+    "uzh",
+    "orwell"
+   ]
+  },
+  {
+   "term": "stands as",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Use 'is' or 'was'.",
+   "sources": [
+    "wp_aisigns",
+    "uzh",
+    "orwell"
+   ]
+  },
+  {
+   "term": "functions as",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Use 'is' or 'was'.",
+   "sources": [
+    "wp_aisigns",
+    "uzh",
+    "orwell"
+   ]
+  },
+  {
+   "term": "represents a",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Use 'is' or 'was'.",
+   "sources": [
+    "wp_aisigns",
+    "uzh",
+    "orwell"
+   ]
+  },
+  {
+   "term": "marks a",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Use 'is' or 'was'.",
+   "sources": [
+    "wp_aisigns",
+    "uzh",
+    "orwell"
+   ]
+  },
+  {
+   "term": "plays a key role",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Use 'is' or 'was'.",
+   "sources": [
+    "wp_aisigns",
+    "uzh",
+    "orwell"
+   ]
+  },
+  {
+   "term": "plays a crucial role",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Use 'is' or 'was'.",
+   "sources": [
+    "wp_aisigns",
+    "uzh",
+    "orwell"
+   ]
+  },
+  {
+   "term": "plays a pivotal role",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Use 'is' or 'was'.",
+   "sources": [
+    "wp_aisigns",
+    "uzh",
+    "orwell"
+   ]
+  },
+  {
+   "term": "holds the distinction",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Use 'is' or 'was'.",
+   "sources": [
+    "wp_aisigns",
+    "uzh",
+    "orwell"
+   ]
+  },
+  {
+   "term": "it's worth noting",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "it is worth noting",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "it is important to note",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "it's important to note",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "in today's",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "at the end of the day",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "sheds light on",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "shed light on",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "paves the way",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "pave the way",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "a growing body of",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "in the realm of",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "navigate the complexities",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "deep dive",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "let's dive",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "let us dive",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Delete the phrase and start with the fact.",
+   "sources": [
+    "wp_aisigns",
+    "pickles",
+    "kobak"
+   ]
+  },
+  {
+   "term": "give rise to",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "gives rise to",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "serve the purpose of",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "exhibit a tendency to",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "render inoperative",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "militate against",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "prove unacceptable",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "make contact with",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "have the effect of",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "in view of",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "with respect to",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "having regard to",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "the fact that",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "not unjustifiable",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "not un",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Orwell's 'verbal false limbs': use one plain verb ('cause', 'tend to', 'about', 'because').",
+   "sources": [
+    "orwell"
+   ]
+  },
+  {
+   "term": "conduct an analysis",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Uncover the hidden verb: 'analyze', 'evaluate', 'decide', 'assess', 'manage'.",
+   "sources": [
+    "plainlang",
+    "reinhart"
+   ]
+  },
+  {
+   "term": "conducted an analysis",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Uncover the hidden verb: 'analyze', 'evaluate', 'decide', 'assess', 'manage'.",
+   "sources": [
+    "plainlang",
+    "reinhart"
+   ]
+  },
+  {
+   "term": "perform an evaluation",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Uncover the hidden verb: 'analyze', 'evaluate', 'decide', 'assess', 'manage'.",
+   "sources": [
+    "plainlang",
+    "reinhart"
+   ]
+  },
+  {
+   "term": "performed an evaluation",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Uncover the hidden verb: 'analyze', 'evaluate', 'decide', 'assess', 'manage'.",
+   "sources": [
+    "plainlang",
+    "reinhart"
+   ]
+  },
+  {
+   "term": "make a decision",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Uncover the hidden verb: 'analyze', 'evaluate', 'decide', 'assess', 'manage'.",
+   "sources": [
+    "plainlang",
+    "reinhart"
+   ]
+  },
+  {
+   "term": "made a decision",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Uncover the hidden verb: 'analyze', 'evaluate', 'decide', 'assess', 'manage'.",
+   "sources": [
+    "plainlang",
+    "reinhart"
+   ]
+  },
+  {
+   "term": "provide an assessment",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Uncover the hidden verb: 'analyze', 'evaluate', 'decide', 'assess', 'manage'.",
+   "sources": [
+    "plainlang",
+    "reinhart"
+   ]
+  },
+  {
+   "term": "is responsible for management",
+   "match": "phrase",
+   "severity": "warn",
+   "fix": "Uncover the hidden verb: 'analyze', 'evaluate', 'decide', 'assess', 'manage'.",
+   "sources": [
+    "plainlang",
+    "reinhart"
+   ]
+  },
+  {
+   "term": "experts argue",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Name the source and link it, or cut the claim.",
+   "sources": [
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "term": "observers have noted",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Name the source and link it, or cut the claim.",
+   "sources": [
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "term": "some critics argue",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Name the source and link it, or cut the claim.",
+   "sources": [
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "term": "several sources",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Name the source and link it, or cut the claim.",
+   "sources": [
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "term": "studies have shown",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Name the source and link it, or cut the claim.",
+   "sources": [
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "term": "it has been described in the literature",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Name the source and link it, or cut the claim.",
+   "sources": [
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "term": "according to sources",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Name the source and link it, or cut the claim.",
+   "sources": [
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "term": "industry reports",
+   "match": "phrase",
+   "severity": "error",
+   "fix": "Name the source and link it, or cut the claim.",
+   "sources": [
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "term": "Wilson",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "Holm",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "Holm-corrected",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "McNemar",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "Bonferroni",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "confidence interval",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "CI",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "95% CI",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "p-value",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "gold label",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "gold labels",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "typed decisions",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "coverage",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "baseline",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "ablation",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "EXP-",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  },
+  {
+   "term": "pre-v",
+   "match": "term_outside_methods",
+   "severity": "error",
+   "fix": "Jargon/internal term: move to Methods or a footnote; in body text say 'answers we knew were right', 'how many it answered', 'always giving the same answer'.",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "orwell",
+    "plainlang"
+   ],
+   "note": "Only flagged outside a section headed Methods/Appendix/Footnotes."
+  }
+ ],
+ "patterns": [
+  {
+   "id": "contrast_not_x_but_y",
+   "description": "Negative parallelism: 'not X, but Y' / 'not only X but also Y' / 'not just X, it's Y'",
+   "regex": "\\bnot\\s+(?:only|just|merely|simply)?\\s*[^.;!?]{1,80}?,?\\s*(?:but|it'?s|it is|they'?re|rather)\\b",
+   "flags": "i",
+   "scope": "sentence",
+   "severity": "warn",
+   "fix": "State Y directly. Keep a contrast only if it marks a real category boundary, max 1 per section.",
+   "sources": [
+    "wp_aisigns",
+    "kriss",
+    "economist",
+    "uzh",
+    "pickles"
+   ],
+   "max_per_section": 1
+  },
+  {
+   "id": "contrast_x_not_y",
+   "description": "Trailing contrast: 'X, not Y' (e.g. 'as results, not as footnotes')",
+   "regex": ",\\s+not\\s+(?:as\\s+|a\\s+|an\\s+|the\\s+|only\\s+|just\\s+)?[a-z][^,.;!?]{0,40}[.;!?]",
+   "flags": "i",
+   "scope": "sentence",
+   "severity": "warn",
+   "fix": "Drop the 'not Y' tail, or turn it into a concrete sentence about what you did.",
+   "sources": [
+    "wp_aisigns",
+    "kriss"
+   ],
+   "max_per_section": 1
+  },
+  {
+   "id": "contrast_rather_than",
+   "description": "'Y rather than X' reframing (common in Grok output)",
+   "regex": "\\brather than\\b",
+   "flags": "i",
+   "scope": "sentence",
+   "severity": "info",
+   "fix": "Prefer a direct statement.",
+   "sources": [
+    "wp_aisigns"
+   ],
+   "max_per_section": 1
+  },
+  {
+   "id": "no_x_no_y_just_z",
+   "description": "'No X. No Y. Just Z.' fragment pattern",
+   "regex": "\\bNo [^.]{1,30}\\.\\s+No [^.]{1,30}\\.\\s+(?:Just|Only)\\b",
+   "flags": "",
+   "scope": "paragraph",
+   "severity": "error",
+   "fix": "Write one full sentence.",
+   "sources": [
+    "kriss",
+    "uzh"
+   ]
+  },
+  {
+   "id": "colon_reveal_title",
+   "description": "Title or heading built as 'Claim: reveal' or 'X is not enough: Y'",
+   "regex": "^[^:\\n]{3,80}:\\s+\\S.*$",
+   "flags": "m",
+   "scope": "title",
+   "severity": "error",
+   "fix": "Write one plain declarative sentence without a colon.",
+   "sources": [
+    "wp_aisigns",
+    "dw_text"
+   ]
+  },
+  {
+   "id": "title_formula_should",
+   "description": "Title uses 'not enough', 'should', 'why X matters', 'the hidden cost'",
+   "regex": "\\b(?:is not enough|isn't enough|should also|why .{1,30} matters|the hidden (?:cost|truth)|what .{1,30} hides)\\b",
+   "flags": "i",
+   "scope": "title",
+   "severity": "error",
+   "fix": "State the finding: who did what, with a number.",
+   "sources": [
+    "kriss",
+    "dw_text"
+   ]
+  },
+  {
+   "id": "em_dash_density",
+   "description": "Em dash overuse",
+   "regex": "\\u2014|\\s--\\s",
+   "flags": "",
+   "scope": "document",
+   "severity": "warn",
+   "fix": "Use commas, periods or parentheses.",
+   "sources": [
+    "wp_aisigns",
+    "economist",
+    "kriss",
+    "uzh"
+   ],
+   "max_per_1000_words": 2
+  },
+  {
+   "id": "rule_of_three",
+   "description": "Rhythmic triplet: 'A, B, and C' (count per 1,000 words)",
+   "regex": "\\b\\w+(?:\\s\\w+){0,2},\\s\\w+(?:\\s\\w+){0,2},?\\s(?:and|or)\\s\\w+(?:\\s\\w+){0,2}\\b",
+   "flags": "i",
+   "scope": "sentence",
+   "severity": "info",
+   "fix": "Keep real lists of three; cut triplets used for rhythm; use two items or four when that's the truth.",
+   "sources": [
+    "wp_aisigns",
+    "kriss",
+    "economist",
+    "uzh",
+    "bednar"
+   ],
+   "max_per_1000_words": 4
+  },
+  {
+   "id": "ing_tail_clause",
+   "description": "Present-participle tail that adds fake analysis (', highlighting ...', ', reflecting ...')",
+   "regex": ",\\s+(?:highlighting|underscoring|emphasizing|emphasising|showcasing|reflecting|demonstrating|illustrating|revealing|signaling|signalling|suggesting|indicating|marking|ensuring|fostering|contributing|paving|making it|setting the stage)\\b[^.]*\\.",
+   "flags": "i",
+   "scope": "sentence",
+   "severity": "error",
+   "fix": "End the sentence at the fact. If the implication matters, give it its own sentence with evidence.",
+   "sources": [
+    "reinhart",
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "id": "ing_participle_density",
+   "description": "Any ', <verb>ing' participial clause (density check)",
+   "regex": ",\\s+[a-z]+ing\\b",
+   "flags": "i",
+   "scope": "document",
+   "severity": "info",
+   "fix": "Split into two sentences with a subject and a verb.",
+   "sources": [
+    "reinhart"
+   ],
+   "max_per_1000_words": 6
+  },
+  {
+   "id": "hedge_stack",
+   "description": "Stacked or vague hedges",
+   "regex": "\\b(?:may|might|could)\\s+(?:potentially|possibly|perhaps)\\b|\\b(?:potentially|arguably|somewhat|relatively|fairly|generally|typically|to some extent|in some ways|it seems that|it appears that|tends? to suggest)\\b",
+   "flags": "i",
+   "scope": "sentence",
+   "severity": "warn",
+   "fix": "Hedge once, with the actual limit ('on these 760 questions').",
+   "sources": [
+    "uzh",
+    "orwell",
+    "economist"
+   ],
+   "max_per_1000_words": 3
+  },
+  {
+   "id": "signposting",
+   "description": "Signposting / throat-clearing",
+   "regex": "\\b(?:in this (?:section|paper|article|post),? we (?:will )?(?:discuss|explore|examine|delve|look at)|let'?s (?:take a (?:closer )?look|explore|dive)|here'?s (?:the thing|why|what)|the (?:real|key) question is|it turns out that|as we will see|as mentioned (?:above|earlier)|needless to say)\\b",
+   "flags": "i",
+   "scope": "sentence",
+   "severity": "warn",
+   "fix": "Delete; start with the content.",
+   "sources": [
+    "wp_aisigns",
+    "pickles"
+   ]
+  },
+  {
+   "id": "summary_restatement",
+   "description": "Restating summary sentence",
+   "regex": "^(?:In (?:short|summary|conclusion|other words|sum)|Overall|Ultimately|Taken together|All in all|To sum up|The bottom line|Simply put)\\b",
+   "flags": "im",
+   "scope": "sentence",
+   "severity": "warn",
+   "fix": "Delete the sentence if it repeats; end on the last new fact.",
+   "sources": [
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "id": "despite_challenges",
+   "description": "Formulaic 'Despite ..., X faces challenges / Despite these challenges'",
+   "regex": "\\bDespite (?:these|its|their|the) [^,]{0,40}(?:challenges|limitations)\\b|\\bfaces? (?:several|many|numerous) challenges\\b",
+   "flags": "i",
+   "scope": "sentence",
+   "severity": "error",
+   "fix": "Name the specific limitation and its size.",
+   "sources": [
+    "wp_aisigns"
+   ]
+  },
+  {
+   "id": "vague_attribution",
+   "description": "Unattributed authority",
+   "regex": "\\b(?:experts|researchers|observers|critics|studies|scholars) (?:say|argue|agree|note|suggest|have (?:shown|noted|found))\\b",
+   "flags": "i",
+   "scope": "sentence",
+   "severity": "warn",
+   "fix": "Cite a named source with a link.",
+   "sources": [
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "id": "copula_avoidance",
+   "description": "'serves as / stands as / represents' instead of 'is'",
+   "regex": "\\b(?:serves?|stands?|functions?|acts?) as (?:a|an|the)\\b",
+   "flags": "i",
+   "scope": "sentence",
+   "severity": "error",
+   "fix": "Use 'is'.",
+   "sources": [
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "id": "bold_inline_header_bullet",
+   "description": "Bullet that starts with a bold label and colon",
+   "regex": "^\\s*[-*\\u2022]\\s+\\*\\*[^*]{1,40}\\*\\*:?\\s",
+   "flags": "m",
+   "scope": "line",
+   "severity": "warn",
+   "fix": "Write the bullet as a normal sentence, or use prose.",
+   "sources": [
+    "wp_aisigns",
+    "uzh"
+   ]
+  },
+  {
+   "id": "title_case_heading",
+   "description": "Title Case Heading (4+ capitalised words)",
+   "regex": "^#{1,6}\\s+(?:[A-Z][a-z]+\\s+){3,}[A-Z][a-z]+\\s*$",
+   "flags": "m",
+   "scope": "line",
+   "severity": "info",
+   "fix": "Use sentence case.",
+   "sources": [
+    "wp_aisigns"
+   ]
+  },
+  {
+   "id": "x_with_y_and_z",
+   "description": "Dismissive 'an X with Y and Z' formula",
+   "regex": "\\b(?:a|an)\\s+\\w+\\s+with\\s+\\w+(?:\\s\\w+)?\\s+and\\s+(?:a\\s+|an\\s+)?\\w+",
+   "flags": "i",
+   "scope": "sentence",
+   "severity": "info",
+   "fix": "Only keep if both Y and Z are literal facts.",
+   "sources": [
+    "kriss"
+   ]
+  },
+  {
+   "id": "asymmetric_specificity",
+   "description": "Precise-looking time/percent attached to an unsupported claim (manual review)",
+   "regex": "\\b(?:within|in) the next \\d+ (?:months|years|weeks)\\b|\\bby up to \\d+%",
+   "flags": "i",
+   "scope": "sentence",
+   "severity": "info",
+   "fix": "Check the number is from our results; otherwise cut it.",
+   "sources": [
+    "bednar"
+   ]
+  },
+  {
+   "id": "internal_ids",
+   "description": "Internal IDs, file paths or version tags in body text",
+   "regex": "\\bEXP-\\d+\\b|\\bpre-v\\d+(?:\\.\\d+)*\\b|\\bv\\d+\\.\\d+(?:\\.\\d+)?\\b|\\b[\\w./-]+\\.(?:py|ipynb|json|csv|ts|js)\\b|\\bscripts/[\\w./-]+",
+   "flags": "",
+   "scope": "sentence",
+   "severity": "error",
+   "fix": "Move to Methods; in body text describe the thing in words.",
+   "sources": [
+    "dw_text",
+    "uk_af",
+    "muscatello"
+   ]
+  }
+ ],
+ "readability": {
+  "sentence_length_words": {
+   "mean_min": 10,
+   "mean_max": 20,
+   "stdev_min": 6,
+   "max": 35,
+   "short_sentence_max_words": 8,
+   "short_sentence_share_min": 0.15,
+   "max_run_similar_length": 3,
+   "similar_length_tolerance_words": 4,
+   "sources": [
+    "economist",
+    "uzh",
+    "plainlang",
+    "gopen"
+   ],
+   "why": "LLM prose has long, uniform sentences and few short punchy ones (Economist; stylometric uniformity cited by UZH). Plain-language guidance favours short sentences."
+  },
+  "paragraph_words": {
+   "warn_above": 120,
+   "error_above": 180,
+   "sources": [
+    "plainlang",
+    "uk_af"
+   ]
+  },
+  "subject_verb_gap_words": {
+   "warn_above": 12,
+   "sources": [
+    "gopen"
+   ],
+   "why": "Readers stall when the verb is far from its subject (Gopen & Swan)."
+  },
+  "passive_voice_share": {
+   "warn_above": 0.2,
+   "regex": "\\b(?:is|are|was|were|be|been|being)\\s+\\w+ed\\b",
+   "sources": [
+    "plainlang",
+    "orwell"
+   ]
+  },
+  "first_person_required": {
+   "regex": "\\b(?:we|I|our|us)\\b",
+   "min_in_first_n_sentences": 3,
+   "n": 3,
+   "sources": [
+    "bednar",
+    "pudding"
+   ],
+   "why": "A named narrator who made decisions is the thing AI drafts lack."
+  },
+  "numbers_per_paragraph": {
+   "min": 1,
+   "applies_to": "body paragraphs outside Methods",
+   "sources": [
+    "bednar",
+    "wp_aisigns",
+    "pudding"
+   ],
+   "why": "Every claim should be earned by a number, a named model, or an example."
+  },
+  "decimal_places_max": {
+   "value": 1,
+   "sources": [
+    "dw_text"
+   ]
+  }
+ },
+ "charts": [
+  {
+   "id": "title_states_takeaway",
+   "check": "title must contain a verb and either a number or a comparison word, and must not be a noun-phrase label",
+   "target": "svg: first <text> with class/role title, or JSON field 'title'",
+   "must_match": "\\b(?:is|are|was|were|has|have|had|got|scored|skipped|answered|drops?|fell|rose|beat|miss(?:es|ed)?|look|looks|changes?|gets?)\\b",
+   "must_not_match": "^(?:(?:accuracy|scores?|results?|comparison|overview|performance|distribution) (?:by|of|across|per)\\b.*|figure \\d+.*)$",
+   "severity": "error",
+   "sources": [
+    "swd",
+    "dw_text",
+    "uk_af",
+    "muscatello"
+   ]
+  },
+  {
+   "id": "no_colon_title",
+   "check": "no colon-reveal in chart title",
+   "target": "title",
+   "must_not_match": ":\\s",
+   "severity": "warn",
+   "sources": [
+    "dw_text"
+   ]
+  },
+  {
+   "id": "no_internal_ids_visible",
+   "check": "no experiment IDs, file paths, script names or version tags in any visible text",
+   "target": "all visible <text>/<tspan> in SVG; title, subtitle, labels, annotations, footer in JSON",
+   "must_not_match": "\\bEXP-\\d+\\b|\\bpre-v\\d|\\bv\\d+\\.\\d+\\b|\\b[\\w./-]+\\.(?:py|ipynb|json|csv)\\b|\\bscripts/|\\(local\\)",
+   "severity": "error",
+   "sources": [
+    "dw_text",
+    "uk_af",
+    "muscatello"
+   ]
+  },
+  {
+   "id": "no_stats_jargon_in_title_subtitle",
+   "check": "no statistical jargon in title or subtitle",
+   "target": "title, subtitle",
+   "must_not_match": "\\b(?:Wilson|Holm|McNemar|Bonferroni|CI|CIs|confidence interval|p\\s*[<=]|p-value|standard error|SE|SD|median|standard deviation|baseline|coverage|gold)\\b",
+   "severity": "error",
+   "sources": [
+    "dw_text",
+    "muscatello",
+    "belia",
+    "hofman"
+   ]
+  },
+  {
+   "id": "max_series",
+   "check": "max 4 colour series/stack segments; max 3 colours plus grey",
+   "target": "count distinct fill colours of data marks (SVG) or len(series) (JSON)",
+   "max": 4,
+   "severity": "error",
+   "sources": [
+    "uk_af",
+    "swd"
+   ]
+  },
+  {
+   "id": "max_rows",
+   "check": "max 15 bars/rows in a main-text chart; otherwise show top N + highlight and move full list to a table",
+   "target": "rows",
+   "max": 15,
+   "severity": "warn",
+   "sources": [
+    "uk_af",
+    "dw_types"
+   ]
+  },
+  {
+   "id": "direct_labels_no_legend",
+   "check": "no separate legend element; every series has a text label within 40px of its marks, or series names appear colour-coded in the subtitle",
+   "target": "SVG: absence of <g class*='legend'>; JSON: legend == false",
+   "severity": "warn",
+   "sources": [
+    "dw_text",
+    "swd",
+    "uk_af"
+   ]
+  },
+  {
+   "id": "forbidden_chart_types",
+   "check": "main-text charts must not be dumbbell, error-bar/whisker, hollow-vs-filled dot, dual-axis, or pie with >5 slices",
+   "target": "JSON field 'type'; SVG heuristic: <line> joining two <circle> per row, or whisker caps",
+   "forbidden": [
+    "dumbbell",
+    "errorbar",
+    "whisker",
+    "dot_ci",
+    "dual_axis",
+    "pie>5"
+   ],
+   "severity": "error",
+   "sources": [
+    "muscatello",
+    "belia",
+    "hofman",
+    "dw_types",
+    "uk_af"
+   ]
+  },
+  {
+   "id": "bars_sorted",
+   "check": "ranking charts: bars ordered by value (largest first), not alphabetically or by internal ID",
+   "target": "row order vs value",
+   "severity": "warn",
+   "sources": [
+    "ft_vv",
+    "uk_af"
+   ]
+  },
+  {
+   "id": "chart_type_matches_relationship",
+   "check": "ranking -> ordered bar; part-to-whole (right/wrong/skipped shares) -> 100% stacked bar; bars for counts and percentages of a whole, dots/strips when showing a mean with spread",
+   "target": "JSON fields 'relationship' and 'type'",
+   "allowed": {
+    "ranking": [
+     "ordered_bar"
+    ],
+    "part_to_whole": [
+     "stacked_bar_100",
+     "stacked_bar"
+    ],
+    "magnitude": [
+     "bar",
+     "column"
+    ],
+    "mean_with_spread": [
+     "dot",
+     "strip"
+    ]
+   },
+   "severity": "warn",
+   "sources": [
+    "ft_vv",
+    "dw_types",
+    "newman"
+   ]
+  },
+  {
+   "id": "bars_start_at_zero",
+   "check": "bar/stacked-bar value axis starts at 0",
+   "target": "axis domain",
+   "severity": "error",
+   "sources": [
+    "uk_af"
+   ]
+  },
+  {
+   "id": "reference_line_labelled_in_words",
+   "check": "every reference line has a label of >=4 words that explains it (not just 'baseline 50.3%')",
+   "target": "<line> with class reference + nearest <text>",
+   "min_words": 4,
+   "severity": "warn",
+   "sources": [
+    "uk_af",
+    "dw_text"
+   ]
+  },
+  {
+   "id": "annotation_count",
+   "check": "1 to 3 annotations per chart",
+   "target": "annotations",
+   "min": 1,
+   "max": 3,
+   "severity": "warn",
+   "sources": [
+    "uk_af",
+    "dw_text"
+   ]
+  },
+  {
+   "id": "no_rotated_text",
+   "check": "no rotated text (transform rotate on <text>)",
+   "target": "SVG",
+   "severity": "warn",
+   "sources": [
+    "dw_text",
+    "uk_af",
+    "swd"
+   ]
+  },
+  {
+   "id": "source_line_usable",
+   "check": "footer starts with 'Source:' and names a dataset a reader can find (link), not a script",
+   "target": "footer",
+   "must_match": "^Source:\\s",
+   "severity": "warn",
+   "sources": [
+    "uk_af"
+   ]
+  },
+  {
+   "id": "text_description_present",
+   "check": "a 1-3 sentence text description of the takeaway sits directly under the chart in the page body",
+   "target": "HTML/markdown after figure",
+   "severity": "warn",
+   "sources": [
+    "uk_af"
+   ]
+  },
+  {
+   "id": "number_format",
+   "check": "at most 1 decimal place in labels",
+   "target": "labels",
+   "must_not_match": "\\d+\\.\\d{2,}%?",
+   "severity": "warn",
+   "sources": [
+    "dw_text"
+   ]
+  }
+ ]
+}
