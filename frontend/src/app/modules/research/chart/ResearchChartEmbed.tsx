@@ -49,8 +49,10 @@ export function ResearchChartEmbed({ spec, paperId }: ResearchChartEmbedProps) {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const [hydrated, setHydrated] = useState(false);
   // A missing asset (the build step never ran, a stale deploy) must degrade to
-  // a message, not to a broken-image icon the size of a chart.
+  // a message, not to a broken-image icon the size of a chart. Tracked per
+  // theme: the two are separate files, so one can be missing without the other.
   const [staticOk, setStaticOk] = useState(true);
+  const [darkStaticOk, setDarkStaticOk] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,7 +75,7 @@ export function ResearchChartEmbed({ spec, paperId }: ResearchChartEmbedProps) {
   const alt = spec.caption ?? `${spec.metric} chart from the dataset ${spec.data}`;
   // Kept in the DOM once the chart is live, and hidden by `.rc-embed--hydrated`:
   // the static figure stays until the interactive one has actually mounted.
-  const showStatic = staticOk;
+  const showStatic = staticOk || darkStaticOk;
 
   const Chart = LazyResearchChart as ComponentType<ResearchChartProps>;
 
@@ -81,19 +83,28 @@ export function ResearchChartEmbed({ spec, paperId }: ResearchChartEmbedProps) {
     <div className={`rc-embed${hydrated ? ' rc-embed--hydrated' : ''}`}>
       {showStatic ? (
         <>
-          <picture className="rc-embed__static rc-embed__static--light">
-            <source media={NARROW_MEDIA} srcSet={`${base}.light.narrow.svg`} />
-            <img
-              className="rc-embed__svg"
-              src={`${base}.light.svg`}
-              alt={alt}
-              onError={() => setStaticOk(false)}
-            />
-          </picture>
-          <picture className="rc-embed__static rc-embed__static--dark" aria-hidden="true">
-            <source media={NARROW_MEDIA} srcSet={`${base}.dark.narrow.svg`} />
-            <img className="rc-embed__svg" src={`${base}.dark.svg`} alt="" />
-          </picture>
+          {staticOk ? (
+            <picture className="rc-embed__static rc-embed__static--light">
+              <source media={NARROW_MEDIA} srcSet={`${base}.light.narrow.svg`} />
+              <img
+                className="rc-embed__svg"
+                src={`${base}.light.svg`}
+                alt={alt}
+                onError={() => setStaticOk(false)}
+              />
+            </picture>
+          ) : null}
+          {darkStaticOk ? (
+            <picture className="rc-embed__static rc-embed__static--dark" aria-hidden="true">
+              <source media={NARROW_MEDIA} srcSet={`${base}.dark.narrow.svg`} />
+              <img
+                className="rc-embed__svg"
+                src={`${base}.dark.svg`}
+                alt=""
+                onError={() => setDarkStaticOk(false)}
+              />
+            </picture>
+          ) : null}
         </>
       ) : null}
 
@@ -106,7 +117,7 @@ export function ResearchChartEmbed({ spec, paperId }: ResearchChartEmbedProps) {
       {state.status === 'error' ? (
         <p className="rc-embed__error" role="status">
           This chart could not load its dataset ({state.message}).
-          {staticOk ? ' The figure above is the build-time render of the same data.' : ''}
+          {showStatic ? ' The figure above is the build-time render of the same data.' : ''}
         </p>
       ) : null}
     </div>

@@ -12,6 +12,8 @@
  * a chart whose labels reflow differently in the fallback is a chart nobody can
  * trust. Labels are never rotated; below `STACKED_BREAKPOINT` the row stacks
  * the label above the bar instead.
+ *
+ * Read first: additionals/guidelines/agent-devlog-research-charts.md
  */
 import { useMemo, useRef } from 'react';
 import { scaleLinear } from 'd3-scale';

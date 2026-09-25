@@ -15,6 +15,8 @@
  *  - **No per-record detail.** The finest granularity this can emit is one row
  *    per arm per slice, which is exactly what the dataset file contains. There
  *    is no code path that could reach an individual test item or a gold label.
+ *
+ * Read first: additionals/guidelines/agent-devlog-research-charts.md
  */
 import { ascending, descending, extent, max } from 'd3-array';
 import type { Dataset, Dimension, Entity, Measure, Observation } from './types.generated';

@@ -1,0 +1,33 @@
+---
+description: Research charts — read agent devlog before touching the chart component, spec, static SVG pipeline or .rc-* styles
+globs: frontend/src/app/modules/research/chart/**,frontend/src/app/modules/research/public/**,frontend/src/app/modules/research/content/**,frontend/src/styles/globals.css,scripts/research-*.mjs,scripts/research/**,scripts/test-research-charts.mjs
+alwaysApply: false
+---
+
+# Research charts
+
+**Before editing the chart component, the ```chart spec, the static SVG pipeline, or `.rc-*`
+CSS, read:**
+
+`additionals/guidelines/agent-devlog-research-charts.md`
+**Index:** `additionals/guidelines/agent-devlog-index.md`
+
+## Quick rules (full detail in that file)
+
+- **Blind set — three rules:** no item-level or gold-label view (finest granularity is one row per
+  arm per slice); no cross-entity arithmetic in the browser (read `dataset.observations` field for
+  field); no free-text harness.
+- **One render path:** `computeChartModel` is pure and `ResearchChartSvg` takes `colors` +
+  `colorMode` (`css` on the page, literal hex for the static files). Never fork the SVG.
+- **Palette is duplicated on purpose:** the hexes in `chart/theme.ts` and the `--rc-*` block in
+  `globals.css` must stay identical — an SVG in an `<img>` cannot read CSS variables. A test
+  compares them; change both.
+- **Layout:** horizontal above 560px, stacked label-above-bar at or below it. **Labels are never
+  rotated.**
+- **Width is measured** (`ResizeObserver`, `Math.floor`ed) and the SVG is drawn at exactly that
+  width — CSS must not scale it, or the tooltip anchor drifts.
+- **Resolve datasets through `index.json`** (`datasetUrl()`), never by guessing a basename.
+- **A spec carries no numbers.** Everything drawn comes from the dataset file.
+- **Validate before build:** `pnpm research:validate-charts --check`; the same script renders the
+  static light/dark fallback SVGs.
+- **Test:** `pnpm test:research-charts`; paper at http://localhost:5300/research/db-r-2026-010

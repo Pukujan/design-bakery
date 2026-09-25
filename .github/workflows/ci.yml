@@ -39,6 +39,19 @@ jobs:
       - name: Lint JavaScript and TypeScript
         run: pnpm lint
 
+      # The research charts render from committed bytes, so these three checks
+      # run before the build regenerates anything: they are what catches a
+      # data file, a generated type or a static SVG that has drifted from the
+      # spec that produced it.
+      - name: Verify research chart data against its manifest
+        run: pnpm research:sync-data --check
+
+      - name: Verify generated chart types are current
+        run: pnpm research:gen-types --check
+
+      - name: Verify research chart assets are current
+        run: pnpm research:validate-charts --check
+
       - name: Build frontend
         run: pnpm run build
 
@@ -53,3 +66,6 @@ jobs:
 
       - name: Check homepage content stability
         run: pnpm test:homepage-content
+
+      - name: Test research charts
+        run: pnpm test:research-charts

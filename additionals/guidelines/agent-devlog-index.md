@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-05-22 |
-| **Last updated** | 2026-09-24 (TASK-DB-0050 showcase projects) |
+| **Last updated** | 2026-09-24 (TASK-DB-0054 research charts) |
 
 **Start here** for agent-facing documentation in this repo.
 
@@ -26,6 +26,7 @@
 | Cover Studio (exportable) | [packages/cover-studio-kit/README.md](../../packages/cover-studio-kit/README.md) | [docs/HISTORY.md](../../packages/cover-studio-kit/docs/HISTORY.md) | `packages/cover-studio-kit/`, `pnpm run export:cover-studio` |
 | Supabase migration (Firebase exit) | [agent-devlog-supabase-migration.md](agent-devlog-supabase-migration.md) | `.cursor/rules/supabase-migration.mdc` | `supabase/migrations/`, `backend/services/src/supabaseClient.ts`, `adminContentService.ts` |
 | Blog agents roadmap | [agent-devlog-blog-agents-roadmap.md](agent-devlog-blog-agents-roadmap.md) | — | **Archived** (archive README removed in TASK-DB-0049; see git history) |
+| Research charts (```chart fences) | [agent-devlog-research-charts.md](agent-devlog-research-charts.md) | `.cursor/rules/research-charts.mdc` | `frontend/src/app/modules/research/chart/`, `scripts/research-validate-charts.mjs` |
 
 ---
 
@@ -35,6 +36,8 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 
 | Date | Log |
 |------|-----|
+| 2026-09-24 | [TASK-DB-0054](../../tasks/TASK-DB-0054-research-chart.md) - Reusable interactive research chart component (```chart fences, static SVG build step) |
+| 2026-09-24 | [dev-log-2026-09-24.md](dev-log-2026-09-24.md) - Research chart component, sync/validate/gen-types scripts, CI drift checks |
 | 2026-09-24 | [TASK-DB-0050](../../tasks/TASK-DB-0050-showcase-projects.md) - Fluffy V4 static case study + Ongoing project cards (Eval Lab, PCM, IRE) |
 | 2026-09-23 | [dev-log-2026-09-23.md](dev-log-2026-09-23.md) - DB-R-2026-010 comparative rewrite, live chart verification, CI follow-up |
 | 2026-09-22 | [dev-log-2026-09-22.md](dev-log-2026-09-22.md) - Consolidated Eval Lab benchmark-comparison paper added to the Research module |

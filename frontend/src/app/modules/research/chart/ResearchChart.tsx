@@ -27,6 +27,7 @@ import {
   type ChartType,
 } from './spec';
 import { computeChartModel, usableFilterDimensions, type ChartModel, type ChartRow } from './compute';
+import { datasetUrl } from './dataset';
 import { ResearchChartSvg, layoutFor, type ChartAnchor } from './ResearchChartSvg';
 import { CHART_COLORS, CHART_TYPE_LABEL, type ChartColors } from './theme';
 import { buildCsv, csvFileName, formatCount, formatInterval, formatValue } from './format';
@@ -75,12 +76,29 @@ export default function ResearchChart({
   const [active, setActive] = useState<ActiveRow | null>(null);
   const [showTable, setShowTable] = useState(resolved.level === 'table');
   const [width, setWidth] = useState(mode === 'explorer' ? 900 : 720);
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     onReady?.();
   }, [onReady]);
+
+  // Resolved through the manifest rather than guessed from the id, so a dataset
+  // published under a subdirectory still gets a working download link.
+  useEffect(() => {
+    let cancelled = false;
+    datasetUrl(dataset.datasetId)
+      .then((url) => {
+        if (!cancelled) setSourceUrl(url);
+      })
+      .catch(() => {
+        if (!cancelled) setSourceUrl(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [dataset.datasetId]);
 
   // Measured, not assumed: the layout switch at 560px depends on real pixels.
   // Floor, never round: the SVG is drawn at exactly this width and CSS must not
@@ -143,17 +161,7 @@ export default function ResearchChart({
       metric: model.measure.key,
       measure: model.measure,
       level: model.level,
-      rows: model.tableRows.map((row) => ({
-        entity: row.entityId,
-        label: row.label,
-        slice: row.slice,
-        sliceValue: row.sliceValue,
-        value: row.value,
-        ciLow: row.ciLow,
-        ciHigh: row.ciHigh,
-        n: row.n,
-        runs: row.runs,
-      })),
+      rows: model.tableRows,
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -330,13 +338,11 @@ export default function ResearchChart({
               <button type="button" className="rc-chip rc-chip--ghost" onClick={downloadCsv}>
                 Download CSV
               </button>
-              <a
-                className="rc-chip rc-chip--ghost"
-                href={`/research/data/${dataset.datasetId.replace(/^.*\//, '')}.json`}
-                download
-              >
-                Download JSON
-              </a>
+              {sourceUrl ? (
+                <a className="rc-chip rc-chip--ghost" href={sourceUrl} download>
+                  Download JSON
+                </a>
+              ) : null}
             </div>
           ) : null}
         </div>

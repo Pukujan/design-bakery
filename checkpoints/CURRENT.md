@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-09-24 (TASK-DB-0052) |
-| **Active task** | [TASK-DB-0052 Study OS Live App link](../tasks/TASK-DB-0052-study-os-live-app.md) (#46) — PR #47 open, auto-merge. TASK-DB-0049 (#42), 0050 (#43) and 0051 (#44) are merged. |
+| **Last updated** | 2026-09-24 (TASK-DB-0054) |
+| **Active task** | [TASK-DB-0054 Research chart component](../tasks/TASK-DB-0054-research-chart.md) (#49) — PR open for review (Alex merges). TASK-DB-0049 (#42), 0050 (#43), 0051 (#44) and 0052 (#47) are merged. |
 
 ## Repo shape
 
@@ -21,6 +21,7 @@
 - Static case studies live in `frontend/public/case-studies/<slug>/` (study-os, fossil, fluffy-v4); a tiny redirect component in `modules/case-studies/<slug>/` + routes in `App.tsx` map `/case-studies/<slug>` to the `.html` file; add the path to `scripts/generate-sitemap.mjs`.
 - `frontend/src/app/modules/engineering/EngineeringProjects/projects.json` is not imported anywhere (candidate for deletion; owner to confirm).
 - Research paper `db-r-2026-010` mirrors Eval Lab `paper/paper.md` (consolidated judge accuracy/coverage paper, source commit `50aeb98`). Figures + `manifest.json` in `frontend/public/research/figures/benchmark/` are copied from Eval Lab `paper/figures/benchmark/`; do not hand-edit numbers — regenerate from Eval Lab.
+- Research charts (TASK-DB-0054): papers can carry a ```chart fenced block holding a JSON spec; `frontend/src/app/modules/research/chart/` renders it as hand-built React SVG on `d3-scale`/`d3-array`/`d3-format`. Datasets come from Eval Lab `paper/data/` via `pnpm research:sync-data` (sha256-pinned against `index.json`); `pnpm research:validate-charts` validates every fence and writes the static light/dark fallback SVGs to `frontend/public/research/charts/<paperId>/`. The data is a blind set: no item-level or gold-label view, no cross-entity arithmetic in the browser. Read `additionals/guidelines/agent-devlog-research-charts.md` before touching it.
 - `additionals/archive/firebase/` is still read by migration / storage-CORS / publish-kit-upload scripts — keep until those scripts are retired.
 
 ## Open threads

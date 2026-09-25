@@ -87,8 +87,9 @@ export function buildCsv(options: {
   metric: string;
   measure: Measure | undefined;
   level: string;
+  /** `ChartTableRow`, straight through: no field is renamed on the way out. */
   rows: {
-    entity: string;
+    entityId: string;
     label: string;
     slice: string;
     sliceValue: string;
@@ -114,7 +115,7 @@ export function buildCsv(options: {
     'level',
   ];
   const rows = options.rows.map((row) => [
-    row.entity,
+    row.entityId,
     row.label,
     row.slice,
     row.sliceValue,
