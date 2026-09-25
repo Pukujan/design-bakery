@@ -119,9 +119,21 @@
 			header Cache-Control "public, max-age=14400, must-revalidate"
 			@htmlAsset path *.html
 			header @htmlAsset Cache-Control "public, max-age=0, must-revalidate"
-			# Go's mime table serves .xml as text/xml; Vercel serves application/xml.
+			# Go's mime table (what Caddy uses) disagrees with Vercel on four
+			# extensions; the values below are what https://www.design-bakery.com
+			# actually returns, verified per file across the 132 non-hashed static
+			# files in the build (see docs/self-hosting.md §2).
 			@xmlAsset path *.xml
 			header @xmlAsset Content-Type "application/xml"
+			# text/javascript vs application/javascript.
+			@jsAsset path *.js *.mjs
+			header @jsAsset Content-Type "application/javascript; charset=utf-8"
+			# Go sends application/json bare; Vercel appends the charset.
+			@jsonAsset path *.json
+			header @jsonAsset Content-Type "application/json; charset=utf-8"
+			# Go has no entry for .b64 and sends no Content-Type at all.
+			@b64Asset path *.b64
+			header @b64Asset Content-Type "application/octet-stream"
 			file_server
 		}
 
