@@ -1,0 +1,168 @@
+# design-bakery — Caddy config, 1:1 with the rules in vercel.json (TASK-DB-0055).
+#
+# Runs inside the container on plain HTTP :80 behind the Cloudflare Tunnel; TLS is
+# terminated at the Cloudflare edge. `auto_https off` keeps Caddy from trying ACME
+# for the tunnel's hostname.
+#
+# Vercel routing semantics reproduced here (order matters):
+#   1. `redirects` are evaluated before the filesystem, in file order.
+#   2. `rewrites` are evaluated *after* the filesystem — a request that matches a real
+#      file (or a directory with index.html) is served from disk, never rewritten.
+#   3. The first matching rewrite wins; `/((?!.*\.html$).*)` is the last-resort SPA
+#      fallback and deliberately skips paths ending in .html (those 404).
+
+{
+	admin off
+	auto_https off
+}
+
+:80 {
+	root * /srv
+	encode zstd gzip
+
+	# Internal liveness endpoint for the container HEALTHCHECK / deploy.sh.
+	# Not part of the Vercel site (see docs/self-hosting.md, "known differences").
+	handle /healthz {
+		respond "ok" 200
+	}
+
+	route {
+		# Not in vercel.json: the apex -> www 307 is Vercel *domain* configuration, and
+		# the site has always behaved this way (https://design-bakery.com/x -> 307
+		# https://www.design-bakery.com/x). Reproduced here so both hostnames can be
+		# routed to this container without serving the site twice. Matches the apex
+		# only, so staging hostnames and direct 127.0.0.1 checks are unaffected.
+		@apex host design-bakery.com
+		handle @apex {
+			header Location https://www.design-bakery.com{http.request.uri}
+			header Content-Type text/plain
+			respond <<BODY
+			Redirecting...
+
+			BODY 307
+		}
+
+		# ---------------------------------------------------------------- redirects
+		# `respond` + an explicit Location instead of `redir`: Vercel answers these with a
+		# 15-byte `Redirecting...\n` text/plain body, and `redir` cannot carry a body. The
+		# body is a heredoc because the Caddyfile does not expand \n in quoted strings —
+		# the blank line before the closing marker is the trailing newline.
+		# vercel.json: { source: "/ai-for-good", destination: "/ai-for-good/", permanent: true }
+		# Location is relative on purpose: the container only ever sees http://, so an
+		# absolute redirect would downgrade the scheme at the Cloudflare edge.
+		@aiForGoodExact path /ai-for-good
+		handle @aiForGoodExact {
+			header Location /ai-for-good/
+			header Content-Type text/plain
+			respond <<BODY
+			Redirecting...
+
+			BODY 308
+		}
+
+		# vercel.json: { source: "/studyos", destination: "https://study.design-bakery.com/", permanent: false }
+		@studyosExact path /studyos
+		handle @studyosExact {
+			header Location https://study.design-bakery.com/
+			header Content-Type text/plain
+			respond <<BODY
+			Redirecting...
+
+			BODY 307
+		}
+
+		# vercel.json: { source: "/studyos/:path*", destination: "https://study.design-bakery.com/:path*", permanent: false }
+		# handle_path strips the /studyos prefix before the redirect runs, and
+		# {http.request.uri} is the post-strip value (the plain {uri} placeholder is
+		# resolved from the original request URI and would leak the prefix).
+		handle_path /studyos/* {
+			header Location https://study.design-bakery.com{http.request.uri}
+			header Content-Type text/plain
+			respond <<BODY
+			Redirecting...
+
+			BODY 307
+		}
+
+		# ----------------------------------------------------------------- rewrites
+		# vercel.json rewrites /ai-for-good/ and /ai-for-good/:path* to the separate
+		# ai-for-good Vercel app. Vercel proxies with Host set to the destination.
+		handle /ai-for-good/* {
+			# reverse_proxy reads the rewritten URL directly, so strip_prefix is enough
+			# here (unlike the redirect above, which needs {http.request.uri}).
+			uri strip_prefix /ai-for-good
+			reverse_proxy https://ai-for-good-livid.vercel.app {
+				header_up Host ai-for-good-livid.vercel.app
+			}
+		}
+
+		# --- filesystem (Vercel checks this before applying the rewrites below) ---
+		# Directory requests: /dir and /dir/ both serve /dir/index.html (no trailing-slash
+		# redirect — Vercel serves the directory index directly, e.g. /case-studies/cortex).
+		@dirIndex file {path}/index.html
+		handle @dirIndex {
+			rewrite * {path}/index.html
+			header Cache-Control "public, max-age=0, must-revalidate"
+			file_server
+		}
+
+		@dirIndexTrailing file {path}index.html
+		handle @dirIndexTrailing {
+			rewrite * {path}index.html
+			header Cache-Control "public, max-age=0, must-revalidate"
+			file_server
+		}
+
+		# Any other existing file (hashed assets, images, pdfs, sitemap.xml, ...).
+		@exactFile file {path}
+		handle @exactFile {
+			header Cache-Control "public, max-age=14400, must-revalidate"
+			@htmlAsset path *.html
+			header @htmlAsset Cache-Control "public, max-age=0, must-revalidate"
+			# Go's mime table (what Caddy uses) disagrees with Vercel on four
+			# extensions; the values below are what https://www.design-bakery.com
+			# actually returns, verified per file across the 132 non-hashed static
+			# files in the build (see docs/self-hosting.md §2).
+			@xmlAsset path *.xml
+			header @xmlAsset Content-Type "application/xml"
+			# text/javascript vs application/javascript.
+			@jsAsset path *.js *.mjs
+			header @jsAsset Content-Type "application/javascript; charset=utf-8"
+			# Go sends application/json bare; Vercel appends the charset.
+			@jsonAsset path *.json
+			header @jsonAsset Content-Type "application/json; charset=utf-8"
+			# Go has no entry for .b64 (base64 asset) or .keep (empty placeholder
+			# committed under public/) and sends no Content-Type at all for either;
+			# Vercel falls back to application/octet-stream.
+			@b64Asset path *.b64 *.keep
+			header @b64Asset Content-Type "application/octet-stream"
+			file_server
+		}
+
+		# vercel.json rewrites /case-studies/cortex, /case-studies/cortex/ and
+		# /case-studies/cortex/a to the archived cortex build. The first two are already
+		# served by the directory index above (public/case-studies/cortex/index.html);
+		# /case-studies/cortex/a only exists as .../a/index.html, so the rewrite applies.
+		@cortex path /case-studies/cortex /case-studies/cortex/ /case-studies/cortex/a
+		handle @cortex {
+			rewrite * /case-studies/cortex/a/index.html
+			header Cache-Control "public, max-age=0, must-revalidate"
+			file_server
+		}
+
+		# Missing .html file: vercel.json's catch-all excludes `*.html`, so these 404
+		# instead of falling back to the SPA shell.
+		@htmlNotFound path *.html
+		handle @htmlNotFound {
+			respond "404: NOT_FOUND" 404
+		}
+
+		# vercel.json: { source: "/((?!.*\\.html$).*)", destination: "/index.html" }
+		# SPA fallback — every other unmatched path renders the app shell.
+		handle {
+			rewrite * /index.html
+			header Cache-Control "public, max-age=0, must-revalidate"
+			file_server
+		}
+	}
+}

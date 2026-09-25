@@ -1,0 +1,3 @@
+# gravebuster deploy stack is checked out on Linux — never let git convert line
+# endings there (a CRLF shell script fails with "bad interpreter").
+deploy/gravebuster/* text eol=lf

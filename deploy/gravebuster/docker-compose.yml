@@ -1,0 +1,42 @@
+# design-bakery web stack on gravebuster (TASK-DB-0055).
+#
+# Lives in the repo at deploy/gravebuster/docker-compose.yml and is driven by
+# deploy.sh / rollback.sh. Published on 127.0.0.1 only — nothing is exposed publicly
+# until the Cloudflare Tunnel ingress is pointed at it (docs/self-hosting.md).
+#
+#   cd ~/apps/design-bakery
+#   docker compose -f deploy/gravebuster/docker-compose.yml up -d
+#
+# The image is built by deploy.sh with a git-sha tag; `docker compose build` here is
+# only a convenience for manual work.
+name: design-bakery
+
+services:
+  web:
+    # Stable name: the tunnel ingress and the health checks address this container.
+    container_name: design-bakery-web
+    image: ${DESIGN_BAKERY_IMAGE:-design-bakery-web:local}
+    build:
+      context: ../..
+      dockerfile: deploy/gravebuster/Dockerfile
+      args:
+        # Public, build-time values only — see Dockerfile and docs/self-hosting.md.
+        VITE_SITE_URL: ${VITE_SITE_URL:-}
+        VITE_BLOG_API_URL: ${VITE_BLOG_API_URL:-}
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:-}
+        VITE_CONTENT_BACKEND: ${VITE_CONTENT_BACKEND:-}
+        VITE_ENABLE_BLOG_PUBLISH_KIT: ${VITE_ENABLE_BLOG_PUBLISH_KIT:-}
+    restart: unless-stopped
+    ports:
+      # 127.0.0.1 only: the Cloudflare Tunnel reaches it over the docker network or
+      # the loopback interface; the host port is never published to the LAN/WAN.
+      - "127.0.0.1:${WEB_HOST_PORT:-8085}:80"
+    environment:
+      # Set by the tunnel-fronted setup; only used for logging/debug today.
+      SITE_HOST: ${SITE_HOST:-www.design-bakery.com}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

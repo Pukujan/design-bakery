@@ -47,6 +47,7 @@ See **[additionals/doc/architecture.md](additionals/doc/architecture.md)** for M
 - **`pnpm run dev:api`** — Express API only.
 - **`pnpm run dev:web`** — Vite only.
 - **Production:** Railway Express + `VITE_BLOG_API_URL` on Vercel — **[additionals/doc/deploy-vercel-railway.md](additionals/doc/deploy-vercel-railway.md)**.
+- **Self-hosting (in progress):** gravebuster + Cloudflare Tunnel — **[docs/self-hosting.md](docs/self-hosting.md)** (deploy/rollback, `deploy/gravebuster/`).
 - Dev port: first free from **5300** (`vite.config.ts`).
 
 ## Publish kit tests

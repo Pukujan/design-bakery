@@ -1,0 +1,26 @@
+# Overlay that puts the web container on the docker network the existing
+# study-os Cloudflare Tunnel (`study-os-cloudflared-1`) is attached to, so the tunnel
+# can reach it by container name without touching the study-os stack.
+#
+#   cd ~/apps/design-bakery
+#   docker compose -f deploy/gravebuster/docker-compose.yml \
+#                  -f deploy/gravebuster/docker-compose.edge.yml up -d
+#
+# Not used by the first deploy: the service is reachable on 127.0.0.1:<port> and is
+# verified that way. Enable this only when wiring the tunnel ingress
+# (docs/self-hosting.md → "Routing www.design-bakery.com").
+#
+# The network is `external` on purpose: it is owned by the study-os compose project and
+# must not be created or removed from here.
+services:
+  web:
+    networks:
+      edge:
+        # Stable DNS name for the tunnel ingress target.
+        aliases:
+          - design-bakery-web
+
+networks:
+  edge:
+    external: true
+    name: ${EDGE_NETWORK:-study-os_edge}
