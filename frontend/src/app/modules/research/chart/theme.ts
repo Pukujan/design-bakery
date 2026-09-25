@@ -82,6 +82,9 @@ export const CHART_COLORS: Record<ChartColorMode, ChartColors> = {
   css: CSS,
 };
 
+/** Non-highlighted rows are dimmed; dark mode needs less of it to stay legible. */
+export const DIM_OPACITY: Record<ChartTheme, number> = { light: 0.42, dark: 0.55 };
+
 /** The literal values `globals.css` must declare, for the drift test. */
 export const CSS_TOKEN_SOURCE: Record<ChartTheme, Record<string, string>> = {
   light: {

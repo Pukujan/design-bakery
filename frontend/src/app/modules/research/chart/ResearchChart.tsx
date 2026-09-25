@@ -42,6 +42,7 @@ export interface ResearchChartProps {
 const LEVEL_LABEL: Record<ChartLevel, string> = {
   summary: 'Summary',
   breakdown: 'Breakdown',
+  experiments: 'Experiments',
   runs: 'Runs',
   table: 'Table',
 };
@@ -76,17 +77,18 @@ export default function ResearchChart({
   const [width, setWidth] = useState(mode === 'explorer' ? 900 : 720);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     onReady?.();
   }, [onReady]);
 
   // Measured, not assumed: the layout switch at 560px depends on real pixels.
+  // Floor, never round: the SVG is drawn at exactly this width and CSS must not
+  // have to scale it, or the tooltip anchor would land somewhere else.
   useEffect(() => {
     const node = containerRef.current;
     if (!node) return undefined;
-    const measure = () => setWidth(Math.max(280, Math.round(node.getBoundingClientRect().width)));
+    const measure = () => setWidth(Math.max(280, Math.floor(node.getBoundingClientRect().width)));
     measure();
     if (typeof ResizeObserver === 'undefined') return undefined;
     const observer = new ResizeObserver(measure);
@@ -150,6 +152,7 @@ export default function ResearchChart({
         ciLow: row.ciLow,
         ciHigh: row.ciHigh,
         n: row.n,
+        runs: row.runs,
       })),
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
@@ -358,7 +361,6 @@ export default function ResearchChart({
             activeId={active?.row.id ?? null}
             highlight={resolved.highlight}
             onActivate={onActivate}
-            svgRef={svgRef}
           />
           {active ? (
             <div
@@ -396,6 +398,12 @@ export default function ResearchChart({
                     </p>
                   );
                 })}
+              {/* At `runs` the point of the view is which file produced the number. */}
+              {model.level === 'runs' && active.row.runs.length > 0 ? (
+                <p className="rc-tooltip__meta rc-tooltip__runs">
+                  {active.row.runs.map((run) => run.path).join('\n')}
+                </p>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -411,12 +419,15 @@ export default function ResearchChart({
           <div className="rc-table-scroll">
             <table className="rc-table">
               <caption className="rc-table__caption">
-                {dataset.title} — {model.measure.label}, one row per arm and slice.
+                {dataset.title} — {model.measure.label}, one row per arm
+                {model.facetMode === 'slice' ? ' and slice' : ''}.
               </caption>
               <thead>
                 <tr>
                   <th scope="col">Arm</th>
-                  {model.level === 'breakdown' ? <th scope="col">Slice</th> : null}
+                  {model.facetMode !== 'none' ? (
+                    <th scope="col">{model.facetMode === 'entity' ? 'Group' : 'Slice'}</th>
+                  ) : null}
                   <th scope="col" className="rc-table__num">
                     {model.measure.label}
                   </th>
@@ -426,18 +437,26 @@ export default function ResearchChart({
                   <th scope="col" className="rc-table__num">
                     {model.measure.n}
                   </th>
+                  {model.level === 'runs' ? <th scope="col">Prediction files</th> : null}
                 </tr>
               </thead>
               <tbody>
                 {model.rows.map((row) => (
                   <tr key={row.id} className={row.id === active?.row.id ? 'rc-table__row--active' : undefined}>
                     <th scope="row">{row.label}</th>
-                    {model.level === 'breakdown' ? <td>{row.facetLabel}</td> : null}
+                    {model.facetMode !== 'none' ? <td>{row.facetLabel}</td> : null}
                     <td className="rc-table__num">{formatValue(model.measure, row.value)}</td>
                     <td className="rc-table__num">
                       {formatInterval(model.measure, row.ciLow, row.ciHigh) || '—'}
                     </td>
                     <td className="rc-table__num">{formatCount(row.n)}</td>
+                    {model.level === 'runs' ? (
+                      <td className="rc-table__runs">
+                        {row.runs.map((run) => (
+                          <code key={run.path}>{run.path}</code>
+                        ))}
+                      </td>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>

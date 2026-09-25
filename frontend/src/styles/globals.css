@@ -1796,6 +1796,12 @@ body::before {
   text-decoration: none;
 }
 
+.rc-chip--shape {
+  font-variant-numeric: tabular-nums;
+  min-width: 62px;
+  text-align: center;
+}
+
 .rc-chip:focus-visible,
 .rc-chart__filters-summary:focus-visible,
 .rc-chart__table-summary:focus-visible {
@@ -1881,6 +1887,20 @@ body::before {
   opacity: 0.85;
 }
 
+/* Prediction file paths: long, and meant to be read one per line. */
+.rc-tooltip__runs {
+  white-space: pre-line;
+  word-break: break-all;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.research-paper .rc-table__runs code {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  word-break: break-all;
+}
+
 .rc-chart__note,
 .rc-chart__caption {
   margin: 0;
@@ -1957,33 +1977,39 @@ body::before {
   background: var(--rc-band);
 }
 
-/* Static first paint: one <img> per theme, switched by the same class the site
-   toggles. An <img> cannot read CSS variables, which is why there are two. */
+/* Static first paint: one <picture> per theme, switched by the same class the
+   site toggles. An <img> cannot read CSS variables or see a media-query theme,
+   which is why there are two elements and two files per width. */
 .rc-embed {
   position: relative;
   min-height: 60px;
+}
+
+.rc-embed__static {
+  display: block;
+  margin: 0;
+}
+
+.rc-embed__static--dark {
+  display: none;
+}
+
+.dark .rc-embed__static--light {
+  display: none;
+}
+
+.dark .rc-embed__static--dark {
+  display: block;
+}
+
+.rc-embed--hydrated .rc-embed__static {
+  display: none;
 }
 
 .rc-embed__svg {
   display: block;
   width: 100%;
   height: auto;
-}
-
-.rc-embed__svg--dark {
-  display: none;
-}
-
-.dark .rc-embed__svg--light {
-  display: none;
-}
-
-.dark .rc-embed__svg--dark {
-  display: block;
-}
-
-.rc-embed--hydrated .rc-embed__static {
-  display: none;
 }
 
 .rc-embed__error {

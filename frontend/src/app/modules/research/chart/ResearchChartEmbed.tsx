@@ -11,13 +11,15 @@
  *     chart code stay out of the main bundle, and replaces the static image
  *     once it is on screen.
  *
- * The SVG is chosen by CSS (`.dark` on `<html>`), not by JS, so it follows the
- * site's theme toggle and prints correctly either way.
+ * Two `<picture>` elements, not one: the theme is a `.dark` class and a media
+ * query cannot see it, so light and dark are separate elements and CSS picks
+ * one. Each carries a `<source>` for the narrow render, because a 720px SVG
+ * scaled into a 390px phone shrinks its labels below legibility.
  */
 import { Suspense, lazy, useEffect, useState, type ComponentType } from 'react';
 import { useParams } from 'react-router-dom';
 import type { Dataset } from './types.generated';
-import { chartSlug, type ChartSpec } from './spec';
+import { STACKED_BREAKPOINT, chartSlug, type ChartSpec } from './spec';
 import { loadDataset } from './dataset';
 import type { ResearchChartProps } from './ResearchChart';
 
@@ -25,6 +27,8 @@ import type { ResearchChartProps } from './ResearchChart';
 const LazyResearchChart = lazy(() => import('./ResearchChart'));
 
 export const CHART_ASSET_BASE = '/research/charts';
+
+const NARROW_MEDIA = `(max-width: ${STACKED_BREAKPOINT - 1}px)`;
 
 export interface ResearchChartEmbedProps {
   spec: ChartSpec;
@@ -44,6 +48,9 @@ export function ResearchChartEmbed({ spec, paperId }: ResearchChartEmbedProps) {
 
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const [hydrated, setHydrated] = useState(false);
+  // A missing asset (the build step never ran, a stale deploy) must degrade to
+  // a message, not to a broken-image icon the size of a chart.
+  const [staticOk, setStaticOk] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,18 +70,32 @@ export function ResearchChartEmbed({ spec, paperId }: ResearchChartEmbedProps) {
 
   const slug = chartSlug(spec);
   const base = `${CHART_ASSET_BASE}/${owner}/${slug}`;
-  const alt =
-    spec.caption ?? `${spec.metric} chart from the dataset ${spec.data}`;
+  const alt = spec.caption ?? `${spec.metric} chart from the dataset ${spec.data}`;
+  // Kept in the DOM once the chart is live, and hidden by `.rc-embed--hydrated`:
+  // the static figure stays until the interactive one has actually mounted.
+  const showStatic = staticOk;
 
   const Chart = LazyResearchChart as ComponentType<ResearchChartProps>;
 
   return (
     <div className={`rc-embed${hydrated ? ' rc-embed--hydrated' : ''}`}>
-      <span className="rc-embed__static">
-        {/* Two files, one visible: an <img> cannot read the page's .dark class. */}
-        <img className="rc-embed__svg rc-embed__svg--light" src={`${base}.light.svg`} alt={alt} />
-        <img className="rc-embed__svg rc-embed__svg--dark" src={`${base}.dark.svg`} alt="" aria-hidden="true" />
-      </span>
+      {showStatic ? (
+        <>
+          <picture className="rc-embed__static rc-embed__static--light">
+            <source media={NARROW_MEDIA} srcSet={`${base}.light.narrow.svg`} />
+            <img
+              className="rc-embed__svg"
+              src={`${base}.light.svg`}
+              alt={alt}
+              onError={() => setStaticOk(false)}
+            />
+          </picture>
+          <picture className="rc-embed__static rc-embed__static--dark" aria-hidden="true">
+            <source media={NARROW_MEDIA} srcSet={`${base}.dark.narrow.svg`} />
+            <img className="rc-embed__svg" src={`${base}.dark.svg`} alt="" />
+          </picture>
+        </>
+      ) : null}
 
       {state.status === 'ready' && state.dataset ? (
         <Suspense fallback={null}>
@@ -84,8 +105,8 @@ export function ResearchChartEmbed({ spec, paperId }: ResearchChartEmbedProps) {
 
       {state.status === 'error' ? (
         <p className="rc-embed__error" role="status">
-          This chart could not load its dataset ({state.message}). The figure above is the
-          build-time render of the same data.
+          This chart could not load its dataset ({state.message}).
+          {staticOk ? ' The figure above is the build-time render of the same data.' : ''}
         </p>
       ) : null}
     </div>
