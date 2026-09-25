@@ -5,11 +5,26 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { MermaidDiagram } from '@/modules/blog/render/MermaidDiagram';
+import { ResearchChartEmbed } from '../chart/ResearchChartEmbed';
+import { parseChartSpec } from '../chart/spec';
 import { getResearchPaper } from '../data/researchPapers';
 
+/** A ```chart fence that does not parse must show the author why, not blank out. */
+function ChartSpecError({ error, body }: { error: string; body: string }) {
+  return (
+    <div className="rc-spec-error" role="alert">
+      <p className="rc-spec-error__title">This chart could not be rendered</p>
+      <p className="rc-spec-error__message">{error}</p>
+      <pre className="rc-spec-error__body">
+        <code>{body}</code>
+      </pre>
+    </div>
+  );
+}
+
 /** Markdown renderer: prose styles the prose; we only intercept fenced code
- *  (mermaid → diagram, other → styled block) and keep inline code compact.
- *  Exported so the supporting-source page renders identically. */
+ *  (mermaid → diagram, chart → research chart, other → styled block) and keep
+ *  inline code compact. Exported so the supporting-source page renders identically. */
 export const markdownComponents = {
   pre({ children }: any) {
     // Let the `code` component own block rendering so mermaid isn't wrapped in <pre>.
@@ -20,6 +35,13 @@ export const markdownComponents = {
     const text = String(children).replace(/\n$/, '');
     if (match?.[1] === 'mermaid') {
       return <MermaidDiagram chart={text} />;
+    }
+    if (match?.[1] === 'chart') {
+      // JSON, not YAML: no new dependency, and a bad body fails the build in
+      // `scripts/research-validate-charts.mjs` before it can reach a reader.
+      const parsed = parseChartSpec(text);
+      if (!parsed.spec) return <ChartSpecError error={parsed.error as string} body={text} />;
+      return <ResearchChartEmbed spec={parsed.spec} />;
     }
     if (match) {
       return (

@@ -1649,3 +1649,413 @@ body::before {
   --rp-link: #ff735b;
   --rp-link-h: #ff9280;
 }
+
+/*
+ * Research charts — the ```chart fenced block in /research papers.
+ * Read first: additionals/guidelines/agent-devlog-research-charts.md
+ *
+ * Colours live in `--rc-*` custom properties so the whole chart follows the
+ * site's `.dark` class with no re-render and no JS theme object. The literal
+ * values are duplicated in
+ * `frontend/src/app/modules/research/chart/theme.ts`, because a build-time
+ * static SVG loaded through <img> cannot read CSS variables; the drift test in
+ * scripts/test-research-charts.mjs parses this block and fails if the two
+ * disagree. Change both together.
+ *
+ * Scoped to `.rc-chart` only, so nothing here can reach the blog or any other
+ * page. Typography is owned locally (IBM Plex Sans, like the paper's headings)
+ * and never inherits the serif reading face.
+ */
+.rc-chart {
+  --rc-surface: #ffffff;
+  --rc-ink: #1a1a1a;
+  --rc-muted: #5a5a5a;
+  --rc-grid: #e3dfd4;
+  --rc-axis: #b6b0a1;
+  --rc-band: #f1eee6;
+  --rc-accent: #1a4a8a;
+  --rc-dim: 0.42;
+  --rc-cat-1: #1a4a8a;
+  --rc-cat-2: #b4531a;
+  --rc-cat-3: #4a7a1a;
+  --rc-cat-4: #7a1a6a;
+  --rc-cat-5: #1a7a7a;
+  --rc-cat-6: #8a6a1a;
+
+  margin: 1.6em 0 1.9em;
+  border: 1px solid var(--rp-line, #d8d4c8);
+  background: var(--rc-surface);
+  color: var(--rc-ink);
+  font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.dark .rc-chart {
+  --rc-surface: #181b23;
+  --rc-ink: #e8e6df;
+  --rc-muted: #9a968c;
+  --rc-grid: #2c3040;
+  --rc-axis: #4a5060;
+  --rc-band: #20242e;
+  --rc-accent: #7eb0e8;
+  --rc-dim: 0.55;
+  --rc-cat-1: #7eb0e8;
+  --rc-cat-2: #e8a06a;
+  --rc-cat-3: #9ecf6a;
+  --rc-cat-4: #d98cc8;
+  --rc-cat-5: #6ad4d4;
+  --rc-cat-6: #dcc36a;
+  border-color: #2c3040;
+}
+
+.rc-chart__head {
+  padding: 12px 14px 0;
+}
+
+.rc-chart__title {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--rc-ink);
+  text-wrap: balance;
+}
+
+.rc-chart__subtitle,
+.rc-chart__definition {
+  margin: 3px 0 0;
+  font-size: 11.5px;
+  color: var(--rc-muted);
+}
+
+.rc-chart__definition {
+  font-size: 11px;
+}
+
+.rc-chart__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px 18px;
+  padding: 10px 14px 12px;
+}
+
+.rc-chart__control {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.rc-chart__control-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--rc-muted);
+}
+
+.rc-chart__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.rc-chart__actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.rc-chip {
+  font: inherit;
+  font-size: 11.5px;
+  line-height: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--rc-axis);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--rc-ink);
+  cursor: pointer;
+}
+
+.rc-chip:hover {
+  border-color: var(--rc-accent);
+  color: var(--rc-accent);
+}
+
+.rc-chip[aria-pressed='true'] {
+  border-color: var(--rc-accent);
+  background: var(--rc-accent);
+  color: var(--rc-surface);
+}
+
+.rc-chip--ghost {
+  border-style: dashed;
+  color: var(--rc-muted);
+  text-decoration: none;
+}
+
+.rc-chip:focus-visible,
+.rc-chart__filters-summary:focus-visible,
+.rc-chart__table-summary:focus-visible {
+  outline: 2px solid var(--rc-accent);
+  outline-offset: 2px;
+}
+
+.rc-chart__filters {
+  min-width: 0;
+}
+
+.rc-chart__filters-summary,
+.rc-chart__table-summary {
+  cursor: pointer;
+  font-size: 11.5px;
+  color: var(--rc-muted);
+}
+
+.rc-chart__filters-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  max-width: min(100%, 560px);
+}
+
+.rc-chart__plot {
+  position: relative;
+  padding: 0 0 4px;
+}
+
+/* Exactly the measured width, so SVG user units are CSS pixels and the tooltip
+   anchor lands where the mark is. Never scale this with `width: 100%`. */
+.rc-svg {
+  display: block;
+}
+
+/* Keyboard focus on a row: the same affordance a link would get. */
+.rc-row:focus {
+  outline: none;
+}
+
+.rc-row:focus-visible {
+  outline: 2px solid var(--rc-accent);
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+
+.rc-tooltip {
+  position: absolute;
+  z-index: 6;
+  max-width: 260px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--rc-ink);
+  color: var(--rc-surface);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 22%);
+  pointer-events: none;
+}
+
+.rc-tooltip__title {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.rc-tooltip__value {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.rc-tooltip__ci {
+  font-weight: 400;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.rc-tooltip__meta {
+  margin: 3px 0 0;
+  font-size: 10.5px;
+  opacity: 0.85;
+}
+
+.rc-chart__note,
+.rc-chart__caption {
+  margin: 0;
+  padding: 8px 14px;
+  font-size: 11px;
+  color: var(--rc-muted);
+}
+
+.rc-chart__caption {
+  border-top: 1px solid var(--rc-grid);
+}
+
+.rc-chart__provenance {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+}
+
+.rc-chart__table {
+  border-top: 1px solid var(--rc-grid);
+}
+
+.rc-chart__table-summary {
+  padding: 8px 14px;
+}
+
+.research-paper .rc-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0 14px 10px;
+}
+
+.research-paper .rc-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 11.5px;
+}
+
+.research-paper .rc-table__caption {
+  padding: 0 0 6px;
+  color: var(--rc-muted);
+  font-size: 11px;
+  text-align: left;
+}
+
+.research-paper .rc-table th,
+.research-paper .rc-table td {
+  padding: 4px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--rc-grid);
+  color: var(--rc-ink);
+  text-align: left;
+  vertical-align: top;
+}
+
+.research-paper .rc-table thead th {
+  border-bottom: 1px solid var(--rc-axis);
+  background: transparent;
+  color: var(--rc-muted);
+  font-weight: 600;
+}
+
+.research-paper .rc-table__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.research-paper .rc-table tbody tr:hover {
+  background: var(--rc-band);
+}
+
+.research-paper .rc-table__row--active {
+  background: var(--rc-band);
+}
+
+/* Static first paint: one <img> per theme, switched by the same class the site
+   toggles. An <img> cannot read CSS variables, which is why there are two. */
+.rc-embed {
+  position: relative;
+  min-height: 60px;
+}
+
+.rc-embed__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.rc-embed__svg--dark {
+  display: none;
+}
+
+.dark .rc-embed__svg--light {
+  display: none;
+}
+
+.dark .rc-embed__svg--dark {
+  display: block;
+}
+
+.rc-embed--hydrated .rc-embed__static {
+  display: none;
+}
+
+.rc-embed__error {
+  margin: 0;
+  padding: 8px 14px;
+  font-size: 11.5px;
+  color: var(--rc-muted);
+}
+
+.rc-spec-error {
+  margin: 1.6em 0;
+  padding: 12px 14px;
+  border: 1px solid #d43c24;
+  border-radius: 4px;
+  background: rgb(212 60 36 / 6%);
+}
+
+.rc-spec-error__title {
+  margin: 0;
+  font-weight: 600;
+  color: #b8301c;
+}
+
+.rc-spec-error__message {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+}
+
+.rc-spec-error__body {
+  margin: 8px 0 0;
+  overflow-x: auto;
+  font-size: 11.5px;
+}
+
+@media (max-width: 560px) {
+  .rc-chart__toolbar {
+    gap: 8px 12px;
+    padding: 10px;
+  }
+
+  .rc-chart__head,
+  .rc-chart__note,
+  .rc-chart__caption,
+  .rc-chart__table-summary {
+    padding-inline: 10px;
+  }
+
+  .rc-chart__actions {
+    margin-left: 0;
+  }
+
+  .research-paper .rc-table-scroll {
+    padding-inline: 10px;
+  }
+}
+
+/* Print: the chart is already real SVG, so only the interactive chrome goes. */
+@media print {
+  .rc-chart__toolbar,
+  .rc-chart__table,
+  .rc-chart__filters,
+  .rc-chart__actions,
+  .rc-embed__error {
+    display: none !important;
+  }
+
+  .rc-chart {
+    break-inside: avoid;
+    border-color: #999;
+  }
+
+  .rc-tooltip {
+    display: none !important;
+  }
+}
