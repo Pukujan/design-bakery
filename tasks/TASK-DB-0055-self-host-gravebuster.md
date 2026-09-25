@@ -23,13 +23,15 @@ rollback and the Vercel project left in place as a fallback.
   `deploy.sh` (fetch → build tagged image → swap → health/smoke check → auto-rollback),
   `rollback.sh`, `autodeploy.sh` + `systemd/` units (implemented, disabled),
   `README.md`, `.env.example`.
-- **Deployed** from `~/apps/design-bakery` on gravebuster at `5361a4cb64b5`; image
-  `design-bakery-web:5361a4cb64b5-20260925T003744Z`; healthy; previous tag retained.
+- **Deployed** from `~/apps/design-bakery` on gravebuster at `b77f058759db`; image
+  `design-bakery-web:b77f058759db-20260925T005947Z`; healthy; the previous tag is
+  retained.
 - **Rollback verified** in both directions (`rollback.sh`).
-- **Parity verified** against `https://www.design-bakery.com` on 20 paths — identical
-  status and content type everywhere, byte-identical bodies for `/robots.txt`,
-  `/ai-for-good/`, `/case-studies/cortex`, `/case-studies/cortex/a`. Table and known
-  differences in [docs/self-hosting.md](../docs/self-hosting.md) §2.
+- **Parity verified** against `https://www.design-bakery.com` on 21 paths — identical
+  status, content type and body size everywhere except `/sitemap.xml` (build lacked the
+  live blog source), the 404 body and our own `/healthz`. Bodies byte-identical for
+  `/robots.txt`, `/ai-for-good/`, both cortex pages and all four redirect responses.
+  Table and known differences in [docs/self-hosting.md](../docs/self-hosting.md) §2.
 - **Tunnel research (read-only):** `study-os-cloudflared-1` is a **token-based,
   remotely-managed** tunnel (`TUNNEL_TOKEN` env, no `config.yml`/credentials on disk), so
   ingress is dashboard-side and the origin must be a docker DNS name on `study-os_edge`.
