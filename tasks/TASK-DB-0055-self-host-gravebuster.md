@@ -23,15 +23,19 @@ rollback and the Vercel project left in place as a fallback.
   `deploy.sh` (fetch → build tagged image → swap → health/smoke check → auto-rollback),
   `rollback.sh`, `autodeploy.sh` + `systemd/` units (implemented, disabled),
   `README.md`, `.env.example`.
-- **Deployed** from `~/apps/design-bakery` on gravebuster at `b77f058759db`; image
-  `design-bakery-web:b77f058759db-20260925T005947Z`; healthy; the previous tag is
-  retained.
+- **Deployed** from `~/apps/design-bakery` on gravebuster at `b9ecda471919`; image
+  `design-bakery-web:b9ecda471919-20260925T011941Z`; healthy; the previous tags are
+  retained (`rollback.sh --list`).
 - **Rollback verified** in both directions (`rollback.sh`).
 - **Parity verified** against `https://www.design-bakery.com` on 21 paths — identical
-  status, content type and body size everywhere except `/sitemap.xml` (build lacked the
-  live blog source), the 404 body and our own `/healthz`. Bodies byte-identical for
-  `/robots.txt`, `/ai-for-good/`, both cortex pages and all four redirect responses.
-  Table and known differences in [docs/self-hosting.md](../docs/self-hosting.md) §2.
+  status, content type and body size everywhere except `/blogs` (middleware OG meta),
+  `/sitemap.xml` (build lacked the live blog source), the 404 body and our own `/healthz`.
+  Bodies byte-identical for `/robots.txt`, `/ai-for-good/`, both cortex pages,
+  `/images/site-og.png` and all four redirect responses. Content types also swept over
+  every one of the 133 non-hashed static files: 0 differences (`.xml`, `.js`, `.json`,
+  `.b64`/`.keep` are overridden in the Caddyfile because Go's mime table disagrees with
+  Vercel's). Table and known differences in
+  [docs/self-hosting.md](../docs/self-hosting.md) §2.
 - **Tunnel research (read-only):** `study-os-cloudflared-1` is a **token-based,
   remotely-managed** tunnel (`TUNNEL_TOKEN` env, no `config.yml`/credentials on disk), so
   ingress is dashboard-side and the origin must be a docker DNS name on `study-os_edge`.

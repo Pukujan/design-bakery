@@ -61,7 +61,7 @@ scope for this move (issue #52).
 
 ## 2. Parity with Vercel
 
-Probed from gravebuster on 2026-09-25 against commit `b77f058759db`; local =
+Probed from gravebuster on 2026-09-25 against commit `b9ecda471919`; local =
 `http://127.0.0.1:8085`, live = `https://www.design-bakery.com`. Every path matches on
 status, content type and (except where noted below) body size; the redirect rows match
 including the 15-byte `Redirecting...` body.
@@ -69,22 +69,31 @@ including the 15-byte `Redirecting...` body.
 | Path | local (status / content-type) | live (status / content-type) |
 | --- | --- | --- |
 | `/` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
+| `/index.html` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
 | `/research/papers/db-r-2026-010` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
 | `/research/papers/db-r-2026-010/` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
 | `/research/papers/nope-does-not-exist` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
 | `/some/deep/spa/route` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
+| `/blogs` | 200 text/html; charset=utf-8 (1856 B) | 200 text/html; charset=utf-8 (1941 B) |
+| `/blogs/design-bakery-rebuild` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
+| `/case-studies` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
 | `/robots.txt` | 200 text/plain; charset=utf-8 | 200 text/plain; charset=utf-8 |
 | `/sitemap.xml` | 200 application/xml (4140 B) | 200 application/xml (10292 B) |
+| `/images/site-og.png` | 200 image/png (255298 B) | 200 image/png (255298 B) |
+| `/favicon.ico` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
+| `/assets/index-2U2j1KKs.js` (ours) vs `/assets/index-CWC-t1Uc.js` (live) | 200 application/javascript; charset=utf-8 | 200 application/javascript; charset=utf-8 |
 | `/assets/index-BQtZzjba.css` | 200 text/css; charset=utf-8 | 200 text/css; charset=utf-8 |
+| `/assets/nope-12345.js` (unknown hash) | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
 | `/case-studies/cortex` | 200 text/html; charset=utf-8 (537 B) | 200 text/html; charset=utf-8 (537 B) |
 | `/case-studies/cortex/` | 200 text/html; charset=utf-8 (537 B) | 200 text/html; charset=utf-8 (537 B) |
 | `/case-studies/cortex/a` | 200 text/html; charset=utf-8 (49858 B) | 200 text/html; charset=utf-8 (49858 B) |
 | `/case-studies/cortex/b/index.html` | 200 text/html; charset=utf-8 (454 B) | 200 text/html; charset=utf-8 (454 B) |
 | `/case-studies/cortex/nope.html` | 404 text/plain; charset=utf-8 | 404 text/plain; charset=utf-8 |
-| `/nope.html` | 404 text/plain; charset=utf-8 | 404 text/plain; charset=utf-8 |
+| `/nope.html` | 404 text/plain; charset=utf-8 (14 B) | 404 text/plain; charset=utf-8 (79 B) |
 | `/ai-for-good` | 308 text/plain, 15 B → `/ai-for-good/` | 308 text/plain, 15 B → `https://www.design-bakery.com/ai-for-good/` |
 | `/ai-for-good/` | 200 text/html; charset=utf-8 (2190 B) | 200 text/html; charset=utf-8 (2190 B) |
 | `/ai-for-good/assets/index-BbMbqSAa.js` | 200 application/javascript; charset=utf-8 (227478 B) | 200 application/javascript; charset=utf-8 (227478 B) |
+| `/ai-for-good/brand/logo.svg` (upstream 404) | 404 text/plain; charset=utf-8 | 404 text/plain; charset=utf-8 |
 | `/studyos` | 307 text/plain, 15 B → `https://study.design-bakery.com/` | 307 text/plain, 15 B → same |
 | `/studyos/foo/bar` | 307 → `https://study.design-bakery.com/foo/bar` | 307 → same |
 | `/studyos/foo/bar?q=1` | 307 → `…/foo/bar?q=1` (query kept) | 307 → same |
@@ -92,23 +101,47 @@ including the 15-byte `Redirecting...` body.
 | `/healthz` (internal) | 200 text/plain (2 B) | 200 text/html (SPA fallback — Vercel has no such route) |
 
 Body-level checks (md5 of the response body, local vs live): **byte-identical** for
-`/robots.txt`, `/ai-for-good/`, `/case-studies/cortex`, `/case-studies/cortex/a` and all
-four redirect responses (`Redirecting...` + newline). The cortex sizes match exactly
-(537 / 49858 / 454 bytes), as does the proxied app (2190 / 227478 bytes). The only
+`/robots.txt`, `/ai-for-good/`, `/case-studies/cortex`, `/case-studies/cortex/a`,
+`/images/site-og.png` and all four redirect responses (`Redirecting...` + newline,
+`42c939d0ba4bbdc4c7eab1b5c34aaf71`). The cortex sizes match exactly (537 / 49858 / 454
+bytes), as does the proxied app (2190 / 227478 bytes). `/` and `/index.html` are the same
+size but not byte-identical — the entry-bundle hash differs (see below). The only other
 size differences are `/sitemap.xml` (content, see below), the 404 body (Vercel appends a
-request id) and `/healthz` (our own endpoint).
+per-request id) and `/healthz` (our own endpoint).
+
+### Content types
+
+Go's mime table (what Caddy's `file_server` uses) disagrees with Vercel on four
+extensions, so the Caddyfile overrides them explicitly — the values are what the live
+site actually returns, checked file by file across **all 133 non-hashed static files in
+the build (0 differences remaining)**, plus the hashed `assets/` bundles:
+
+| Extension | Go/Caddy default | Vercel (reproduced) |
+| --- | --- | --- |
+| `.xml` | `text/xml` | `application/xml` |
+| `.js`, `.mjs` | `text/javascript; charset=utf-8` | `application/javascript; charset=utf-8` |
+| `.json` | `application/json` | `application/json; charset=utf-8` |
+| `.b64`, `.keep` | *(no `Content-Type` header at all)* | `application/octet-stream` |
+
+`.css`, `.html`, `.txt`, `.svg`, `.png`, `.webp`, `.avif`, `.vtt` and `.mp4` already
+matched.
 
 ### Known differences (all deliberate or content-level, none are routing bugs)
 
 | Difference | Why | Fix if it matters |
 | --- | --- | --- |
-| `/` HTML body differs in one line | `index.html` references the hashed entry bundle; the JS hash differs because the Vercel build had `VITE_*` env vars inlined and this build did not | set the `VITE_*` values in `deploy/gravebuster/.env` and redeploy |
+| `/` and `/index.html` body differs in one line | `index.html` references the hashed entry bundle; the JS hash differs because the Vercel build had `VITE_*` env vars inlined and this build did not (same length, so the byte count matches) | set the `VITE_*` values in `deploy/gravebuster/.env` and redeploy |
 | `/sitemap.xml` 4140 bytes vs 10292 | `scripts/generate-sitemap.mjs` prefers the live blog list (Supabase / Railway API) and fell back to the committed `blog-data.json` snapshot, so only the bundled posts are listed | same `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (or `VITE_BLOG_API_URL`) build args |
 | 404 body is `404: NOT_FOUND` (14 B) instead of Vercel's 79-byte page | Vercel's body carries a per-request `NOT_FOUND` id | cosmetic; status and content type match |
+| `/ai-for-good/brand/logo.svg` 404 body 79 B vs 84 B | the 404 comes from the **upstream** ai-for-good Vercel app through the proxy; the last line of its body is a request id (`iad1::zfvxj-…` vs `iad1:iad1::2mqz4-…`) that differs per request on both sides | nothing to fix — not our response |
 | `/ai-for-good` `Location` is relative (`/ai-for-good/`) | the container only ever sees `http://` from the tunnel, so an absolute URL would downgrade the scheme at the edge; RFC 7231 allows a relative `Location` | cosmetic |
+| `/blogs` shell is 1856 B vs 1941 B, and the title differs (`Design Baker \| Fullstack…` vs `Engineering Blog \| Design Baker`) | Vercel Edge middleware (`middleware.ts` at the repo root, not `vercel.json`) rewrites the SPA shell for `/blogs/*`, `/{portfolio}/blogs/*` and `/case-studies/*` with crawler-friendly `<title>`/`og:*` taken from the blog source. Without it those routes return the plain app shell. Status and content type are unchanged, browsers render identically — only what a link-preview bot or crawler reads differs | run the same (isomorphic) logic as a small Node sidecar behind Caddy, or accept the generic preview |
 | `/healthz` | internal liveness endpoint for the container healthcheck and `deploy.sh`; the live site has no such route (it would SPA-fallback to 200 text/html) | leave it; it is the "is this our container?" marker |
-| Social/OG meta injection missing | Vercel Edge middleware (`middleware.ts` at the repo root, not `vercel.json`) rewrites the SPA shell for `/blogs/*`, `/{portfolio}/blogs/*` and `/case-studies/*` with crawler-friendly `<title>`/`og:*` taken from the blog source. Without it those routes return the plain app shell. Status and content type are unchanged, browsers render identically — only what a link-preview bot or crawler reads differs | run the same (isomorphic) logic as a small Node sidecar behind Caddy, or accept the generic preview |
 | Vercel response headers absent (`x-vercel-*`, `access-control-allow-origin: *`, `NEL`/`Report-To`) | platform headers | not reproduced; add via Cloudflare if ever needed |
+
+Note that an *unknown* `/assets/*.js` path is not a difference: both sides fall back to
+the SPA shell with `200 text/html` (Vercel's catch-all rewrite, our last `handle`), which
+is why `/assets/nope-12345.js` matches. Only the real bundle name differs between builds.
 
 Cache headers do match Vercel's defaults: HTML `public, max-age=0, must-revalidate`,
 other static files `public, max-age=14400, must-revalidate`.
