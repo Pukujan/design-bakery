@@ -27,6 +27,14 @@
 	}
 
 	route {
+		# Not in vercel.json: the apex -> www 307 is Vercel *domain* configuration, and
+		# the site has always behaved this way (https://design-bakery.com/x -> 307
+		# https://www.design-bakery.com/x). Reproduced here so both hostnames can be
+		# routed to this container without serving the site twice. Matches the apex
+		# only, so staging hostnames and direct 127.0.0.1 checks are unaffected.
+		@apex host design-bakery.com
+		redir @apex https://www.design-bakery.com{http.request.uri} 307
+
 		# ---------------------------------------------------------------- redirects
 		# vercel.json: { source: "/ai-for-good", destination: "/ai-for-good/", permanent: true }
 		# Location is relative on purpose: the container only ever sees http://, so an
@@ -39,15 +47,19 @@
 		redir @studyosExact https://study.design-bakery.com/ 307
 
 		# vercel.json: { source: "/studyos/:path*", destination: "https://study.design-bakery.com/:path*", permanent: false }
-		handle /studyos/* {
-			uri strip_prefix /studyos
-			redir https://study.design-bakery.com{uri} 307
+		# handle_path strips the /studyos prefix before the redirect runs, and
+		# {http.request.uri} is the post-strip value (the plain {uri} placeholder is
+		# resolved from the original request URI and would leak the prefix).
+		handle_path /studyos/* {
+			redir https://study.design-bakery.com{http.request.uri} 307
 		}
 
 		# ----------------------------------------------------------------- rewrites
 		# vercel.json rewrites /ai-for-good/ and /ai-for-good/:path* to the separate
 		# ai-for-good Vercel app. Vercel proxies with Host set to the destination.
 		handle /ai-for-good/* {
+			# reverse_proxy reads the rewritten URL directly, so strip_prefix is enough
+			# here (unlike the redirect above, which needs {http.request.uri}).
 			uri strip_prefix /ai-for-good
 			reverse_proxy https://ai-for-good-livid.vercel.app {
 				header_up Host ai-for-good-livid.vercel.app
@@ -77,6 +89,9 @@
 			header Cache-Control "public, max-age=14400, must-revalidate"
 			@htmlAsset path *.html
 			header @htmlAsset Cache-Control "public, max-age=0, must-revalidate"
+			# Go's mime table serves .xml as text/xml; Vercel serves application/xml.
+			@xmlAsset path *.xml
+			header @xmlAsset Content-Type "application/xml"
 			file_server
 		}
 

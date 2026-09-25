@@ -3,11 +3,11 @@ Description=design-bakery auto-deploy timer (polls origin/main every 5 minutes)
 Documentation=file:///home/yoav/apps/design-bakery/docs/self-hosting.md
 
 [Timer]
-OnBootSec=3min
-OnUnitActiveSec=5min
-# Spread the load; the deploy checkout is small but the build is not.
+# Every 5 minutes, house style (see inferhub-collect-fast.timer).
+OnCalendar=*:0/5
 RandomizedDelaySec=90
-Persistent=true
+AccuracySec=10s
+Persistent=false
 Unit=design-bakery-autodeploy.service
 
 [Install]
