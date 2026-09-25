@@ -113,9 +113,6 @@ export const CSS_TOKEN_SOURCE: Record<ChartTheme, Record<string, string>> = {
 
 export { CSS_VARS };
 
-/** Non-highlighted rows are dimmed; dark mode needs less of it to stay legible. */
-export const DIM_OPACITY: Record<ChartTheme, number> = { light: 0.42, dark: 0.55 };
-
 /**
  * Dim level for a colour mode. On the page this is a CSS variable so the
  * `.dark` class can raise it without re-rendering the chart; the static build
@@ -128,20 +125,6 @@ export function dimOpacity(mode: ChartColorMode): number | string {
 /** Font stack for standalone SVGs, which cannot reach the page's webfonts. */
 export const SVG_FONT_STACK =
   "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
-
-export interface ChartLayout {
-  /** `horizontal` = label left of the bar; `stacked` = label above it. */
-  mode: 'horizontal' | 'stacked';
-  width: number;
-  labelWidth: number;
-  plotLeft: number;
-  plotRight: number;
-  rowHeight: number;
-  facetHeaderHeight: number;
-  axisHeight: number;
-  headerHeight: number;
-  footerHeight: number;
-}
 
 export const CHART_TYPE_LABEL: Record<ChartType, string> = {
   'dot-ci': 'Dot with 95% interval',

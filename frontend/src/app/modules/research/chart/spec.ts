@@ -264,7 +264,9 @@ export function validateChartSpec(dataset: Dataset, spec: ChartSpec): string[] {
         problems.push(`unknown facet "${facetKey}"`);
       } else if (facet.scope !== wantedFacetScope) {
         problems.push(
-          `level "${level}" facets on a ${wantedFacetScope} dimension, but "${facetKey}" is ${facet.scope}-scoped`,
+          `level "${level}" facets on ${
+            wantedFacetScope === 'entity' ? 'an entity' : 'a slice'
+          } dimension, but "${facetKey}" is ${facet.scope}-scoped`,
         );
       }
     }

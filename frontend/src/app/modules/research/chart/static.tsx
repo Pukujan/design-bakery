@@ -17,11 +17,19 @@ import { formatCount } from './format';
 import type { ChartSpec } from './spec';
 
 /**
- * The build step needs to validate fences with the same rules the page uses.
- * Re-exported here so it only has to bundle one entry point, and so there is
- * exactly one definition of "a valid chart spec".
+ * Node-side surface.
+ *
+ * This file is never part of the browser bundle — the only thing that imports
+ * it is `scripts/research/chart-pipeline.mjs`, which bundles it with esbuild for
+ * the validator and the test script. Re-exporting the pure modules here means
+ * those two share one entry point with the component, so "a valid chart spec"
+ * and "what a chart looks like" have exactly one definition each.
  */
-export { chartSlug, canonicalSpec, parseChartSpec, validateChartSpec } from './spec';
+export * from './spec';
+export * from './compute';
+export * from './format';
+export * from './theme';
+export { layoutFor, ResearchChartSvg, ResearchChartSvgTable } from './ResearchChartSvg';
 
 export interface StaticRenderOptions {
   theme: ChartTheme;
