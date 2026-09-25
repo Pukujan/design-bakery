@@ -33,25 +33,55 @@
 		# routed to this container without serving the site twice. Matches the apex
 		# only, so staging hostnames and direct 127.0.0.1 checks are unaffected.
 		@apex host design-bakery.com
-		redir @apex https://www.design-bakery.com{http.request.uri} 307
+		handle @apex {
+			header Location https://www.design-bakery.com{http.request.uri}
+			header Content-Type text/plain
+			respond <<BODY
+			Redirecting...
+
+			BODY 307
+		}
 
 		# ---------------------------------------------------------------- redirects
+		# `respond` + an explicit Location instead of `redir`: Vercel answers these with a
+		# 15-byte `Redirecting...\n` text/plain body, and `redir` cannot carry a body. The
+		# body is a heredoc because the Caddyfile does not expand \n in quoted strings —
+		# the blank line before the closing marker is the trailing newline.
 		# vercel.json: { source: "/ai-for-good", destination: "/ai-for-good/", permanent: true }
 		# Location is relative on purpose: the container only ever sees http://, so an
 		# absolute redirect would downgrade the scheme at the Cloudflare edge.
 		@aiForGoodExact path /ai-for-good
-		redir @aiForGoodExact /ai-for-good/ 308
+		handle @aiForGoodExact {
+			header Location /ai-for-good/
+			header Content-Type text/plain
+			respond <<BODY
+			Redirecting...
+
+			BODY 308
+		}
 
 		# vercel.json: { source: "/studyos", destination: "https://study.design-bakery.com/", permanent: false }
 		@studyosExact path /studyos
-		redir @studyosExact https://study.design-bakery.com/ 307
+		handle @studyosExact {
+			header Location https://study.design-bakery.com/
+			header Content-Type text/plain
+			respond <<BODY
+			Redirecting...
+
+			BODY 307
+		}
 
 		# vercel.json: { source: "/studyos/:path*", destination: "https://study.design-bakery.com/:path*", permanent: false }
 		# handle_path strips the /studyos prefix before the redirect runs, and
 		# {http.request.uri} is the post-strip value (the plain {uri} placeholder is
 		# resolved from the original request URI and would leak the prefix).
 		handle_path /studyos/* {
-			redir https://study.design-bakery.com{http.request.uri} 307
+			header Location https://study.design-bakery.com{http.request.uri}
+			header Content-Type text/plain
+			respond <<BODY
+			Redirecting...
+
+			BODY 307
 		}
 
 		# ----------------------------------------------------------------- rewrites
