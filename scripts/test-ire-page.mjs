@@ -124,4 +124,58 @@ assert.deepEqual(options, themeNames, 'the theme picker should list every theme'
 const listed = (html.match(/var THEMES = \[([^\]]*)\]/) ?? [])[1];
 assert.deepEqual(listed?.match(/[a-z-]+/g).sort(), themeNames, 'the head script should know every theme');
 
+// 6. SEO and the social preview. Crawlers get these from the static file (no JS needed).
+const headHtml = html.slice(0, html.indexOf('</head>'));
+const meta = (attr, name) => {
+  const m = headHtml.match(new RegExp(`<meta ${attr}="${name.replace(/[:.]/g, '\\$&')}" content="([^"]*)">`));
+  return m ? m[1] : null;
+};
+const PAGE_URL = 'https://www.design-bakery.com/ire';
+const IMAGE_URL = 'https://www.design-bakery.com/ire/og-image.png';
+const titleText = (headHtml.match(/<title>([^<]+)<\/title>/) ?? [])[1];
+assert.ok(titleText && titleText.length >= 30 && titleText.length <= 60, `title should be 30-60 characters: ${titleText}`);
+const description = meta('name', 'description');
+assert.ok(description && description.length >= 140 && description.length <= 160, `meta description should be 140-160 characters, is ${description?.length}`);
+assert.ok(headHtml.includes(`<link rel="canonical" href="${PAGE_URL}">`), 'canonical URL');
+const required = {
+  'og:type': 'website', 'og:site_name': 'Design Baker', 'og:url': PAGE_URL, 'og:image': IMAGE_URL,
+  'og:image:type': 'image/png', 'og:image:width': '1200', 'og:image:height': '630',
+};
+for (const [k, v] of Object.entries(required)) assert.equal(meta('property', k), v, `${k}`);
+for (const k of ['og:title', 'og:description', 'og:image:alt']) assert.ok(meta('property', k)?.length > 20, `${k} should be set`);
+assert.equal(meta('name', 'twitter:card'), 'summary_large_image');
+assert.equal(meta('name', 'twitter:image'), IMAGE_URL);
+for (const k of ['twitter:title', 'twitter:description', 'twitter:image:alt']) assert.ok(meta('name', k)?.length > 20, `${k} should be set`);
+assert.equal(meta('name', 'robots'), 'index, follow');
+// theme-color has to be a literal; keep it equal to the dark theme's --background.
+const darkBg = themeRules.match(/:root,\s*\[data-theme="dark"\]\s*\{[^}]*--background:\s*(#[0-9a-f]{6})/i)?.[1];
+assert.equal(meta('name', 'theme-color')?.toLowerCase(), darkBg?.toLowerCase(), 'theme-color should match the dark --background');
+// JSON-LD: a WebPage about a Dataset whose download is the live feed.
+const ldText = (headHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/) ?? [])[1];
+assert.ok(ldText, 'JSON-LD block');
+const ld = JSON.parse(ldText);
+assert.equal(ld['@context'], 'https://schema.org');
+const webpage = ld['@graph'].find((n) => n['@type'] === 'WebPage');
+const dataset = ld['@graph'].find((n) => n['@type'] === 'Dataset');
+assert.equal(webpage?.url, PAGE_URL);
+assert.equal(webpage.primaryImageOfPage?.url, IMAGE_URL);
+assert.equal(webpage.about?.['@id'], dataset?.['@id'], 'WebPage should be about the Dataset');
+assert.ok(dataset.description.length >= 50, 'Dataset needs a real description');
+assert.ok(dataset.distribution.some((d) => d.contentUrl === FEED_URL && d.encodingFormat === 'application/json'), 'Dataset should point at the live feed');
+// No closed model names or promo wording in any tag, alt text or JSON-LD.
+const seoText = [titleText, ...[...headHtml.matchAll(/content="([^"]*)"/g)].map((m) => m[1]), ldText].join(' ');
+assert.deepEqual(closedModelNames(seoText), [], 'SEO tags name a closed model');
+assert.ok(!/%\s*off|\bdiscount|official price|list price|\bdeal\b/i.test(seoText), 'SEO tags read like a price promo');
+// The image itself: a real 1200x630 PNG under 300 KB, plus its committed source.
+const png = await readFile(new URL('./frontend/public/ire/og-image.png', root));
+assert.equal(png.subarray(1, 4).toString('latin1'), 'PNG', 'og-image.png should be a PNG');
+assert.equal(png.readUInt32BE(16), 1200, 'og image width');
+assert.equal(png.readUInt32BE(20), 630, 'og image height');
+assert.ok(png.length < 300 * 1024, `og image should be under 300 KB, is ${png.length}`);
+const ogSource = await read('./scripts/ire-og-image/og-image.html');
+assert.ok(ogSource.includes('frontend/public/ire/theme.css'), 'og image source should use the page theme tokens');
+const ogCopy = visibleText(ogSource);
+assert.deepEqual(closedModelNames(ogCopy), [], 'og image names a closed model');
+assert.ok(!/\$|%|discount|official|cheaper/i.test(ogCopy), 'og image makes a price claim');
+
 console.log('IRE page static checks passed.');

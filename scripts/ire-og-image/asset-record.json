@@ -1,0 +1,21 @@
+{
+  "asset": "frontend/public/ire/og-image.png",
+  "role": "social preview",
+  "page": "https://www.design-bakery.com/ire",
+  "dimensions": [1200, 630],
+  "format": "image/png",
+  "source": "scripts/ire-og-image/og-image.html",
+  "regenerate": "pnpm ire:og-image",
+  "method": "Deterministic HTML render with Playwright Chromium (requested instead of an image model so it can be rebuilt exactly).",
+  "palette": "dark theme tokens from frontend/public/ire/theme.css",
+  "copy": {
+    "kicker": "Inference Recommendation Engine",
+    "title": "IRE: Today’s Picks",
+    "subtitle": "A daily list of open-weight models worth calling, with the reason behind every pick.",
+    "brand": "Design Baker · design-bakery.com/ire"
+  },
+  "alt": "Dark card with the title IRE Today's Picks and the line “A daily list of open-weight models worth calling, with the reason behind every pick”, signed Design Baker, design-bakery.com/ire.",
+  "rules": "Open-weight only; no closed model names; no price, discount or official-price claims; no fake metrics (the two bars are the page's price-ladder motif and carry no text).",
+  "review": "Accepted 2026-10-04 after a visual check at full size.",
+  "sha256": "9ac7e0aead4e859b0322cf8990f7f00f26db040af01010198f10889ffcaeef85"
+}
