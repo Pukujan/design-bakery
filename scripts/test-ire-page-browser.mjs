@@ -8,16 +8,18 @@
 //
 // Scenarios: live feed renders both tabs; fallback when the feed is blocked; stale
 // banner when the clock is past stale_after; error state when both sources fail;
-// mobile viewport without horizontal overflow; no console errors.
+// mobile viewport without horizontal overflow; no closed model names anywhere on the
+// rendered page; no console errors.
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { readFile, stat, mkdir } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { closedModelNames } from './ire-closed-models.mjs';
 
 const FEED_URL =
-  'https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v1/today.json';
+  'https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v2/today.json';
 const dist = fileURLToPath(new URL('../frontend/dist', import.meta.url));
 const live = process.argv.includes('--live');
 const shotsDir = process.env.IRE_SHOTS_DIR;
@@ -82,6 +84,12 @@ async function scenario(name, opts, fn) {
     await page.route(FEED_URL, (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: savedText }),
     );
+  } else if (opts.feed === 'mock-closed') {
+    const doc = JSON.parse(savedText);
+    const intruder = { ...doc.tiers.cheap.entries[0], rank: 1, model_family: 'GPT 6 Astra', vendor: 'OpenAI', best_route: 'cb/gpt-6-astra', routes: ['cb/gpt-6-astra'], open_weight: false };
+    doc.tiers.cheap.entries.unshift(intruder);
+    doc.tiers.strongest_open.entries.unshift({ ...intruder, model_family: 'Claude Opus 5.5', vendor: 'Anthropic', best_route: 'cc/claude-opus-5-5', routes: ['cc/claude-opus-5-5'] });
+    await page.route(FEED_URL, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(doc) }));
   } else if (opts.feed === 'block') {
     await page.route(FEED_URL, (route) => route.abort('blockedbyclient'));
   }
@@ -111,6 +119,29 @@ async function rowCount(page, tier) {
   return page.locator(`#table-${tier} tbody tr`).count();
 }
 
+// Everything a reader can see: rendered text of both panels (hidden tab included), the
+// title, meta descriptions, link text and image alt text.
+async function pageText(page) {
+  return page.evaluate(() => {
+    const parts = [document.title, document.body.textContent];
+    document.querySelectorAll('meta[content]').forEach((m) => parts.push(m.getAttribute('content')));
+    document.querySelectorAll('[alt],[title],[aria-label]').forEach((n) => parts.push(n.getAttribute('alt') ?? '', n.getAttribute('title') ?? '', n.getAttribute('aria-label') ?? ''));
+    return parts.join(' ');
+  });
+}
+
+async function assertOpenWeightOnly(page) {
+  const text = await pageText(page);
+  // Inline <script> is part of body.textContent; the code holds no model names, but strip it anyway.
+  const visible = text.replace(/\(function \(\) \{[\s\S]*\}\)\(\);/, ' ');
+  assert.deepEqual(closedModelNames(visible), [], 'a closed model family or vendor appears on the page');
+  assert.ok(!/%\s*off|\bdiscount|official price/i.test(visible), 'page reads like a price promo');
+  const fams = await page.locator('.mname').allTextContents();
+  assert.ok(fams.length > 0, 'model rows rendered');
+  assert.deepEqual(closedModelNames(fams.join(' ')), [], 'a closed model row rendered');
+  assert.equal(await page.locator('#table-cheap tbody tr .lic').count(), await rowCount(page, 'cheap'), 'every cheap row links its licence');
+}
+
 async function shot(page, file, fullPage = true) {
   if (!shotsDir) return;
   await mkdir(shotsDir, { recursive: true });
@@ -122,27 +153,35 @@ await scenario('live feed renders both tabs', { feed: live ? 'live' : 'mock', cl
   const feed = live ? await (await fetch(FEED_URL)).json() : saved;
   assert.equal(await rowCount(page, 'cheap'), feed.tiers.cheap.entries.length, 'cheap rows match the feed');
   assert.ok(await page.isVisible('#panel-cheap'));
-  assert.ok(!(await page.isVisible('#panel-frontier')), 'frontier panel starts hidden');
+  assert.ok(!(await page.isVisible('#panel-strongest_open')), 'strongest panel starts hidden');
   const firstCheap = feed.tiers.cheap.entries[0];
   assert.equal((await page.locator('#table-cheap tbody tr').first().getAttribute('data-route')), firstCheap.best_route);
   assert.match(await page.textContent('#asof-cheap'), /^As of /);
   await shot(page, 'ire-desktop-cheap.png');
-  await page.click('#tab-frontier');
-  assert.ok(await page.isVisible('#panel-frontier'));
-  assert.equal(await rowCount(page, 'frontier'), feed.tiers.frontier.entries.length, 'frontier rows match the feed');
-  assert.match(await page.textContent('#asof-frontier'), /^As of /);
+  await page.click('#tab-strongest_open');
+  assert.ok(await page.isVisible('#panel-strongest_open'));
+  assert.equal(await rowCount(page, 'strongest_open'), feed.tiers.strongest_open.entries.length, 'strongest rows match the feed');
+  assert.match(await page.textContent('#asof-strongest_open'), /^As of /);
   // Keyboard: ArrowLeft goes back to the cheap tab.
-  await page.focus('#tab-frontier');
+  await page.focus('#tab-strongest_open');
   await page.keyboard.press('ArrowLeft');
   assert.equal(await page.getAttribute('#tab-cheap', 'aria-selected'), 'true');
-  await page.click('#tab-frontier');
+  await page.click('#tab-strongest_open');
   await toPicks(page);
-  await shot(page, 'ire-desktop-frontier-tab.png', false);
+  await shot(page, 'ire-desktop-strongest-tab.png', false);
   if (!live) assert.ok(!(await page.isVisible('#stale-banner')), 'no stale banner before stale_after');
   assert.ok(!(await page.isVisible('#saved-note')), 'no saved-copy note on a live load');
   const rec = feed.tiers.cheap.entries.find((e) => e.recommended);
   assert.equal(await page.locator('.js-route').first().textContent(), rec.best_route, 'snippets use today\'s route');
   assert.ok((await page.textContent('#provenance')).includes('Code commit'));
+  await assertOpenWeightOnly(page);
+});
+
+await scenario('a closed model slipped into the feed is not rendered', { feed: 'mock-closed', clock: freshTime }, async (page) => {
+  // The page itself drops any entry without open_weight: true, as a second line of defence.
+  assert.equal(await page.getAttribute('body', 'data-feed'), 'live');
+  assert.equal(await rowCount(page, 'cheap'), saved.tiers.cheap.entries.length);
+  await assertOpenWeightOnly(page);
 });
 
 await scenario('fallback when the feed is blocked', { feed: 'block', clock: freshTime, allowFailedLoad: true }, async (page) => {
@@ -179,10 +218,11 @@ await scenario('mobile viewport', {
   // layout viewport (and window.innerWidth) instead of adding a scrollbar.
   const width = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, inner: window.innerWidth }));
   assert.ok(width.doc <= 391 && width.inner <= 391, `page is wider than the 390px screen: ${JSON.stringify(width)}`);
-  await page.click('#tab-frontier');
-  assert.ok((await rowCount(page, 'frontier')) > 0);
+  await assertOpenWeightOnly(page);
+  await page.click('#tab-strongest_open');
+  assert.ok((await rowCount(page, 'strongest_open')) > 0);
   await toPicks(page);
-  await shot(page, 'ire-mobile-frontier-tab.png', false);
+  await shot(page, 'ire-mobile-strongest-tab.png', false);
   await page.click('#tab-cheap');
   await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, 'ire-mobile-top.png', false);

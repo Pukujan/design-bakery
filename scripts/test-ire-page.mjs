@@ -4,11 +4,12 @@
 // scripts/test-ire-page-browser.mjs.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { closedModelNames, visibleText } from './ire-closed-models.mjs';
 
 const root = new URL('..', import.meta.url);
 const read = (p) => readFile(new URL(p, root), 'utf8');
 const FEED_URL =
-  'https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v1/today.json';
+  'https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v2/today.json';
 
 // 1. The page and its saved feed copy.
 const html = await read('./frontend/public/ire/index.html');
@@ -17,7 +18,7 @@ assert.ok(html.includes("'/ire/today.saved.json'"), 'page should fall back to th
 for (const id of ['picks', 'real-story', 'how', 'use-it', 'agents', 'limits', 'receipts']) {
   assert.ok(html.includes(`id="${id}"`), `page should have a #${id} section`);
 }
-for (const id of ['tab-cheap', 'tab-frontier', 'panel-cheap', 'panel-frontier', 'stale-banner', 'saved-note', 'error-note', 'feed-url']) {
+for (const id of ['tab-cheap', 'tab-strongest_open', 'panel-cheap', 'panel-strongest_open', 'stale-banner', 'saved-note', 'error-note', 'feed-url']) {
   assert.ok(html.includes(`id="${id}"`), `page should have #${id}`);
 }
 assert.ok(html.includes('schema.json'), 'agents section should link the schema');
@@ -30,17 +31,30 @@ const saved = JSON.parse(await read('./frontend/public/ire/today.saved.json'));
 for (const key of ['schema_version', 'generated_at', 'day_et', 'stale_after', 'source_repo', 'sources', 'notice', 'tiers']) {
   assert.ok(key in saved, `saved feed is missing ${key}`);
 }
-assert.equal(saved.schema_version, 'ire-feed/v1');
-for (const tier of ['cheap', 'frontier']) {
+assert.equal(saved.schema_version, 'ire-feed/v2');
+assert.equal(saved.open_weight_only, true, 'saved feed should be the open-weight feed');
+for (const tier of ['cheap', 'strongest_open']) {
   const t = saved.tiers[tier];
   assert.ok(t && typeof t.as_of === 'string', `saved ${tier} tier needs as_of`);
   assert.ok(Array.isArray(t.entries) && t.entries.length > 0, `saved ${tier} tier needs entries`);
   for (const e of t.entries) {
-    for (const k of ['rank', 'model_family', 'recommended', 'gate_reasons', 'best_route', 'price_usd_per_mtok', 'health', 'routes']) {
+    for (const k of ['rank', 'model_family', 'recommended', 'gate_reasons', 'best_route', 'price_usd_per_mtok', 'health', 'routes', 'open_weight', 'licence']) {
       assert.ok(k in e, `saved ${tier} entry ${e.model_family ?? '?'} is missing ${k}`);
     }
+    assert.equal(e.open_weight, true, `saved ${tier} entry ${e.model_family} is not open-weight`);
+    assert.match(e.licence.url, /^https:\/\//, `saved ${tier} entry ${e.model_family} needs a licence URL`);
+    const names = closedModelNames([e.model_family, e.vendor, e.best_route, ...e.routes].join(' '));
+    assert.deepEqual(names, [], `saved ${tier} entry ${e.model_family} names a closed model: ${names}`);
   }
 }
+
+// 1b. Open-weight only: no closed model names in the copy, and no price-comparison promos.
+const copy = visibleText(html);
+assert.deepEqual(closedModelNames(copy), [], 'page copy names a closed model family or vendor');
+assert.ok(!/%\s*off|\bdiscount|official price|list price|\bsave \d|\bdeal\b|cheaper than (the )?official/i.test(copy), 'page copy reads like a price promo');
+assert.ok(!/official|discount/i.test(JSON.stringify(Object.keys(saved))) && !/"[^"]*(official|discount)[^"]*":/i.test(JSON.stringify(saved)), 'saved feed carries official-price or discount fields');
+assert.ok(!/frontier/i.test(copy), 'page should talk about the strongest open-weight models, not a frontier list');
+assert.ok(/open-weight/i.test(copy), 'page should say it covers open-weight models');
 
 // 2. Nothing that looks like a credential ships with the page.
 const keyLike = /(sk-[A-Za-z0-9_-]{16,}|Bearer\s+[A-Za-z0-9._-]{20,}|ihub[_-][A-Za-z0-9]{16,})/;

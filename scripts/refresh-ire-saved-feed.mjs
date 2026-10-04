@@ -11,7 +11,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 
 const FEED_URL =
-  'https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v1/today.json';
+  'https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v2/today.json';
 const target = new URL('../frontend/dist/ire/today.saved.json', import.meta.url);
 const TIMEOUT_MS = 10_000;
 
@@ -20,12 +20,14 @@ function isFeed(d) {
     d &&
     typeof d === 'object' &&
     typeof d.schema_version === 'string' &&
-    d.schema_version.startsWith('ire-feed/v1') &&
+    d.schema_version.startsWith('ire-feed/v2') &&
     typeof d.generated_at === 'string' &&
     typeof d.stale_after === 'string' &&
     Array.isArray(d.tiers?.cheap?.entries) &&
-    Array.isArray(d.tiers?.frontier?.entries) &&
-    d.tiers.cheap.entries.length > 0
+    Array.isArray(d.tiers?.strongest_open?.entries) &&
+    d.tiers.cheap.entries.length > 0 &&
+    // The page only shows open-weight models; refuse a copy with anything else in it.
+    [...d.tiers.cheap.entries, ...d.tiers.strongest_open.entries].every((e) => e?.open_weight === true)
   );
 }
 
@@ -46,7 +48,7 @@ async function main() {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const live = await res.json();
-    if (!isFeed(live)) throw new Error('response does not look like an ire-feed/v1 document');
+    if (!isFeed(live)) throw new Error('response does not look like an open-weight ire-feed/v2 document');
     if (Date.parse(live.generated_at) < Date.parse(committed.generated_at)) {
       console.log('[ire-feed] live feed is older than the committed copy; keeping the committed copy.');
       return;

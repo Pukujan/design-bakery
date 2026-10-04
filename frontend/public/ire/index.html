@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>IRE | Today's cheapest model you can actually use</title>
-<meta name="description" content="Inference Recommendation Engine checks InferHub prices, supply and route health every day and publishes a dated list of cheap and frontier model routes. Bring your own key; the list is free to read.">
-<meta property="og:title" content="IRE | Today's cheapest model you can actually use">
-<meta property="og:description" content="A daily, dated list of cheap and frontier InferHub routes, with prices, health and the reason behind every pick.">
+<title>IRE | Today's cheapest open model you can actually use</title>
+<meta name="description" content="Inference Recommendation Engine checks InferHub prices, supply and route health every day and publishes a dated list of open-weight model routes: the cheapest worth using and the strongest. Bring your own key; the list is free to read.">
+<meta property="og:title" content="IRE | Today's cheapest open model you can actually use">
+<meta property="og:description" content="A daily, dated list of open-weight models on InferHub, with the route to call, price, health, licence and the reason behind every pick.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.design-bakery.com/ire">
 <link rel="canonical" href="https://www.design-bakery.com/ire">
@@ -58,7 +58,7 @@ td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:0}
 tr.held td{background:#fcfcfd;color:#738190}tr.held .mname{color:#5b6b7b}
 .num{font:800 13px/1 var(--mono);color:var(--muted)}
-.mname{font-weight:800}.vendor{display:block;font-size:12.5px;color:var(--muted)}
+.mname{font-weight:800}.vendor{display:block;font-size:12.5px;color:var(--muted)}.lic{display:block;font-size:12px;color:var(--teal);text-decoration:underline;text-underline-offset:2px;margin-top:2px}
 .rcode{font:700 12.5px/1.35 var(--mono);color:var(--teal);overflow-wrap:anywhere}
 @media(min-width:721px){td:nth-child(2){min-width:150px}td:nth-child(3){min-width:250px}}
 .chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.chip{font:700 10.5px/1.3 var(--sans);padding:3px 7px;border-radius:999px;background:var(--fog);color:var(--muted);border:1px solid var(--line)}
@@ -78,7 +78,7 @@ tr.held td{background:#fcfcfd;color:#738190}tr.held .mname{color:#5b6b7b}
 .swap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px}
 .listcard{border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#fbfdfe}
 .listhead{display:flex;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);font:800 10px/1.2 var(--mono);color:var(--muted);letter-spacing:.06em}
-.listcard ol{margin:0;padding:14px 18px 16px 40px;font-size:15px}.listcard li{padding:4px 0}
+.listcard ol{margin:0;padding:14px 18px 16px 40px;font-size:15px}.listcard li{padding:4px 0}.listcard ol.facts{list-style:none;padding-left:18px}.listcard ol.facts .out{text-decoration:none}
 .out{color:#b4524e;text-decoration:line-through;text-decoration-thickness:1.5px}.in{color:#1f6b55;font-weight:800}
 .receipt{margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px 16px;border:1px dashed #b7cbd6;border-radius:14px;background:#f8fbfc;font:700 10.5px/1.5 var(--mono);color:var(--muted)}.receipt a{color:var(--teal);text-decoration:none}
 .realquote{font-size:clamp(25px,3.8vw,40px);line-height:1.16;letter-spacing:-.035em;margin:28px 0 0}.realquote strong{color:var(--teal)}
@@ -134,10 +134,10 @@ tr.held td{background:#fcfcfd;color:#738190}tr.held .mname{color:#5b6b7b}
 
 <div class="wrap hero">
   <div>
-    <div class="pills"><span class="pill live">UPDATED DAILY</span><span class="pill">YOUR KEY STAYS WITH YOU</span></div>
+    <div class="pills"><span class="pill live">UPDATED DAILY</span><span class="pill">OPEN-WEIGHT MODELS ONLY</span><span class="pill">YOUR KEY STAYS WITH YOU</span></div>
     <div class="kicker">For anyone pointing an agent at InferHub</div>
-    <h1>Today's cheapest model you can actually use.</h1>
-    <p class="lead">InferHub sells the same model through several provider routes at different prices. The cheapest route is often the one with a single seller behind it. Inference Recommendation Engine (IRE) checks price, supply and health every day and names the route worth calling.</p>
+    <h1>Today's cheapest open model you can actually use.</h1>
+    <p class="lead">InferHub sells the same model through several provider routes at different prices, and the cheapest route is often the one with a single seller behind it. Inference Recommendation Engine (IRE) checks price, supply and health every day and names the route worth calling. It only lists models whose weights are published, so you're never tied to one company's API.</p>
     <div class="actions"><a class="btn primary" href="#picks">See today's picks</a><a class="btn" href="https://github.com/Pukujan/inference-recommendation-engine/blob/main/START-HERE.md" target="_blank" rel="noopener noreferrer">Start here on GitHub ↗</a></div>
   </div>
   <aside class="pickcard" aria-label="Today's top picks" aria-live="polite">
@@ -146,8 +146,8 @@ tr.held td{background:#fcfcfd;color:#738190}tr.held .mname{color:#5b6b7b}
       <div id="hero-cheap"><p class="skeleton">Loading today's list…</p></div>
     </div>
     <div class="row">
-      <div class="lbl">Top frontier pick</div>
-      <div id="hero-frontier"><p class="skeleton">Loading today's list…</p></div>
+      <div class="lbl">Strongest open-weight pick</div>
+      <div id="hero-strongest_open"><p class="skeleton">Loading today's list…</p></div>
     </div>
     <div class="asof" id="hero-asof"></div>
   </aside>
@@ -156,25 +156,25 @@ tr.held td{background:#fcfcfd;color:#738190}tr.held .mname{color:#5b6b7b}
 <section id="picks">
   <div class="wrap">
     <div class="kicker">Updated once a day</div>
-    <h2>Today's picks, cheap and frontier.</h2>
-    <p class="sub">The cheap list is for everyday agent work, where a long run makes every fraction of a cent count. The frontier list ranks the strongest models first and then finds the cheapest healthy route for each one. When the policy holds a model back, the row stays visible with the reason.</p>
+    <h2>Today's picks, all open-weight.</h2>
+    <p class="sub">Every model here has its weights out in the open, and each row links the licence. The cheap list is for everyday agent work, where a long run makes every fraction of a cent count. The strongest list puts the most capable open models first and finds a healthy route for each. When the policy holds a model back, the row stays visible with the reason.</p>
     <div class="notice stale" id="stale-banner" role="status"></div>
     <div class="notice saved" id="saved-note" role="status"></div>
     <div class="notice error" id="error-note" role="alert"></div>
-    <noscript><div class="notice error show">This list needs JavaScript. You can read the same data as JSON at <a href="https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v1/today.json">today.json</a>.</div></noscript>
+    <noscript><div class="notice error show">This list needs JavaScript. You can read the same data as JSON at <a href="https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v2/today.json">today.json</a>.</div></noscript>
 
     <div class="tabs" role="tablist" aria-label="Recommendation lists">
-      <button class="tab" role="tab" id="tab-cheap" aria-controls="panel-cheap" aria-selected="true" tabindex="0" data-tier="cheap">Cheap (Top 20)<span class="count" id="count-cheap"></span></button>
-      <button class="tab" role="tab" id="tab-frontier" aria-controls="panel-frontier" aria-selected="false" tabindex="-1" data-tier="frontier">Frontier<span class="count" id="count-frontier"></span></button>
+      <button class="tab" role="tab" id="tab-cheap" aria-controls="panel-cheap" aria-selected="true" tabindex="0" data-tier="cheap">Cheap<span class="count" id="count-cheap"></span></button>
+      <button class="tab" role="tab" id="tab-strongest_open" aria-controls="panel-strongest_open" aria-selected="false" tabindex="-1" data-tier="strongest_open">Strongest open-weight<span class="count" id="count-strongest_open"></span></button>
     </div>
     <div class="panel" role="tabpanel" id="panel-cheap" aria-labelledby="tab-cheap">
-      <div class="panelhead"><p>The 20 cheapest reliable, recent models. Rows marked "held back" failed a rule and are shown so you can see why.</p><span class="asof" id="asof-cheap">Loading…</span></div>
+      <div class="panelhead"><p>The open-weight models from IRE's cheap Top 20, cheapest reliable first. Rows marked "held back" failed a rule and stay listed so you can see why.</p><span class="asof" id="asof-cheap">Loading…</span></div>
       <div id="table-cheap"></div>
       <div class="tablefoot">Prices are the lowest listed ask in US dollars per 1 million tokens when the list was built. InferHub may bill more when you call.</div>
     </div>
-    <div class="panel" role="tabpanel" id="panel-frontier" aria-labelledby="tab-frontier" hidden>
-      <div class="panelhead"><p>Recommended frontier models, strongest first, each with its cheapest healthy route.</p><span class="asof" id="asof-frontier">Loading…</span></div>
-      <div id="table-frontier"></div>
+    <div class="panel" role="tabpanel" id="panel-strongest_open" aria-labelledby="tab-strongest_open" hidden>
+      <div class="panelhead"><p>The most capable open-weight models IRE recommends today, strongest first, each with its cheapest healthy route.</p><span class="asof" id="asof-strongest_open">Loading…</span></div>
+      <div id="table-strongest_open"></div>
       <div class="tablefoot">Prices are the lowest listed ask in US dollars per 1 million tokens when the list was built. InferHub may bill more when you call.</div>
     </div>
   </div>
@@ -202,15 +202,15 @@ tr.held td{background:#fcfcfd;color:#738190}tr.held .mname{color:#5b6b7b}
 
 <section class="episode" id="real-story">
   <div class="wrap">
-    <div class="kicker">This happened on October 4, 2026</div>
-    <h2>Three Claude models left the frontier list overnight.</h2>
-    <p class="sub">On the evening of October 3, Claude Fable 5.1, Claude Fable 5 and Claude Opus 5.5 held places two to four. By the next morning's refresh, InferHub's status page showed the best route for each as degraded. IRE held all three back with the reason "no healthy route", and the next models moved up.</p>
+    <div class="kicker">From the October 4, 2026 list</div>
+    <h2>GLM 5.2 and GLM 5.3 cost the same. Only one made the list.</h2>
+    <p class="sub">Both were listed at $0.0014 per million input tokens and $0.0044 per million output on the <code>alicn/</code> route. On paper that's a tie. InferHub's status page told a different story: GLM 5.2 was in a major outage and had been up for 70.55% of the past day, while GLM 5.3 was at 99.98%. IRE held GLM 5.2 back as not routable and kept GLM 5.3 as a pick.</p>
     <div class="swap">
-      <div class="listcard"><div class="listhead"><span>OCTOBER 3, EVENING</span><span>frontier places 2 to 4</span></div><ol start="2"><li class="out">Claude Fable 5.1</li><li class="out">Claude Fable 5</li><li class="out">Claude Opus 5.5</li></ol></div>
-      <div class="listcard"><div class="listhead"><span>OCTOBER 4, MORNING</span><span>after the daily refresh</span></div><ol start="2"><li class="in">GPT 6.1 Sol</li><li class="in">GPT 6 Sol</li><li class="in">Gemini 3.1 Pro</li></ol></div>
+      <div class="listcard"><div class="listhead"><span>GLM 5.2</span><span>held back</span></div><ol class="facts"><li>$0.0014 in / $0.0044 out per 1M</li><li class="out">Major outage on the status page</li><li class="out">Up 70.55% of the last 24 hours</li></ol></div>
+      <div class="listcard"><div class="listhead"><span>GLM 5.3</span><span>recommended</span></div><ol class="facts"><li>$0.0014 in / $0.0044 out per 1M</li><li class="in">Operational on the status page</li><li class="in">Up 99.98% of the last 24 hours</li></ol></div>
     </div>
-    <p class="realquote">A model you used yesterday can be the wrong call today. <strong>That's why every list carries a date.</strong></p>
-    <div class="receipt"><span>Daily refresh, October 4 · before and after table in the pull request</span><a href="https://github.com/Pukujan/inference-recommendation-engine/pull/69" target="_blank" rel="noopener noreferrer">See the source trail ↗</a></div>
+    <p class="realquote">On price alone, they tie. <strong>Health breaks the tie.</strong></p>
+    <div class="receipt"><span>Cheap list, October 4 build · both rows are in that day's file</span><a href="https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v2/days/2026-10-04.json" target="_blank" rel="noopener noreferrer">See the source data ↗</a></div>
   </div>
 </section>
 
@@ -265,8 +265,7 @@ claude</pre>
         <p>The OpenAI-compatible endpoint, with your key as a Bearer token.</p></article>
     </div>
     <div class="caveat">
-      <h3>Picking a cx/ route? Read this first.</h3>
-      <p>Routes that start with <code>cx/</code> go through OpenAI Codex. On those, your system prompt reaches the model as a developer message, and a fixed instruction, "You are a helpful assistant.", fills the slot the upstream requires. Most chat use won't notice. If your tool depends on a strict system prompt, call <code>/v1/responses</code> instead of <code>/v1/chat/completions</code>. That endpoint keeps your instructions as you sent them.</p>
+      <h3>Picking a cb/ route? It adds a note to your prompt.</h3>
       <p>Routes on <code>cb/</code> and <code>cbcn/</code> add a short system note ahead of yours. You can switch it off per key in InferHub under Dashboard → API keys → Prompt filtering.</p>
     </div>
     <p class="sub" style="margin-top:22px;font-size:16px">Want a quick check first? From a copy of the repo, <code>pnpm ire:doctor</code> confirms your key is set without printing it, fetches today's list and tells you how old it is.</p>
@@ -278,16 +277,16 @@ claude</pre>
     <div class="kicker">For agents and scripts</div>
     <h2>Let your scripts fetch today's pick on their own.</h2>
     <p class="sub">Today's list is one JSON file at a public URL, with no login. A launcher, a proxy config or an agent can read it at startup and pick a route without anyone in the loop.</p>
-    <div class="urlbox"><code id="feed-url">https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v1/today.json</code><button class="btn sun" type="button" data-copy="feed-url">Copy feed URL</button></div>
+    <div class="urlbox"><code id="feed-url">https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v2/today.json</code><button class="btn sun" type="button" data-copy="feed-url">Copy feed URL</button></div>
     <div class="agentgrid">
       <div>
         <div class="codehead" style="color:#bfe7f5;padding:0 0 10px"><span>TODAY'S CHEAPEST RECOMMENDED ROUTE, ONE LINE</span><button class="copy" type="button" data-copy="code-jq">Copy</button></div>
-<pre id="code-jq">curl -s https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v1/today.json \
+<pre id="code-jq">curl -s https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v2/today.json \
   | jq -r 'first(.tiers.cheap.entries[] | select(.recommended)) | .best_route'</pre>
       </div>
       <div class="agentnote">
-        <p>The file follows a published <a href="https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v1/schema.json" target="_blank" rel="noopener noreferrer">JSON schema ↗</a>. Check that <code>schema_version</code> is <code>ire-feed/v1</code>, and warn your user when <code>stale_after</code> has passed.</p>
-        <p>It changes once a day, so cache it for hours. Past days sit next to it under <code>feed/v1/days/</code>.</p>
+        <p>The file follows a published <a href="https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v2/schema.json" target="_blank" rel="noopener noreferrer">JSON schema ↗</a>. Check that <code>schema_version</code> is <code>ire-feed/v2</code>, and warn your user when <code>stale_after</code> has passed. Every entry carries <code>open_weight</code> and a <code>licence</code> with links to the licence and the weights.</p>
+        <p>It changes once a day, so cache it for hours. Past days sit next to it under <code>feed/v2/days/</code>.</p>
         <p><a href="https://github.com/Pukujan/inference-recommendation-engine/blob/main/docs/AGENT-QUICKSTART.md" target="_blank" rel="noopener noreferrer">Agent quickstart ↗</a></p>
       </div>
     </div>
@@ -304,9 +303,9 @@ claude</pre>
       <article class="limit"><h3>Capability scores are rough for now.</h3><p>They come from a carried-over prior with low confidence until fresh benchmark data exists. A model that's new to InferHub can show up unscored.</p></article>
       <article class="limit"><h3>Prices move.</h3><p>Each price is the lowest listed ask when the list was built. You pay what InferHub charges at the moment you call, and that can be more.</p></article>
       <article class="limit"><h3>Health is platform-wide.</h3><p>It comes from InferHub's public status page, so it says nothing about your account. A route that looked healthy at build time can fail an hour later.</p></article>
-      <article class="limit"><h3>Your workload isn't tested.</h3><p>IRE ranks routes. It doesn't run your prompts or measure how often your requests succeed.</p></article>
+      <article class="limit"><h3>Open doesn't mean no strings.</h3><p>Some open-weight licences limit commercial use. MiniMax's do, for one. Each row links its licence, so read it before you ship on a model.</p></article>
       <article class="limit"><h3>No privacy claims.</h3><p>IRE says nothing about how any provider handles your data. Read each provider's terms for that.</p></article>
-      <article class="limit"><h3>It isn't a router.</h3><p>Nothing is proxied and no key is stored. If a route fails, falling back to another one is up to your tool.</p></article>
+      <article class="limit"><h3>Your workload isn't tested.</h3><p>IRE ranks routes. It doesn't run your prompts, proxy your calls or keep your key, so falling back when a route fails is up to your tool.</p></article>
     </div>
     <div class="boundary">Use the list to choose faster, then check the live price on InferHub before a long or expensive run.</div>
   </div>
@@ -331,7 +330,7 @@ claude</pre>
 <script>
 (function () {
   'use strict';
-  var FEED_URL = 'https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v1/today.json';
+  var FEED_URL = 'https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v2/today.json';
   var SAVED_URL = '/ire/today.saved.json';
   var REPO = 'https://github.com/Pukujan/inference-recommendation-engine';
   var TIMEOUT_MS = 8000;
@@ -393,9 +392,12 @@ claude</pre>
   }
   function validate(d) {
     if (!d || typeof d !== 'object') throw new Error('not an object');
-    if (typeof d.schema_version !== 'string' || d.schema_version.indexOf('ire-feed/v1') !== 0) throw new Error('unexpected schema_version');
-    if (!d.tiers || !d.tiers.cheap || !d.tiers.frontier) throw new Error('missing tiers');
-    if (!Array.isArray(d.tiers.cheap.entries) || !Array.isArray(d.tiers.frontier.entries)) throw new Error('missing entries');
+    if (typeof d.schema_version !== 'string' || d.schema_version.indexOf('ire-feed/v2') !== 0) throw new Error('unexpected schema_version');
+    if (!d.tiers || !d.tiers.cheap || !d.tiers.strongest_open) throw new Error('missing tiers');
+    if (!Array.isArray(d.tiers.cheap.entries) || !Array.isArray(d.tiers.strongest_open.entries)) throw new Error('missing entries');
+    [d.tiers.cheap, d.tiers.strongest_open].forEach(function (t) {
+      t.entries = t.entries.filter(function (e) { return e && e.open_weight === true; });
+    });
     return d;
   }
   function fetchJson(url) {
@@ -408,7 +410,7 @@ claude</pre>
   }
 
   function renderHero(d) {
-    [['cheap', 'hero-cheap'], ['frontier', 'hero-frontier']].forEach(function (pair) {
+    [['cheap', 'hero-cheap'], ['strongest_open', 'hero-strongest_open']].forEach(function (pair) {
       var box = $(pair[1]); box.textContent = '';
       var e = firstRecommended(d.tiers[pair[0]]);
       if (!e) { box.appendChild(el('p', 'skeleton', 'Nothing is recommended in this list today.')); return; }
@@ -427,7 +429,7 @@ claude</pre>
     $('asof-' + tierName).textContent = 'As of ' + fmtTime(tier.as_of);
     if (!entries.length) { host.appendChild(el('p', 'skeleton', 'This list is empty today.')).style.padding = '18px 20px'; return; }
     var table = el('table');
-    var cap = el('caption', 'sr', (tierName === 'cheap' ? 'Cheap' : 'Frontier') + ' list, as of ' + fmtTime(tier.as_of));
+    var cap = el('caption', 'sr', (tierName === 'cheap' ? 'Cheap' : 'Strongest open-weight') + ' list, as of ' + fmtTime(tier.as_of));
     table.appendChild(cap);
     var thead = el('thead'); var hr = el('tr');
     ['#', 'Model', 'Route to call', 'Input / 1M', 'Output / 1M', 'Health', 'Verdict'].forEach(function (h) {
@@ -441,7 +443,10 @@ claude</pre>
       var td;
       td = el('td', null); td.setAttribute('data-label', 'Rank'); td.appendChild(el('span', 'num', e.rank)); tr.appendChild(td);
       td = el('td', null); td.setAttribute('data-label', 'Model');
-      var m = el('div'); m.appendChild(el('span', 'mname', e.model_family)); if (e.vendor) m.appendChild(el('span', 'vendor', e.vendor)); td.appendChild(m); tr.appendChild(td);
+      var m = el('div'); m.appendChild(el('span', 'mname', e.model_family)); if (e.vendor) m.appendChild(el('span', 'vendor', e.vendor));
+      var lic = e.licence || {};
+      if (lic.name && /^https:\/\//.test(String(lic.url || ''))) { var la = el('a', 'lic', lic.name); la.href = lic.url; la.target = '_blank'; la.rel = 'noopener noreferrer'; m.appendChild(la); }
+      td.appendChild(m); tr.appendChild(td);
       td = el('td', null); td.setAttribute('data-label', 'Route');
       var r = el('div'); r.appendChild(el('code', 'rcode', e.best_route));
       var chips = chipsFor(e);
@@ -492,7 +497,7 @@ claude</pre>
   function render(d, fromSaved) {
     renderHero(d);
     renderTable('cheap', d.tiers.cheap);
-    renderTable('frontier', d.tiers.frontier);
+    renderTable('strongest_open', d.tiers.strongest_open);
     renderRoutes(d);
     renderProvenance(d);
     if (fromSaved) {
@@ -507,8 +512,8 @@ claude</pre>
   }
 
   function fail() {
-    ['hero-cheap', 'hero-frontier'].forEach(function (id) { $(id).textContent = ''; $(id).appendChild(el('p', 'skeleton', 'Unavailable right now.')); });
-    ['cheap', 'frontier'].forEach(function (t) { $('asof-' + t).textContent = 'Not loaded'; });
+    ['hero-cheap', 'hero-strongest_open'].forEach(function (id) { $(id).textContent = ''; $(id).appendChild(el('p', 'skeleton', 'Unavailable right now.')); });
+    ['cheap', 'strongest_open'].forEach(function (t) { $('asof-' + t).textContent = 'Not loaded'; });
     var n = $('error-note'); n.textContent = 'Today\u2019s list couldn\u2019t be loaded, and the saved copy is missing too. You can open the feed directly: ';
     var a = el('a', null, 'today.json'); a.href = FEED_URL; n.appendChild(a); n.classList.add('show');
     document.body.setAttribute('data-feed', 'error');
