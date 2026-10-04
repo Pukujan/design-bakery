@@ -9,10 +9,12 @@
 // Scenarios: live feed renders both tabs; fallback when the feed is blocked; stale
 // banner when the clock is past stale_after; error state when both sources fail;
 // mobile viewport without horizontal overflow; no closed model names anywhere on the
-// rendered page; no console errors.
+// rendered page; no console errors. Color themes: dark by default, a light device
+// preference used only when nothing is saved, the picker saves across reloads, and every
+// theme keeps key text at WCAG AA contrast with no bright panels left in dark themes.
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
-import { readFile, stat, mkdir } from 'node:fs/promises';
+import { readFile, stat, mkdir, writeFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
@@ -72,7 +74,8 @@ const results = [];
 
 async function scenario(name, opts, fn) {
   // reducedMotion turns off the page's smooth scrolling, which otherwise races Playwright's clicks.
-  const context = await browser.newContext({ reducedMotion: 'reduce', ...(opts.context ?? { viewport: { width: 1366, height: 900 } }) });
+  const context = await browser.newContext({ reducedMotion: 'reduce', colorScheme: 'dark', ...(opts.context ?? { viewport: { width: 1366, height: 900 } }) });
+  if (opts.theme) await context.addInitScript((t) => { try { localStorage.setItem('ire-theme', t); } catch { /* ignore */ } }, opts.theme);
   const page = await context.newPage();
   const consoleErrors = [];
   page.on('console', (m) => {
@@ -228,6 +231,133 @@ await scenario('mobile viewport', {
   await shot(page, 'ire-mobile-top.png', false);
   await shot(page, 'ire-mobile.png');
 });
+
+// ---------------------------------------------------------------- color themes
+const THEMES = ['dark', 'light', 'midnight', 'contrast'];
+const themeCss = await readFile(join(dist, 'ire', 'theme.css'), 'utf8');
+// The --background value each theme declares, resolved through var(--theme-*) where needed.
+function themeBackground(name) {
+  const rules = themeCss.replace(/\/\*[\s\S]*?\*\//g, '');
+  const block = rules.match(new RegExp(`\\[data-theme="${name}"\\]\\s*\\{([^}]*)\\}`))[1];
+  let v = block.match(/--background:\s*([^;]+);/)[1].trim();
+  const ref = v.match(/^var\((--[a-z-]+)\)$/);
+  if (ref) v = rules.match(new RegExp(`${ref[1]}:\\s*([^;]+);`))[1].trim();
+  const hex = v.replace('#', '');
+  return `rgb(${parseInt(hex.slice(0, 2), 16)}, ${parseInt(hex.slice(2, 4), 16)}, ${parseInt(hex.slice(4, 6), 16)})`;
+}
+const bodyBg = (page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+const htmlTheme = (page) => page.getAttribute('html', 'data-theme');
+
+// Browsers report "light" when the device has no setting, so the dark default is checked on a
+// dark device; with JS off the page is dark from <html data-theme="dark"> (static check).
+await scenario('dark is the default theme', { feed: 'mock', clock: freshTime, context: { viewport: { width: 1280, height: 900 }, colorScheme: 'dark' } }, async (page) => {
+  assert.equal(await htmlTheme(page), 'dark');
+  assert.equal(await page.inputValue('#theme-select'), 'dark');
+  assert.equal(await bodyBg(page), themeBackground('dark'));
+  assert.equal(await page.evaluate(() => localStorage.getItem('ire-theme')), null, 'nothing saved until the visitor picks');
+});
+
+await scenario('a light device preference is used when nothing is saved', { feed: 'mock', clock: freshTime, context: { viewport: { width: 1280, height: 900 }, colorScheme: 'light' } }, async (page) => {
+  assert.equal(await htmlTheme(page), 'light');
+  assert.equal(await bodyBg(page), themeBackground('light'));
+});
+
+await scenario('theme picker switches, saves, and survives a reload', { feed: 'mock', clock: freshTime, context: { viewport: { width: 1280, height: 900 }, colorScheme: 'light' } }, async (page) => {
+  const before = await bodyBg(page);
+  await page.selectOption('#theme-select', 'midnight');
+  assert.equal(await htmlTheme(page), 'midnight');
+  assert.equal(await bodyBg(page), themeBackground('midnight'));
+  assert.notEqual(await bodyBg(page), before, 'background should change');
+  assert.equal(await page.evaluate(() => localStorage.getItem('ire-theme')), 'midnight');
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForSelector('body[data-feed]');
+  assert.equal(await htmlTheme(page), 'midnight', 'saved theme should survive a reload');
+  assert.equal(await page.inputValue('#theme-select'), 'midnight');
+  // A saved choice beats the device preference (this context prefers light).
+  await page.selectOption('#theme-select', 'dark');
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForSelector('body[data-feed]');
+  assert.equal(await htmlTheme(page), 'dark');
+  assert.equal(await bodyBg(page), themeBackground('dark'));
+});
+
+// Contrast of key text against what's actually behind it (WCAG 2 formula).
+async function contrastReport(page) {
+  return page.evaluate(() => {
+    const parse = (c) => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[\s,/]+/).filter(Boolean).map(Number); return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1]; };
+    const over = (top, bot) => [0, 1, 2].map((i) => top[i] * top[3] + bot[i] * (1 - top[3])).concat(1);
+    const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+    function bgOf(el) {
+      const chain = []; for (let n = el; n && n.nodeType === 1; n = n.parentElement) chain.push(n);
+      let bg = [255, 255, 255, 1];
+      for (const n of chain.reverse()) { const c = parse(getComputedStyle(n).backgroundColor); if (c && c[3] > 0) bg = over(c, bg); }
+      return bg;
+    }
+    const checks = {
+      'main text': ['h2', '.pickcard .model', '#table-cheap tr.rec .mname', '.step b', '.limit h3', '.listcard li', '.panelhead .asof'],
+      'muted text': ['.sub', '.lead', '#table-cheap th', '.vendor', '.panelhead p', '#table-cheap tr.held .verdict', '#table-cheap tr.held .mname', '.tablefoot', '.limit p', '.prov dt', '.foot', '.codecard p', '.pickcard .lbl', '.rung small', '.listhead', '.receipt'],
+      'links and accents': ['.kicker', '#table-cheap .lic', '#table-cheap .rcode', '.receipt a', '.prov a', '.policy a', '.foot a', '.callout strong', '.realquote strong'],
+      'badges and controls': ['.h-healthy', '.h-degraded', '.verdict.ok', '.chip', '.pill.live', '.pill:not(.live)', '.pickcard .route', '.dot', '.tab[aria-selected="true"]', '.tab[aria-selected="false"]', '.btn.primary', '.btn.sun', '.btn:not(.primary):not(.sun)', '.nav .gh', '#theme-select', '.copy', '.rung.thin .p', '.rung.deep .p', '.out', '.in'],
+      'notices and panels': ['.notice.stale', '.notice.saved', '.notice.error', '.caveat p', '.boundary', '.policy p', '.policy b', '.codecard pre', '.keyline code'],
+      'agents section': ['.agent h2', '.agent .sub', '.agent .kicker', '.agentnote', '.agentnote a', '.soon', '.urlbox code', '.agentgrid pre', '.agent .codehead.bare'],
+    };
+    const out = {};
+    for (const [group, sels] of Object.entries(checks)) {
+      out[group] = sels.map((sel) => {
+        const el = document.querySelector(sel);
+        if (!el) return { sel, missing: true };
+        const bg = bgOf(el); const fg = over(parse(getComputedStyle(el).color), bg);
+        const [a, b] = [lum(fg), lum(bg)].sort((x, y) => y - x);
+        return { sel, ratio: Math.round(((a + 0.05) / (b + 0.05)) * 100) / 100 };
+      });
+    }
+    // Big bright boxes left over from the light design (dark themes only).
+    const bright = [];
+    for (const el of document.querySelectorAll('body *')) {
+      const c = parse(getComputedStyle(el).backgroundColor); if (!c || c[3] < 0.5) continue;
+      const r = el.getBoundingClientRect(); if (r.width * r.height < 40000) continue;
+      if (lum(c) > 0.35) bright.push(`${el.tagName.toLowerCase()}.${el.className}`);
+    }
+    return { groups: out, bright };
+  });
+}
+
+const contrast = {};
+for (const theme of THEMES) {
+  for (const vp of [{ w: 1280, h: 900 }, { w: 390, h: 844 }]) {
+    const mobile = vp.w < 500;
+    await scenario(`theme ${theme} at ${vp.w}px: colors, contrast, layout`, {
+      feed: 'mock', clock: freshTime, theme,
+      context: { viewport: { width: vp.w, height: vp.h }, ...(mobile ? { deviceScaleFactor: 2, isMobile: true, hasTouch: true } : {}) },
+    }, async (page) => {
+      assert.equal(await htmlTheme(page), theme);
+      assert.equal(await bodyBg(page), themeBackground(theme));
+      const report = await contrastReport(page);
+      const low = [];
+      for (const [group, rows] of Object.entries(report.groups)) {
+        for (const r of rows) {
+          assert.ok(!r.missing, `${r.sel} not found`);
+          if (r.ratio < 4.5) low.push(`${group}: ${r.sel} ${r.ratio}`);
+        }
+      }
+      assert.deepEqual(low, [], `text below WCAG AA 4.5:1 in ${theme}`);
+      if (theme !== 'light') assert.deepEqual(report.bright, [], `bright panels left in the ${theme} theme`);
+      if (mobile) {
+        const width = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, inner: window.innerWidth }));
+        assert.ok(width.doc <= vp.w + 1 && width.inner <= vp.w + 1, `page is wider than the screen: ${JSON.stringify(width)}`);
+        const top = await page.evaluate(() => { const r = document.querySelector('.topin').getBoundingClientRect(); const s = document.getElementById('theme-select').getBoundingClientRect(); const g = document.querySelector('.nav .gh').getBoundingClientRect(); return { right: Math.max(s.right, g.right), w: r.width, overlap: s.right > g.left }; });
+        assert.ok(!top.overlap && top.right <= vp.w, `top bar controls overflow: ${JSON.stringify(top)}`);
+      } else {
+        contrast[theme] = report.groups;
+      }
+      await shot(page, `theme-${theme}-${vp.w}.png`);
+    });
+  }
+}
+if (shotsDir) {
+  await mkdir(shotsDir, { recursive: true });
+  await writeFile(join(shotsDir, 'contrast-report.json'), JSON.stringify(contrast, null, 2));
+}
 
 await browser.close();
 server.close();

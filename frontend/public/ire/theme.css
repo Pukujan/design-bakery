@@ -1,0 +1,298 @@
+/* =====================================================================
+   IRE PAGE COLOR THEMES  (design tokens)
+   ---------------------------------------------------------------------
+   Every color on /ire comes from this file. The page itself has none.
+
+   How it works
+   - The page sets <html data-theme="NAME">. The block below that
+     matches NAME supplies the colors. "dark" is the default.
+   - Visitors pick a theme from the "Theme" menu in the top bar. The
+     choice is saved in their browser (localStorage key "ire-theme").
+     With nothing saved, the page uses "light" if their device asks for
+     light mode, and "dark" otherwise. To always start in dark instead,
+     set FOLLOW_DEVICE_LIGHT = false in the small script in the <head>
+     of ire/index.html.
+
+   To change a color
+   - Find the theme block (for example [data-theme="light"]) and edit
+     the value. Each name says what it paints, e.g. --muted-foreground
+     is secondary text and --link is link text.
+   - Keep text readable: aim for a contrast ratio of at least 4.5:1
+     between a text color and the background it sits on.
+
+   To add a theme
+   1. Copy a whole block, e.g. [data-theme="midnight"] { ... }, and
+      give it a new name: [data-theme="forest"] { ... }.
+   2. Change the colors you want. Keep every variable in the block.
+   3. In ire/index.html, add the name to THEMES in the small script in
+      <head>, and add an <option value="forest">Forest</option> to the
+      #theme-select menu.
+   The page tests check that every theme defines the same variables.
+
+   Names follow the main site's tokens (frontend/src/styles/globals.css):
+   --background, --foreground, --card, --muted, --primary, --accent,
+   --border, and the --theme-* brand palette.
+   ===================================================================== */
+
+/* Brand palette shared with the main site. */
+:root {
+  --theme-pink: #FF6B9D;
+  --theme-yellow: #FFD93D;
+  --theme-blue: #4169E1;
+  --theme-red: #E63946;
+  --theme-orange: #FF8C42;
+  --theme-lime: #A8CC00;
+  --theme-purple: #9B6DD6;
+  --theme-cream: #FFF9F0;
+  --theme-black: #1A1A1A;
+  --white: #FFFFFF;
+}
+
+/* ---- dark (default). Matches the main site's .dark colors. ---- */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0F0F0F;            /* page background */
+  --foreground: var(--theme-cream); /* main text */
+  --card: #1A1A1A;                  /* cards, tables, panels */
+  --muted: #2A2A2A;                 /* table headers, chips, quiet panels */
+  --muted-foreground: #A8A8A8;      /* secondary text */
+  --border: rgba(255, 255, 255, 0.14);
+  --border-strong: rgba(255, 255, 255, 0.3);
+  --surface-sunk: #141414;          /* code blocks, small inset boxes */
+  --topbar-bg: rgba(15, 15, 15, 0.9);
+  --primary: var(--theme-blue);     /* main button */
+  --primary-foreground: var(--white);
+  --primary-shadow: rgba(65, 105, 225, 0.3);
+  --accent: var(--theme-yellow);    /* yellow button, highlights */
+  --accent-foreground: var(--theme-black);
+  --link: #93ABFF;                  /* links, labels, route names */
+  --ring: var(--theme-yellow);      /* keyboard focus outline */
+  --strong-bg: var(--theme-cream);  /* selected tab, GitHub button */
+  --strong-fg: #0F0F0F;
+  --info-bg: rgba(65, 105, 225, 0.18);
+  --info-fg: #AFC0FF;
+  --info-border: rgba(65, 105, 225, 0.45);
+  --success-bg: rgba(52, 199, 120, 0.14);
+  --success-fg: #74DFA4;
+  --success-border: rgba(52, 199, 120, 0.4);
+  --warning-bg: rgba(255, 217, 61, 0.12);
+  --warning-fg: #FFDD5C;
+  --warning-border: rgba(255, 217, 61, 0.4);
+  --danger-bg: rgba(230, 57, 70, 0.16);
+  --danger-fg: #FF959B;
+  --danger-border: rgba(230, 57, 70, 0.45);
+  --held-bg: #151515;               /* rows the policy held back */
+  --held-fg: #9C9C9C;
+  --bar-thin: var(--theme-red);
+  --bar-deep: var(--theme-lime);
+  --code-bg: #121212;
+  --code-fg: #ECE6DC;
+  --inline-code-bg: rgba(255, 255, 255, 0.08);
+  --policy-bg: #18213A;             /* "The policy is a file" box */
+  --policy-fg: var(--theme-cream);
+  --policy-muted: #C7CFE2;
+  --policy-link: #A9BCFF;
+  --policy-em: var(--theme-yellow);
+  --policy-border: rgba(255, 255, 255, 0.08);
+  --agent-bg-from: #0E1638;         /* "For agents" section */
+  --agent-bg-to: #22378A;
+  --agent-fg: var(--white);
+  --agent-muted: #D3DCFA;
+  --agent-kicker: #B8C8FF;
+  --agent-overlay: rgba(255, 255, 255, 0.08);
+  --agent-overlay-border: rgba(255, 255, 255, 0.2);
+  --agent-code-bg: rgba(0, 0, 0, 0.35);
+  --agent-code-fg: #EEF2FF;
+  --agent-soon-bg: rgba(255, 217, 61, 0.14);
+  --agent-soon-border: rgba(255, 217, 61, 0.5);
+  --agent-soon-fg: #FFE58A;
+  --shadow: 0 22px 60px rgba(0, 0, 0, 0.45);
+  --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* ---- light. The main site's cream look. ---- */
+[data-theme="light"] {
+  color-scheme: light;
+  --background: var(--theme-cream);
+  --foreground: var(--theme-black);
+  --card: var(--white);
+  --muted: #F3F1EA;
+  --muted-foreground: #5C5C6B;
+  --border: rgba(0, 0, 0, 0.1);
+  --border-strong: rgba(0, 0, 0, 0.24);
+  --surface-sunk: #FBF8F2;
+  --topbar-bg: rgba(255, 249, 240, 0.93);
+  --primary: var(--theme-blue);
+  --primary-foreground: var(--white);
+  --primary-shadow: rgba(65, 105, 225, 0.22);
+  --accent: var(--theme-yellow);
+  --accent-foreground: var(--theme-black);
+  --link: #2A4FC6;
+  --ring: var(--theme-blue);
+  --strong-bg: var(--theme-black);
+  --strong-fg: var(--white);
+  --info-bg: #EAF0FE;
+  --info-fg: #2A4FC6;
+  --info-border: #C9D6FA;
+  --success-bg: #E5F6EC;
+  --success-fg: #1B6A43;
+  --success-border: #BCE5CD;
+  --warning-bg: #FFF4D1;
+  --warning-fg: #6A5200;
+  --warning-border: #F1DD9D;
+  --danger-bg: #FFECEC;
+  --danger-fg: #A1282E;
+  --danger-border: #F4C6C3;
+  --held-bg: #FAF8F3;
+  --held-fg: #63636E;
+  --bar-thin: var(--theme-red);
+  --bar-deep: var(--theme-lime);
+  --code-bg: #F8F6F1;
+  --code-fg: #1F2A44;
+  --inline-code-bg: rgba(0, 0, 0, 0.06);
+  --policy-bg: var(--theme-black);
+  --policy-fg: var(--white);
+  --policy-muted: #D4D4D4;
+  --policy-link: #A9BCFF;
+  --policy-em: var(--theme-yellow);
+  --policy-border: transparent;
+  --agent-bg-from: #13204F;
+  --agent-bg-to: #2E4DB5;
+  --agent-fg: var(--white);
+  --agent-muted: #DDE4FF;
+  --agent-kicker: #C3D0FF;
+  --agent-overlay: rgba(255, 255, 255, 0.1);
+  --agent-overlay-border: rgba(255, 255, 255, 0.24);
+  --agent-code-bg: rgba(0, 0, 0, 0.28);
+  --agent-code-fg: #F1F4FF;
+  --agent-soon-bg: rgba(255, 217, 61, 0.16);
+  --agent-soon-border: rgba(255, 217, 61, 0.55);
+  --agent-soon-fg: #FFE9A8;
+  --shadow: 0 22px 60px rgba(26, 26, 26, 0.1);
+  --shadow-soft: 0 10px 30px rgba(26, 26, 26, 0.06);
+}
+
+/* ---- midnight. Deep navy with soft blue accents. ---- */
+[data-theme="midnight"] {
+  color-scheme: dark;
+  --background: #0B1020;
+  --foreground: #E6ECFF;
+  --card: #121A2E;
+  --muted: #1B2540;
+  --muted-foreground: #A3B0CF;
+  --border: rgba(163, 176, 207, 0.18);
+  --border-strong: rgba(163, 176, 207, 0.4);
+  --surface-sunk: #0E1528;
+  --topbar-bg: rgba(11, 16, 32, 0.9);
+  --primary: #93ABFF;
+  --primary-foreground: #0B1020;
+  --primary-shadow: rgba(147, 171, 255, 0.25);
+  --accent: var(--theme-yellow);
+  --accent-foreground: var(--theme-black);
+  --link: #9DB5FF;
+  --ring: var(--theme-yellow);
+  --strong-bg: #E6ECFF;
+  --strong-fg: #0B1020;
+  --info-bg: rgba(147, 171, 255, 0.16);
+  --info-fg: #B8C8FF;
+  --info-border: rgba(147, 171, 255, 0.4);
+  --success-bg: rgba(110, 231, 183, 0.12);
+  --success-fg: #7EEBC0;
+  --success-border: rgba(110, 231, 183, 0.38);
+  --warning-bg: rgba(252, 211, 77, 0.12);
+  --warning-fg: #FCD978;
+  --warning-border: rgba(252, 211, 77, 0.38);
+  --danger-bg: rgba(255, 128, 160, 0.13);
+  --danger-fg: #FFA3BA;
+  --danger-border: rgba(255, 128, 160, 0.4);
+  --held-bg: #0F1628;
+  --held-fg: #97A4C4;
+  --bar-thin: #FF6F91;
+  --bar-deep: #6EE7B7;
+  --code-bg: #0A0F1E;
+  --code-fg: #DCE4FF;
+  --inline-code-bg: rgba(163, 176, 207, 0.12);
+  --policy-bg: #1A2650;
+  --policy-fg: #E6ECFF;
+  --policy-muted: #C1CCEC;
+  --policy-link: #B8C8FF;
+  --policy-em: var(--theme-yellow);
+  --policy-border: rgba(163, 176, 207, 0.18);
+  --agent-bg-from: #0D1740;
+  --agent-bg-to: #263B8C;
+  --agent-fg: var(--white);
+  --agent-muted: #D0DAFA;
+  --agent-kicker: #B8C8FF;
+  --agent-overlay: rgba(255, 255, 255, 0.08);
+  --agent-overlay-border: rgba(255, 255, 255, 0.2);
+  --agent-code-bg: rgba(0, 0, 0, 0.35);
+  --agent-code-fg: #EEF2FF;
+  --agent-soon-bg: rgba(255, 217, 61, 0.14);
+  --agent-soon-border: rgba(255, 217, 61, 0.5);
+  --agent-soon-fg: #FFE58A;
+  --shadow: 0 22px 60px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* ---- contrast. Black and white with yellow links, for maximum legibility. ---- */
+[data-theme="contrast"] {
+  color-scheme: dark;
+  --background: #000000;
+  --foreground: var(--white);
+  --card: #000000;
+  --muted: #1A1A1A;
+  --muted-foreground: #E2E2E2;
+  --border: rgba(255, 255, 255, 0.65);
+  --border-strong: var(--white);
+  --surface-sunk: #0A0A0A;
+  --topbar-bg: #000000;
+  --primary: var(--theme-yellow);
+  --primary-foreground: #000000;
+  --primary-shadow: transparent;
+  --accent: var(--theme-yellow);
+  --accent-foreground: #000000;
+  --link: #FFE066;
+  --ring: #00E5FF;
+  --strong-bg: var(--white);
+  --strong-fg: #000000;
+  --info-bg: #000000;
+  --info-fg: #8AD8FF;
+  --info-border: #8AD8FF;
+  --success-bg: #000000;
+  --success-fg: #7CFFA0;
+  --success-border: #7CFFA0;
+  --warning-bg: #000000;
+  --warning-fg: #FFE066;
+  --warning-border: #FFE066;
+  --danger-bg: #000000;
+  --danger-fg: #FF9B9B;
+  --danger-border: #FF9B9B;
+  --held-bg: #000000;
+  --held-fg: #D0D0D0;
+  --bar-thin: #FF6B6B;
+  --bar-deep: #7CFFA0;
+  --code-bg: #0A0A0A;
+  --code-fg: var(--white);
+  --inline-code-bg: #262626;
+  --policy-bg: #000000;
+  --policy-fg: var(--white);
+  --policy-muted: #E2E2E2;
+  --policy-link: #FFE066;
+  --policy-em: #FFE066;
+  --policy-border: var(--white);
+  --agent-bg-from: #000000;
+  --agent-bg-to: #000000;
+  --agent-fg: var(--white);
+  --agent-muted: #E2E2E2;
+  --agent-kicker: #8AD8FF;
+  --agent-overlay: #000000;
+  --agent-overlay-border: var(--white);
+  --agent-code-bg: #0A0A0A;
+  --agent-code-fg: var(--white);
+  --agent-soon-bg: #000000;
+  --agent-soon-border: #FFE066;
+  --agent-soon-fg: #FFE066;
+  --shadow: none;
+  --shadow-soft: none;
+}

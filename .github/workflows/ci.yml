@@ -60,5 +60,5 @@ jobs:
       - name: Install Chromium for the IRE page browser checks
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run the IRE page browser checks (feed, fallback, stale banner, mobile)
+      - name: Run the IRE page browser checks (feed, fallback, stale banner, mobile, color themes)
         run: pnpm test:ire-page:browser

@@ -86,4 +86,41 @@ assert.equal(ire?.title, 'Inference Recommendation Engine');
 assert.ok(ire.links.some((l) => l.url === '/ire'), 'IRE card should link to /ire');
 assert.ok(ire.links.some((l) => l.url === 'https://github.com/Pukujan/inference-recommendation-engine'), 'IRE card should keep its GitHub link');
 
+// 5. Color themes. Every color lives in frontend/public/ire/theme.css; the page has none.
+const themeCss = await read('./frontend/public/ire/theme.css');
+assert.ok(html.includes('<link rel="stylesheet" href="/ire/theme.css">'), 'page should load /ire/theme.css (absolute, so /ire without a slash works)');
+assert.ok(html.includes('<html lang="en" data-theme="dark">'), 'page should start in the dark theme');
+assert.ok(/How it works[\s\S]*To change a color[\s\S]*To add a theme/.test(themeCss.slice(0, 3000)), 'theme.css should open with the how-to comment');
+const COLOR_VALUE = /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/i;
+const NAMED_COLOR = /(?<![\w-])(?:white|black|red|green|blue|gray|grey|silver|yellow|orange|purple|pink|navy|teal|cyan|magenta)(?![\w-])/i;
+const cssParts = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1])
+  .concat([...html.matchAll(/\sstyle="([^"]*)"/g)].map((m) => m[1]));
+const scriptParts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+for (const css of cssParts) {
+  const stripped = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.ok(!COLOR_VALUE.test(stripped), `hard-coded color in the page CSS: ${stripped.match(COLOR_VALUE)?.[0]} (put it in theme.css)`);
+  assert.ok(!NAMED_COLOR.test(stripped), `named color in the page CSS: ${stripped.match(NAMED_COLOR)?.[0]} (put it in theme.css)`);
+}
+for (const js of scriptParts) {
+  assert.ok(!COLOR_VALUE.test(js), `hard-coded color in the page script: ${js.match(COLOR_VALUE)?.[0]}`);
+}
+// Each theme block defines exactly the same variables, and the page's picker lists the same themes.
+const blocks = {};
+const themeRules = themeCss.replace(/\/\*[\s\S]*?\*\//g, '');
+for (const m of themeRules.matchAll(/((?:\[data-theme="[a-z-]+"\][,\s]*|:root,\s*)+)\{([^}]*)\}/g)) {
+  const vars = [...m[2].matchAll(/(--[a-z0-9-]+)\s*:/g)].map((v) => v[1]).sort();
+  for (const name of [...m[1].matchAll(/data-theme="([a-z-]+)"/g)].map((n) => n[1])) blocks[name] = vars;
+}
+const themeNames = Object.keys(blocks).sort();
+assert.deepEqual(themeNames, ['contrast', 'dark', 'light', 'midnight'], 'theme.css should define dark, light, midnight and contrast');
+for (const name of themeNames) assert.deepEqual(blocks[name], blocks.dark, `theme "${name}" should define the same variables as dark`);
+assert.ok(/:root,\s*\[data-theme="dark"\]/.test(themeRules), 'dark should also be the :root default');
+const used = new Set([...html.matchAll(/var\((--[a-z0-9-]+)/g)].map((m) => m[1]));
+const defined = new Set([...themeRules.matchAll(/(--[a-z0-9-]+)\s*:/g)].map((m) => m[1]).concat(['--sans', '--mono']));
+for (const v of used) assert.ok(defined.has(v), `page uses ${v} but no theme defines it`);
+const options = [...html.matchAll(/<option value="([a-z-]+)">/g)].map((m) => m[1]).sort();
+assert.deepEqual(options, themeNames, 'the theme picker should list every theme');
+const listed = (html.match(/var THEMES = \[([^\]]*)\]/) ?? [])[1];
+assert.deepEqual(listed?.match(/[a-z-]+/g).sort(), themeNames, 'the head script should know every theme');
+
 console.log('IRE page static checks passed.');
