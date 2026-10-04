@@ -150,6 +150,16 @@
 			file_server
 		}
 
+		# vercel.json rewrites /ire and /ire/ to the IRE market page (IRE #77). Both are
+		# normally served by the directory index above (public/ire/index.html); this
+		# mirrors the explicit rewrite so the two configs stay 1:1.
+		@ire path /ire /ire/
+		handle @ire {
+			rewrite * /ire/index.html
+			header Cache-Control "public, max-age=0, must-revalidate"
+			file_server
+		}
+
 		# Missing .html file: vercel.json's catch-all excludes `*.html`, so these 404
 		# instead of falling back to the SPA shell.
 		@htmlNotFound path *.html
