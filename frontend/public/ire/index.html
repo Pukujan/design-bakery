@@ -16,8 +16,8 @@
 /* Pick the color theme before the page paints. Colors live in /ire/theme.css. */
 (function () {
   var THEMES = ['dark', 'light', 'midnight', 'contrast'];
-  // true: with nothing saved, a device set to light mode gets "light". false: always start dark.
-  var FOLLOW_DEVICE_LIGHT = true;
+  // false: always start dark until the visitor picks a theme. true: a device set to light mode gets "light".
+  var FOLLOW_DEVICE_LIGHT = false;
   var t = null;
   try { t = localStorage.getItem('ire-theme'); } catch (e) { /* storage blocked */ }
   if (THEMES.indexOf(t) < 0) {

@@ -8,10 +8,10 @@
      matches NAME supplies the colors. "dark" is the default.
    - Visitors pick a theme from the "Theme" menu in the top bar. The
      choice is saved in their browser (localStorage key "ire-theme").
-     With nothing saved, the page uses "light" if their device asks for
-     light mode, and "dark" otherwise. To always start in dark instead,
-     set FOLLOW_DEVICE_LIGHT = false in the small script in the <head>
-     of ire/index.html.
+     With nothing saved, the page always starts in "dark", even on a
+     device set to light mode. To follow the device's light setting
+     instead, set FOLLOW_DEVICE_LIGHT = true in the small script in the
+     <head> of ire/index.html.
 
    To change a color
    - Find the theme block (for example [data-theme="light"]) and edit
