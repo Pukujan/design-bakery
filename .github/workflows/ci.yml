@@ -53,3 +53,12 @@ jobs:
 
       - name: Check homepage content stability
         run: pnpm test:homepage-content
+
+      - name: Check the IRE page wiring and saved feed
+        run: pnpm test:ire-page
+
+      - name: Install Chromium for the IRE page browser checks
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run the IRE page browser checks (feed, fallback, stale banner, mobile)
+        run: pnpm test:ire-page:browser

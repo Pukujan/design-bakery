@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IRE | Today's cheapest model you can actually use</title>
+<meta name="description" content="Inference Recommendation Engine checks InferHub prices, supply and route health every day and publishes a dated list of cheap and frontier model routes. Bring your own key; the list is free to read.">
+<meta property="og:title" content="IRE | Today's cheapest model you can actually use">
+<meta property="og:description" content="A daily, dated list of cheap and frontier InferHub routes, with prices, health and the reason behind every pick.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.design-bakery.com/ire">
+<link rel="canonical" href="https://www.design-bakery.com/ire">
+<style>
+:root{
+  --cream:#fffaf2;--paper:#ffffff;--ink:#14263a;--muted:#5f6f80;--line:#dde5ec;
+  --teal:#0e6b8c;--teal2:#1d8bb1;--gold:#f2c94c;--mint:#7cdec4;--coral:#ff7d78;
+  --sky:#e8f4f8;--green:#e7f8f1;--amber:#fff4d6;--rose:#ffeceb;--fog:#f2f5f8;
+  --shadow:0 22px 60px rgba(20,38,58,.11);
+  --sans:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.62 var(--sans)}a{color:inherit}code,pre{font-family:var(--mono)}
+.wrap{width:min(1160px,calc(100% - 38px));margin:auto}
+.top{position:sticky;top:0;z-index:30;background:rgba(255,250,242,.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(221,229,236,.9)}.topin{height:68px;display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{font:900 12px/1 var(--mono);letter-spacing:.14em;text-decoration:none}.nav{display:flex;align-items:center;gap:16px}.nav a{font:750 11px/1 var(--mono);text-decoration:none;color:var(--muted)}.nav a:hover{color:var(--ink)}.nav .gh{padding:10px 13px;border-radius:999px;background:var(--ink);color:#fff}
+a:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:6px}
+.hero{padding:80px 0 76px;display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.kicker{font:850 10px/1.35 var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--teal);margin-bottom:18px}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.pill{padding:8px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;font:750 10px/1 var(--mono);color:var(--muted)}.pill.live{background:var(--green);color:#22705a;border-color:#c6eadc}
+h1{font-size:clamp(46px,7.2vw,88px);line-height:.99;letter-spacing:-.055em;margin:0;max-width:900px}
+h2{font-size:clamp(33px,4.8vw,56px);line-height:1.06;letter-spacing:-.045em;margin:0 0 18px;max-width:940px}
+h3{font-size:20px;line-height:1.25;margin:0 0 8px}
+.lead{font-size:clamp(19px,2.3vw,24px);line-height:1.5;color:var(--muted);max-width:760px;margin:26px 0}
+.sub{font-size:18px;color:var(--muted);max-width:820px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 16px;border-radius:12px;border:1px solid var(--line);background:#fff;font-weight:850;font-size:14px;text-decoration:none;color:var(--ink);cursor:pointer;font-family:var(--sans)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 10px 28px rgba(14,107,140,.22)}.btn.sun{background:var(--gold);border-color:var(--gold);color:#3f330a}
+.pickcard{background:#fff;border:1px solid var(--line);border-radius:28px;padding:26px;box-shadow:var(--shadow)}
+.pickcard .row{padding:16px 0;border-top:1px solid var(--line)}.pickcard .row:first-of-type{border-top:0;padding-top:4px}
+.pickcard .lbl{font:800 9.5px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.pickcard .model{font-size:26px;font-weight:850;letter-spacing:-.03em;margin:4px 0 6px}
+.pickcard .route{display:inline-block;font:750 13px/1.3 var(--mono);background:var(--sky);color:var(--teal);padding:5px 8px;border-radius:8px;word-break:break-all}
+.pickcard .price{font-size:14px;color:var(--muted);margin-top:8px}
+.pickcard .asof{font:700 11px/1.5 var(--mono);color:var(--muted);margin-top:6px}
+.skeleton{color:var(--muted);font-size:15px}
+section{padding:84px 0;border-top:1px solid var(--line);scroll-margin-top:68px}
+.notice{display:none;margin:18px 0 0;padding:14px 16px;border-radius:14px;font-size:14.5px;line-height:1.5}.notice.show{display:block}
+.notice.stale{background:var(--amber);color:#6e5408;border:1px solid #f1dd9d}.notice.saved{background:var(--sky);color:#0c4d66;border:1px solid #c5e2ec}.notice.error{background:var(--rose);color:#8a2f2b;border:1px solid #f4c6c3}
+.tabs{display:flex;gap:8px;margin-top:30px;flex-wrap:wrap}
+.tab{appearance:none;border:1px solid var(--line);background:#fff;color:var(--muted);padding:12px 16px;border-radius:12px;font:800 14px/1 var(--sans);cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tab .count{font:750 11px/1 var(--mono);opacity:.7;margin-left:6px}
+.panel{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 10px 30px rgba(20,38,58,.06);overflow:hidden}
+.panelhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid var(--line);background:var(--fog)}
+.panelhead p{margin:0;font-size:14px;color:var(--muted);max-width:640px}.panelhead .asof{font:750 11px/1.4 var(--mono);color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font:800 10px/1.3 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tr.held td{background:#fcfcfd;color:#738190}tr.held .mname{color:#5b6b7b}
+.num{font:800 13px/1 var(--mono);color:var(--muted)}
+.mname{font-weight:800}.vendor{display:block;font-size:12.5px;color:var(--muted)}
+.rcode{font:700 12.5px/1.35 var(--mono);color:var(--teal);overflow-wrap:anywhere}
+@media(min-width:721px){td:nth-child(2){min-width:150px}td:nth-child(3){min-width:250px}}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.chip{font:700 10.5px/1.3 var(--sans);padding:3px 7px;border-radius:999px;background:var(--fog);color:var(--muted);border:1px solid var(--line)}
+.money{font:700 13px/1.3 var(--mono);white-space:nowrap}
+.health{display:inline-block;font:800 11px/1 var(--sans);padding:5px 8px;border-radius:999px;white-space:nowrap}
+.h-healthy{background:var(--green);color:#1f6b55}.h-degraded{background:var(--amber);color:#7a5c05}.h-failing,.h-unavailable{background:var(--rose);color:#943530}.h-insufficient_data,.h-unknown{background:var(--fog);color:var(--muted)}
+.verdict{font-size:13px}.verdict.ok{color:#1f6b55;font-weight:800}
+.tablefoot{padding:14px 20px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);background:var(--fog)}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center}
+.ladder{display:grid;gap:12px}
+.rung{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center;padding:18px 20px;border-radius:18px;border:1px solid var(--line);background:#fff;box-shadow:0 10px 26px rgba(20,38,58,.06)}
+.rung .p{font:900 24px/1 var(--mono)}.rung .bar{height:14px;border-radius:999px;background:var(--fog);overflow:hidden}.rung .bar i{display:block;height:100%;border-radius:999px}
+.rung small{display:block;margin-top:7px;font-size:13px;color:var(--muted)}
+.rung.thin .p{color:#b4524e}.rung.thin .bar i{width:2%;background:var(--coral)}.rung.deep .p{color:#1f6b55}.rung.deep .bar i{width:100%;background:var(--mint)}
+.callout{margin-top:26px;padding:22px 24px;border-radius:20px;background:var(--sky);font-size:clamp(22px,3.2vw,32px);line-height:1.2;letter-spacing:-.03em}.callout strong{color:var(--teal)}
+.episode{background:#fff}
+.swap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px}
+.listcard{border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#fbfdfe}
+.listhead{display:flex;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);font:800 10px/1.2 var(--mono);color:var(--muted);letter-spacing:.06em}
+.listcard ol{margin:0;padding:14px 18px 16px 40px;font-size:15px}.listcard li{padding:4px 0}
+.out{color:#b4524e;text-decoration:line-through;text-decoration-thickness:1.5px}.in{color:#1f6b55;font-weight:800}
+.receipt{margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px 16px;border:1px dashed #b7cbd6;border-radius:14px;background:#f8fbfc;font:700 10.5px/1.5 var(--mono);color:var(--muted)}.receipt a{color:var(--teal);text-decoration:none}
+.realquote{font-size:clamp(25px,3.8vw,40px);line-height:1.16;letter-spacing:-.035em;margin:28px 0 0}.realquote strong{color:var(--teal)}
+.steps{background:#fff;border:1px solid var(--line);border-radius:26px;padding:24px 26px;box-shadow:var(--shadow)}
+.step{display:grid;grid-template-columns:46px 1fr;gap:13px;padding:14px 0;border-top:1px solid var(--line)}.step:first-child{border-top:0}
+.dot{width:40px;height:40px;border-radius:13px;background:var(--sky);display:grid;place-items:center;font-weight:900;color:var(--teal)}
+.step b{display:block;margin-bottom:3px}.step span{font-size:14px;color:var(--muted)}
+.policy{padding:24px;border-radius:22px;background:var(--ink);color:#fff}.policy p{color:#c9d6e2;margin:0 0 12px;font-size:15px}.policy b{color:var(--gold)}.policy a{color:#9fdcf1}
+.codegrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:28px}.codecard.wide{grid-column:1/-1}
+.codecard{border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#fff;display:flex;flex-direction:column;min-width:0}
+.codehead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);font:800 10px/1 var(--mono);color:var(--muted);letter-spacing:.06em}
+.codecard pre{margin:0;padding:16px;font-size:12.5px;line-height:1.65;color:#1f3550;background:#f7fafc;overflow-x:auto;flex:1;white-space:pre}
+.codecard p{margin:0;padding:12px 14px;font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
+.copy{appearance:none;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 9px;font:800 10px/1 var(--mono);color:var(--ink);cursor:pointer}
+.keyline{margin-top:22px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 16px;border-radius:14px;background:#fff;border:1px solid var(--line);font-size:14px}.keyline code{background:var(--fog);padding:4px 7px;border-radius:7px}
+.caveat{margin-top:18px;padding:20px 22px;border-radius:18px;background:var(--amber);border:1px solid #f1dd9d;color:#5e4a0d}.caveat h3{color:#4b3b08}.caveat p{margin:6px 0 0;font-size:15px}.caveat code{background:rgba(255,255,255,.6);padding:2px 5px;border-radius:5px}
+.agent{background:linear-gradient(135deg,#0f3a52,#0e6b8c);color:#fff}.agent .kicker{color:#bfe7f5}.agent .sub{color:#d3e9f2}
+.urlbox{margin-top:26px;display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.urlbox code{flex:1;min-width:0;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);font-size:13px;word-break:break-all;color:#fff}
+.urlbox .btn{border-color:var(--gold)}
+.agentgrid{display:grid;grid-template-columns:1.3fr .7fr;gap:14px;margin-top:16px}
+.agentgrid pre{margin:0;padding:16px;border-radius:14px;background:rgba(0,0,0,.25);font-size:12.5px;line-height:1.6;overflow-x:auto;color:#eaf6fb;white-space:pre}
+.agentnote{padding:18px;border-radius:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);font-size:14px;color:#d3e9f2}.agentnote a{color:#fff;font-weight:800}.agentnote p{margin:0 0 10px}.agentnote p:last-child{margin:0}
+.soon{margin-top:16px;display:inline-block;padding:9px 12px;border-radius:999px;background:rgba(242,201,76,.16);border:1px solid rgba(242,201,76,.5);font:750 12px/1.3 var(--sans);color:#ffe9a8}
+.limitgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px}
+.limit{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px}.limit p{font-size:14px;color:var(--muted);margin:0}
+.boundary{margin-top:18px;padding:15px 17px;border-radius:14px;background:var(--amber);color:#6e5408;font-size:14px}
+.final{padding:96px 0}
+.final-card{display:grid;grid-template-columns:1fr .8fr;gap:28px;align-items:start;padding:40px;border-radius:30px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}
+.final h2{font-size:clamp(36px,5.2vw,60px)}
+.prov{margin:0;padding:20px;border-radius:18px;background:var(--fog);font-size:13px}
+.prov div{display:grid;grid-template-columns:120px 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.prov div:first-child{border-top:0}
+.prov dt{font:800 10px/1.6 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.prov dd{margin:0;font:700 12px/1.5 var(--mono);word-break:break-all}.prov a{color:var(--teal)}
+.foot{padding:34px 0 54px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.hero>*,.split>*,.agentgrid>*,.final-card>*,.codegrid>*{min-width:0}.keyline code{word-break:break-all}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:960px){.hero,.split,.final-card,.agentgrid{grid-template-columns:1fr}.codegrid{grid-template-columns:1fr}.limitgrid{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){
+  .wrap{width:min(100% - 28px,1160px)}.nav a:not(.gh){display:none}.hero{padding-top:54px}
+  .swap,.limitgrid{grid-template-columns:1fr}.final-card{padding:24px}.rung{grid-template-columns:86px 1fr}.rung .p{font-size:20px}
+  table,thead,tbody,tr,td{display:block}thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  tr{padding:14px 16px;border-bottom:1px solid var(--line)}tr:last-child{border-bottom:0}
+  td{border:0;padding:3px 0;display:grid;grid-template-columns:96px 1fr;gap:10px}
+  td::before{content:attr(data-label);font:800 9.5px/1.9 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .prov div{grid-template-columns:1fr;gap:2px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin"><a class="brand" href="/ire">IRE</a><nav class="nav" aria-label="Page"><a href="#picks">Today's picks</a><a href="#use-it">Use it</a><a href="#agents">For agents</a><a href="#limits">Limits</a><a class="gh" href="https://github.com/Pukujan/inference-recommendation-engine" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav></div></header>
+<main>
+
+<div class="wrap hero">
+  <div>
+    <div class="pills"><span class="pill live">UPDATED DAILY</span><span class="pill">YOUR KEY STAYS WITH YOU</span></div>
+    <div class="kicker">For anyone pointing an agent at InferHub</div>
+    <h1>Today's cheapest model you can actually use.</h1>
+    <p class="lead">InferHub sells the same model through several provider routes at different prices. The cheapest route is often the one with a single seller behind it. Inference Recommendation Engine (IRE) checks price, supply and health every day and names the route worth calling.</p>
+    <div class="actions"><a class="btn primary" href="#picks">See today's picks</a><a class="btn" href="https://github.com/Pukujan/inference-recommendation-engine/blob/main/START-HERE.md" target="_blank" rel="noopener noreferrer">Start here on GitHub ↗</a></div>
+  </div>
+  <aside class="pickcard" aria-label="Today's top picks" aria-live="polite">
+    <div class="row">
+      <div class="lbl">Cheapest recommended pick</div>
+      <div id="hero-cheap"><p class="skeleton">Loading today's list…</p></div>
+    </div>
+    <div class="row">
+      <div class="lbl">Top frontier pick</div>
+      <div id="hero-frontier"><p class="skeleton">Loading today's list…</p></div>
+    </div>
+    <div class="asof" id="hero-asof"></div>
+  </aside>
+</div>
+
+<section id="picks">
+  <div class="wrap">
+    <div class="kicker">Updated once a day</div>
+    <h2>Today's picks, cheap and frontier.</h2>
+    <p class="sub">The cheap list is for everyday agent work, where a long run makes every fraction of a cent count. The frontier list ranks the strongest models first and then finds the cheapest healthy route for each one. When the policy holds a model back, the row stays visible with the reason.</p>
+    <div class="notice stale" id="stale-banner" role="status"></div>
+    <div class="notice saved" id="saved-note" role="status"></div>
+    <div class="notice error" id="error-note" role="alert"></div>
+    <noscript><div class="notice error show">This list needs JavaScript. You can read the same data as JSON at <a href="https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v1/today.json">today.json</a>.</div></noscript>
+
+    <div class="tabs" role="tablist" aria-label="Recommendation lists">
+      <button class="tab" role="tab" id="tab-cheap" aria-controls="panel-cheap" aria-selected="true" tabindex="0" data-tier="cheap">Cheap (Top 20)<span class="count" id="count-cheap"></span></button>
+      <button class="tab" role="tab" id="tab-frontier" aria-controls="panel-frontier" aria-selected="false" tabindex="-1" data-tier="frontier">Frontier<span class="count" id="count-frontier"></span></button>
+    </div>
+    <div class="panel" role="tabpanel" id="panel-cheap" aria-labelledby="tab-cheap">
+      <div class="panelhead"><p>The 20 cheapest reliable, recent models. Rows marked "held back" failed a rule and are shown so you can see why.</p><span class="asof" id="asof-cheap">Loading…</span></div>
+      <div id="table-cheap"></div>
+      <div class="tablefoot">Prices are the lowest listed ask in US dollars per 1 million tokens when the list was built. InferHub may bill more when you call.</div>
+    </div>
+    <div class="panel" role="tabpanel" id="panel-frontier" aria-labelledby="tab-frontier" hidden>
+      <div class="panelhead"><p>Recommended frontier models, strongest first, each with its cheapest healthy route.</p><span class="asof" id="asof-frontier">Loading…</span></div>
+      <div id="table-frontier"></div>
+      <div class="tablefoot">Prices are the lowest listed ask in US dollars per 1 million tokens when the list was built. InferHub may bill more when you call.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap split">
+    <div>
+      <div class="kicker">Why the cheapest number misleads</div>
+      <h2>The lowest price is not the decision.</h2>
+      <p class="sub">A price ladder looks like a bargain until the first real task. The cheapest ask might have four units of supply behind it while the next step up has five hundred. A dashboard that shows only the minimum hides that, and your agent finds out at runtime.</p>
+    </div>
+    <div>
+      <div class="ladder" aria-label="Example price ladder">
+        <div class="rung thin"><div class="p">$0.01</div><div><div class="bar"><i></i></div><small>per 1M input tokens · 4 available</small></div></div>
+        <div class="rung deep"><div class="p">$0.09</div><div><div class="bar"><i></i></div><small>per 1M input tokens · 500 available</small></div></div>
+      </div>
+      <div class="receipt"><span>Example ladder from the IRE README</span><a href="https://github.com/Pukujan/inference-recommendation-engine#try-it" target="_blank" rel="noopener noreferrer">See it in the code ↗</a></div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="callout">Both prices are under ten cents per million tokens. <strong>Below that line, IRE treats price as nearly free</strong> and lets supply and health decide.</div>
+  </div>
+</section>
+
+<section class="episode" id="real-story">
+  <div class="wrap">
+    <div class="kicker">This happened on October 4, 2026</div>
+    <h2>Three Claude models left the frontier list overnight.</h2>
+    <p class="sub">On the evening of October 3, Claude Fable 5.1, Claude Fable 5 and Claude Opus 5.5 held places two to four. By the next morning's refresh, InferHub's status page showed the best route for each as degraded. IRE held all three back with the reason "no healthy route", and the next models moved up.</p>
+    <div class="swap">
+      <div class="listcard"><div class="listhead"><span>OCTOBER 3, EVENING</span><span>frontier places 2 to 4</span></div><ol start="2"><li class="out">Claude Fable 5.1</li><li class="out">Claude Fable 5</li><li class="out">Claude Opus 5.5</li></ol></div>
+      <div class="listcard"><div class="listhead"><span>OCTOBER 4, MORNING</span><span>after the daily refresh</span></div><ol start="2"><li class="in">GPT 6.1 Sol</li><li class="in">GPT 6 Sol</li><li class="in">Gemini 3.1 Pro</li></ol></div>
+    </div>
+    <p class="realquote">A model you used yesterday can be the wrong call today. <strong>That's why every list carries a date.</strong></p>
+    <div class="receipt"><span>Daily refresh, October 4 · before and after table in the pull request</span><a href="https://github.com/Pukujan/inference-recommendation-engine/pull/69" target="_blank" rel="noopener noreferrer">See the source trail ↗</a></div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap split">
+    <div>
+      <div class="kicker">How a pick gets made</div>
+      <h2>Every row shows its work.</h2>
+      <p class="sub">IRE is a small open-source ranking engine. A daily job feeds it InferHub's catalog and status data and publishes what comes out.</p>
+      <div class="policy">
+        <p><b>The policy is a file you can read.</b> Weights and gate thresholds live in version control, so a change to the ranking shows up as a diff.</p>
+        <p>The near-free line sits at $0.10 per million tokens. Under it, price stops dominating and availability and reliability separate the candidates.</p>
+        <p><a href="https://github.com/Pukujan/inference-recommendation-engine/blob/main/spec/PRICE-SUPPLY-WEIGHTING.md" target="_blank" rel="noopener noreferrer">Read the price and supply spec ↗</a></p>
+      </div>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="dot">1</div><div><b>Read the whole price ladder.</b><span>Every listed ask and how much supply sits at it. The minimum is one point on that ladder.</span></div></div>
+      <div class="step"><div class="dot">2</div><div><b>Weigh price by supply.</b><span>A cheap ask with almost no supply counts for less than a slightly higher one that many sellers offer.</span></div></div>
+      <div class="step"><div class="dot">3</div><div><b>Check health and the written rules.</b><span>Health comes from InferHub's public status page. A model that breaks a rule, such as too few providers or no healthy route, keeps its row with the reason attached.</span></div></div>
+      <div class="step"><div class="dot">4</div><div><b>Publish a dated list.</b><span>Once a day the result goes to a public JSON file, along with the commit and data hashes that produced it.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="use-it">
+  <div class="wrap">
+    <div class="kicker">Use it with your own key</div>
+    <h2>Plug in your own InferHub key in two minutes.</h2>
+    <p class="sub">IRE doesn't sit between you and InferHub. You call InferHub directly with your own key and the route name from today's list, so <strong>we never see your key</strong>. The examples below use today's cheapest recommended route: <code class="rcode js-route">alicn/deepseek-v4.1-flash</code>.</p>
+    <div class="keyline"><span>Set your key once in your shell:</span><code>export INFERHUB_API_KEY=...</code><span style="color:var(--muted)">PowerShell: <code>$env:INFERHUB_API_KEY = "..."</code></span></div>
+    <div class="codegrid">
+      <article class="codecard"><div class="codehead"><span>CLAUDE CODE</span><button class="copy" type="button" data-copy="code-claude">Copy</button></div>
+<pre id="code-claude">ANTHROPIC_BASE_URL=https://api.inferhub.dev \
+ANTHROPIC_API_KEY=$INFERHUB_API_KEY \
+ANTHROPIC_MODEL=<span class="js-route">alicn/deepseek-v4.1-flash</span> \
+claude</pre>
+        <p>Uses the Anthropic-compatible endpoint. Leave <code>/v1</code> off the base URL; Claude Code adds it.</p></article>
+      <article class="codecard"><div class="codehead"><span>LITELLM</span><button class="copy" type="button" data-copy="code-litellm">Copy</button></div>
+<pre id="code-litellm">model_list:
+  - model_name: ire-cheap
+    litellm_params:
+      model: openai/<span class="js-route">alicn/deepseek-v4.1-flash</span>
+      api_base: https://api.inferhub.dev/v1
+      api_key: os.environ/INFERHUB_API_KEY</pre>
+        <p>The <code>openai/</code> prefix tells LiteLLM which client to use. The route follows it unchanged.</p></article>
+      <article class="codecard wide"><div class="codehead"><span>CURL</span><button class="copy" type="button" data-copy="code-curl">Copy</button></div>
+<pre id="code-curl">curl https://api.inferhub.dev/v1/chat/completions \
+  -H "Authorization: Bearer $INFERHUB_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"<span class="js-route">alicn/deepseek-v4.1-flash</span>",
+       "messages":[{"role":"user","content":"hi"}]}'</pre>
+        <p>The OpenAI-compatible endpoint, with your key as a Bearer token.</p></article>
+    </div>
+    <div class="caveat">
+      <h3>Picking a cx/ route? Read this first.</h3>
+      <p>Routes that start with <code>cx/</code> go through OpenAI Codex. On those, your system prompt reaches the model as a developer message, and a fixed instruction, "You are a helpful assistant.", fills the slot the upstream requires. Most chat use won't notice. If your tool depends on a strict system prompt, call <code>/v1/responses</code> instead of <code>/v1/chat/completions</code>. That endpoint keeps your instructions as you sent them.</p>
+      <p>Routes on <code>cb/</code> and <code>cbcn/</code> add a short system note ahead of yours. You can switch it off per key in InferHub under Dashboard → API keys → Prompt filtering.</p>
+    </div>
+    <p class="sub" style="margin-top:22px;font-size:16px">Want a quick check first? From a copy of the repo, <code>pnpm ire:doctor</code> confirms your key is set without printing it, fetches today's list and tells you how old it is.</p>
+  </div>
+</section>
+
+<section class="agent" id="agents">
+  <div class="wrap">
+    <div class="kicker">For agents and scripts</div>
+    <h2>Let your scripts fetch today's pick on their own.</h2>
+    <p class="sub">Today's list is one JSON file at a public URL, with no login. A launcher, a proxy config or an agent can read it at startup and pick a route without anyone in the loop.</p>
+    <div class="urlbox"><code id="feed-url">https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v1/today.json</code><button class="btn sun" type="button" data-copy="feed-url">Copy feed URL</button></div>
+    <div class="agentgrid">
+      <div>
+        <div class="codehead" style="color:#bfe7f5;padding:0 0 10px"><span>TODAY'S CHEAPEST RECOMMENDED ROUTE, ONE LINE</span><button class="copy" type="button" data-copy="code-jq">Copy</button></div>
+<pre id="code-jq">curl -s https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v1/today.json \
+  | jq -r 'first(.tiers.cheap.entries[] | select(.recommended)) | .best_route'</pre>
+      </div>
+      <div class="agentnote">
+        <p>The file follows a published <a href="https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v1/schema.json" target="_blank" rel="noopener noreferrer">JSON schema ↗</a>. Check that <code>schema_version</code> is <code>ire-feed/v1</code>, and warn your user when <code>stale_after</code> has passed.</p>
+        <p>It changes once a day, so cache it for hours. Past days sit next to it under <code>feed/v1/days/</code>.</p>
+        <p><a href="https://github.com/Pukujan/inference-recommendation-engine/blob/main/docs/AGENT-QUICKSTART.md" target="_blank" rel="noopener noreferrer">Agent quickstart ↗</a></p>
+      </div>
+    </div>
+    <div class="soon">An MCP server is planned for later. Today the JSON file is the supported way in.</div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <div class="kicker">Read this before you rely on it</div>
+    <h2>What this page doesn't promise.</h2>
+    <p class="sub">Every row is a ranking with its evidence attached. Here is where that evidence runs out.</p>
+    <div class="limitgrid">
+      <article class="limit"><h3>Capability scores are rough for now.</h3><p>They come from a carried-over prior with low confidence until fresh benchmark data exists. A model that's new to InferHub can show up unscored.</p></article>
+      <article class="limit"><h3>Prices move.</h3><p>Each price is the lowest listed ask when the list was built. You pay what InferHub charges at the moment you call, and that can be more.</p></article>
+      <article class="limit"><h3>Health is platform-wide.</h3><p>It comes from InferHub's public status page, so it says nothing about your account. A route that looked healthy at build time can fail an hour later.</p></article>
+      <article class="limit"><h3>Your workload isn't tested.</h3><p>IRE ranks routes. It doesn't run your prompts or measure how often your requests succeed.</p></article>
+      <article class="limit"><h3>No privacy claims.</h3><p>IRE says nothing about how any provider handles your data. Read each provider's terms for that.</p></article>
+      <article class="limit"><h3>It isn't a router.</h3><p>Nothing is proxied and no key is stored. If a route fails, falling back to another one is up to your tool.</p></article>
+    </div>
+    <div class="boundary">Use the list to choose faster, then check the live price on InferHub before a long or expensive run.</div>
+  </div>
+</section>
+
+<section class="final" id="receipts">
+  <div class="wrap final-card">
+    <div>
+      <div class="kicker">Inference Recommendation Engine</div>
+      <h2>Every number on this page has a receipt.</h2>
+      <p class="lead">If a pick looks wrong, you can trace it to the exact code commit and source data that produced it.</p>
+      <div class="actions"><a class="btn primary" href="https://github.com/Pukujan/inference-recommendation-engine/blob/main/START-HERE.md" target="_blank" rel="noopener noreferrer">Start here on GitHub ↗</a><a class="btn sun" href="https://github.com/Pukujan/inference-recommendation-engine/blob/main/docs/AGENT-QUICKSTART.md" target="_blank" rel="noopener noreferrer">Agent quickstart ↗</a><a class="btn" href="https://github.com/Pukujan/inference-recommendation-engine" target="_blank" rel="noopener noreferrer">Read the code ↗</a></div>
+    </div>
+    <dl class="prov" id="provenance" aria-label="Where today's list came from">
+      <div><dt>List built</dt><dd>Loading…</dd></div>
+    </dl>
+  </div>
+</section>
+</main>
+<footer><div class="wrap foot"><span>IRE · daily inference picks, built in public</span><span><a href="/">Design Bakery</a> · <a href="https://github.com/Pukujan/inference-recommendation-engine" target="_blank" rel="noopener noreferrer">GitHub</a></span></div></footer>
+
+<script>
+(function () {
+  'use strict';
+  var FEED_URL = 'https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v1/today.json';
+  var SAVED_URL = '/ire/today.saved.json';
+  var REPO = 'https://github.com/Pukujan/inference-recommendation-engine';
+  var TIMEOUT_MS = 8000;
+
+  var GATES = {
+    not_routing_eligible: 'not routable right now',
+    insufficient_provider_breadth: 'too few providers',
+    catalog_availability_below_minimum: 'low availability',
+    tier_below_minimum: 'below the capability tier',
+    capability_below_minimum: 'capability score too low',
+    release_date_unknown: 'release date unknown',
+    older_generation: 'older generation',
+    no_healthy_route: 'no healthy route'
+  };
+  var HEALTH = {
+    healthy: 'Healthy', degraded: 'Degraded', failing: 'Failing',
+    unavailable: 'Unavailable', insufficient_data: 'Not enough data'
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = String(text);
+    return n;
+  }
+  function fmtTime(iso) {
+    var t = Date.parse(iso);
+    if (isNaN(t)) return 'an unknown time';
+    try {
+      return new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(new Date(t));
+    } catch (e) { return new Date(t).toUTCString(); }
+  }
+  function fmtPrice(v) {
+    if (typeof v !== 'number' || !isFinite(v)) return 'n/a';
+    if (v === 0) return '$0';
+    var r = Number(v.toPrecision(v >= 1 ? 4 : 3));
+    return '$' + r.toLocaleString('en-US', { maximumFractionDigits: 8, minimumFractionDigits: 2 });
+  }
+  function gateText(reasons) {
+    if (!reasons || !reasons.length) return 'held back';
+    return reasons.map(function (g) { return GATES[g] || String(g).replace(/_/g, ' '); }).join(', ');
+  }
+  function chipsFor(e) {
+    var out = [];
+    if (e.system_prompt_handling === 'developer_message') out.push('System prompt sent as a developer message');
+    if (e.system_prompt_handling === 'upstream_note') out.push('Adds a system note (can be switched off)');
+    (e.caveats || []).forEach(function (c) {
+      var s = String(c);
+      if (/only 1 seller/i.test(s)) out.push('One seller at this price');
+      else if (/route variant/i.test(s)) out.push('Variant route of the same model');
+    });
+    return out;
+  }
+  function firstRecommended(tier) {
+    var list = (tier && tier.entries) || [];
+    for (var i = 0; i < list.length; i++) if (list[i] && list[i].recommended) return list[i];
+    return null;
+  }
+  function validate(d) {
+    if (!d || typeof d !== 'object') throw new Error('not an object');
+    if (typeof d.schema_version !== 'string' || d.schema_version.indexOf('ire-feed/v1') !== 0) throw new Error('unexpected schema_version');
+    if (!d.tiers || !d.tiers.cheap || !d.tiers.frontier) throw new Error('missing tiers');
+    if (!Array.isArray(d.tiers.cheap.entries) || !Array.isArray(d.tiers.frontier.entries)) throw new Error('missing entries');
+    return d;
+  }
+  function fetchJson(url) {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, TIMEOUT_MS);
+    return fetch(url, { cache: 'no-cache', signal: ctrl ? ctrl.signal : undefined, headers: { Accept: 'application/json' } })
+      .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+      .then(validate)
+      .finally(function () { clearTimeout(timer); });
+  }
+
+  function renderHero(d) {
+    [['cheap', 'hero-cheap'], ['frontier', 'hero-frontier']].forEach(function (pair) {
+      var box = $(pair[1]); box.textContent = '';
+      var e = firstRecommended(d.tiers[pair[0]]);
+      if (!e) { box.appendChild(el('p', 'skeleton', 'Nothing is recommended in this list today.')); return; }
+      box.appendChild(el('div', 'model', e.model_family));
+      box.appendChild(el('code', 'route', e.best_route));
+      var p = e.price_usd_per_mtok || {};
+      box.appendChild(el('div', 'price', fmtPrice(p.input) + ' in / ' + fmtPrice(p.output) + ' out per 1M tokens'));
+    });
+    $('hero-asof').textContent = 'List for ' + (d.day_et || 'today') + ' · built ' + fmtTime(d.generated_at);
+  }
+
+  function renderTable(tierName, tier) {
+    var host = $('table-' + tierName); host.textContent = '';
+    var entries = tier.entries || [];
+    $('count-' + tierName).textContent = String(entries.length);
+    $('asof-' + tierName).textContent = 'As of ' + fmtTime(tier.as_of);
+    if (!entries.length) { host.appendChild(el('p', 'skeleton', 'This list is empty today.')).style.padding = '18px 20px'; return; }
+    var table = el('table');
+    var cap = el('caption', 'sr', (tierName === 'cheap' ? 'Cheap' : 'Frontier') + ' list, as of ' + fmtTime(tier.as_of));
+    table.appendChild(cap);
+    var thead = el('thead'); var hr = el('tr');
+    ['#', 'Model', 'Route to call', 'Input / 1M', 'Output / 1M', 'Health', 'Verdict'].forEach(function (h) {
+      var th = el('th', null, h); th.scope = 'col'; hr.appendChild(th);
+    });
+    thead.appendChild(hr); table.appendChild(thead);
+    var tbody = el('tbody');
+    entries.forEach(function (e) {
+      var tr = el('tr', e.recommended ? 'rec' : 'held');
+      tr.setAttribute('data-route', e.best_route || '');
+      var td;
+      td = el('td', null); td.setAttribute('data-label', 'Rank'); td.appendChild(el('span', 'num', e.rank)); tr.appendChild(td);
+      td = el('td', null); td.setAttribute('data-label', 'Model');
+      var m = el('div'); m.appendChild(el('span', 'mname', e.model_family)); if (e.vendor) m.appendChild(el('span', 'vendor', e.vendor)); td.appendChild(m); tr.appendChild(td);
+      td = el('td', null); td.setAttribute('data-label', 'Route');
+      var r = el('div'); r.appendChild(el('code', 'rcode', e.best_route));
+      var chips = chipsFor(e);
+      if (chips.length) { var c = el('div', 'chips'); chips.forEach(function (t) { c.appendChild(el('span', 'chip', t)); }); r.appendChild(c); }
+      td.appendChild(r); tr.appendChild(td);
+      var p = e.price_usd_per_mtok || {};
+      td = el('td', null); td.setAttribute('data-label', 'Input / 1M'); td.appendChild(el('span', 'money', fmtPrice(p.input))); tr.appendChild(td);
+      td = el('td', null); td.setAttribute('data-label', 'Output / 1M'); td.appendChild(el('span', 'money', fmtPrice(p.output))); tr.appendChild(td);
+      var hs = (e.health && e.health.status) || 'unknown';
+      td = el('td', null); td.setAttribute('data-label', 'Health'); td.appendChild(el('span', 'health h-' + (HEALTH[hs] ? hs : 'unknown'), HEALTH[hs] || 'Unknown')); tr.appendChild(td);
+      td = el('td', null); td.setAttribute('data-label', 'Verdict');
+      td.appendChild(e.recommended ? el('span', 'verdict ok', 'Recommended') : el('span', 'verdict', 'Held back: ' + gateText(e.gate_reasons)));
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody); host.appendChild(table);
+  }
+
+  function renderRoutes(d) {
+    var e = firstRecommended(d.tiers.cheap);
+    if (!e) return;
+    Array.prototype.forEach.call(document.querySelectorAll('.js-route'), function (n) { n.textContent = e.best_route; });
+  }
+
+  function renderProvenance(d) {
+    var dl = $('provenance'); dl.textContent = '';
+    function row(label, value, href) {
+      var w = el('div'); w.appendChild(el('dt', null, label));
+      var dd = el('dd');
+      if (href) { var a = el('a', null, value); a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer'; dd.appendChild(a); }
+      else dd.textContent = value;
+      w.appendChild(dd); dl.appendChild(w);
+    }
+    row('List built', fmtTime(d.generated_at));
+    row('Day (ET)', d.day_et || 'unknown');
+    row('Fresh until', fmtTime(d.stale_after));
+    if (d.code_commit) row('Code commit', String(d.code_commit).slice(0, 12), REPO + '/commit/' + d.code_commit);
+    if (d.snapshot_sha256) row('Data snapshot', String(d.snapshot_sha256).slice(0, 16) + '…');
+    var src = d.sources || {};
+    Object.keys(src).forEach(function (k) {
+      if (src[k] && src[k].sha256) row('Source: ' + k, String(src[k].sha256).slice(0, 16) + '…', src[k].file ? REPO + '/blob/' + (d.code_commit || 'main') + '/' + src[k].file : null);
+    });
+    row('Raw feed', 'today.json', FEED_URL);
+  }
+
+  function showNotice(id, text) { var n = $(id); n.textContent = text; n.classList.add('show'); }
+
+  function render(d, fromSaved) {
+    renderHero(d);
+    renderTable('cheap', d.tiers.cheap);
+    renderTable('frontier', d.tiers.frontier);
+    renderRoutes(d);
+    renderProvenance(d);
+    if (fromSaved) {
+      showNotice('saved-note', 'The live list didn\u2019t load, so you\u2019re looking at a saved copy from ' + fmtTime(d.generated_at) + '. Prices and health may have changed since then.');
+    }
+    var staleAt = Date.parse(d.stale_after);
+    if (!isNaN(staleAt) && Date.now() > staleAt) {
+      showNotice('stale-banner', 'This list is older than it should be. It was due for a refresh by ' + fmtTime(d.stale_after) + ', so a daily run was probably missed. The routes still work, but check prices on InferHub before a long run.');
+      document.body.setAttribute('data-stale', 'true');
+    }
+    document.body.setAttribute('data-feed', fromSaved ? 'saved' : 'live');
+  }
+
+  function fail() {
+    ['hero-cheap', 'hero-frontier'].forEach(function (id) { $(id).textContent = ''; $(id).appendChild(el('p', 'skeleton', 'Unavailable right now.')); });
+    ['cheap', 'frontier'].forEach(function (t) { $('asof-' + t).textContent = 'Not loaded'; });
+    var n = $('error-note'); n.textContent = 'Today\u2019s list couldn\u2019t be loaded, and the saved copy is missing too. You can open the feed directly: ';
+    var a = el('a', null, 'today.json'); a.href = FEED_URL; n.appendChild(a); n.classList.add('show');
+    document.body.setAttribute('data-feed', 'error');
+  }
+
+  function load() {
+    fetchJson(FEED_URL)
+      .then(function (d) { render(d, false); })
+      .catch(function () {
+        return fetchJson(SAVED_URL).then(function (d) { render(d, true); }).catch(fail);
+      });
+  }
+
+  // Tabs
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  function select(tab) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      $(t.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { select(t); });
+    t.addEventListener('keydown', function (ev) {
+      var next = null;
+      if (ev.key === 'ArrowRight') next = tabs[(i + 1) % tabs.length];
+      else if (ev.key === 'ArrowLeft') next = tabs[(i - 1 + tabs.length) % tabs.length];
+      else if (ev.key === 'Home') next = tabs[0];
+      else if (ev.key === 'End') next = tabs[tabs.length - 1];
+      if (next) { ev.preventDefault(); select(next); next.focus(); }
+    });
+  });
+
+  // Copy buttons
+  Array.prototype.forEach.call(document.querySelectorAll('[data-copy]'), function (btn) {
+    btn.addEventListener('click', function () {
+      var src = $(btn.getAttribute('data-copy'));
+      var text = src ? src.textContent : '';
+      var label = btn.textContent;
+      function done(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = label; }, 1600); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done('Copied'); }, function () { done('Select and copy'); });
+      } else {
+        var range = document.createRange(); range.selectNodeContents(src);
+        var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+        done('Selected');
+      }
+    });
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

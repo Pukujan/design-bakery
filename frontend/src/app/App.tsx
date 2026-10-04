@@ -20,6 +20,7 @@ import { CortexCaseStudyRedirect } from './modules/case-studies/cortex/CortexCas
 import { FossilCaseStudyRedirect } from './modules/case-studies/fossil/FossilCaseStudyRedirect';
 import { StudyOsCaseStudyRedirect } from './modules/case-studies/study-os/StudyOsCaseStudyRedirect';
 import { FluffyV4CaseStudyRedirect } from './modules/case-studies/fluffy-v4/FluffyV4CaseStudyRedirect';
+import { IrePageRedirect } from './modules/ire/IrePageRedirect';
 import { ResearchListPage } from './modules/research/public/ResearchListPage';
 import { ResearchPaperPage } from './modules/research/public/ResearchPaperPage';
 import { ResearchSourcePage } from './modules/research/public/ResearchSourcePage';
@@ -110,6 +111,8 @@ function publicRoutes(): ReactElement[] {
     <Route path="/case-studies/study-os/evidence" element={<StudyOsCaseStudyRedirect />} />,
     <Route path="/case-studies/fluffy-v4" element={<FluffyV4CaseStudyRedirect />} />,
     <Route path="/case-studies/fluffy-v4/gallery" element={<FluffyV4CaseStudyRedirect />} />,
+    // IRE market page (IRE #77): static page with a live daily feed, same hand-off pattern.
+    <Route path="/ire" element={<IrePageRedirect />} />,
     <Route key="research-shell" path="/research" element={<PortfolioPublicLayout />}>
       <Route index element={<ResearchListPage />} />
       <Route path="papers/:paperId" element={<ResearchPaperPage />} />

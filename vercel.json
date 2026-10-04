@@ -58,6 +58,14 @@
       "destination": "/case-studies/cortex/a/index.html"
     },
     {
+      "source": "/ire",
+      "destination": "/ire/index.html"
+    },
+    {
+      "source": "/ire/",
+      "destination": "/ire/index.html"
+    },
+    {
       "source": "/((?!.*\\.html$).*)",
       "destination": "/index.html"
     }

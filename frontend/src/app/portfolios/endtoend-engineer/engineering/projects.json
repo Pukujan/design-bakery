@@ -223,6 +223,7 @@
       {"label": "Editable policy", "icon": "Award"}
     ],
     "links": [
+      {"label": "Today's Picks", "url": "/ire"},
       {"label": "GitHub \u00b7 Public", "url": "https://github.com/Pukujan/inference-recommendation-engine"}
     ]
   }

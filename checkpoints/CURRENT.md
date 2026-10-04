@@ -22,6 +22,7 @@
 - `frontend/src/app/modules/engineering/EngineeringProjects/projects.json` is not imported anywhere (candidate for deletion; owner to confirm).
 - Research paper `db-r-2026-010` mirrors Eval Lab `paper/paper.md` (two-layer judge accuracy/coverage paper, source commit `348676c`). Figures (`NAME.{light,dark}.{wide,tall}.svg`, `NAME.data.json`, `manifest.json`) in `frontend/public/research/figures/benchmark/` are copied from Eval Lab `paper/figures/benchmark/`; do not hand-edit numbers — regenerate from Eval Lab.
 - Research paper rendering lives in `frontend/src/app/modules/research/render/` (figures, tables, contents, GitHub alerts, Quick/Full read) with styles in the `.rp-*` / `.research-paper.rp-body` block at the end of `globals.css`. Interactive charts register in `render/figureRenderers.ts`.
+- `/ire` (TASK-DB-0057) is a static page, `frontend/public/ire/index.html`, that reads the IRE daily feed in the browser and falls back to `frontend/public/ire/today.saved.json` (refreshed into `dist` at build time by `scripts/refresh-ire-saved-feed.mjs`). Checks: `pnpm test:ire-page` and `pnpm test:ire-page:browser` (Playwright, needs a build first).
 - `additionals/archive/firebase/` is still read by migration / storage-CORS / publish-kit-upload scripts — keep until those scripts are retired.
 
 ## Open threads
