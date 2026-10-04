@@ -90,6 +90,7 @@ assert.ok(ire.links.some((l) => l.url === 'https://github.com/Pukujan/inference-
 const themeCss = await read('./frontend/public/ire/theme.css');
 assert.ok(html.includes('<link rel="stylesheet" href="/ire/theme.css">'), 'page should load /ire/theme.css (absolute, so /ire without a slash works)');
 assert.ok(html.includes('<html lang="en" data-theme="dark">'), 'page should start in the dark theme');
+assert.ok(html.includes('var FOLLOW_DEVICE_LIGHT = false;'), 'page should start dark even on a light-mode device');
 assert.ok(/How it works[\s\S]*To change a color[\s\S]*To add a theme/.test(themeCss.slice(0, 3000)), 'theme.css should open with the how-to comment');
 const COLOR_VALUE = /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/i;
 const NAMED_COLOR = /(?<![\w-])(?:white|black|red|green|blue|gray|grey|silver|yellow|orange|purple|pink|navy|teal|cyan|magenta)(?![\w-])/i;

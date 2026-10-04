@@ -9,8 +9,8 @@
 // Scenarios: live feed renders both tabs; fallback when the feed is blocked; stale
 // banner when the clock is past stale_after; error state when both sources fail;
 // mobile viewport without horizontal overflow; no closed model names anywhere on the
-// rendered page; no console errors. Color themes: dark by default, a light device
-// preference used only when nothing is saved, the picker saves across reloads, and every
+// rendered page; no console errors. Color themes: dark by default on every device (even
+// light-mode ones), the picker saves across reloads, and every
 // theme keeps key text at WCAG AA contrast with no bright panels left in dark themes.
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -248,8 +248,8 @@ function themeBackground(name) {
 const bodyBg = (page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 const htmlTheme = (page) => page.getAttribute('html', 'data-theme');
 
-// Browsers report "light" when the device has no setting, so the dark default is checked on a
-// dark device; with JS off the page is dark from <html data-theme="dark"> (static check).
+// Dark is the default on every device until the visitor picks a theme (the next scenario covers a
+// light-mode device); with JS off the page is dark from <html data-theme="dark"> (static check).
 await scenario('dark is the default theme', { feed: 'mock', clock: freshTime, context: { viewport: { width: 1280, height: 900 }, colorScheme: 'dark' } }, async (page) => {
   assert.equal(await htmlTheme(page), 'dark');
   assert.equal(await page.inputValue('#theme-select'), 'dark');
@@ -257,9 +257,10 @@ await scenario('dark is the default theme', { feed: 'mock', clock: freshTime, co
   assert.equal(await page.evaluate(() => localStorage.getItem('ire-theme')), null, 'nothing saved until the visitor picks');
 });
 
-await scenario('a light device preference is used when nothing is saved', { feed: 'mock', clock: freshTime, context: { viewport: { width: 1280, height: 900 }, colorScheme: 'light' } }, async (page) => {
-  assert.equal(await htmlTheme(page), 'light');
-  assert.equal(await bodyBg(page), themeBackground('light'));
+await scenario('a light-mode device still starts dark when nothing is saved', { feed: 'mock', clock: freshTime, context: { viewport: { width: 1280, height: 900 }, colorScheme: 'light' } }, async (page) => {
+  assert.equal(await htmlTheme(page), 'dark');
+  assert.equal(await page.inputValue('#theme-select'), 'dark');
+  assert.equal(await bodyBg(page), themeBackground('dark'));
 });
 
 await scenario('theme picker switches, saves, and survives a reload', { feed: 'mock', clock: freshTime, context: { viewport: { width: 1280, height: 900 }, colorScheme: 'light' } }, async (page) => {
