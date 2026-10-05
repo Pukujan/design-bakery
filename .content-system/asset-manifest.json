@@ -1,0 +1,13 @@
+{
+  "schema_version": "content-generation.asset-manifest.v1",
+  "system_version": "0.5.12",
+  "assets": [
+    {
+      "path": "frontend/public/images/site-og.png",
+      "role": "og_card",
+      "title": "Design Bakery",
+      "subtitle": "Fullstack Design Engineer",
+      "notes": "Site social-preview card used for link unfurls; committed raster, not a generated narrative asset."
+    }
+  ]
+}

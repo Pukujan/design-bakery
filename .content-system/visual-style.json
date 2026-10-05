@@ -1,0 +1,35 @@
+{
+  "schema_version": "content-generation.visual-style.v1",
+  "reference_asset": "frontend/public/images/site-og.png",
+  "generation_workflow": "built-in image_gen",
+  "narrative_roles": ["hero", "problem", "supporting", "evidence", "story", "social"],
+  "palette": {
+    "background": "#FFF9F0",
+    "primary": "#4169E1",
+    "accent": "#FFD93D",
+    "warm_accent": "#FF6B9D",
+    "text": "#1A1A1A"
+  },
+  "subjects": [
+    "one dominant idea per image",
+    "the project's own artifact or interface, not abstract technology"
+  ],
+  "composition": [
+    "one dominant idea",
+    "main subjects remain visible",
+    "warm cream ground with a single saturated accent"
+  ],
+  "text_policy": "narrative raster assets carry one short title plus one short subtitle; icons, SVGs, logos, and tiny helper graphics remain text-free",
+  "roles": {
+    "hero": {"orientation": "wide", "dimensions": "1600x900"},
+    "problem": {"orientation": "wide", "dimensions": "1600x900"},
+    "system": {"orientation": "square", "dimensions": "1200x1200"},
+    "evidence": {"orientation": "portrait", "dimensions": "1200x1600"}
+  },
+  "reject_when": [
+    "the image is a generic stock-technology collage with no project artifact",
+    "neon-on-black cyberpunk styling that contradicts the warm cream palette",
+    "more than one accent colour competes for attention",
+    "text is baked into an icon, logo, or helper graphic"
+  ]
+}

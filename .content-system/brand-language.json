@@ -1,0 +1,28 @@
+{
+  "schema_version": "content-generation.brand-language.v1",
+  "name": "Design Bakery",
+  "personality": ["clear", "warm", "specific", "evidence-first", "unhyped"],
+  "audience_feeling": "That the work is real and inspectable — the reader can see the mechanism, not just the claim.",
+  "promise": "Show how the work is built and what the evidence actually supports, so a reader can judge it without taking anything on faith.",
+  "preferred_terms": {
+    "fullstack design engineer": "the owner's role",
+    "case study": "a written account of one project",
+    "research paper": "a rendered paper under /research",
+    "evidence": "an inspected artifact, test, or decision"
+  },
+  "avoid": [
+    "guru",
+    "10x engineer",
+    "ninja",
+    "rockstar",
+    "revolutionary",
+    "game-changing",
+    "seamless"
+  ],
+  "good_examples": [
+    "Study OS learns from where a student gets stuck, tries a different representation, and keeps the evidence tied to real learning sessions."
+  ],
+  "bad_examples": [
+    "A revolutionary AI platform that seamlessly transforms learning for everyone."
+  ]
+}
