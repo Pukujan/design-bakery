@@ -5,7 +5,7 @@
 | **Created** | 2026-10-05 |
 | **Issue** | none (owner-directed; no design-bakery issue opened) |
 | **Branch** | `task/TASK-DB-0060-ci-hardening-paper` |
-| **Status** | PR open, waiting for owner review. Public research content — do not auto-merge. |
+| **Status** | Merged 2026-10-05 (PR #63, squash commit `b0da979`), live at `/research/papers/db-r-2026-011`. Paper status stays `pending` until the owner promotes it to `approved`. |
 
 ## Goal
 
@@ -28,7 +28,12 @@ Publish a working paper at `/research/papers/db-r-2026-011` that shows a before/
 
 The source repository is private. The public paper carries no repository name, no issue numbers, no guard filenames and no product specifics — only the shape of the change and the counts. The `rp-meta` aside states the evidence is a private repository and not independently reproducible.
 
+## Publish (2026-10-05)
+
+- PR [#63](https://github.com/Pukujan/design-bakery/pull/63) squash-merged to `main` as `b0da979`; all checks passed (`quality` 2m3s, Vercel, Vercel Preview Comments).
+- Vercel production deployment for `b0da979` succeeded. The live page renders the title, `pending` badge, alert callout, `rp-meta` aside, five-row defect table and the mermaid diagram (all six node labels).
+
 ## Next step
 
-- Owner review of the paper and its status. Merge, or promote `status` to `approved` once accepted.
+- Owner review of the paper's *status*: promote `status` to `approved` once accepted. The page is already public; only the badge is provisional.
 - If the paper is kept, consider a short topic devlog note on "publishing a private-repo case study" (genericization checklist). Not written.
