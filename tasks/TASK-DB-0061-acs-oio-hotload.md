@@ -5,7 +5,7 @@
 | **Created** | 2026-10-05 |
 | **Issue** | none (owner-directed; no design-bakery issue opened) |
 | **Branch** | `task/TASK-DB-0061-acs-oio-hotload` |
-| **Status** | In progress — both installs landed locally and validate; PR opened for review. |
+| **Status** | Merged 2026-10-05 — install PR [#68](https://github.com/Pukujan/design-bakery/pull/68) (`69bb529`), line-ending fix PR [#69](https://github.com/Pukujan/design-bakery/pull/69) (`79703fb`). All three validators pass on `main`. |
 
 ## Goal
 

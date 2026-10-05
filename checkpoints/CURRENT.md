@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Last updated** | 2026-10-05 (TASK-DB-0061) |
-| **Active task** | [TASK-DB-0061 ACS hotloader + OIO intake](../tasks/TASK-DB-0061-acs-oio-hotload.md) — both installed and validating locally; PR open. Prior: TASK-DB-0060 CI-hardening paper merged (PR #63, `b0da979`). |
+| **Active task** | [TASK-DB-0061 ACS hotloader + OIO intake](../tasks/TASK-DB-0061-acs-oio-hotload.md) — merged 2026-10-05 (PRs #68 `69bb529`, #69 `79703fb`); ACS, CGM adapter and OIO all validate on `main`. Prior: TASK-DB-0060 CI-hardening paper merged (PR #63, `b0da979`). |
 
 ## Repo shape
 
