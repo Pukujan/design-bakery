@@ -24,6 +24,7 @@ import PAPER_007_MD from '../content/db-r-2026-007.md?raw';
 import PAPER_008_MD from '../content/db-r-2026-008.md?raw';
 import PAPER_009_MD from '../content/db-r-2026-009.md?raw';
 import PAPER_010_MD from '../content/db-r-2026-010.md?raw';
+import PAPER_011_MD from '../content/db-r-2026-011.md?raw';
 
 import SOURCE_EMOTION_MD from '../content/sources/ai-emotional-development-landscape.md?raw';
 import SOURCE_SELFLEARN_MD from '../content/sources/self-learning-ai-survey.md?raw';
@@ -256,8 +257,31 @@ const PAPER_010: ResearchPaper = {
   content: PAPER_010_MD,
 };
 
+const PAPER_011: ResearchPaper = {
+  id: 'db-r-2026-011',
+  title: 'A module can pass every check and still run nowhere',
+  authors: ['Pujan', 'Design Bakery'],
+  submitted: '2026-10-05',
+  status: 'pending',
+  tags: ['ci', 'verification', 'dead-code', 'reachability', 'process', 'guards'],
+  abstract:
+    'A module can pass every check a continuous-integration gate runs while nothing in production ever calls it. We added five guards to one quality gate in eleven days, taking it from 18 steps to 23. Two caught real defects the day they landed: nine committed backup files, a folder literally named D:, sixteen stray runtime files, and two hardcoded home paths. The newest guard, for orphan modules, has caught no live regression yet; its demonstrated value is a recorded baseline and twelve tests that fail on demand. The paper names where the gate is still blind, including a directory it does not scan, a baseline a single command could silently grow, and one gate that is not wired into CI at all.',
+  content: PAPER_011_MD,
+  bibtex: `@techreport{db-r-2026-011,
+  title       = {A module can pass every check and still run nowhere},
+  author      = {Pujan},
+  institution = {Design Bakery Research},
+  number      = {db-r-2026-011},
+  year        = {2026},
+  month       = {oct},
+  note        = {Working paper, pending owner approval. Case report from one private codebase, n = 1;
+                 figures verified against git history and CI records on 2026-10-05 and not independently reproducible.}
+}`,
+};
+
 /** Newest first. */
 export const RESEARCH_PAPERS: ResearchPaper[] = [
+  PAPER_011,
   PAPER_010,
   PAPER_009,
   PAPER_008,
