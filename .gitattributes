@@ -1,3 +1,12 @@
 # gravebuster deploy stack is checked out on Linux — never let git convert line
 # endings there (a CRLF shell script fails with "bad interpreter").
 deploy/gravebuster/* text eol=lf
+
+# OIO (TASK-DB-0061) records byte-exact SHA-256 hashes of its managed files.
+# With core.autocrlf=true a Windows checkout rewrites them to CRLF and the
+# installer's --check then refuses them as edited. Pin LF for the managed set.
+AGENTS.md text eol=lf
+.oio/** text eol=lf
+.github/ISSUE_TEMPLATE/** text eol=lf
+.github/scripts/** text eol=lf
+.github/workflows/issue-triage.yml text eol=lf

@@ -64,6 +64,13 @@ root (ACS dev-root hygiene).
   open/mkdir/stat/unlink/rename plus `O_NOFOLLOW`/`O_DIRECTORY`) and fails
   closed without them. It was installed from WSL Ubuntu 22.04 against
   `/mnt/d/development/design-bakery.com`. Re-run the same way to upgrade.
+- **Line endings matter for OIO.** OIO records byte-exact SHA-256 hashes of its
+  managed files. With `core.autocrlf=true`, a Windows checkout rewrites them to
+  CRLF and OIO's `--check` then refuses them as edited. `.gitattributes` now
+  pins `eol=lf` for `AGENTS.md` and the OIO-managed set, and OIO was reinstalled
+  from an LF-canonical copy of its source so the manifest hashes match the bytes
+  git stores. Re-run the installer from that copy
+  (`%LOCALAPPDATA%\acs\scratch\oio-lf`) when upgrading.
 - `PROMPT_INJECT.md` is written by `hotload_check` into the ACS pack checkout
   (`%LOCALAPPDATA%\acs\deps\acs\...`), not into this repo — it is a pack
   artifact, not a repo file. Its `acs_prompt_inject.system_block` is meant to be
