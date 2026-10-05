@@ -1,0 +1,23 @@
+---
+description: Private-repo publication — read agent devlog before publishing a case study whose source is private
+globs: frontend/src/app/modules/research/**,additionals/guidelines/agent-devlog-private-repo-publication.md
+alwaysApply: false
+---
+
+# Publishing a private-repo case study
+
+**Before adding or editing a research paper whose source repository is private, read:**
+
+`additionals/guidelines/agent-devlog-private-repo-publication.md`
+**Index:** `additionals/guidelines/agent-devlog-index.md`
+
+## Quick rules (full detail in that file)
+
+- **Genericize, don't redact:** keep the shape of the change, drop the coordinates of the source.
+- **Strip:** repository/product name, issue numbers, file/script/flag names, machine paths, exact dates, exact counts.
+- **Keep:** defect *classes*, qualitative outcomes, banded magnitudes ("a few dozen", "under two weeks").
+- **The trap is the tuple:** a set of exact numbers plus exact dates identifies the source even when each element alone does not.
+- **Re-derive every figure** from the private source immediately before publishing; never carry numbers from an earlier draft.
+- **Update the registry too:** the `abstract` and `bibtex` note in `researchPapers.ts` repeat figures and must match the paper.
+- **State provenance:** the `rp-meta` aside must name the private source, say figures are rounded, and say they are not reproducible.
+- **Test:** http://localhost:5300/research/papers/<id> and the index at http://localhost:5300/research

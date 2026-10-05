@@ -257,6 +257,13 @@ const PAPER_010: ResearchPaper = {
   content: PAPER_010_MD,
 };
 
+/**
+ * Source repository is private. Genericized per
+ * additionals/guidelines/agent-devlog-private-repo-publication.md: the shape of
+ * the change is kept, the coordinates of the source are not. Figures here and in
+ * the markdown are deliberately rounded and are not independently reproducible.
+ * Keep the `abstract` and `bibtex` note in step with the paper body.
+ */
 const PAPER_011: ResearchPaper = {
   id: 'db-r-2026-011',
   title: 'A module can pass every check and still run nowhere',
@@ -265,7 +272,7 @@ const PAPER_011: ResearchPaper = {
   status: 'pending',
   tags: ['ci', 'verification', 'dead-code', 'reachability', 'process', 'guards'],
   abstract:
-    'A module can pass every check a continuous-integration gate runs while nothing in production ever calls it. We added five guards to one quality gate in eleven days, taking it from 18 steps to 23. Two caught real defects the day they landed: nine committed backup files, a folder literally named D:, sixteen stray runtime files, and two hardcoded home paths. The newest guard, for orphan modules, has caught no live regression yet; its demonstrated value is a recorded baseline and twelve tests that fail on demand. The paper names where the gate is still blind, including a directory it does not scan, a baseline a single command could silently grow, and one gate that is not wired into CI at all.',
+    'A module can pass every check a continuous-integration gate runs while nothing in production ever calls it. We added a small set of guards to one quality gate in under two weeks, taking it from fewer than twenty steps to more than twenty. Two caught real defects the day they landed: a batch of committed backup files, a directory named after a drive letter, stray runtime files, and hardcoded home-path placeholders. The newest guard, for orphan modules, has caught no live regression yet; its demonstrated value is a recorded baseline and a suite of tests that fail on demand. The paper names where the gate is still blind, including a directory it does not scan, a baseline a single command could silently grow, and one gate that is not wired into CI at all.',
   content: PAPER_011_MD,
   bibtex: `@techreport{db-r-2026-011,
   title       = {A module can pass every check and still run nowhere},
@@ -275,7 +282,8 @@ const PAPER_011: ResearchPaper = {
   year        = {2026},
   month       = {oct},
   note        = {Working paper, pending owner approval. Case report from one private codebase, n = 1;
-                 figures verified against git history and CI records on 2026-10-05 and not independently reproducible.}
+                 figures checked against private git history and CI records shortly before publication,
+                 deliberately rounded, and not independently reproducible.}
 }`,
 };
 
