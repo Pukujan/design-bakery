@@ -1,0 +1,25 @@
+{
+  "schema_version": "content-generation.adapter.v1",
+  "system": "content-generation-modules",
+  "helper_repository": "https://github.com/Pukujan/content-generation-modules",
+  "helper_version": "0.5.12",
+  "helper_commit": "6831f91e165b62d719c05eb492f7375fa932b560",
+  "helper_pin_note": "FULL CGM 0.5.12 pinned for the design-bakery ACS hotload. Eight modules including human-output-naming. Validate with scripts/validate_content_system.py; then apply acs_prompt_inject. Do not vendor CGM source.",
+  "modules": [
+    "brand-foundation",
+    "content-context",
+    "writing-direction",
+    "human-sounding-writing",
+    "human-output-naming",
+    "visual-direction",
+    "image-generation",
+    "html-demo"
+  ],
+  "authoritative_project_files": [
+    "AGENTS.md",
+    "HANDOFF.md",
+    "checkpoints/CURRENT.md"
+  ],
+  "review_outputs": [],
+  "adoption_status": "adapter authored for the design-bakery ACS hotload (FULL CGM 0.5.12, eight modules); grounded in repo palette, assets, and portfolio content"
+}

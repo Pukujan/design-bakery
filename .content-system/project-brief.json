@@ -1,0 +1,75 @@
+{
+  "schema_version": "content-generation.project-brief.v2",
+  "project": "Design Bakery — the personal portfolio and engineering site for a fullstack design engineer who builds AI workflow systems.",
+  "audience": [
+    "Hiring managers and technical recruiters evaluating a fullstack design engineer",
+    "Engineers and designers reading the case studies and research papers",
+    "Prospective collaborators assessing the AI-agent and workflow work"
+  ],
+  "problem": "A portfolio that only lists technologies cannot show how a fullstack design engineer actually reasons through AI-agent reliability, adaptive learning, or design systems; reviewers need inspectable evidence, not a skills list.",
+  "solution": "A Vite/React site with case studies, research papers, and an interactive research-figure renderer, backed by an Express API and Supabase content store, so each project shows its mechanism and its evidence.",
+  "mechanism": [
+    "Static portfolio pages rendered from typed content in frontend/src/app/portfolios/endtoend-engineer/",
+    "Case studies under frontend/public/case-studies/ with a shared redirect pattern",
+    "Research-paper rendering with figures and tables under frontend/src/app/modules/research/render/",
+    "Express API on Railway plus Supabase for published content"
+  ],
+  "evidence": [
+    {
+      "claim": "The homepage project cards are driven by a typed, static projects file that records each project's start date and its evidence source.",
+      "source": "frontend/src/app/portfolios/endtoend-engineer/engineering/projects.json",
+      "status": "shipped",
+      "supports": "Each card carries startedAt and startedAtSource fields, so project ordering is reproducible and every date has a stated source.",
+      "limits": "This shows the card data model only; it does not establish that every project description is accurate or current.",
+      "recorded_at": "2026-10-05T00:00:00Z",
+      "source_revision": {
+        "kind": "repository_artifact",
+        "reference": "projects.json projects array",
+        "repository": "Pukujan/design-bakery",
+        "commit": "9b3441fe005d4bc9595dcca6e1255bb72a9c007f",
+        "path": "frontend/src/app/portfolios/endtoend-engineer/engineering/projects.json",
+        "locator": "projects array (first entry, id 7)",
+        "uri": "https://github.com/Pukujan/design-bakery/blob/9b3441fe005d4bc9595dcca6e1255bb72a9c007f/frontend/src/app/portfolios/endtoend-engineer/engineering/projects.json",
+        "observed_at": "2026-10-05"
+      },
+      "cite_in_readme": false
+    },
+    {
+      "claim": "The site defines a single vibrant portfolio palette in one stylesheet that every page consumes through CSS custom properties.",
+      "source": "frontend/src/styles/globals.css theme token block",
+      "status": "shipped",
+      "supports": "Named theme variables (theme-pink, theme-yellow, theme-blue, theme-cream, theme-black) are declared once and mapped onto the shared background/foreground/primary/accent tokens.",
+      "limits": "It establishes that the palette is centralised; it does not establish contrast compliance for every component.",
+      "recorded_at": "2026-10-05T00:00:00Z",
+      "source_revision": {
+        "kind": "repository_artifact",
+        "reference": "globals.css :root theme variables",
+        "repository": "Pukujan/design-bakery",
+        "commit": "9b3441fe005d4bc9595dcca6e1255bb72a9c007f",
+        "path": "frontend/src/styles/globals.css",
+        "locator": ":root block, 'Vibrant Portfolio Colors'",
+        "uri": "https://github.com/Pukujan/design-bakery/blob/9b3441fe005d4bc9595dcca6e1255bb72a9c007f/frontend/src/styles/globals.css",
+        "observed_at": "2026-10-05"
+      },
+      "cite_in_readme": false
+    }
+  ],
+  "boundaries": [
+    "This brief covers the public portfolio site and its published case studies and papers; it does not cover the private operational tooling behind the site.",
+    "No claim here asserts hiring outcomes, traffic, or user numbers.",
+    "Client or employer work referenced in case studies is described only as far as its public write-up allows."
+  ],
+  "terminology": {
+    "preferred": {
+      "fullstack design engineer": "the owner's professional role",
+      "case study": "a written account of one project's mechanism and evidence",
+      "research paper": "a rendered paper with figures and tables under /research"
+    },
+    "avoid": [
+      "guru",
+      "10x",
+      "ninja",
+      "rockstar"
+    ]
+  }
+}
