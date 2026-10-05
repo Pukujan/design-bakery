@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-09-24 (TASK-DB-0053) |
-| **Active task** | [TASK-DB-0053 readable paper rendering](../tasks/TASK-DB-0053-readable-paper-rendering.md) (#48) — PR #51 open, owner review before merge. Next: TASK-DB-0054 interactive charts (#49). TASK-DB-0052 (#47) is merged. |
+| **Last updated** | 2026-10-05 (TASK-DB-0060) |
+| **Active task** | [TASK-DB-0060 CI-hardening research paper](../tasks/TASK-DB-0060-ci-hardening-paper.md) — PR open, owner review before merge (public content). Prior: TASK-DB-0059 (/ire SEO) merged. |
 
 ## Repo shape
 
