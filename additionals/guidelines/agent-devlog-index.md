@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-05-22 |
-| **Last updated** | 2026-09-24 (TASK-DB-0050 showcase projects) |
+| **Last updated** | 2026-10-05 (TASK-DB-0060 private-repo publication devlog) |
 
 **Start here** for agent-facing documentation in this repo.
 
@@ -26,6 +26,7 @@
 | Cover Studio (exportable) | [packages/cover-studio-kit/README.md](../../packages/cover-studio-kit/README.md) | [docs/HISTORY.md](../../packages/cover-studio-kit/docs/HISTORY.md) | `packages/cover-studio-kit/`, `pnpm run export:cover-studio` |
 | Supabase migration (Firebase exit) | [agent-devlog-supabase-migration.md](agent-devlog-supabase-migration.md) | `.cursor/rules/supabase-migration.mdc` | `supabase/migrations/`, `backend/services/src/supabaseClient.ts`, `adminContentService.ts` |
 | Blog agents roadmap | [agent-devlog-blog-agents-roadmap.md](agent-devlog-blog-agents-roadmap.md) | — | **Archived** (archive README removed in TASK-DB-0049; see git history) |
+| Publishing a private-repo case study | [agent-devlog-private-repo-publication.md](agent-devlog-private-repo-publication.md) | `.cursor/rules/private-repo-publication.mdc` | `frontend/src/app/modules/research/content/`, `frontend/src/app/modules/research/data/researchPapers.ts` |
 
 ---
 
