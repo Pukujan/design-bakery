@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Last updated** | 2026-10-05 (TASK-DB-0060) |
-| **Active task** | [TASK-DB-0060 CI-hardening research paper](../tasks/TASK-DB-0060-ci-hardening-paper.md) — PR open, owner review before merge (public content). Prior: TASK-DB-0059 (/ire SEO) merged. |
+| **Active task** | [TASK-DB-0060 CI-hardening research paper](../tasks/TASK-DB-0060-ci-hardening-paper.md) — merged 2026-10-05 (PR #63, `b0da979`), live; paper `status: pending` awaits owner promotion to `approved`. Prior: TASK-DB-0059 (/ire SEO) merged. |
 
 ## Repo shape
 
