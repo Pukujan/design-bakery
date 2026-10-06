@@ -21,6 +21,7 @@ deploy/railway.env
 deploy/vercel.env
 # gravebuster deploy stack — machine-local state (TASK-DB-0055)
 deploy/gravebuster/.env
+deploy/gravebuster/.env.api
 deploy/gravebuster/.deploy-state
 deploy/gravebuster/*.log
 

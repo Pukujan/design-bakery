@@ -1,0 +1,58 @@
+# syntax=docker/dockerfile:1
+#
+# design-bakery API on gravebuster (issue #80).
+#
+# Reproduces the Railway/Nixpacks build (root nixpacks.toml + backend/railway.toml)
+# exactly: install with devDependencies (tsc is needed), build services then backend,
+# and run `node backend/lib/server.js`. The runtime carries fontconfig + DejaVu Sans,
+# the same packages Nixpacks installs, because the publish kit rasterizes SVG text
+# through librsvg and probes for that font.
+#
+# Build from the repo root:
+#   docker build -f deploy/gravebuster/Dockerfile.api -t design-bakery-api:local .
+
+ARG NODE_IMAGE=node:24-bookworm-slim
+
+FROM ${NODE_IMAGE}
+
+ENV CI=1 \
+    PNPM_HOME=/pnpm \
+    PATH=/pnpm:$PATH
+
+# pnpm version comes from package.json "packageManager" (pnpm@10.32.1); Node 24 is
+# pinned by .node-version. fontconfig/fonts-dejavu-core mirror the Nixpacks apt list.
+RUN corepack enable \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends fontconfig fonts-dejavu-core \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /repo
+
+# Workspace manifests first so the (slow) dependency layer survives source edits.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY frontend/package.json ./frontend/
+COPY backend/package.json ./backend/
+COPY backend/services/package.json ./backend/services/
+COPY packages/cover-studio-kit/package.json ./packages/cover-studio-kit/
+
+# Same as the Nixpacks install phase. --prod=false is required: `tsc` builds both
+# packages and lives in devDependencies.
+RUN pnpm install --frozen-lockfile --prod=false
+
+COPY . .
+
+# Same as backend/railway.toml buildCommand (services first — backend imports its lib/).
+RUN pnpm --dir backend/services run build && pnpm --dir backend run build
+
+ENV NODE_ENV=production \
+    PORT=8787
+
+# Plain HTTP inside the container; TLS terminates at the Cloudflare Tunnel edge or
+# the Caddy proxy. Nothing is reachable until that ingress points at it.
+EXPOSE 8787
+
+# Same as backend/railway.toml startCommand, run from the repo root.
+CMD ["node", "backend/lib/server.js"]
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||8787)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"

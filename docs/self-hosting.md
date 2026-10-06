@@ -401,3 +401,51 @@ sudo systemctl disable --now design-bakery-autodeploy.timer
   Do not develop in it; edits there are overwritten on the next deploy.
 - **Vercel:** unchanged and still deployed. Do not modify the Vercel project or its
   domains while the migration is in flight — it is the fallback.
+
+---
+
+## 8. The API container (issue [#80](https://github.com/Pukujan/design-bakery/issues/80))
+
+The Express API is the second half of the move off hosted platforms. It is
+**not wired up yet** — this section documents the container that exists now.
+
+| Piece | Value |
+| --- | --- |
+| Dockerfile | `deploy/gravebuster/Dockerfile.api` (single stage, `node:24-bookworm-slim`) |
+| Compose service | `api` in `deploy/gravebuster/docker-compose.yml` |
+| Container | `design-bakery-api` (`node backend/lib/server.js`, healthcheck on `/health`) |
+| Published port | `127.0.0.1:${API_HOST_PORT:-8788}` → container `8787` |
+| Secrets | `deploy/gravebuster/.env.api` (git-ignored, **optional**) |
+| Image | `design-bakery-api:<sha12>-<UTC timestamp>` |
+
+**Build parity.** The image runs the same commands as Railway
+(`backend/railway.toml` + root `nixpacks.toml`): `pnpm install --frozen-lockfile
+--prod=false` (tsc is a devDependency), `pnpm --dir backend/services run build &&
+pnpm --dir backend run build`, then `node backend/lib/server.js`. The runtime
+installs `fontconfig` + `fonts-dejavu-core` — the same packages Nixpacks installs —
+because the publish kit rasterizes SVG text through librsvg and probes for DejaVu Sans.
+
+```bash
+# from the repo root
+docker build -f deploy/gravebuster/Dockerfile.api -t design-bakery-api:local .
+docker run --rm -p 127.0.0.1:8788:8787 design-bakery-api:local
+curl -s http://127.0.0.1:8788/health   # {"ok":true,"service":"design-bakery-api"}
+```
+
+**Secrets.** Copy the Railway variables into `deploy/gravebuster/.env.api`
+(`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`,
+`OPENROUTER_API_KEY`, `ADMIN_PASSWORD`, `ALLOWED_ORIGINS`, agent-token seeds). The
+file is git-ignored; the compose `env_file` entry is `required: false`, so the
+container still starts (and `/health` still answers) without it.
+
+**Still open (owner decision).** How the API is reached publicly:
+
+- *Own tunnel hostname* — e.g. `api.design-bakery.com` → `design-bakery-api:8787`,
+  with `VITE_BLOG_API_URL=https://api.design-bakery.com`. Keeps the API and web
+  independent; needs an `ALLOWED_ORIGINS` entry for the site origin.
+- *Same-origin `/api` proxy* — add `reverse_proxy design-bakery-api:8787` to the
+  `web` Caddyfile under `/api/*` and set `VITE_BLOG_API_URL` empty. No CORS at all,
+  but the two containers become one routing unit.
+
+Either way, Railway stays authoritative until the tunnel points at gravebuster.
+
