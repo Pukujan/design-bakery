@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import { agentPostsRouter } from './api/agentPosts.js';
 import { authRouter } from './api/auth.js';
 import { contentRouter } from './api/content.js';
 import { publicContentRouter } from './api/publicContent.js';
@@ -7,6 +8,7 @@ import { coverStudioLibraryRouter } from './api/coverStudioLibrary.js';
 import { mediaLibraryRouter } from './api/mediaLibrary.js';
 import { publishKitRouter } from './api/publishKit.js';
 import { isOriginAllowed, loadServerEnv } from './config/env.js';
+import { requireAgentToken } from './middleware/agentAuth.js';
 import { requireAdmin } from './middleware/auth.js';
 
 loadServerEnv();
@@ -34,6 +36,7 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/auth', authRouter);
 app.use('/api/public', publicContentRouter);
+app.use('/api/agent', requireAgentToken, agentPostsRouter);
 app.use('/api/content', requireAdmin, contentRouter);
 app.use('/api/publish-kit', requireAdmin, publishKitRouter);
 app.use('/api/media-library', requireAdmin, mediaLibraryRouter);
@@ -62,5 +65,5 @@ app.use(
 app.listen(port, () => {
   console.log(`[api] design-bakery-api http://localhost:${port}`);
   console.log('[api] content=supabase  POST /api/auth/login  GET /api/public/blogs  /api/content/*');
-  console.log('[api] POST /api/publish-kit  /api/media-library/*  /api/cover-studio-library/*  GET /health');
+  console.log('[api] POST /api/agent/posts  PUT /api/agent/posts/:numericId  POST /api/publish-kit  /api/media-library/*  /api/cover-studio-library/*  GET /health');
 });
