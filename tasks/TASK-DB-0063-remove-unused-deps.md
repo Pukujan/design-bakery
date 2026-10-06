@@ -33,7 +33,8 @@ Measured 2026-10-05 on this branch, Windows 11 / Node 24 / pnpm 10.32.1.
 - `node_modules/.pnpm` still held **12 stale orphan dirs (48.0 MB)** plus **9 `@emotion/*` orphans (0.5 MB)** left over from the prior install — pnpm does not garbage-collect virtual-store dirs for packages dropped from the graph. Verified orphaned (no top-level `node_modules/@mui` or `@emotion` symlink, no `package.json` declaring them, no lockfile entry, `pnpm why` empty) and removed: **≈48.5 MB reclaimed** in this working copy. A fresh clone/install never creates them.
 - Correction to the plan's estimate: `@mui/icons-material`'s virtual-store dir is **18.4 MB**, not the ≈90 MB stated in `modularization-plan.md`.
 - Bundle is unchanged: `dist/assets/index-Dw-f6_lE.js` is still **3,412.59 kB**. MUI/emotion were declared but never imported, so they were never in the bundle — the gain here is install/disk, not first-paint. First-paint gains come from step 3.
-- `pnpm lint`, `pnpm --dir frontend run typecheck`, and `pnpm run build` all pass.
+- `pnpm lint`, `pnpm --dir frontend run typecheck`, and `pnpm run build` all pass. `pnpm install --frozen-lockfile` reports "Already up to date" (lockfile consistent, nothing missing).
+- `node_modules` now measures **375.5 MB** (Node file walker, symlinks skipped). The 610 MB baseline was a `du -sh` reading, so the two methods differ — treat the ≈235 MB delta as indicative, not exact. The solid, verified figure is the ≈48.5 MB of orphan dirs removed above.
 
 ## Next step
 
