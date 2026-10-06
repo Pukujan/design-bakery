@@ -85,10 +85,9 @@ jobs:
             --manifest stack-manifest.json \
             --train .stack-train/stack-releases.json
 
-  # Report-only for now: the detector is not in the required status checks, so it
-  # surfaces orphaned files in the log without blocking merges. Promote it (add
-  # `orphans` to branch protection and run `pnpm find:orphans:strict`) once the
-  # existing orphans are cleaned up.
+  # Fails on any unreferenced source file that is not an intentional keep. The
+  # allowlist in scripts/find-orphans.mjs is the whole budget, so a new dead file
+  # turns this red. Add `orphans` to branch protection to make it blocking.
   orphans:
     name: orphans
     runs-on: ubuntu-latest
@@ -102,4 +101,4 @@ jobs:
           node-version-file: .node-version
 
       - name: Find orphaned source files
-        run: node scripts/find-orphans.mjs
+        run: node scripts/find-orphans.mjs --strict

@@ -13,7 +13,9 @@
  *
  * Usage:
  *   node scripts/find-orphans.mjs            # report; exit 0
- *   node scripts/find-orphans.mjs --strict   # exit 1 if any orphan is found
+ *   node scripts/find-orphans.mjs --strict   # exit 1 if any unexpected orphan is found
+ *
+ * Files matched by ALLOW below are intentional keeps and never fail `--strict`.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -85,6 +87,19 @@ const IGNORE = [
   /(^|\/)(archive|archive-[^/]+)\//,
   /\.d\.ts$/,
   /(^|\/)(dist|lib|node_modules)\//,
+];
+
+/**
+ * Intentional orphans — nothing imports them by design. Kept out of the strict
+ * failure so the check can be a required gate. Every entry needs a reason, and
+ * the list is the whole budget: anything else unreachable fails `--strict`.
+ */
+const ALLOW = [
+  // Unrouted work-in-progress for open feature issue #24 (photo gallery).
+  // Unfinished, not dead — do not delete.
+  /^frontend\/src\/app\/modules\/photo-gallery\//,
+  // Reference examples shipped with cover-studio-kit; not imported by design.
+  /^packages\/cover-studio-kit\/examples\//,
 ];
 
 /** Collect every string target from a package.json `exports` field. */
@@ -245,13 +260,19 @@ function main() {
     .filter((rel) => !reached.has(rel))
     .filter((rel) => !IGNORE.some((re) => re.test(rel)))
     .sort();
+  const allowed = orphans.filter((rel) => ALLOW.some((re) => re.test(rel)));
+  const unexpected = orphans.filter((rel) => !ALLOW.some((re) => re.test(rel)));
   console.log(`Scanned ${scanned.size} files; ${reached.size} reachable from ${entries.length} entries.`);
-  if (orphans.length === 0) {
-    console.log('No orphaned files found.');
+  if (allowed.length) {
+    console.log(`\n${allowed.length} intentional keep(s) (allowlisted):`);
+    for (const rel of allowed) console.log(`  ${rel}`);
+  }
+  if (unexpected.length === 0) {
+    console.log('\nNo unexpected orphaned files found.');
     return 0;
   }
-  console.log(`\n${orphans.length} orphaned file(s) — nothing imports these:\n`);
-  for (const rel of orphans) console.log(`  ${rel}`);
+  console.log(`\n${unexpected.length} orphaned file(s) — nothing imports these:\n`);
+  for (const rel of unexpected) console.log(`  ${rel}`);
   return strict ? 1 : 0;
 }
 
