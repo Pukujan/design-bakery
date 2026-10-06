@@ -12,6 +12,7 @@
     "build:watch": "tsc --watch",
     "test:publish-kit-upload": "node scripts/test-publish-kit-upload.mjs",
     "test:publish-kit-fonts": "node scripts/test-publish-kit-fonts.mjs",
+    "test:agent-posts": "node scripts/test-agent-post-validation.mjs",
     "test:blog-workflow": "node scripts/test-blog-agents-workflow.mjs --offline",
     "test:blog-workflow:live": "node scripts/test-blog-agents-workflow.mjs --live",
     "test:blog-workflow:live:ai": "node scripts/test-blog-agents-workflow.mjs --live --with-ai-images",

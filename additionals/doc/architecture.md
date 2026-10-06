@@ -22,10 +22,12 @@ backend/
     server.ts              # App bootstrap, routes, global error handler
     config/env.ts          # Env loading (backend/.env, repo .env)
     middleware/
-      auth.ts              # Firebase ID token + admin allowlist
+      auth.ts              # Admin bearer JWT + allowlist
+      agentAuth.ts         # Agent bearer token (agent_tokens)
       httpErrors.ts        # Map domain errors → JSON responses
     api/
       publishKit.ts        # POST /api/publish-kit
+      agentPosts.ts        # POST /api/agent/posts, PUT /api/agent/posts/:numericId
       blogAgent.ts         # (removed) — use publish-kit only
   services/src/           # Models + services (not HTTP-specific)
     blog/                  # Publish kit, Firestore, agents
