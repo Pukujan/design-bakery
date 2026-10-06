@@ -1,29 +1,70 @@
 import { type ReactElement } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { DefaultSiteHead } from './seo/PageSeo';
-import { EngineeringHome } from './modules/engineering/EngineeringHome/EngineeringHome';
-import { BlogListPage } from './modules/blog/public/list/BlogListPage';
-import { BlogDetailPage } from './modules/blog/public/detail/BlogDetailPage';
 import { AdminAuthProvider } from './lib/adminAuth';
-import { AdminLogin } from './modules/admin/AdminLogin';
+import { lazyPage } from './lib/lazyPage';
 import { PortfolioPublicLayout } from './portfolios/PortfolioPublicLayout';
 import { AdminLayoutShell } from './modules/admin/AdminLayoutShell';
 import { buildAdminChildRoutes } from './modules/admin/adminRoutes';
 import { NotFoundPage } from './components/NotFoundPage';
-import { EkagajpatraCaseStudyPage } from './modules/case-studies/ekagajpatra/EkagajpatraCaseStudyPage';
-import { InvestAiCaseStudyPage } from './modules/case-studies/invest-ai/InvestAiCaseStudyPage';
-import { AiAgentsCaseStudyV3Page } from './modules/case-studies/ai-agents/AiAgentsCaseStudyV3Page';
-import { AiAgentsCaseStudyV4Page } from './modules/case-studies/ai-agents/AiAgentsCaseStudyV4Page';
-import { LegalWorkflowResearchCaseStudyPage } from './modules/case-studies/legal-workflow-research/LegalWorkflowResearchCaseStudyPage';
-import { StaticCaseStudyAssetGuard } from './modules/case-studies/legal-workflow-research/StaticCaseStudyAssetGuard';
 import { CortexCaseStudyRedirect } from './modules/case-studies/cortex/CortexCaseStudyRedirect';
 import { FossilCaseStudyRedirect } from './modules/case-studies/fossil/FossilCaseStudyRedirect';
 import { StudyOsCaseStudyRedirect } from './modules/case-studies/study-os/StudyOsCaseStudyRedirect';
 import { FluffyV4CaseStudyRedirect } from './modules/case-studies/fluffy-v4/FluffyV4CaseStudyRedirect';
 import { IrePageRedirect } from './modules/ire/IrePageRedirect';
-import { ResearchListPage } from './modules/research/public/ResearchListPage';
-import { ResearchPaperPage } from './modules/research/public/ResearchPaperPage';
-import { ResearchSourcePage } from './modules/research/public/ResearchSourcePage';
+
+// Page routes are split into their own chunks (modularization step 3). The
+// layouts, the redirect stubs and the 404 page stay eager: lazy-loading a
+// redirect only adds a chunk request before it navigates, and the 404 must
+// render even when a chunk fails to load.
+const EngineeringHomePage = lazyPage(
+  async () => (await import('./modules/engineering/EngineeringHome/EngineeringHome')).EngineeringHome,
+);
+const BlogListPage = lazyPage(
+  async () => (await import('./modules/blog/public/list/BlogListPage')).BlogListPage,
+);
+const BlogDetailPage = lazyPage(
+  async () => (await import('./modules/blog/public/detail/BlogDetailPage')).BlogDetailPage,
+);
+const AdminLoginPage = lazyPage(
+  async () => (await import('./modules/admin/AdminLogin')).AdminLogin,
+);
+const EkagajpatraCaseStudyPage = lazyPage(
+  async () =>
+    (await import('./modules/case-studies/ekagajpatra/EkagajpatraCaseStudyPage'))
+      .EkagajpatraCaseStudyPage,
+);
+const InvestAiCaseStudyPage = lazyPage(
+  async () =>
+    (await import('./modules/case-studies/invest-ai/InvestAiCaseStudyPage')).InvestAiCaseStudyPage,
+);
+const AiAgentsCaseStudyV3Page = lazyPage(
+  async () =>
+    (await import('./modules/case-studies/ai-agents/AiAgentsCaseStudyV3Page')).AiAgentsCaseStudyV3Page,
+);
+const AiAgentsCaseStudyV4Page = lazyPage(
+  async () =>
+    (await import('./modules/case-studies/ai-agents/AiAgentsCaseStudyV4Page')).AiAgentsCaseStudyV4Page,
+);
+const LegalWorkflowResearchCaseStudyPage = lazyPage(
+  async () =>
+    (await import('./modules/case-studies/legal-workflow-research/LegalWorkflowResearchCaseStudyPage'))
+      .LegalWorkflowResearchCaseStudyPage,
+);
+const StaticCaseStudyAssetGuard = lazyPage(
+  async () =>
+    (await import('./modules/case-studies/legal-workflow-research/StaticCaseStudyAssetGuard'))
+      .StaticCaseStudyAssetGuard,
+);
+const ResearchListPage = lazyPage(
+  async () => (await import('./modules/research/public/ResearchListPage')).ResearchListPage,
+);
+const ResearchPaperPage = lazyPage(
+  async () => (await import('./modules/research/public/ResearchPaperPage')).ResearchPaperPage,
+);
+const ResearchSourcePage = lazyPage(
+  async () => (await import('./modules/research/public/ResearchSourcePage')).ResearchSourcePage,
+);
 
 const ADMIN_PORTFOLIOS = ['endtoend-engineer'] as const;
 
@@ -44,7 +85,7 @@ function buildAdminRoutes(portfolioId: (typeof ADMIN_PORTFOLIOS)[number]): React
 
 function adminRoutes(): ReactElement[] {
   return [
-    <Route key="admin-login" path="/admin/login" element={<AdminLogin />} />,
+    <Route key="admin-login" path="/admin/login" element={<AdminLoginPage />} />,
     <Route key="admin-default" path="/admin" element={<AdminLayoutShell />}>
       {buildAdminChildRoutes('endtoend-engineer').map((route) => (
         <Route
@@ -62,7 +103,7 @@ function adminRoutes(): ReactElement[] {
 function publicRoutes(): ReactElement[] {
   return [
     <Route key="public-shell" path="/" element={<PortfolioPublicLayout />}>
-      <Route index element={<EngineeringHome />} />
+      <Route index element={<EngineeringHomePage />} />
     </Route>,
     <Route key="blog-shell" path="/blogs" element={<PortfolioPublicLayout />}>
       <Route index element={<BlogListPage />} />
