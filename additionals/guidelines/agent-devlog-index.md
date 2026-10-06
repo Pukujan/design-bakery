@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-05-22 |
-| **Last updated** | 2026-10-05 (TASK-DB-0060 private-repo publication devlog) |
+| **Last updated** | 2026-10-05 (agent publishing API devlog, TASK-DB-0060) |
 
 **Start here** for agent-facing documentation in this repo.
 
@@ -27,6 +27,7 @@
 | Supabase migration (Firebase exit) | [agent-devlog-supabase-migration.md](agent-devlog-supabase-migration.md) | `.cursor/rules/supabase-migration.mdc` | `supabase/migrations/`, `backend/services/src/supabaseClient.ts`, `adminContentService.ts` |
 | Blog agents roadmap | [agent-devlog-blog-agents-roadmap.md](agent-devlog-blog-agents-roadmap.md) | — | **Archived** (archive README removed in TASK-DB-0049; see git history) |
 | Publishing a private-repo case study | [agent-devlog-private-repo-publication.md](agent-devlog-private-repo-publication.md) | `.cursor/rules/private-repo-publication.mdc` | `frontend/src/app/modules/research/content/`, `frontend/src/app/modules/research/data/researchPapers.ts` |
+| Agent publishing API | [agent-devlog-agent-publishing.md](agent-devlog-agent-publishing.md) | — | `backend/src/api/agentPosts.ts`, `backend/src/middleware/agentAuth.ts`, `supabase/migrations/010_agent_tokens_and_draft_visibility.sql` |
 
 ---
 

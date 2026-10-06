@@ -8,7 +8,7 @@ export const publicContentRouter = Router();
 
 publicContentRouter.get('/blogs', async (_req, res) => {
   try {
-    const blogs = await listBlogPosts({ includeContent: false });
+    const blogs = await listBlogPosts({ includeContent: false, publishedOnly: true });
     res.json({ ok: true, blogs });
   } catch (error) {
     sendRouteError(res, error);
@@ -23,6 +23,10 @@ publicContentRouter.get('/blogs/:numericId', async (req, res) => {
       return;
     }
     const { blog } = await getBlogByNumericId(numericId);
+    if (!blog.publishedAt) {
+      res.status(404).json({ ok: false, code: 'NOT_FOUND', message: `Blog ${numericId} not found.` });
+      return;
+    }
     res.json({ ok: true, blog });
   } catch (error) {
     sendRouteError(res, error);
