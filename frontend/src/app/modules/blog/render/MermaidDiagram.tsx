@@ -5,7 +5,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import mermaid from 'mermaid';
 import { enqueueMermaidRender } from './mermaidRenderQueue';
 import { useInView } from '@/hooks/useInView';
 import { useDarkMode } from '@/hooks/useDarkMode';
@@ -30,8 +29,21 @@ const MERMAID_DARK_EDGE_VARS = {
   edgeLabelBackground: '#374151',
 } as const;
 
+type MermaidApi = typeof import('mermaid')['default'];
+
+/**
+ * Load mermaid on demand so the diagram engine stays out of the entry chunk
+ * (modularization step 3). Cached for the session; only fetched once a diagram
+ * nears the viewport.
+ */
+let mermaidPromise: Promise<MermaidApi> | null = null;
+function loadMermaid(): Promise<MermaidApi> {
+  mermaidPromise ??= import('mermaid').then((mod) => mod.default);
+  return mermaidPromise;
+}
+
 /** Keep `theme: 'default'`; edge/arrow tokens only (see agent-devlog-mermaid.md). */
-function configureMermaid(isDark: boolean) {
+function configureMermaid(mermaid: MermaidApi, isDark: boolean) {
   mermaid.initialize({
     startOnLoad: false,
     theme: 'default',
@@ -205,8 +217,9 @@ export function MermaidDiagram({ chart }: { chart: string }) {
       try {
         const id = `blog-mmd-${Math.random().toString(36).slice(2, 11)}`;
         const dark = document.documentElement.classList.contains('dark');
-        const { svg, bindFunctions } = await enqueueMermaidRender(() => {
-          configureMermaid(dark);
+        const { svg, bindFunctions } = await enqueueMermaidRender(async () => {
+          const mermaid = await loadMermaid();
+          configureMermaid(mermaid, dark);
           return mermaid.render(id, chart);
         });
         if (cancelled) return;
