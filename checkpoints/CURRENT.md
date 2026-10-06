@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-10-05 (TASK-DB-0061) |
-| **Active task** | [TASK-DB-0061 ACS hotloader + OIO intake](../tasks/TASK-DB-0061-acs-oio-hotload.md) — merged 2026-10-05 (PRs #68 `69bb529`, #69 `79703fb`); ACS, CGM adapter and OIO all validate on `main`. Prior: TASK-DB-0060 CI-hardening paper merged (PR #63, `b0da979`). |
+| **Last updated** | 2026-10-05 (TASK-DB-0063–0067 modularization) |
+| **Active task** | Modular restructuring. **Phase 1** = 5 PRs open against `main`, all CI-green: [#74](https://github.com/Pukujan/design-bakery/pull/74) unused deps + dead calendar copies, [#75](https://github.com/Pukujan/design-bakery/pull/75) lazy-load mermaid, [#76](https://github.com/Pukujan/design-bakery/pull/76) lucide icon allowlist, [#77](https://github.com/Pukujan/design-bakery/pull/77) route code splitting, [#79](https://github.com/Pukujan/design-bakery/pull/79) `vendor-react` chunk (stacked on #77). Issue [#73](https://github.com/Pukujan/design-bakery/issues/73) owns phase 1; [#78](https://github.com/Pukujan/design-bakery/issues/78) owns phase 2. Prior: TASK-DB-0061 ACS/OIO merged (PRs #68, #69). |
 
 ## Repo shape
 
@@ -25,10 +25,12 @@
 - `/ire` (TASK-DB-0057) is a static page, `frontend/public/ire/index.html`, that reads the IRE daily feed (`feed/v2`, open-weight models only) in the browser and falls back to `frontend/public/ire/today.saved.json` (refreshed into `dist` at build time by `scripts/refresh-ire-saved-feed.mjs`). Checks: `pnpm test:ire-page` and `pnpm test:ire-page:browser` (Playwright, needs a build first).
 - Agent stack (TASK-DB-0061): the repo is hot-loaded with the ACS multi-agent runtime (`.coord/` — roles, boss lease, claim queue) and OIO issue-log intake (`.oio/`, `.github/ISSUE_TEMPLATE/observational-issue.yml`, `.github/workflows/issue-triage.yml`, marked block in `AGENTS.md`). The `.content-system/` CGM adapter (FULL 0.5.12, eight modules) is the prerequisite ACS validates against; keep it pinned. Pinned dependency checkouts live in `%LOCALAPPDATA%\acs\deps\`, not the dev root. OIO cannot install on native Windows (needs `dir_fd`/`O_NOFOLLOW`) — install/upgrade it from WSL.
 - `additionals/archive/firebase/` is still read by migration / storage-CORS / publish-kit-upload scripts — keep until those scripts are retired.
+- Modularization phase 1 (TASK-DB-0063…0067, PRs #74–#77 + #79): entry JS **3,412.59 → 710.45 kB** (−79%), entry CSS **644.83 → 206.42 kB**. Every page route is lazy via `lib/lazyPage.tsx`; `manualChunks` in `frontend/vite.config.ts` pins `react*`/`scheduler` to `vendor-react` (entry 527.16 + 182.62 kB — a caching split, not a size cut). Mermaid lazy-loads (`MermaidDiagram.tsx`), lucide is an explicit allowlist (`lib/iconResolver.ts`, guarded by `pnpm test:icon-coverage`). **Do not add a `manualChunks` rule for mermaid** — it collapses mermaid's per-diagram-type dynamic imports into one ~2.7 MB chunk (see `vite.config.ts` comment). Per-route CSS is split but not deduped (total ≈683 kB) — that is phase 2.
 
 ## Open threads
 
 - Study OS live app → `https://study.design-bakery.com/` (Study-os D018; not deployed yet as of 2026-09-24). `/studyos` redirects there (`vercel.json`, non-permanent).
 - Fluffy V4 handoff/notes stay: they drive the ongoing visual rebuild (Study Partner first). The showcase case study (`/case-studies/fluffy-v4`) uses thumbnails of the current pages — re-capture after each rebuilt direction.
 - Homepage "Relevant experience": the rendered list (`relevant-experience-rendered-list.json`, Fitzgerald first) is confirmed correct by the owner.
-- Size/modularization follow-ups: [additionals/doc/modularization-plan.md](../additionals/doc/modularization-plan.md).
+- Size/modularization: phase 1 done (issue [#73](https://github.com/Pukujan/design-bakery/issues/73)); phase 2 tracked in issue [#78](https://github.com/Pukujan/design-bakery/issues/78) — dedupe the four byte-identical `frontend/extras/*` shadcn UI trees into one workspace package (step 5, mindful of each case study's Tailwind `@source`), then move the 38.4 MB video (step 7). Plan: [additionals/doc/modularization-plan.md](../additionals/doc/modularization-plan.md).
+- Merge order for the phase-1 stack: PRs #74–#77 are independent; **#79 is stacked on #77** and must merge after it.
