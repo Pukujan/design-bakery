@@ -22,6 +22,7 @@
     "export:deploy-env": "node scripts/export-deploy-env.mjs",
     "test:railway-build": "node scripts/test-railway-build.mjs",
     "test:homepage-content": "node scripts/test-homepage-content-stability.mjs",
+    "test:icon-coverage": "node scripts/test-icon-coverage.mjs",
     "test:ire-page": "node scripts/test-ire-page.mjs",
     "test:ire-page:browser": "node scripts/test-ire-page-browser.mjs",
     "ire:og-image": "node scripts/render-ire-og-image.mjs",
