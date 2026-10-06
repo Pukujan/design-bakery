@@ -1,20 +1,54 @@
 import type { RouteObject } from 'react-router-dom';
-import { BlogEditor } from '@/modules/blog/admin/sections/BlogEditor';
-import { BlogCategoriesEditor } from '@/modules/blog/admin/sections/BlogCategoriesEditor';
-import { EngineeringSkillsEditor } from './sections/EngineeringSkillsEditor';
-import { ProjectsEditor } from './sections/ProjectsEditor';
-import { ContactEditor } from './sections/ContactEditor';
-import { EngineeringHeroEditor } from './sections/EngineeringHeroEditor';
-import { EngineeringCommunityEditor } from './sections/EngineeringCommunityEditor';
-import { EngineeringAboutEditor } from './sections/EngineeringAboutEditor';
-import { EngineeringSkillsMetaEditor } from './sections/EngineeringSkillsMetaEditor';
-import { ContactSectionEditor } from './sections/ContactSectionEditor';
-import { FooterEditor } from './sections/FooterEditor';
-import { RelevantExperienceEditor } from './sections/RelevantExperienceEditor';
-import { MediaLibraryEditor } from './sections/MediaLibraryEditor';
-import { CoverStudioEditor } from './sections/CoverStudioEditor';
-import { CoverStudioPackEditor } from './sections/CoverStudioPackEditor';
+import { lazyPage } from '@/lib/lazyPage';
 import type { PortfolioId } from '../../portfolios/registry';
+
+// Admin editors are split into their own chunks: they are never needed by a
+// public visitor, so none of this code should be in the entry bundle.
+const BlogEditor = lazyPage(
+  async () => (await import('@/modules/blog/admin/sections/BlogEditor')).BlogEditor,
+);
+const BlogCategoriesEditor = lazyPage(
+  async () => (await import('@/modules/blog/admin/sections/BlogCategoriesEditor')).BlogCategoriesEditor,
+);
+const EngineeringSkillsEditor = lazyPage(
+  async () => (await import('./sections/EngineeringSkillsEditor')).EngineeringSkillsEditor,
+);
+const ProjectsEditor = lazyPage(
+  async () => (await import('./sections/ProjectsEditor')).ProjectsEditor,
+);
+const ContactEditor = lazyPage(
+  async () => (await import('./sections/ContactEditor')).ContactEditor,
+);
+const EngineeringHeroEditor = lazyPage(
+  async () => (await import('./sections/EngineeringHeroEditor')).EngineeringHeroEditor,
+);
+const EngineeringCommunityEditor = lazyPage(
+  async () => (await import('./sections/EngineeringCommunityEditor')).EngineeringCommunityEditor,
+);
+const EngineeringAboutEditor = lazyPage(
+  async () => (await import('./sections/EngineeringAboutEditor')).EngineeringAboutEditor,
+);
+const EngineeringSkillsMetaEditor = lazyPage(
+  async () => (await import('./sections/EngineeringSkillsMetaEditor')).EngineeringSkillsMetaEditor,
+);
+const ContactSectionEditor = lazyPage(
+  async () => (await import('./sections/ContactSectionEditor')).ContactSectionEditor,
+);
+const FooterEditor = lazyPage(
+  async () => (await import('./sections/FooterEditor')).FooterEditor,
+);
+const RelevantExperienceEditor = lazyPage(
+  async () => (await import('./sections/RelevantExperienceEditor')).RelevantExperienceEditor,
+);
+const MediaLibraryEditor = lazyPage(
+  async () => (await import('./sections/MediaLibraryEditor')).MediaLibraryEditor,
+);
+const CoverStudioEditor = lazyPage(
+  async () => (await import('./sections/CoverStudioEditor')).CoverStudioEditor,
+);
+const CoverStudioPackEditor = lazyPage(
+  async () => (await import('./sections/CoverStudioPackEditor')).CoverStudioPackEditor,
+);
 
 const ENGINEERING_ROUTES: RouteObject[] = [
   { index: true, element: <BlogEditor /> },

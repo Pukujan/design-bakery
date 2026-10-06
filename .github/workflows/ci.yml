@@ -51,6 +51,9 @@ jobs:
       - name: Build backend and services
         run: pnpm --dir backend run build
 
+      - name: Check the agent post payload validation
+        run: pnpm test:agent-posts
+
       - name: Run publish-kit font diagnostics smoke test
         run: pnpm --dir backend/services run test:publish-kit-fonts
 

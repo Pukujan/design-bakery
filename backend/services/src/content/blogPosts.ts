@@ -97,27 +97,33 @@ const BLOG_LIST_COLUMNS =
 export type ListBlogPostsOptions = {
   /** Admin editor needs full markdown; public list omits body for speed. */
   includeContent?: boolean;
+  /** Public callers hide drafts; the admin editor shows them. */
+  publishedOnly?: boolean;
 };
 
 export async function listBlogPosts(options: ListBlogPostsOptions = {}): Promise<BlogPostDto[]> {
   const includeContent = options.includeContent === true;
   const base = supabaseAdmin().from('blog_posts');
-  const { data, error } = includeContent
-    ? await base
+  const selected = includeContent
+    ? base
         .select('*')
         .order('published_at', { ascending: false, nullsFirst: false })
         .order('numeric_id', { ascending: false })
-    : await base
+    : base
         .select(BLOG_LIST_COLUMNS)
         .order('published_at', { ascending: false, nullsFirst: false })
         .order('numeric_id', { ascending: false });
+  const query = options.publishedOnly ? selected.not('published_at', 'is', null) : selected;
+  const { data, error } = await query;
 
   if (error) throw new Error(`Blog list failed: ${error.message}`);
   const rows = (data ?? []) as BlogPostRow[];
   return rows.map((row) => rowToDto(includeContent ? row : { ...row, content: '' }));
 }
 
-export async function getBlogByNumericId(numericId: number): Promise<{ docId: string; blog: BlogPostDto }> {
+export async function findBlogByNumericId(
+  numericId: number,
+): Promise<{ docId: string; blog: BlogPostDto } | null> {
   const { data, error } = await supabaseAdmin()
     .from('blog_posts')
     .select('*')
@@ -126,13 +132,91 @@ export async function getBlogByNumericId(numericId: number): Promise<{ docId: st
     .maybeSingle();
 
   if (error) throw new Error(`Blog read failed: ${error.message}`);
-  if (!data) throw new Error(`Blog ${numericId} not found`);
+  if (!data) return null;
 
   const row = data as BlogPostRow;
   return { docId: row.legacy_doc_id ?? row.id, blog: rowToDto(row) };
 }
 
-export async function upsertBlogPost(post: BlogPostDto): Promise<string> {
+export async function getBlogByNumericId(numericId: number): Promise<{ docId: string; blog: BlogPostDto }> {
+  const found = await findBlogByNumericId(numericId);
+  if (!found) throw new Error(`Blog ${numericId} not found`);
+  return found;
+}
+
+/** Next free numeric id. Unique-index collisions are retried by createBlogPost. */
+export async function nextBlogNumericId(): Promise<number> {
+  const { data, error } = await supabaseAdmin()
+    .from('blog_posts')
+    .select('numeric_id')
+    .order('numeric_id', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error(`Blog id lookup failed: ${error.message}`);
+  const highest = (data as { numeric_id: number } | null)?.numeric_id ?? 0;
+  return highest + 1;
+}
+
+export type CreateBlogPostOptions = {
+  /** Null or omitted creates a draft; an ISO string publishes immediately. */
+  publishedAt?: string | null;
+  /** Doc id; defaults to `agent-<numericId>`. */
+  docId?: string;
+};
+
+/**
+ * Insert a new post, draft by default. The admin upsert auto-publishes on insert
+ * to keep the hand-authored flow unchanged, so agent creation gets its own path
+ * that can hold published_at null.
+ */
+export async function createBlogPost(
+  post: Omit<BlogPostDto, 'id' | 'numericId'>,
+  options: CreateBlogPostOptions = {},
+): Promise<{ docId: string; numericId: number }> {
+  const publishedAt = normalizePublishedAt(options.publishedAt) ?? null;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const numericId = await nextBlogNumericId();
+    const docId = options.docId ?? `agent-${numericId}`;
+    const seo = post.seo
+      ? await ensureSocialOgImageInSeo(post.seo as Record<string, unknown>, numericId)
+      : post.seo;
+    const row = dtoToRow({ ...post, numericId, seo }, docId);
+
+    const { data, error } = await supabaseAdmin()
+      .from('blog_posts')
+      .insert({
+        ...row,
+        legacy_doc_id: docId,
+        published_at: publishedAt,
+        updated_at: new Date().toISOString(),
+      })
+      .select('legacy_doc_id, id, numeric_id')
+      .single();
+
+    if (!error) {
+      const inserted = data as { legacy_doc_id: string | null; id: string; numeric_id: number };
+      return { docId: inserted.legacy_doc_id ?? inserted.id, numericId: inserted.numeric_id };
+    }
+    // 23505 = unique_violation: another create took the id; retry with the next.
+    if (error.code !== '23505') {
+      throw new Error(`Blog insert failed: ${error.message}`);
+    }
+  }
+
+  throw new Error('Blog insert failed: could not allocate a unique numeric id.');
+}
+
+export type UpsertBlogPostOptions = {
+  /** Force published_at to null on update, moving the post back to draft. */
+  unpublish?: boolean;
+};
+
+export async function upsertBlogPost(
+  post: BlogPostDto,
+  options: UpsertBlogPostOptions = {},
+): Promise<string> {
   const legacyId = post.id?.trim();
   const numericId = post.numericId ?? 0;
   const seo =
@@ -141,25 +225,39 @@ export async function upsertBlogPost(post: BlogPostDto): Promise<string> {
       : post.seo;
   const row = dtoToRow({ ...post, seo }, legacyId);
 
+  // Resolve the target row: by legacy doc id, or by numeric id when the row has
+  // no legacy id (otherwise the update would fall through to a duplicate insert).
+  let targetRowId: string | undefined;
   if (legacyId) {
-    const { data: existing } = await supabaseAdmin()
+    const { data } = await supabaseAdmin()
       .from('blog_posts')
       .select('id')
       .eq('legacy_doc_id', legacyId)
       .maybeSingle();
+    targetRowId = (data as { id: string } | null)?.id;
+  }
+  if (!targetRowId && numericId > 0) {
+    const { data } = await supabaseAdmin()
+      .from('blog_posts')
+      .select('id')
+      .eq('numeric_id', numericId)
+      .maybeSingle();
+    targetRowId = (data as { id: string } | null)?.id;
+  }
 
-    if (existing?.id) {
-      const updateRow = { ...row, updated_at: new Date().toISOString() };
-      if (!normalizePublishedAt(post.publishedAt)) {
-        delete (updateRow as { published_at?: string | null }).published_at;
-      }
-      const { error } = await supabaseAdmin()
-        .from('blog_posts')
-        .update(updateRow)
-        .eq('id', existing.id);
-      if (error) throw new Error(`Blog update failed: ${error.message}`);
-      return legacyId;
+  if (targetRowId) {
+    const updateRow = { ...row, updated_at: new Date().toISOString() };
+    if (options.unpublish) {
+      updateRow.published_at = null;
+    } else if (!normalizePublishedAt(post.publishedAt)) {
+      delete (updateRow as { published_at?: string | null }).published_at;
     }
+    const { error } = await supabaseAdmin()
+      .from('blog_posts')
+      .update(updateRow)
+      .eq('id', targetRowId);
+    if (error) throw new Error(`Blog update failed: ${error.message}`);
+    return legacyId ?? targetRowId;
   }
 
   const { data, error } = await supabaseAdmin()
