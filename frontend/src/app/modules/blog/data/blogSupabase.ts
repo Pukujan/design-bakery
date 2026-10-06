@@ -71,6 +71,7 @@ export async function fetchBlogListFromSupabase(): Promise<RemoteBlogDto[]> {
   const { data, error } = await sb
     .from('blog_posts')
     .select(BLOG_LIST_COLUMNS)
+    .not('published_at', 'is', null)
     .order('published_at', { ascending: false, nullsFirst: false })
     .order('numeric_id', { ascending: false });
 
@@ -86,6 +87,7 @@ export async function fetchBlogPostFromSupabase(numericId: number): Promise<Remo
     .from('blog_posts')
     .select('*')
     .eq('numeric_id', numericId)
+    .not('published_at', 'is', null)
     .maybeSingle();
 
   if (error) throw new Error(error.message);
