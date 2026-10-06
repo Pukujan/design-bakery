@@ -5,7 +5,7 @@
 | **Created** | 2026-10-06 |
 | **Issue** | [#87](https://github.com/Pukujan/design-bakery/issues/87) (stale committed fallback) |
 | **Branch** | `task/TASK-DB-0073-ire-fallback-refresh` |
-| **Status** | Complete — verified locally; PR open. |
+| **Status** | Complete — merged in PR [#88](https://github.com/Pukujan/design-bakery/pull/88) (`e48efb8`); issue [#87](https://github.com/Pukujan/design-bakery/issues/87) closed. |
 
 ## Goal
 
@@ -33,5 +33,6 @@ the committed copy so the fallback names the route the engine actually picks.
 
 ## Next step
 
-- Merge when CI is green. The copy drifts again only when a build-time refresh fails, so
-  a future follow-up could add a scheduled refresh; not needed for this fix.
+- None for this fix. The copy drifts again whenever a build-time refresh is skipped, so a
+  future follow-up could add a scheduled refresh of the committed source copy; that is not
+  part of this task.
