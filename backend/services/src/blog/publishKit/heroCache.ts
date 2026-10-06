@@ -8,11 +8,8 @@ import {
 } from './heroCacheSlugs.js';
 import type { LayoutVariant, TemplateFamily } from './templateSelection.js';
 import type { VisualStylePreset } from './types.js';
-import {
-  isSupabaseStorageConfigured,
-  supabaseAdmin,
-  supabaseStorageBucket,
-} from '../../supabaseClient.js';
+import { dbInsert, dbQueryAll, dbUpdate } from '../../db.js';
+import { isSupabaseStorageConfigured, supabaseAdmin, supabaseStorageBucket } from '../../supabaseClient.js';
 
 export type HeroCacheHit = {
   id: string;
@@ -77,25 +74,23 @@ export async function findCachedHeroPng(params: {
   const matchSlugs = buildHeroMatchSlugs(params.tags, params.category);
   if (matchSlugs.length === 0) return null;
 
-  const supabase = supabaseAdmin();
-  const { data, error } = await supabase
-    .from('publish_kit_hero_cache')
-    .select(
-      'id, storage_path, public_url, prompt_version, category_slug, tag_slugs, family, style_preset, layout, byte_size, use_count',
-    )
-    .eq('prompt_version', HERO_IMAGE_PROMPT_VERSION)
-    .eq('family', params.family)
-    .eq('style_preset', params.stylePreset)
-    .overlaps('tag_slugs', matchSlugs)
-    .order('use_count', { ascending: false })
-    .order('last_used_at', { ascending: false })
-    .limit(24);
-
-  if (error) {
-    console.warn('[publishKit:heroCache] lookup failed:', error.message);
+  let data: HeroCacheRow[];
+  try {
+    data = await dbQueryAll<HeroCacheRow>(
+      `select id, storage_path, public_url, prompt_version, category_slug, tag_slugs, family,
+              style_preset, layout, byte_size, use_count
+         from public.publish_kit_hero_cache
+        where prompt_version = $1 and family = $2 and style_preset = $3
+          and tag_slugs && $4::text[]
+        order by use_count desc, last_used_at desc
+        limit 24`,
+      [HERO_IMAGE_PROMPT_VERSION, params.family, params.stylePreset, matchSlugs],
+    );
+  } catch (err) {
+    console.warn('[publishKit:heroCache] lookup failed:', err instanceof Error ? err.message : err);
     return null;
   }
-  if (!data?.length) return null;
+  if (data.length === 0) return null;
 
   const minScore = minMatchScore();
   const minOverlap = minTagOverlap(matchSlugs.length);
@@ -114,13 +109,11 @@ export async function findCachedHeroPng(params: {
   if (!best) return null;
 
   const { row, score, overlap } = best;
-  void supabase
-    .from('publish_kit_hero_cache')
-    .update({
-      last_used_at: new Date().toISOString(),
-      use_count: (row.use_count ?? 0) + 1,
-    })
-    .eq('id', row.id);
+  void dbUpdate(
+    'publish_kit_hero_cache',
+    { last_used_at: new Date().toISOString(), use_count: (row.use_count ?? 0) + 1 },
+    { id: row.id },
+  ).catch((err) => console.warn('[publishKit:heroCache] touch failed:', err instanceof Error ? err.message : err));
 
   console.log(
     `[publishKit:heroCache] hit id=${row.id} score=${score.toFixed(2)} overlap=${overlap} slugs=${matchSlugs.join(',')}`,
@@ -168,7 +161,7 @@ export async function storeHeroCachePng(params: {
     return null;
   }
 
-  const { error: insertError } = await supabase.from('publish_kit_hero_cache').insert({
+  const insertError = await dbInsert('publish_kit_hero_cache', {
     id: cacheId,
     storage_path: path,
     public_url: publicUrl,
@@ -180,7 +173,9 @@ export async function storeHeroCachePng(params: {
     layout: params.layout,
     byte_size: params.png.length,
     use_count: 0,
-  });
+  })
+    .then(() => null)
+    .catch((err: unknown) => (err instanceof Error ? err : new Error(String(err))));
 
   if (insertError) {
     console.warn('[publishKit:heroCache] insert failed:', insertError.message);

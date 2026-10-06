@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { supabaseAdmin } from '../supabaseClient.js';
+import { dbDelete, dbInsert, dbQueryAll, dbQueryOne } from '../db.js';
 import { parseImageDataUrl } from '../media/parseDataUrl.js';
 import { slugifyFilename } from '../media/slugifyFilename.js';
 import { deleteCoverStudioStoragePath, uploadCoverStudioBuffer } from './coverStudioStorage.js';
@@ -181,13 +181,10 @@ export function groupCoverStudioAssetsIntoPacks(assets: CoverStudioAssetDto[]): 
 }
 
 export async function listCoverStudioAssets(): Promise<CoverStudioAssetDto[]> {
-  const { data, error } = await supabaseAdmin()
-    .from('cover_studio_assets')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) throw new Error(`Cover Studio list failed: ${error.message}`);
-  return (data as CoverStudioAssetRow[]).map(rowToDto);
+  const rows = await dbQueryAll<CoverStudioAssetRow>(
+    'select * from public.cover_studio_assets order by created_at desc',
+  );
+  return rows.map(rowToDto);
 }
 
 export async function listCoverStudioPacks(): Promise<CoverStudioPackDto[]> {
@@ -203,28 +200,39 @@ function isMissingColumnError(message: string, column: string): boolean {
 
 async function insertCoverStudioRow(row: Record<string, unknown>): Promise<void> {
   const tryInsert = async (payload: Record<string, unknown>) => {
-    return supabaseAdmin().from('cover_studio_assets').insert(payload);
+    await dbInsert('cover_studio_assets', payload);
   };
 
-  let { error } = await tryInsert(row);
-  if (!error) return;
+  try {
+    await tryInsert(row);
+    return;
+  } catch (err) {
+    let error = err instanceof Error ? err : new Error(String(err));
 
-  let payload = { ...row };
-  if (isMissingColumnError(error.message, 'pack_id') || isMissingColumnError(error.message, 'pack_title')) {
-    const { pack_id: _p, pack_title: _t, ...rest } = payload;
-    payload = rest;
-    ({ error } = await tryInsert(payload));
-    if (!error) return;
+    let payload = { ...row };
+    if (isMissingColumnError(error.message, 'pack_id') || isMissingColumnError(error.message, 'pack_title')) {
+      const { pack_id: _p, pack_title: _t, ...rest } = payload;
+      payload = rest;
+      try {
+        await tryInsert(payload);
+        return;
+      } catch (retryErr) {
+        error = retryErr instanceof Error ? retryErr : new Error(String(retryErr));
+      }
+    }
+
+    if (isMissingColumnError(error.message, 'format_id') || isMissingColumnError(error.message, 'platform')) {
+      const { format_id: _f, platform: _pl, ...rest } = payload;
+      try {
+        await tryInsert(rest);
+        return;
+      } catch (retryErr) {
+        error = retryErr instanceof Error ? retryErr : new Error(String(retryErr));
+      }
+    }
+
+    throw new Error(`Cover Studio insert failed: ${error.message}`);
   }
-
-  if (isMissingColumnError(error.message, 'format_id') || isMissingColumnError(error.message, 'platform')) {
-    const { format_id: _f, platform: _pl, ...rest } = payload;
-    payload = rest;
-    ({ error } = await tryInsert(payload));
-    if (!error) return;
-  }
-
-  throw new Error(`Cover Studio insert failed: ${error.message}`);
 }
 
 type CoverStudioAssetInput = {
@@ -329,33 +337,26 @@ export async function uploadCoverStudioAssets(
 }
 
 export async function deleteCoverStudioAsset(id: string): Promise<void> {
-  const { data, error: readErr } = await supabaseAdmin()
-    .from('cover_studio_assets')
-    .select('storage_path')
-    .eq('id', id)
-    .maybeSingle();
+  const row = await dbQueryOne<{ storage_path: string }>(
+    'select storage_path from public.cover_studio_assets where id = $1 limit 1',
+    [id],
+  );
+  if (!row) return;
 
-  if (readErr) throw new Error(`Cover Studio read failed: ${readErr.message}`);
-  if (!data) return;
-
-  await deleteCoverStudioStoragePath(data.storage_path as string);
-  const { error } = await supabaseAdmin().from('cover_studio_assets').delete().eq('id', id);
-  if (error) throw new Error(`Cover Studio delete failed: ${error.message}`);
+  await deleteCoverStudioStoragePath(row.storage_path);
+  await dbDelete('cover_studio_assets', { id });
 }
 
 export async function deleteCoverStudioPack(packId: string): Promise<void> {
-  const { data, error: readErr } = await supabaseAdmin()
-    .from('cover_studio_assets')
-    .select('id, storage_path')
-    .eq('pack_id', packId);
+  const rows = await dbQueryAll<{ id: string; storage_path: string }>(
+    'select id, storage_path from public.cover_studio_assets where pack_id = $1',
+    [packId],
+  );
+  if (rows.length === 0) return;
 
-  if (readErr) throw new Error(`Cover Studio pack read failed: ${readErr.message}`);
-  if (!data?.length) return;
-
-  for (const row of data) {
-    await deleteCoverStudioStoragePath(row.storage_path as string);
+  for (const row of rows) {
+    await deleteCoverStudioStoragePath(row.storage_path);
   }
 
-  const { error } = await supabaseAdmin().from('cover_studio_assets').delete().eq('pack_id', packId);
-  if (error) throw new Error(`Cover Studio pack delete failed: ${error.message}`);
+  await dbDelete('cover_studio_assets', { pack_id: packId });
 }

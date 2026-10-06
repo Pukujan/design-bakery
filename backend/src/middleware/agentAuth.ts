@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { findAgentToken, type AgentTokenRecord } from '../auth/agentToken.js';
-import { isSupabaseConfigured } from '../../services/lib/supabaseClient.js';
+import { isDataLayerConfigured } from '../../services/lib/db.js';
 
 export type AgentAuthedRequest = Request & { agent: AgentTokenRecord };
 
@@ -15,11 +15,11 @@ export async function requireAgentToken(
   next: NextFunction,
 ): Promise<void> {
   try {
-    if (!isSupabaseConfigured()) {
+    if (!isDataLayerConfigured()) {
       res.status(503).json({
         ok: false,
         code: 'AUTH',
-        message: 'Agent publishing is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in backend/.env.',
+        message: 'Agent publishing is not configured. Set OCTO_WORKSPACE_ID and OCTO_API_KEY in backend/.env.',
       });
       return;
     }

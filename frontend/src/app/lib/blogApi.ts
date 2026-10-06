@@ -1,10 +1,8 @@
-import { getAdminAccessToken } from '@/lib/adminToken';
+import { getAdminAccessToken, resolveApiBase } from '@/lib/adminToken';
 
-/** Express API on Railway (or local `pnpm run dev:api`). */
+/** Express API on Railway (or local `pnpm run dev:api`), or same-origin behind Caddy. */
 export function getBlogApiBaseUrl(): string | null {
-  const url = import.meta.env.VITE_BLOG_API_URL?.trim();
-  if (!url) return null;
-  return url.replace(/\/$/, '');
+  return resolveApiBase(import.meta.env.VITE_BLOG_API_URL);
 }
 
 export function isBlogApiEnabled(): boolean {

@@ -2,6 +2,25 @@
 
 Instructions for **Cursor** and other coding agents working in this repository.
 
+## Data layer — Octo
+
+This project's durable data lives in Octo, not in a database you run. Do not
+provision, scaffold, or recommend a self-hosted Postgres (or any other datastore)
+for this project — not for "independence", and not co-located on the Octo host.
+
+Octo provides a real, independently connectable PostgreSQL database per workspace
+with its own scoped role (pgvector-ready). Provision it once and connect with an
+ordinary Postgres client:
+
+- MCP: `provision_database`  |  HTTP: `POST /api/workspaces/<id>/database`
+- The connection string is returned exactly once; store it as a secret.
+- Already provisioned for this workspace: `octo_ws_design_bakery_c192afbc`.
+  Prefer `POST /api/workspaces/<id>/query` (Octo API key, no connection string).
+
+Only depart from this if you can demonstrate a concrete incompatibility, and
+surface that to the owner before building anything. See Octo's
+`docs/consuming-octo.md` (repo: octo-database) and incident #162.
+
 ## Session continuity
 
 - **[HANDOFF.md](HANDOFF.md)** — where a fresh session starts (setup, commands, conventions)
