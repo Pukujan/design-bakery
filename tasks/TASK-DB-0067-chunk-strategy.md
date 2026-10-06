@@ -25,6 +25,7 @@ Give `react*` a stable chunk hash so returning visitors do not re-download the f
 - Mermaid's per-diagram-type chunks (cytoscape, katex, wardley, sequenceDiagram, …) remain separate — 5 of them, confirmed present after the build.
 - Browser check (Playwright/Chromium against the built `dist`): `/`, `/blogs/8` (17 diagrams render), `/research/papers/db-r-2026-010`, `/case-studies/invest-ai` and a 404 all render with **no page errors**.
 - `pnpm lint` and `pnpm run build` pass.
+- **GitHub CI has not run for this branch.** `.github/workflows/ci.yml` triggers only for PRs whose base is `main` (`on.pull_request.branches: [main]`), and #79's base is the #77 branch. It is locally verified only. When #77 merges, GitHub retargets this PR to `main` and CI will run; confirm it is green before merging.
 
 ## Rejected — do not add a mermaid rule
 
