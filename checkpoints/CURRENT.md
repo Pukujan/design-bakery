@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-10-05 (TASK-DB-0061) |
-| **Active task** | [TASK-DB-0061 ACS hotloader + OIO intake](../tasks/TASK-DB-0061-acs-oio-hotload.md) — merged 2026-10-05 (PRs #68 `69bb529`, #69 `79703fb`); ACS, CGM adapter and OIO all validate on `main`. Prior: TASK-DB-0060 CI-hardening paper merged (PR #63, `b0da979`). |
+| **Last updated** | 2026-10-05 (TASK-DB-0062) |
+| **Active task** | [TASK-DB-0062 Stack onto the certified release train](../tasks/TASK-DB-0062-stack-train-upgrade.md) — install done and verified locally, CI train check added, PR open. Prior: [TASK-DB-0061 ACS hotloader + OIO intake](../tasks/TASK-DB-0061-acs-oio-hotload.md) merged 2026-10-05 (PRs #68 `69bb529`, #69 `79703fb`). Next: TASK-DB-0060 Slice B (agent publishing API). |
 
 ## Repo shape
 
@@ -23,7 +23,7 @@
 - Research paper `db-r-2026-010` mirrors Eval Lab `paper/paper.md` (two-layer judge accuracy/coverage paper, source commit `348676c`). Figures (`NAME.{light,dark}.{wide,tall}.svg`, `NAME.data.json`, `manifest.json`) in `frontend/public/research/figures/benchmark/` are copied from Eval Lab `paper/figures/benchmark/`; do not hand-edit numbers — regenerate from Eval Lab.
 - Research paper rendering lives in `frontend/src/app/modules/research/render/` (figures, tables, contents, GitHub alerts, Quick/Full read) with styles in the `.rp-*` / `.research-paper.rp-body` block at the end of `globals.css`. Interactive charts register in `render/figureRenderers.ts`.
 - `/ire` (TASK-DB-0057) is a static page, `frontend/public/ire/index.html`, that reads the IRE daily feed (`feed/v2`, open-weight models only) in the browser and falls back to `frontend/public/ire/today.saved.json` (refreshed into `dist` at build time by `scripts/refresh-ire-saved-feed.mjs`). Checks: `pnpm test:ire-page` and `pnpm test:ire-page:browser` (Playwright, needs a build first).
-- Agent stack (TASK-DB-0061): the repo is hot-loaded with the ACS multi-agent runtime (`.coord/` — roles, boss lease, claim queue) and OIO issue-log intake (`.oio/`, `.github/ISSUE_TEMPLATE/observational-issue.yml`, `.github/workflows/issue-triage.yml`, marked block in `AGENTS.md`). The `.content-system/` CGM adapter (FULL 0.5.12, eight modules) is the prerequisite ACS validates against; keep it pinned. Pinned dependency checkouts live in `%LOCALAPPDATA%\acs\deps\`, not the dev root. OIO cannot install on native Windows (needs `dir_fd`/`O_NOFOLLOW`) — install/upgrade it from WSL.
+- Agent stack (TASK-DB-0061/0062): the repo is hot-loaded with the ACS multi-agent runtime (`.coord/` — roles, boss lease, claim queue) and OIO issue-log intake (`.oio/`, `.github/ISSUE_TEMPLATE/observational-issue.yml`, `.github/workflows/issue-triage.yml`, marked block in `AGENTS.md`). The `.content-system/` CGM adapter (FULL 0.5.12, eight modules) is the prerequisite ACS validates against; keep it pinned. Since TASK-DB-0062 the stack follows the **release train** — `stack-manifest.json` has all pins empty and `Pukujan/agent-stack-train` certifies the versions; CI's `quality` job runs the train's `check_manifest.py` against the manifest. Pinned dependency checkouts live in `%LOCALAPPDATA%\acs\deps\`, not the dev root. OIO cannot install on native Windows (needs `dir_fd`/`O_NOFOLLOW`) — install/upgrade it from WSL, using an LF-canonical OIO worktree because OIO hashes its managed files byte-exactly.
 - `additionals/archive/firebase/` is still read by migration / storage-CORS / publish-kit-upload scripts — keep until those scripts are retired.
 
 ## Open threads
