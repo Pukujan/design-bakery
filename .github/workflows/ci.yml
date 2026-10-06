@@ -72,6 +72,19 @@ jobs:
       - name: Run the IRE page browser checks (feed, fallback, stale banner, mobile, color themes)
         run: pnpm test:ire-page:browser
 
+      - name: Check out the release train
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: Pukujan/agent-stack-train
+          ref: main
+          path: .stack-train
+
+      - name: Validate stack-manifest.json against the certified release train
+        run: |
+          python .stack-train/scripts/check_manifest.py \
+            --manifest stack-manifest.json \
+            --train .stack-train/stack-releases.json
+
   # Report-only for now: the detector is not in the required status checks, so it
   # surfaces orphaned files in the log without blocking merges. Promote it (add
   # `orphans` to branch protection and run `pnpm find:orphans:strict`) once the
