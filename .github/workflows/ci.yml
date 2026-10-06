@@ -1,10 +1,13 @@
 name: CI
 
 on:
+  # Every PR, not just those based on main: stacked PRs (base = another task
+  # branch) must be verified too. Without this, a PR stacked on a feature
+  # branch never runs CI and can be merged unverified.
   pull_request:
-    branches: [main]
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -78,3 +81,22 @@ jobs:
           python .stack-train/scripts/check_manifest.py \
             --manifest stack-manifest.json \
             --train .stack-train/stack-releases.json
+
+  # Report-only for now: the detector is not in the required status checks, so it
+  # surfaces orphaned files in the log without blocking merges. Promote it (add
+  # `orphans` to branch protection and run `pnpm find:orphans:strict`) once the
+  # existing orphans are cleaned up.
+  orphans:
+    name: orphans
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version-file: .node-version
+
+      - name: Find orphaned source files
+        run: node scripts/find-orphans.mjs
