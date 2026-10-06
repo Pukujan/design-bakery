@@ -20,7 +20,7 @@ Out of scope: route-level code splitting (see Next step).
 
 ## Done
 
-- `frontend/src/app/lib/iconResolver.ts`: `import * as LucideIcons` → an explicit `ICONS` map; `resolveIcon`'s contract (resolve by name, fall back otherwise) is unchanged.
+- `frontend/src/app/lib/iconResolver.ts`: `import * as LucideIcons` → an explicit `ICONS` map; `resolveIcon`'s contract (resolve by name, fall back otherwise) is unchanged. An unmapped name now `console.warn`s in dev (production build is unchanged).
 - `scripts/test-icon-coverage.mjs`: walks the content JSON, collects every `icon` value, and asserts each is allowlisted (or the local `Behance` brand icon).
 - `package.json` + `.github/workflows/ci.yml`: `test:icon-coverage` wired in.
 
@@ -29,6 +29,7 @@ Out of scope: route-level code splitting (see Next step).
 - Entry chunk on main's base: **3,412.59 kB → 2,650.47 kB** (−762 kB, −22%); gzip **≈885 → 748.05 kB**.
 - The reachable names are bounded and static: relevant-experience JSON supplies Brain/Code/Lightbulb/Rocket/Shield; `social-links.json` supplies Behance/Github/Linkedin/Mail — and `socialIconResolver.tsx` already resolves those four through its own explicit map before `resolveIcon` is reached.
 - The guard was verified to **fail** when `Shield` is removed from the allowlist, then restored.
+- An unmapped name warns in dev, so a non-static source (a CMS-driven icon, say) is visible during development even though `test:icon-coverage` only inspects the checked-in JSON.
 - Browser check (Playwright/Chromium against the built `dist`, `/`): all five experience icons render (`lucide-brain`, `lucide-code`, `lucide-lightbulb`, `lucide-rocket`, `lucide-shield`), no console errors.
 - `pnpm lint`, `pnpm test:icon-coverage`, and `pnpm run build` pass.
 

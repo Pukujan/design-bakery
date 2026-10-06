@@ -64,5 +64,14 @@ export function resolveIcon(
         ? 'Github'
         : normalized;
 
-  return ICONS[alias] ?? fallback;
+  const resolved = ICONS[alias];
+  if (resolved) return resolved;
+
+  if (import.meta.env.DEV) {
+    console.warn(
+      `[iconResolver] "${normalized}" is not in the ICONS allowlist; rendering the fallback. ` +
+        'Add it to the ICONS map in frontend/src/app/lib/iconResolver.ts (and check pnpm test:icon-coverage).',
+    );
+  }
+  return fallback;
 }
