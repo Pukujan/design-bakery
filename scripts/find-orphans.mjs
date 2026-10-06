@@ -163,12 +163,20 @@ function resolveSpecifier(spec, importerAbs) {
     for (const ext of RESOLVE_EXT) candidates.push(stem + ext);
     for (const ext of RESOLVE_EXT) candidates.push(path.join(stem, 'index' + ext));
   }
+  // `services/lib` -> `services/src`. Match on forward slashes so this works on
+  // Windows, where path.join produces backslashes. The `src` variants are tried
+  // first: the compiled `lib/` output may exist locally, and resolving to it
+  // would hide the real source file from the graph.
+  const preferred = [];
   for (const candidate of candidates) {
-    if (candidate.includes('/services/lib/')) {
-      candidates.push(candidate.replace('/services/lib/', '/services/src/'));
+    const fwd = candidate.split(path.sep).join('/');
+    if (fwd.includes('/services/lib/')) {
+      preferred.push(
+        fwd.replace('/services/lib/', '/services/src/').split('/').join(path.sep),
+      );
     }
   }
-  for (const candidate of candidates) {
+  for (const candidate of [...preferred, ...candidates]) {
     try {
       if (fs.statSync(candidate).isFile()) return toRepoPath(candidate);
     } catch {
