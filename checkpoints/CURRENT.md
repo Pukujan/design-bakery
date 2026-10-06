@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-10-05 (TASK-DB-0061) |
-| **Active task** | [TASK-DB-0061 ACS hotloader + OIO intake](../tasks/TASK-DB-0061-acs-oio-hotload.md) — merged 2026-10-05 (PRs #68 `69bb529`, #69 `79703fb`); ACS, CGM adapter and OIO all validate on `main`. Prior: TASK-DB-0060 CI-hardening paper merged (PR #63, `b0da979`). |
+| **Last updated** | 2026-10-05 (TASK-DB-0060 Slice B) |
+| **Active task** | [TASK-DB-0060 agent publishing API + learning series](../tasks/TASK-DB-0060-agent-publishing-learning-series.md) — Slices A and B implemented, PR open; issue [#66](https://github.com/Pukujan/design-bakery/issues/66) owns scope. Prior: [TASK-DB-0061 ACS hotloader + OIO intake](../tasks/TASK-DB-0061-acs-oio-hotload.md) merged (PRs #68, #69); [TASK-DB-0062 stack onto the release train](../tasks/TASK-DB-0062-stack-train-upgrade.md) has an open PR (not yet on `main`). |
 
 ## Repo shape
 
@@ -24,6 +24,7 @@
 - Research paper rendering lives in `frontend/src/app/modules/research/render/` (figures, tables, contents, GitHub alerts, Quick/Full read) with styles in the `.rp-*` / `.research-paper.rp-body` block at the end of `globals.css`. Interactive charts register in `render/figureRenderers.ts`.
 - `/ire` (TASK-DB-0057) is a static page, `frontend/public/ire/index.html`, that reads the IRE daily feed (`feed/v2`, open-weight models only) in the browser and falls back to `frontend/public/ire/today.saved.json` (refreshed into `dist` at build time by `scripts/refresh-ire-saved-feed.mjs`). Checks: `pnpm test:ire-page` and `pnpm test:ire-page:browser` (Playwright, needs a build first).
 - Agent stack (TASK-DB-0061): the repo is hot-loaded with the ACS multi-agent runtime (`.coord/` — roles, boss lease, claim queue) and OIO issue-log intake (`.oio/`, `.github/ISSUE_TEMPLATE/observational-issue.yml`, `.github/workflows/issue-triage.yml`, marked block in `AGENTS.md`). The `.content-system/` CGM adapter (FULL 0.5.12, eight modules) is the prerequisite ACS validates against; keep it pinned. Pinned dependency checkouts live in `%LOCALAPPDATA%\acs\deps\`, not the dev root. OIO cannot install on native Windows (needs `dir_fd`/`O_NOFOLLOW`) — install/upgrade it from WSL.
+- Agent publishing (TASK-DB-0060 Slice B): agents create/update posts at `POST /api/agent/posts` and `PUT /api/agent/posts/:numericId` with an opaque bearer token checked against `agent_tokens` (SHA-256 hex only). `published_at` is the sole draft switch — null is a draft. Drafts are hidden in RLS (`blog_posts_public_read` = `published_at is not null`) for the anon-key readers (public site, `scripts/generate-sitemap.mjs`) and filtered explicitly on the backend's service-role reads. New posts are drafts because `upsertBlogPost`'s insert auto-publishes (the admin flow relies on that), so agent creates use `createBlogPost`. The two content lanes are documented in `additionals/doc/content-lanes.md`; see the devlog `additionals/guidelines/agent-devlog-agent-publishing.md`.
 - `additionals/archive/firebase/` is still read by migration / storage-CORS / publish-kit-upload scripts — keep until those scripts are retired.
 
 ## Open threads
