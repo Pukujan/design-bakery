@@ -40,6 +40,26 @@ export default defineConfig(async () => {
       strictPort: true,
     },
     plugins: [react(), tailwindcss(), resolveExtrasFromFrontend()],
+    build: {
+      rollupOptions: {
+        output: {
+          // Keep react* in its own chunk so its hash stays stable across app
+          // deploys (the entry imports it on every route).
+          //
+          // Do NOT add a rule for mermaid: forcing it into one chunk collapses
+          // its own per-diagram-type dynamic imports (cytoscape, katex, wardley,
+          // …) into a single ~2.7 MB chunk that every diagram page downloads.
+          manualChunks(id) {
+            const p = id.replace(/\\/g, '/');
+            if (!p.includes('/node_modules/')) return undefined;
+            if (/\/node_modules\/(react|react-dom|react-router|react-router-dom|scheduler)\//.test(p)) {
+              return 'vendor-react';
+            }
+            return undefined;
+          },
+        },
+      },
+    },
     resolve: {
       modules: [
         path.resolve(__dirname, 'node_modules'),
