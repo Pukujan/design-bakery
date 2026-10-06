@@ -54,6 +54,9 @@ jobs:
       - name: Check homepage content stability
         run: pnpm test:homepage-content
 
+      - name: Check content icon coverage
+        run: pnpm test:icon-coverage
+
       - name: Check the IRE page wiring and saved feed
         run: pnpm test:ire-page
 
