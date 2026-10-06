@@ -40,3 +40,30 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+  # Express API (issue #80). Same loopback-only rule as `web`: published on
+  # 127.0.0.1 and reachable from outside only once the tunnel ingress or the
+  # Caddy proxy points at it. deploy.sh/rollback.sh address `web` explicitly, so
+  # this service does not affect the frontend deploy.
+  api:
+    container_name: design-bakery-api
+    image: ${DESIGN_BAKERY_API_IMAGE:-design-bakery-api:local}
+    build:
+      context: ../..
+      dockerfile: deploy/gravebuster/Dockerfile.api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${API_HOST_PORT:-8788}:8787"
+    env_file:
+      # Secrets (Supabase service role, OpenRouter, admin password, agent tokens).
+      # Optional: without it /health still serves and the API logs config errors
+      # per request. See docs/self-hosting.md.
+      - path: .env.api
+        required: false
+    environment:
+      PORT: "8787"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

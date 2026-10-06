@@ -1,0 +1,19 @@
+# Build context is the repo root; keep the context small and stable.
+# Docker picks this up automatically for `-f deploy/gravebuster/Dockerfile.api`.
+.git
+.github
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+!**/.env.example
+backend/lib
+backend/services/lib
+packages/cover-studio-kit/export-bundle
+checkpoints
+tasks
+additionals
+.codegraph
+.cursor
+.vscode
+**/*.tsbuildinfo

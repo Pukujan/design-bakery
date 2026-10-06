@@ -7,14 +7,16 @@ gravebuster, reproducing every rule in `vercel.json`. Full runbook:
 | file | purpose |
 | --- | --- |
 | `Dockerfile` | multi-stage: `node:24-bookworm-slim` + pnpm build → `caddy:2-alpine` serving `frontend/dist` |
+| `Dockerfile.api` | single-stage `node:24-bookworm-slim` + pnpm build → runs the Express API (`backend/lib/server.js`) with fontconfig + DejaVu Sans |
 | `Caddyfile` | static server + `vercel.json` redirect/rewrite parity (1:1 comments) |
-| `docker-compose.yml` | the `web` container, published on `127.0.0.1:${WEB_HOST_PORT:-8085}` only |
+| `docker-compose.yml` | the `web` and `api` containers, both published on `127.0.0.1` only |
 | `docker-compose.edge.yml` | optional overlay joining the Cloudflare Tunnel's docker network |
 | `deploy.sh` | fetch ref → build tagged image → swap container → smoke test (auto-rollback on failure) |
 | `rollback.sh` | swap back to the previously deployed image tag |
 | `autodeploy.sh` | poll `origin/main` and deploy on change (run by the systemd timer) |
 | `systemd/` | `design-bakery-autodeploy.{service,timer}` — **not enabled** by default |
 | `.env.example` | copy to `.env` (git-ignored) for port / image / optional `VITE_*` build args |
+| `.env.api` | **secrets** for the API container (git-ignored, optional) — Supabase, OpenRouter, admin password, agent tokens |
 
 Quick start on gravebuster:
 
