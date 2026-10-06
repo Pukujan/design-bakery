@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-10-05 (TASK-DB-0063–0067 modularization) |
-| **Active task** | Modular restructuring. **Phase 1** = PRs against `main`: [#74](https://github.com/Pukujan/design-bakery/pull/74) unused deps + dead calendar copies, [#75](https://github.com/Pukujan/design-bakery/pull/75) lazy-load mermaid (**merged**), [#76](https://github.com/Pukujan/design-bakery/pull/76) lucide icon allowlist (**merged**), [#77](https://github.com/Pukujan/design-bakery/pull/77) route code splitting (**merged**), [#79](https://github.com/Pukujan/design-bakery/pull/79) `vendor-react` chunk (rebased onto `main`); [#81](https://github.com/Pukujan/design-bakery/pull/81) CI on every PR + orphan detector (**merged**). Issue [#73](https://github.com/Pukujan/design-bakery/issues/73) owns phase 1; [#78](https://github.com/Pukujan/design-bakery/issues/78) owns phase 2. Prior: TASK-DB-0062 release train merged (PR #72); TASK-DB-0060 agent publishing merged (PR #71); TASK-DB-0061 ACS/OIO merged (PRs #68, #69). |
+| **Last updated** | 2026-10-06 (TASK-DB-0068 CI/automerge) |
+| **Active task** | Modular restructuring **phase 2** (issue [#78](https://github.com/Pukujan/design-bakery/issues/78)) — the orphan detector showed the four `frontend/extras/*` shadcn UI trees are dead source, so step 5 is mostly deletion. **Phase 1 merged 2026-10-06**: [#74](https://github.com/Pukujan/design-bakery/pull/74) unused deps + dead calendars, [#75](https://github.com/Pukujan/design-bakery/pull/75) lazy mermaid, [#76](https://github.com/Pukujan/design-bakery/pull/76) lucide allowlist, [#77](https://github.com/Pukujan/design-bakery/pull/77) route splitting, [#79](https://github.com/Pukujan/design-bakery/pull/79) `vendor-react` chunk. [#81](https://github.com/Pukujan/design-bakery/pull/81) fixed CI to run on **every** PR (stacked PRs ran none before) and added the report-only `orphans` job. Issue [#73](https://github.com/Pukujan/design-bakery/issues/73) owns phase 1. Prior: TASK-DB-0062 release train (#72); TASK-DB-0060 agent publishing (#71); TASK-DB-0061 ACS/OIO (#68, #69). |
 
 ## Repo shape
 
@@ -11,7 +11,7 @@
 - `backend/` — Express API (Railway) + `backend/services` (CMS, publish kit; Supabase + OpenRouter).
 - `packages/cover-studio-kit` — exportable cover/social image generator.
 - `supabase/migrations` — Postgres schema.
-- CI (`.github/workflows/ci.yml`, Node 24): lint → build → frontend typecheck → backend build → publish-kit fonts smoke test → homepage content stability.
+- CI (`.github/workflows/ci.yml`, Node 24): triggers on **every** PR (since TASK-DB-0068; stacked PRs previously ran no CI at all) + pushes to `main`. `quality` job: lint → build → frontend typecheck → backend build → agent-post validation → publish-kit fonts smoke test → homepage content stability → icon coverage → IRE page wiring → IRE browser checks → release-train manifest check. A separate **report-only** `orphans` job runs `node scripts/find-orphans.mjs` (not yet a required check).
 
 ## Known facts
 
