@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Last updated** | 2026-10-05 (TASK-DB-0063–0067 modularization) |
-| **Active task** | Modular restructuring. **Phase 1** = 5 PRs open against `main`, all CI-green: [#74](https://github.com/Pukujan/design-bakery/pull/74) unused deps + dead calendar copies, [#75](https://github.com/Pukujan/design-bakery/pull/75) lazy-load mermaid, [#76](https://github.com/Pukujan/design-bakery/pull/76) lucide icon allowlist, [#77](https://github.com/Pukujan/design-bakery/pull/77) route code splitting, [#79](https://github.com/Pukujan/design-bakery/pull/79) `vendor-react` chunk (stacked on #77). Issue [#73](https://github.com/Pukujan/design-bakery/issues/73) owns phase 1; [#78](https://github.com/Pukujan/design-bakery/issues/78) owns phase 2. Prior: TASK-DB-0061 ACS/OIO merged (PRs #68, #69). |
+| **Active task** | Modular restructuring. **Phase 1** = 5 PRs open against `main`: [#74](https://github.com/Pukujan/design-bakery/pull/74) unused deps + dead calendar copies, [#75](https://github.com/Pukujan/design-bakery/pull/75) lazy-load mermaid, [#76](https://github.com/Pukujan/design-bakery/pull/76) lucide icon allowlist, [#77](https://github.com/Pukujan/design-bakery/pull/77) route code splitting, [#79](https://github.com/Pukujan/design-bakery/pull/79) `vendor-react` chunk (stacked on #77). #74–#77 are CI-green; **#79 is not CI-verified** — `ci.yml` triggers only for PRs based on `main`, and #79's base is #77, so it is locally verified (`pnpm lint` + `pnpm run build`) only. Issue [#73](https://github.com/Pukujan/design-bakery/issues/73) owns phase 1; [#78](https://github.com/Pukujan/design-bakery/issues/78) owns phase 2. Prior: TASK-DB-0061 ACS/OIO merged (PRs #68, #69). |
 
 ## Repo shape
 
