@@ -1,10 +1,13 @@
 name: CI
 
 on:
+  # Every PR, not just those based on main: stacked PRs (base = another task
+  # branch) must be verified too. Without this, a PR stacked on a feature
+  # branch never runs CI and can be merged unverified.
   pull_request:
-    branches: [main]
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
