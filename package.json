@@ -15,6 +15,8 @@
     "env:split": "node scripts/split-env.mjs",
     "build": "pnpm --dir frontend run build",
     "lint": "eslint .",
+    "find:orphans": "node scripts/find-orphans.mjs",
+    "find:orphans:strict": "node scripts/find-orphans.mjs --strict",
     "preview": "pnpm --dir frontend run preview",
     "migrate:firestore-to-supabase": "pnpm --dir backend/services run build && pnpm dlx tsx scripts/migrations/migrate-firestore-to-supabase.ts",
     "export:deploy-env": "node scripts/export-deploy-env.mjs",
