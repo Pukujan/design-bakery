@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-05-22 |
-| **Last updated** | 2026-10-07 (API deploy wiring recorded in the session log) |
+| **Last updated** | 2026-10-07 (Open Graph link previews moved into the API container) |
 
 **Start here** for agent-facing documentation in this repo.
 
@@ -28,6 +28,7 @@
 | Blog agents roadmap | [agent-devlog-blog-agents-roadmap.md](agent-devlog-blog-agents-roadmap.md) | — | **Archived** (archive README removed in TASK-DB-0049; see git history) |
 | Publishing a private-repo case study | [agent-devlog-private-repo-publication.md](agent-devlog-private-repo-publication.md) | `.cursor/rules/private-repo-publication.mdc` | `frontend/src/app/modules/research/content/`, `frontend/src/app/modules/research/data/researchPapers.ts` |
 | Agent publishing API | [agent-devlog-agent-publishing.md](agent-devlog-agent-publishing.md) | — | `backend/src/api/agentPosts.ts`, `backend/src/middleware/agentAuth.ts`, `supabase/migrations/010_agent_tokens_and_draft_visibility.sql` |
+| Open Graph link previews | [agent-devlog-og-previews.md](agent-devlog-og-previews.md) | `.cursor/rules/og-previews.mdc` | `backend/src/api/ogPreview.ts`, `backend/src/og/`, `frontend/src/og/`, `deploy/gravebuster/Caddyfile` |
 
 ---
 
@@ -37,7 +38,7 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 
 | Date | Log |
 |------|-----|
-| 2026-10-07 | [dev-log-2026-10-07.md](dev-log-2026-10-07.md) - API container wired into the gravebuster deploy (TASK-DB-0075) |
+| 2026-10-07 | [dev-log-2026-10-07.md](dev-log-2026-10-07.md) - API container wired into the gravebuster deploy (TASK-DB-0075), design-bakery.com cut over to gravebuster (TASK-DB-0076), Open Graph link previews behind Caddy (TASK-DB-0077) |
 | 2026-10-06 | [dev-log-2026-10-06.md](dev-log-2026-10-06.md) - Modularization phase 2, orphan strict gate, API container, TypeScript alignment, Octo file uploads for new images |
 | 2026-09-24 | [TASK-DB-0050](../../tasks/TASK-DB-0050-showcase-projects.md) - Fluffy V4 static case study + Ongoing project cards (Eval Lab, PCM, IRE) |
 | 2026-09-23 | [dev-log-2026-09-23.md](dev-log-2026-09-23.md) - DB-R-2026-010 comparative rewrite, live chart verification, CI follow-up |

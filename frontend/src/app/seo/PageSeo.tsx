@@ -2,9 +2,9 @@ import { Helmet } from 'react-helmet-async';
 import { toAbsoluteSiteUrl } from '@/lib/siteUrl';
 import {
   collectPageSocialMetaTags,
-  readClientSocialEnv,
   SITE_NAME as OG_SITE_NAME,
 } from '@og/blogSocialMeta';
+import { readClientSocialEnv } from '@og/blogSocialMetaClient';
 import {
   DEFAULT_OG_IMAGE_PATH,
   DEFAULT_ROBOTS,

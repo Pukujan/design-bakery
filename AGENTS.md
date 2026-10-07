@@ -40,6 +40,7 @@ surface that to the owner before building anything. See Octo's
 | Blog motion / `BlogPageMotion` | [additionals/guidelines/agent-devlog-blog-motion.md](additionals/guidelines/agent-devlog-blog-motion.md) |
 | CodeGraph | [additionals/guidelines/agent-devlog-codegraph.md](additionals/guidelines/agent-devlog-codegraph.md) |
 | Blog publish kit | [additionals/guidelines/agent-devlog-blog-publish-kit.md](additionals/guidelines/agent-devlog-blog-publish-kit.md) |
+| Open Graph link previews | [additionals/guidelines/agent-devlog-og-previews.md](additionals/guidelines/agent-devlog-og-previews.md) |
 | Supabase migration | [additionals/guidelines/agent-devlog-supabase-migration.md](additionals/guidelines/agent-devlog-supabase-migration.md) |
 
 ## CodeGraph
@@ -65,8 +66,8 @@ See **[additionals/doc/architecture.md](additionals/doc/architecture.md)** for M
 - **`pnpm run dev:stack`** — Vite + Express on **8787**; set `VITE_BLOG_API_URL=http://localhost:8787` in **`frontend/.env`**.
 - **`pnpm run dev:api`** — Express API only.
 - **`pnpm run dev:web`** — Vite only.
-- **Production:** Railway Express + `VITE_BLOG_API_URL` on Vercel — **[additionals/doc/deploy-vercel-railway.md](additionals/doc/deploy-vercel-railway.md)**.
-- **Self-hosting (in progress):** gravebuster + Cloudflare Tunnel — **[docs/self-hosting.md](docs/self-hosting.md)** (deploy/rollback, `deploy/gravebuster/`).
+- **Production (current):** gravebuster + Cloudflare Tunnel — the site and the API both serve from the owner's box. **[docs/self-hosting.md](docs/self-hosting.md)** (deploy/rollback, `deploy/gravebuster/`).
+- **Legacy (Vercel + Railway, kept as rollback):** [additionals/doc/deploy-vercel-railway.md](additionals/doc/deploy-vercel-railway.md).
 - Dev port: first free from **5300** (`vite.config.ts`).
 
 ## Publish kit tests

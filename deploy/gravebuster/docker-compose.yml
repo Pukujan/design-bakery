@@ -64,6 +64,11 @@ services:
         required: false
     environment:
       PORT: "8787"
+      # Public origin for canonical URLs and absolute og:image links in the link
+      # previews (backend/src/api/ogPreview.ts). Without it the container's internal
+      # compose origin would end up inside the tags. The shell is fetched from the
+      # `web` service over the default network; override with OG_SHELL_ORIGIN.
+      SITE_URL: ${SITE_URL:-https://www.design-bakery.com}
     logging:
       driver: json-file
       options:

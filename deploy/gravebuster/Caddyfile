@@ -181,12 +181,57 @@
 			respond "404: NOT_FOUND" 404
 		}
 
+		# ------------------------------------------- Open Graph / link previews
+		# Blog and case-study URLs need a per-post <title> and og:* tags; the SPA shell
+		# has none, so a shared link previewed as the generic homepage. Vercel ran an
+		# Edge middleware for this (middleware.ts); on gravebuster the Express `api`
+		# container does (backend/src/api/ogPreview.ts), and this block routes it the
+		# requests. The matcher is the same set that router handles: blog list/detail,
+		# with or without a portfolio prefix, plus every case-study path.
+		#
+		# Placed after the filesystem handlers and the `.html` 404 above, matching
+		# Vercel: a real file or a static case-study directory (study-os, fossil,
+		# fluffy-v4, cortex) is already served from disk and never reaches the API, and
+		# a missing `.html` has already 404'd. Only SPA-backed paths fall through to
+		# here — the ones the SPA fallback below would otherwise serve the generic
+		# shell.
+		#
+		# This matcher and `OG_PREFIX_RE` in backend/src/api/ogPreview.ts must stay in
+		# step; `pnpm test:og-routing` fails CI if they drift. Read
+		# additionals/guidelines/agent-devlog-og-previews.md before changing either.
+		@ogPreview path_regexp ^/(?:endtoend-engineer|legal-workflow-engineer|ai-engineer|forward-deployed-engineer)?/?blogs(?:/\d+)?/?$|^/case-studies/.+
+		handle @ogPreview {
+			reverse_proxy api:8787
+		}
+
 		# vercel.json: { source: "/((?!.*\\.html$).*)", destination: "/index.html" }
 		# SPA fallback — every other unmatched path renders the app shell.
 		handle {
 			rewrite * /index.html
 			header Cache-Control "public, max-age=0, must-revalidate"
 			file_server
+		}
+	}
+
+	# The API can be absent or restarting (WITH_API off, a web-only deploy, or a
+	# crash-loop), and then the Open Graph block above has no upstream. Those paths
+	# rendered the SPA shell before that block existed, so degrade to it instead of
+	# 502ing a working page.
+	#
+	# `handle_errors` keeps the error's status code — right for a real error page, but
+	# here the body is a working page and a 502 would make crawlers and browsers treat
+	# it as a failure. So the shell is read with the `{file.}` placeholder and sent
+	# with an explicit 200. The path is absolute because `{file.}` does not resolve
+	# against `root`; it is the same /srv the `root` directive above uses.
+	#
+	# Scoped by path on purpose: an error under /api/* must stay an error, because the
+	# frontend reads JSON there and a silent index.html would be worse than the 502.
+	handle_errors {
+		@ogShellFallback path_regexp ^/(?:endtoend-engineer|legal-workflow-engineer|ai-engineer|forward-deployed-engineer)?/?blogs(?:/\d+)?/?$|^/case-studies/.+
+		handle @ogShellFallback {
+			header Content-Type "text/html; charset=utf-8"
+			header Cache-Control "public, max-age=0, must-revalidate"
+			respond "{file./srv/index.html}" 200
 		}
 	}
 }

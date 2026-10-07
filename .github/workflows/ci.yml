@@ -51,6 +51,12 @@ jobs:
       - name: Build backend and services
         run: pnpm --dir backend run build
 
+      - name: Check the Open Graph routing matchers (Caddy ⇄ backend router)
+        run: pnpm test:og-routing
+
+      - name: Check the duplicated Open Graph modules have not drifted
+        run: pnpm test:og-contract
+
       - name: Check the agent post payload validation
         run: pnpm test:agent-posts
 

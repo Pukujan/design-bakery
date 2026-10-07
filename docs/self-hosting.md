@@ -4,10 +4,10 @@ Runbook for serving the `frontend` SPA from gravebuster (the owner's Linux box)
 instead of Vercel — TASK-DB-0055, issue
 [#52](https://github.com/Pukujan/design-bakery/issues/52).
 
-**Current state (2026-09-25):** the container runs on gravebuster and answers on
-`127.0.0.1:8085`, verified 1:1 against `https://www.design-bakery.com`. DNS is
-**still on Vercel** — nothing public has moved. The Vercel project stays in place
-(disconnected) as the rollback until the new host has run cleanly for a while.
+**Current state (2026-10-07):** the site is **live on gravebuster** — the tunnel
+serves `www.design-bakery.com` and the apex from `design-bakery-web:80`, and the
+`api` container is deployed behind Caddy's `/api/*` proxy (TASK-DB-0076). The Vercel
+project stays in place, disconnected, as the rollback.
 
 ---
 
@@ -18,9 +18,11 @@ browser ──► Cloudflare edge (design-bakery.com zone, proxied)
               │
               ├─ study.design-bakery.com ──► study-os tunnel ──► study-os-api-1:8000   (unchanged)
               │
-              └─ www / apex (TO BE ADDED) ──► same tunnel ──► design-bakery-web:80
-                                                                    │  Caddy, static
-                                                                    └─ /ai-for-good/* ─► ai-for-good-livid.vercel.app
+              └─ www / apex ──► same tunnel ──► design-bakery-web:80
+                                                    │  Caddy, static
+                                                    ├─ /api/*        ─► api:8787   (Express)
+                                                    ├─ blog/case-study ─► api:8787   (link previews)
+                                                    └─ /ai-for-good/* ─► ai-for-good-livid.vercel.app
 ```
 
 | Piece | Value |
@@ -135,7 +137,7 @@ matched.
 | 404 body is `404: NOT_FOUND` (14 B) instead of Vercel's 79-byte page | Vercel's body carries a per-request `NOT_FOUND` id | cosmetic; status and content type match |
 | `/ai-for-good/brand/logo.svg` 404 body 79 B vs 84 B | the 404 comes from the **upstream** ai-for-good Vercel app through the proxy; the last line of its body is a request id (`iad1::zfvxj-…` vs `iad1:iad1::2mqz4-…`) that differs per request on both sides | nothing to fix — not our response |
 | `/ai-for-good` `Location` is relative (`/ai-for-good/`) | the container only ever sees `http://` from the tunnel, so an absolute URL would downgrade the scheme at the edge; RFC 7231 allows a relative `Location` | cosmetic |
-| `/blogs` shell is 1856 B vs 1941 B, and the title differs (`Design Baker \| Fullstack…` vs `Engineering Blog \| Design Baker`) | Vercel Edge middleware (`middleware.ts` at the repo root, not `vercel.json`) rewrites the SPA shell for `/blogs/*`, `/{portfolio}/blogs/*` and `/case-studies/*` with crawler-friendly `<title>`/`og:*` taken from the blog source. Without it those routes return the plain app shell. Status and content type are unchanged, browsers render identically — only what a link-preview bot or crawler reads differs | run the same (isomorphic) logic as a small Node sidecar behind Caddy, or accept the generic preview |
+| `/blogs`, `/blogs/*`, `/{portfolio}/blogs/*` and `/case-studies/*` render the SPA shell instead of per-post meta | **Resolved** — the Vercel Edge middleware (`middleware.ts`) is gone; the `api` container reproduces it (`backend/src/api/ogPreview.ts`) and Caddy routes those paths to it. See §7. Requires `WITH_API` (the `api` container) to be deployed; without it Caddy degrades those paths to the plain shell | deploy the API (`WITH_API=1`), or accept the generic preview |
 | `/healthz` | internal liveness endpoint for the container healthcheck and `deploy.sh`; the live site has no such route (it would SPA-fallback to 200 text/html) | leave it; it is the "is this our container?" marker |
 | Vercel response headers absent (`x-vercel-*`, `access-control-allow-origin: *`, `NEL`/`Report-To`) | platform headers | not reproduced; add via Cloudflare if ever needed |
 
@@ -515,5 +517,39 @@ secret-free.
   `web` Caddyfile under `/api/*` and set `VITE_BLOG_API_URL` empty. No CORS at all,
   but the two containers become one routing unit.
 
-Either way, Railway stays authoritative until the tunnel points at gravebuster.
+**Resolved (2026-10-07):** the same-origin `/api/*` proxy is what shipped — Caddy
+proxies `/api/*` to `api:8787` with the prefix intact, and no api hostname or CORS
+entry was needed (TASK-DB-0075 / TASK-DB-0076). Railway is no longer authoritative.
+
+### Link previews (Open Graph)
+
+The site's blog and case-study URLs need per-post `<title>` / `og:*` tags for link
+previews (Slack, Discord, LinkedIn, X, WhatsApp, search crawlers). The SPA shell has
+none, so on Vercel an Edge middleware (`middleware.ts`) rewrote it for exactly those
+paths. That middleware is **gone**; the same logic now lives in the `api` container
+as `backend/src/api/ogPreview.ts`, and the Caddyfile routes the paths to it.
+
+- **Matcher.** `@ogPreview` in `deploy/gravebuster/Caddyfile`: `/blogs`, `/blogs/:id`,
+  `/{endtoend|legal-workflow|ai|forward-deployed}-engineer/blogs[/:id]`, and every
+  `/case-studies/*` path, excluding `*.html`. It sits **after** the filesystem
+  handlers, so a real file or a static case-study directory (`study-os`, `fossil`,
+  `fluffy-v4`, `cortex`) is served from disk and never reaches the API.
+- **The two matchers must agree.** Caddy's `@ogPreview` and the router's regexes are
+  the same set written twice; `pnpm test:og-routing` fails CI if they drift, and
+  `pnpm test:og-contract` fails if the router's copy of `blogSocialMeta.ts` drifts
+  from the frontend's.
+- **Crawler vs browser.** The router injects the tags into a copy of the shell for
+  crawler user agents; a browser gets the untouched shell (the SPA sets the same tags
+  client-side via `PageSeo`). Responses carry `Vary: User-Agent` and
+  `Cache-Control: public, max-age=0, must-revalidate` — deliberately uncacheable,
+  because one URL has two bodies and Cloudflare's cache does not key on
+  `Vary: User-Agent`. That matches what the SPA fallback already served for these
+  paths, so nothing that was cacheable became uncacheable.
+- **The API must run for previews.** Without the `api` container, Caddy's
+  `handle_errors` block degrades these paths to the plain SPA shell (a 200, not a
+  502) — the same preview as before this existed. An error under `/api/*` still
+  errors, because the frontend reads JSON there.
+- `SITE_URL` (default `https://www.design-bakery.com`) is what the router puts in
+  canonical URLs and absolute `og:image` links; the shell it injects into is fetched
+  from the `web` container (`OG_SHELL_ORIGIN`, default `http://web:80`).
 
