@@ -78,6 +78,9 @@ jobs:
       - name: Run the IRE page browser checks (feed, fallback, stale banner, mobile, color themes)
         run: pnpm test:ire-page:browser
 
+      - name: Run the IRE dashboard browser checks (test hooks, tier switch, open-weight copy)
+        run: pnpm test:ire-app:browser
+
       - name: Check out the release train
         uses: actions/checkout@v7.0.1
         with:

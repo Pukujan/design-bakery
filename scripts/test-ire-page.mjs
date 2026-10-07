@@ -18,7 +18,7 @@ assert.ok(html.includes("'/ire/today.saved.json'"), 'page should fall back to th
 for (const id of ['picks', 'real-story', 'how', 'use-it', 'agents', 'limits', 'receipts']) {
   assert.ok(html.includes(`id="${id}"`), `page should have a #${id} section`);
 }
-for (const id of ['tab-cheap', 'tab-strongest_open', 'panel-cheap', 'panel-strongest_open', 'stale-banner', 'saved-note', 'error-note', 'feed-url']) {
+for (const id of ['tab-cheap', 'tab-strongest_open', 'tab-utility', 'panel-cheap', 'panel-strongest_open', 'panel-utility', 'count-utility', 'asof-utility', 'table-utility', 'stale-banner', 'saved-note', 'error-note', 'feed-url']) {
   assert.ok(html.includes(`id="${id}"`), `page should have #${id}`);
 }
 assert.ok(html.includes('schema.json'), 'agents section should link the schema');
@@ -45,6 +45,24 @@ for (const tier of ['cheap', 'strongest_open']) {
     assert.match(e.licence.url, /^https:\/\//, `saved ${tier} entry ${e.model_family} needs a licence URL`);
     const names = closedModelNames([e.model_family, e.vendor, e.best_route, ...e.routes].join(' '));
     assert.deepEqual(names, [], `saved ${tier} entry ${e.model_family} names a closed model: ${names}`);
+  }
+}
+
+// 1a. The utility tier is optional and its rows carry the open-weight verdict themselves:
+// true (verified licence) or null (listed, licence unverified). Closed families are never listed.
+// When present, the page must render it the same way it renders the text tiers.
+if (saved.tiers.utility) {
+  const u = saved.tiers.utility;
+  assert.ok(Array.isArray(u.entries) && u.entries.length > 0, 'saved utility tier needs entries');
+  for (const e of u.entries) {
+    for (const k of ['rank', 'model_family', 'recommended', 'gate_reasons', 'best_route', 'price_usd_per_mtok', 'health', 'routes', 'open_weight']) {
+      assert.ok(k in e, `saved utility entry ${e.model_family ?? '?'} is missing ${k}`);
+    }
+    assert.ok(e.open_weight === true || e.open_weight === null, `saved utility entry ${e.model_family} must be open-weight true or null, not ${e.open_weight}`);
+    assert.ok(!(e.open_weight !== true && e.recommended), `saved utility entry ${e.model_family} is unverified but recommended`);
+    if (e.open_weight === true) assert.match(e.licence?.url ?? '', /^https:\/\//, `saved utility entry ${e.model_family} is verified and needs a licence URL`);
+    const names = closedModelNames([e.model_family, e.vendor, e.best_route, ...e.routes].join(' '));
+    assert.deepEqual(names, [], `saved utility entry ${e.model_family} names a closed model: ${names}`);
   }
 }
 

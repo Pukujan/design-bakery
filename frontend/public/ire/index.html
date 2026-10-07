@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark light">
 <title>Today's open-weight model picks on InferHub | IRE</title>
-<meta name="description" content="Each day IRE checks InferHub's listed prices and route health, then names the open-weight models worth calling, with the route to use and why each was picked.">
+<meta name="description" content="Each day IRE checks InferHub's listed prices and route health, then names the open-weight models and image families worth calling, with the route to use.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.design-bakery.com/ire">
 <meta name="theme-color" content="#0F0F0F">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Design Baker">
 <meta property="og:title" content="Today's open-weight model picks on InferHub">
-<meta property="og:description" content="A dated daily list of open-weight models worth calling on InferHub. Each row gives the route to use and the reason it was picked or held back.">
+<meta property="og:description" content="A dated daily list of open-weight models worth calling on InferHub, plus image and multimodal families. Each row gives the route to use and why it was picked or held back.">
 <meta property="og:url" content="https://www.design-bakery.com/ire">
 <meta property="og:image" content="https://www.design-bakery.com/ire/og-image.png">
 <meta property="og:image:type" content="image/png">
@@ -22,7 +22,7 @@
 <meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Today's open-weight model picks on InferHub">
-<meta name="twitter:description" content="A dated daily list of open-weight models worth calling on InferHub. Each row gives the route to use and the reason it was picked or held back.">
+<meta name="twitter:description" content="A dated daily list of open-weight models worth calling on InferHub, plus image and multimodal families. Each row gives the route to use and why it was picked or held back.">
 <meta name="twitter:image" content="https://www.design-bakery.com/ire/og-image.png">
 <meta name="twitter:image:alt" content="Dark card with the title IRE Today's Picks and the line “A daily list of open-weight models worth calling, with the reason behind every pick”, signed Design Baker, design-bakery.com/ire.">
 <script type="application/ld+json">
@@ -56,7 +56,7 @@
    "@type": "Dataset",
    "@id": "https://www.design-bakery.com/ire#daily-list",
    "name": "IRE daily open-weight model picks for InferHub",
-   "description": "A JSON file that IRE (Inference Recommendation Engine) rebuilds each day. It lists open-weight models on InferHub in two lists, the cheapest worth using and the strongest, with the route to call, the lowest listed ask per 1M tokens when the list was built, route health, licence, and the reason each model was recommended or held back.",
+   "description": "A JSON file that IRE (Inference Recommendation Engine) rebuilds each day. It lists open-weight models on InferHub in three lists, the cheapest worth using, the strongest, and the image and multimodal families, with the route to call, the lowest listed ask per 1M tokens when the list was built, route health, licence, and the reason each model was recommended or held back.",
    "url": "https://www.design-bakery.com/ire",
    "isAccessibleForFree": true,
    "creator": {
@@ -68,6 +68,8 @@
    "schemaVersion": "https://raw.githubusercontent.com/Pukujan/inference-recommendation-engine/data/ire-feed/feed/v2/schema.json",
    "keywords": [
     "open-weight models",
+    "image generation models",
+    "multimodal models",
     "InferHub",
     "model routing",
     "inference prices",
@@ -151,7 +153,7 @@ td{padding:13px 14px;border-bottom:1px solid var(--border);vertical-align:top}
 tr:last-child td{border-bottom:0}
 tr.held td{background:var(--held-bg);color:var(--held-fg)}tr.held .mname{color:var(--held-fg)}
 .num{font:800 13px/1 var(--mono);color:var(--muted-foreground)}
-.mname{font-weight:800}.vendor{display:block;font-size:12.5px;color:var(--muted-foreground)}.lic{display:block;font-size:12px;color:var(--link);text-decoration:underline;text-underline-offset:2px;margin-top:2px}
+.mname{font-weight:800}.vendor{display:block;font-size:12.5px;color:var(--muted-foreground)}.lic{display:block;font-size:12px;color:var(--link);text-decoration:underline;text-underline-offset:2px;margin-top:2px}.lic.licnone{color:var(--muted-foreground);text-decoration:none}
 .rcode{font:700 12.5px/1.35 var(--mono);color:var(--link);overflow-wrap:anywhere}
 @media(min-width:721px){td:nth-child(2){min-width:150px}td:nth-child(3){min-width:250px}}
 .chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.chip{font:700 10.5px/1.3 var(--sans);padding:3px 7px;border-radius:999px;background:var(--muted);color:var(--muted-foreground);border:1px solid var(--border)}
@@ -231,10 +233,10 @@ tr.held td{background:var(--held-bg);color:var(--held-fg)}tr.held .mname{color:v
 
 <div class="wrap hero">
   <div>
-    <div class="pills"><span class="pill live">UPDATED DAILY</span><span class="pill">OPEN-WEIGHT MODELS ONLY</span><span class="pill">YOUR KEY STAYS WITH YOU</span></div>
+    <div class="pills"><span class="pill live">UPDATED DAILY</span><span class="pill">OPEN-WEIGHT TEXT PICKS</span><span class="pill">VERDICT ON EVERY ROW</span><span class="pill">YOUR KEY STAYS WITH YOU</span></div>
     <div class="kicker">For anyone pointing an agent at InferHub</div>
     <h1>Today's cheapest open model you can actually use.</h1>
-    <p class="lead">InferHub sells the same model through several provider routes at different prices, and the cheapest route is often the one with a single seller behind it. Inference Recommendation Engine (IRE) checks price, supply and health every day and names the route worth calling. It only lists models whose weights are published, so you're never tied to one company's API.</p>
+    <p class="lead">InferHub sells the same model through several provider routes at different prices, and the cheapest route is often the one with a single seller behind it. Inference Recommendation Engine (IRE) checks price, supply and health every day and names the route worth calling. Its text picks are models whose weights are published, so you're never tied to one company's API, and a third list covers the image and multimodal families.</p>
     <div class="actions"><a class="btn primary" href="#picks">See today's picks</a><a class="btn" href="https://github.com/Pukujan/inference-recommendation-engine/blob/main/START-HERE.md" target="_blank" rel="noopener noreferrer">Start here on GitHub ↗</a></div>
   </div>
   <aside class="pickcard" aria-label="Today's top picks" aria-live="polite">
@@ -253,8 +255,9 @@ tr.held td{background:var(--held-bg);color:var(--held-fg)}tr.held .mname{color:v
 <section id="picks">
   <div class="wrap">
     <div class="kicker">Updated once a day</div>
-    <h2>Today's picks, all open-weight.</h2>
-    <p class="sub">Every model here has its weights out in the open, and each row links the licence. The cheap list is for everyday agent work, where a long run makes every fraction of a cent count. The strongest list puts the most capable open models first and finds a healthy route for each. When the policy holds a model back, the row stays visible with the reason.</p>
+    <h2>Today's picks, and the verdict on each.</h2>
+    <p class="sub">The cheap list is for everyday agent work, where a long run makes every fraction of a cent count. The strongest list puts the most capable open models first and finds a healthy route for each. The image and multimodal list covers families that do pictures and other non-text work, and carries the open-weight verdict on every row. When the policy holds a model back, the row stays visible with the reason, and every text pick links its licence.</p>
+    <p class="sub" style="margin-top:10px">Prefer to explore the numbers? <a href="/ire/app/">Open the interactive dashboard</a> — the same picks with a price chart, a capability-versus-price scatter, and the route-health breakdown.</p>
     <div class="notice stale" id="stale-banner" role="status"></div>
     <div class="notice saved" id="saved-note" role="status"></div>
     <div class="notice error" id="error-note" role="alert"></div>
@@ -263,6 +266,7 @@ tr.held td{background:var(--held-bg);color:var(--held-fg)}tr.held .mname{color:v
     <div class="tabs" role="tablist" aria-label="Recommendation lists">
       <button class="tab" role="tab" id="tab-cheap" aria-controls="panel-cheap" aria-selected="true" tabindex="0" data-tier="cheap">Cheap<span class="count" id="count-cheap"></span></button>
       <button class="tab" role="tab" id="tab-strongest_open" aria-controls="panel-strongest_open" aria-selected="false" tabindex="-1" data-tier="strongest_open">Strongest open-weight<span class="count" id="count-strongest_open"></span></button>
+      <button class="tab" role="tab" id="tab-utility" aria-controls="panel-utility" aria-selected="false" tabindex="-1" data-tier="utility" hidden>Image and multimodal<span class="count" id="count-utility"></span></button>
     </div>
     <div class="panel" role="tabpanel" id="panel-cheap" aria-labelledby="tab-cheap">
       <div class="panelhead"><p>The open-weight models from IRE's cheap Top 20, cheapest reliable first. Rows marked "held back" failed a rule and stay listed so you can see why.</p><span class="asof" id="asof-cheap">Loading…</span></div>
@@ -272,6 +276,11 @@ tr.held td{background:var(--held-bg);color:var(--held-fg)}tr.held .mname{color:v
     <div class="panel" role="tabpanel" id="panel-strongest_open" aria-labelledby="tab-strongest_open" hidden>
       <div class="panelhead"><p>The most capable open-weight models IRE recommends today, strongest first, each with its cheapest healthy route.</p><span class="asof" id="asof-strongest_open">Loading…</span></div>
       <div id="table-strongest_open"></div>
+      <div class="tablefoot">Prices are the lowest listed ask in US dollars per 1 million tokens when the list was built. InferHub may bill more when you call.</div>
+    </div>
+    <div class="panel" role="tabpanel" id="panel-utility" aria-labelledby="tab-utility" hidden>
+      <div class="panelhead"><p>Image-generation and multimodal families IRE tracks, ranked on availability and price. Each row carries the open-weight verdict: a verified licence and published weights, or listed with an unverified licence and held back.</p><span class="asof" id="asof-utility">Loading…</span></div>
+      <div id="table-utility"></div>
       <div class="tablefoot">Prices are the lowest listed ask in US dollars per 1 million tokens when the list was built. InferHub may bill more when you call.</div>
     </div>
   </div>
@@ -440,11 +449,16 @@ claude</pre>
     capability_below_minimum: 'capability score too low',
     release_date_unknown: 'release date unknown',
     older_generation: 'older generation',
-    no_healthy_route: 'no healthy route'
+    no_healthy_route: 'no healthy route',
+    missing_price: 'no listed price',
+    open_weight_unverified: 'open-weight licence not verified'
   };
   var HEALTH = {
     healthy: 'Healthy', degraded: 'Degraded', failing: 'Failing',
     unavailable: 'Unavailable', insufficient_data: 'Not enough data'
+  };
+  var TIER_LABEL = {
+    cheap: 'Cheap', strongest_open: 'Strongest open-weight', utility: 'Image and multimodal'
   };
 
   function $(id) { return document.getElementById(id); }
@@ -492,9 +506,17 @@ claude</pre>
     if (typeof d.schema_version !== 'string' || d.schema_version.indexOf('ire-feed/v2') !== 0) throw new Error('unexpected schema_version');
     if (!d.tiers || !d.tiers.cheap || !d.tiers.strongest_open) throw new Error('missing tiers');
     if (!Array.isArray(d.tiers.cheap.entries) || !Array.isArray(d.tiers.strongest_open.entries)) throw new Error('missing entries');
+    // Text tiers list open-weight models only, so drop anything else before rendering.
     [d.tiers.cheap, d.tiers.strongest_open].forEach(function (t) {
       t.entries = t.entries.filter(function (e) { return e && e.open_weight === true; });
     });
+    // The utility tier is optional. Its rows carry the open-weight verdict themselves:
+    // true when the licence and weights were verified, null when the family is listed but
+    // unverified (such a row is never recommended). A closed family is marked false and is
+    // dropped here, the same second line of defence the text tiers get.
+    var u = d.tiers.utility;
+    if (!u || !Array.isArray(u.entries)) { d.tiers.utility = null; }
+    else { u.entries = u.entries.filter(function (e) { return e && (e.open_weight === true || e.open_weight === null); }); }
     return d;
   }
   function fetchJson(url) {
@@ -524,9 +546,15 @@ claude</pre>
     var entries = tier.entries || [];
     $('count-' + tierName).textContent = String(entries.length);
     $('asof-' + tierName).textContent = 'As of ' + fmtTime(tier.as_of);
-    if (!entries.length) { host.appendChild(el('p', 'skeleton', 'This list is empty today.')).style.padding = '18px 20px'; return; }
+    if (!entries.length) {
+      var msg = tierName === 'utility'
+        ? 'No image or multimodal family has a verified open-weight licence today.'
+        : 'This list is empty today.';
+      host.appendChild(el('p', 'skeleton', msg)).style.padding = '18px 20px';
+      return;
+    }
     var table = el('table');
-    var cap = el('caption', 'sr', (tierName === 'cheap' ? 'Cheap' : 'Strongest open-weight') + ' list, as of ' + fmtTime(tier.as_of));
+    var cap = el('caption', 'sr', (TIER_LABEL[tierName] || tierName) + ' list, as of ' + fmtTime(tier.as_of));
     table.appendChild(cap);
     var thead = el('thead'); var hr = el('tr');
     ['#', 'Model', 'Route to call', 'Input / 1M', 'Output / 1M', 'Health', 'Verdict'].forEach(function (h) {
@@ -543,10 +571,12 @@ claude</pre>
       var m = el('div'); m.appendChild(el('span', 'mname', e.model_family)); if (e.vendor) m.appendChild(el('span', 'vendor', e.vendor));
       var lic = e.licence || {};
       if (lic.name && /^https:\/\//.test(String(lic.url || ''))) { var la = el('a', 'lic', lic.name); la.href = lic.url; la.target = '_blank'; la.rel = 'noopener noreferrer'; m.appendChild(la); }
+      else if (tierName === 'utility') { m.appendChild(el('span', 'lic licnone', 'Licence not verified')); }
       td.appendChild(m); tr.appendChild(td);
       td = el('td', null); td.setAttribute('data-label', 'Route');
       var r = el('div'); r.appendChild(el('code', 'rcode', e.best_route));
       var chips = chipsFor(e);
+      if (e.utility_kind) chips.push(String(e.utility_kind));
       if (chips.length) { var c = el('div', 'chips'); chips.forEach(function (t) { c.appendChild(el('span', 'chip', t)); }); r.appendChild(c); }
       td.appendChild(r); tr.appendChild(td);
       var p = e.price_usd_per_mtok || {};
@@ -591,10 +621,19 @@ claude</pre>
 
   function showNotice(id, text) { var n = $(id); n.textContent = text; n.classList.add('show'); }
 
+  function renderUtility(d) {
+    var tab = $('tab-utility');
+    var u = d.tiers.utility;
+    if (!u) { if (tab) tab.hidden = true; return; }
+    if (tab) tab.hidden = false;
+    renderTable('utility', u);
+  }
+
   function render(d, fromSaved) {
     renderHero(d);
     renderTable('cheap', d.tiers.cheap);
     renderTable('strongest_open', d.tiers.strongest_open);
+    renderUtility(d);
     renderRoutes(d);
     renderProvenance(d);
     if (fromSaved) {
@@ -611,6 +650,7 @@ claude</pre>
   function fail() {
     ['hero-cheap', 'hero-strongest_open'].forEach(function (id) { $(id).textContent = ''; $(id).appendChild(el('p', 'skeleton', 'Unavailable right now.')); });
     ['cheap', 'strongest_open'].forEach(function (t) { $('asof-' + t).textContent = 'Not loaded'; });
+    var utab = $('tab-utility'); if (utab) utab.hidden = true;
     var n = $('error-note'); n.textContent = 'Today\u2019s list couldn\u2019t be loaded, and the saved copy is missing too. You can open the feed directly: ';
     var a = el('a', null, 'today.json'); a.href = FEED_URL; n.appendChild(a); n.classList.add('show');
     document.body.setAttribute('data-feed', 'error');
@@ -624,8 +664,9 @@ claude</pre>
       });
   }
 
-  // Tabs
+  // Tabs. The image and multimodal tab stays hidden when the feed carries no such tier.
   var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  function shownTabs() { return tabs.filter(function (t) { return !t.hidden; }); }
   function select(tab) {
     tabs.forEach(function (t) {
       var on = t === tab;
@@ -634,14 +675,17 @@ claude</pre>
       $(t.getAttribute('aria-controls')).hidden = !on;
     });
   }
-  tabs.forEach(function (t, i) {
+  tabs.forEach(function (t) {
     t.addEventListener('click', function () { select(t); });
     t.addEventListener('keydown', function (ev) {
+      var list = shownTabs();
+      var i = list.indexOf(t);
+      if (i < 0) return;
       var next = null;
-      if (ev.key === 'ArrowRight') next = tabs[(i + 1) % tabs.length];
-      else if (ev.key === 'ArrowLeft') next = tabs[(i - 1 + tabs.length) % tabs.length];
-      else if (ev.key === 'Home') next = tabs[0];
-      else if (ev.key === 'End') next = tabs[tabs.length - 1];
+      if (ev.key === 'ArrowRight') next = list[(i + 1) % list.length];
+      else if (ev.key === 'ArrowLeft') next = list[(i - 1 + list.length) % list.length];
+      else if (ev.key === 'Home') next = list[0];
+      else if (ev.key === 'End') next = list[list.length - 1];
       if (next) { ev.preventDefault(); select(next); next.focus(); }
     });
   });

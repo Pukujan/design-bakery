@@ -27,6 +27,7 @@
     "test:og-contract": "node scripts/test-og-contract.mjs",
     "test:ire-page": "node scripts/test-ire-page.mjs",
     "test:ire-page:browser": "node scripts/test-ire-page-browser.mjs",
+    "test:ire-app:browser": "node scripts/test-ire-app-browser.mjs",
     "ire:og-image": "node scripts/render-ire-og-image.mjs",
     "codegraph:init": "codegraph init -i",
     "codegraph:sync": "codegraph sync",

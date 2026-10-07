@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* IRE ledger palette — warm paper, forest signals, oxide exceptions */
+    --paper: 244 242 234;
+    --surface: 251 250 244;
+    --ink: 32 38 31;
+    --ink-muted: 90 99 84;
+    --forest: 47 107 79;
+    --forest-deep: 30 71 52;
+    --oxide: 166 80 31;
+    --brass: 138 107 18;
+    --line: 219 214 196;
+    --line-strong: 199 192 172;
+
+    /* shadcn tokens mapped onto the ledger palette */
+    --background: 48 31% 94%;
+    --foreground: 111 10% 14%;
+
+    --card: 51 47% 97%;
+    --card-foreground: 111 10% 14%;
+
+    --popover: 51 47% 97%;
+    --popover-foreground: 111 10% 14%;
+
+    --primary: 152 39% 30%;
+    --primary-foreground: 51 47% 97%;
+
+    --secondary: 47 28% 88%;
+    --secondary-foreground: 111 10% 14%;
+
+    --muted: 47 26% 89%;
+    --muted-foreground: 96 8% 36%;
+
+    --accent: 47 30% 87%;
+    --accent-foreground: 152 39% 22%;
+
+    --destructive: 22 69% 39%;
+    --destructive-foreground: 51 47% 97%;
+
+    --border: 46 24% 82%;
+    --input: 46 24% 82%;
+    --ring: 152 39% 30%;
+
+    --radius: 0.375rem;
+
+    --sidebar-background: 51 47% 97%;
+    --sidebar-foreground: 111 10% 14%;
+    --sidebar-primary: 152 39% 30%;
+    --sidebar-primary-foreground: 51 47% 97%;
+    --sidebar-accent: 47 30% 87%;
+    --sidebar-accent-foreground: 152 39% 22%;
+    --sidebar-border: 46 24% 82%;
+    --sidebar-ring: 152 39% 30%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display;
+  }
+
+  ::selection {
+    background-color: rgb(var(--forest) / 0.18);
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-md border border-line bg-surface;
+  }
+
+  .num {
+    @apply font-mono tabular-nums;
+  }
+}
