@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Builds the IRE React dashboard (frontend/ire-app) and copies its output into the
-// site's dist tree at /ire/app/, where Caddy serves it as a plain directory index.
+// site's dist tree at /ire/, where Caddy and Vercel serve it for /ire and /ire/.
 //
 // frontend/ire-app is deliberately NOT a pnpm workspace member: it wants Vite 8 and
 // Tailwind 3, while the root workspace pins Vite 6.3.5 and Tailwind 4. Joining would
@@ -15,7 +15,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const appDir = fileURLToPath(new URL('../frontend/ire-app', import.meta.url));
-const target = fileURLToPath(new URL('../frontend/dist/ire/app', import.meta.url));
+const target = fileURLToPath(new URL('../frontend/dist/ire', import.meta.url));
 
 function run(args, cwd) {
   const res = spawnSync(args.join(' '), { cwd, stdio: 'inherit', shell: true, env: { ...process.env, CI: '1' } });
@@ -51,7 +51,7 @@ async function main() {
   await mkdir(target, { recursive: true });
   await cp(built, target, { recursive: true });
   const { size } = await stat(`${target}/index.html`);
-  console.log(`[ire-app] built and copied to frontend/dist/ire/app (index.html ${size} bytes).`);
+  console.log(`[ire-app] built and copied to frontend/dist/ire (index.html ${size} bytes).`);
 }
 
 main().catch((err) => {

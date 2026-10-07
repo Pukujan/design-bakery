@@ -1,5 +1,5 @@
 {
-  "asset": "frontend/public/ire/og-image.png",
+  "asset": "frontend/ire-app/public/og-image.png",
   "role": "social preview",
   "page": "https://www.design-bakery.com/ire",
   "dimensions": [1200, 630],
@@ -7,7 +7,7 @@
   "source": "scripts/ire-og-image/og-image.html",
   "regenerate": "pnpm ire:og-image",
   "method": "Deterministic HTML render with Playwright Chromium (requested instead of an image model so it can be rebuilt exactly).",
-  "palette": "dark theme tokens from frontend/public/ire/theme.css",
+  "palette": "dark tokens inlined in og-image.html (copied from the retired frontend/public/ire/theme.css)",
   "copy": {
     "kicker": "Inference Recommendation Engine",
     "title": "IRE: Today’s Picks",

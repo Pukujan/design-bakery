@@ -164,9 +164,13 @@
 			file_server
 		}
 
-		# vercel.json rewrites /ire and /ire/ to the IRE market page (IRE #77). Both are
-		# normally served by the directory index above (public/ire/index.html); this
-		# mirrors the explicit rewrite so the two configs stay 1:1.
+		# The IRE dashboard (built from frontend/ire-app into dist/ire by
+		# scripts/build-ire-app.mjs). vercel.json rewrites /ire and /ire/ to its
+		# index.html; this mirrors that so the two configs stay 1:1. `@dirIndex` above
+		# would serve it too, but its `{path}/index.html` join leaves a double slash for
+		# a trailing-slash request, so both spellings are stated explicitly. Hashed
+		# assets are real files served by `@exactFile` above — this matches only the two
+		# directory spellings, never /ire/assets/*.
 		@ire path /ire /ire/
 		handle @ire {
 			rewrite * /ire/index.html
@@ -174,18 +178,14 @@
 			file_server
 		}
 
-		# The IRE React dashboard (built from frontend/ire-app into dist/ire/app by
-		# scripts/build-ire-app.mjs). `@dirIndex` above normally serves it, but its
-		# `{path}/index.html` join leaves a double slash for a trailing-slash request,
-		# so the directory entry is stated explicitly. Hashed assets are real files and
-		# are served by `@exactFile` above — this rule matches only the two directory
-		# spellings, never `/ire/app/assets/*`.
-		@ireApp path /ire/app /ire/app/
-		handle @ireApp {
-			rewrite * /ire/app/index.html
-			header Cache-Control "public, max-age=0, must-revalidate"
-			file_server
-		}
+		# The dashboard was served from /ire/app/ before it became the /ire page itself
+		# (TASK-DB-0081). vercel.json sends both spellings to /ire/ with a permanent
+		# redirect; this mirrors it so old links and any indexed copy land on the
+		# canonical path. Inside `route` the written order is the evaluated order, so this
+		# sits after the filesystem handlers and before the SPA fallback: a real file under
+		# /ire/app/ still wins, and anything else redirects instead of rendering the shell.
+		@ireAppLegacy path /ire/app /ire/app/
+		redir @ireAppLegacy /ire/ 301
 
 		# Missing .html file: vercel.json's catch-all excludes `*.html`, so these 404
 		# instead of falling back to the SPA shell.

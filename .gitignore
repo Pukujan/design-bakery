@@ -23,6 +23,7 @@ deploy/vercel.env
 deploy/gravebuster/.env
 deploy/gravebuster/.env.api
 deploy/gravebuster/.deploy-state
+deploy/gravebuster/.deploy.lock
 deploy/gravebuster/*.log
 
 # Legacy duplicates (use backend/ + backend/services/ only)

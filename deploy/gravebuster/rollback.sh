@@ -14,6 +14,9 @@
 #   deploy/gravebuster/rollback.sh --no-api         # web only, even if the API is enabled
 #   deploy/gravebuster/rollback.sh --list           # show deployed images
 #
+# Only one deploy or rollback runs at a time: each takes an exclusive lock on
+# deploy/gravebuster/.deploy.lock and exits at once if another already holds it.
+#
 # The API container is rolled back when WITH_API=1 or deploy/gravebuster/.env.api
 # exists; --with-api / --no-api override that for a single run (see deploy.sh).
 set -euo pipefail
@@ -25,6 +28,7 @@ EDGE_OVERLAY="$SCRIPT_DIR/docker-compose.edge.yml"
 API_ENV_FILE="$SCRIPT_DIR/.env.api"
 STATE_FILE=${DEPLOY_STATE_FILE:-$SCRIPT_DIR/.deploy-state}
 LOG_FILE=${DEPLOY_LOG_FILE:-$SCRIPT_DIR/deploy.log}
+LOCK_FILE=${DEPLOY_LOCK_FILE:-$SCRIPT_DIR/.deploy.lock}
 IMAGE_REPO=${DESIGN_BAKERY_IMAGE_REPO:-design-bakery-web}
 CONTAINER=${DESIGN_BAKERY_CONTAINER:-design-bakery-web}
 API_CONTAINER=${DESIGN_BAKERY_API_CONTAINER:-design-bakery-api}
@@ -44,7 +48,7 @@ WITH_API_FLAG=""
 log() { printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" | tee -a "$LOG_FILE"; }
 die() { log "ERROR: $*"; exit 1; }
 
-usage() { sed -n '2,17p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+usage() { sed -n '2,21p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 
 while [ $# -gt 0 ]; do
 	case "$1" in
@@ -86,6 +90,11 @@ if [ "$WITH_EDGE" = "1" ]; then
 	COMPOSE+=(-f "$EDGE_OVERLAY")
 fi
 compose() { "${COMPOSE[@]}" "$@"; }
+
+# Same lock as deploy.sh: a rollback must not interleave with a deploy's container swap.
+# Non-blocking — a second caller exits at once instead of queueing.
+exec 9>"$LOCK_FILE"
+flock -n 9 || die "another deploy or rollback is running (lock: $LOCK_FILE)"
 
 state_get() {
 	[ -f "$STATE_FILE" ] || return 0

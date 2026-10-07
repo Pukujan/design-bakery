@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // Browser checks for the IRE React dashboard (frontend/ire-app), served from
-// frontend/dist/ire/app. Run `pnpm --dir frontend run build` first — this reads the
-// built output, not the source.
+// frontend/dist/ire. Run `pnpm --dir frontend run build` first — this reads the built
+// output, not the source.
 //
-// The live feed is intercepted and answered with the committed saved copy, so the run
-// is deterministic and needs no network. Set IRE_SHOTS_DIR to save screenshots.
+// The live feed is intercepted and answered with the committed fixture
+// (scripts/fixtures/ire-today.saved.json), so the run is deterministic and needs no
+// network. Set IRE_SHOTS_DIR to save screenshots.
 //
 // Scenarios: all eight required data-testid hooks render; the tier switch changes the
 // table; the utility section shows the unverified row without a licence link; no closed
@@ -59,7 +60,10 @@ const server = createServer(async (req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const origin = `http://127.0.0.1:${server.address().port}`;
 
-const savedText = await readFile(join(dist, 'ire', 'today.saved.json'), 'utf8');
+const savedText = await readFile(
+  fileURLToPath(new URL('./fixtures/ire-today.saved.json', import.meta.url)),
+  'utf8',
+);
 const saved = JSON.parse(savedText);
 const hasUtility = Boolean(saved.tiers?.utility);
 if (shotsDir) await mkdir(shotsDir, { recursive: true });
@@ -91,7 +95,7 @@ async function openPage(opts = {}) {
   await page.route(FEED_URL, (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: savedText }),
   );
-  await page.goto(`${origin}/ire/app/`, { waitUntil: 'networkidle' });
+  await page.goto(`${origin}/ire/`, { waitUntil: 'networkidle' });
   await page.waitForSelector('[data-testid="picks-table"]', { timeout: 20000 });
   return { context, page, consoleErrors };
 }

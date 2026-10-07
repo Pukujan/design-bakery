@@ -180,11 +180,12 @@ What `deploy.sh` does, in order:
    health-check `127.0.0.1:$API_HOST_PORT/health` (up to `API_HEALTH_TIMEOUT`, 180 s —
    Node cold-starts slower than Caddy). An unhealthy API fails the deploy.
 7. Health-check `127.0.0.1:8085/healthz` (up to 90 s), then smoke-check
-   `/`, `/research/papers/db-r-2026-010`, `/robots.txt` (200), `/ai-for-good` (308),
-   `/studyos` (307). With the API enabled, also GET `/api/public/blogs` through the web
-   container: a 200 proves the Caddy `/api/*` proxy and the data layer both work; a
-   gateway status (502/503/504) fails the deploy (the proxy is broken — the original
-   bug); a 500 only warns (a data-layer/secret problem, not a routing one).
+   `/`, `/research/papers/db-r-2026-010`, `/robots.txt`, `/ire` (200), `/ire/app` (301),
+   `/ai-for-good` (308), `/studyos` (307). With the API enabled, also GET
+   `/api/public/blogs` through the web container: a 200 proves the Caddy `/api/*` proxy
+   and the data layer both work; a gateway status (502/503/504) fails the deploy (the
+   proxy is broken — the original bug); a 500 only warns (a data-layer/secret problem,
+   not a routing one).
 8. On success: write `deploy/gravebuster/.deploy-state` (`SHA`, `CURRENT_IMAGE`,
    `PREVIOUS_IMAGE`, `CURRENT_API_IMAGE`, `PREVIOUS_API_IMAGE`, `DEPLOYED_AT`) and log
    to `deploy/gravebuster/deploy.log`.
@@ -202,6 +203,15 @@ after the tunnel goes live. Without it a plain deploy recreates `web` with only 
 default network, silently dropping `study-os_edge`, and the tunnel returns 502 until
 someone re-runs `--with-edge`. `--with-edge` / `--no-edge` override the file for a
 single run.
+
+**One deploy at a time.** Both scripts take an exclusive `flock` on
+`deploy/gravebuster/.deploy.lock` (git-ignored, `DEPLOY_LOCK_FILE` overrides the path) as
+their first action after the environment guards. The lock is non-blocking: a second
+caller logs `another deploy or rollback is running (lock: …)` and exits 1 at once rather
+than queueing. This matters now that the timer can fire on its own — a hand-run deploy
+and a timer tick that overlap interleave the `web`/`api` container swaps, and on
+2026-10-07 that left the API container in `Created` while `/api/*` answered 502 live.
+When the timer hits a busy lock it just retries on its next tick, five minutes later.
 
 Manual verification after any deploy:
 
@@ -391,9 +401,10 @@ stays useful for verifying a deploy before the flip.
 
 ## 6. Auto-deploy on merge to main
 
-Implemented, **not enabled**. gravebuster is not publicly reachable, so there is no
+**Enabled on gravebuster.** gravebuster is not publicly reachable, so there is no
 GitHub webhook to receive; instead a systemd timer polls `origin/main` and deploys when
-the SHA moves.
+the SHA moves. The timer only ever runs `deploy.sh`, so it needs the deploy lock above:
+a merge that lands while someone is deploying by hand must fail fast, not interleave.
 
 ```bash
 # enable (as root; the units use User=yoav like the other gravebuster timers)
@@ -411,7 +422,8 @@ sudo systemctl disable --now design-bakery-autodeploy.timer
 
 - `autodeploy.sh` fetches `origin/main`, compares it with the deployed `SHA` in
   `.deploy-state`, and calls `deploy.sh --no-pull --ref <sha>` only when it differs.
-  `--dry-run` reports without deploying.
+  `--dry-run` reports without deploying. It delegates the lock and every safety check to
+  `deploy.sh`, so a timer run and a hand run cannot collide.
 - The timer fires every 5 minutes (`OnCalendar=*:0/5`, `RandomizedDelaySec=90`), so a
   merge to main goes live within ~5 minutes. It is `Type=oneshot`, `Nice=10`,
   `CPUSchedulingPolicy=batch` to stay out of the way of the other stacks on the box.

@@ -18,6 +18,16 @@
       "source": "/studyos/:path*",
       "destination": "https://study.design-bakery.com/:path*",
       "permanent": false
+    },
+    {
+      "source": "/ire/app",
+      "destination": "/ire/",
+      "permanent": true
+    },
+    {
+      "source": "/ire/app/",
+      "destination": "/ire/",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -64,14 +74,6 @@
     {
       "source": "/ire/",
       "destination": "/ire/index.html"
-    },
-    {
-      "source": "/ire/app",
-      "destination": "/ire/app/index.html"
-    },
-    {
-      "source": "/ire/app/",
-      "destination": "/ire/app/index.html"
     },
     {
       "source": "/((?!.*\\.html$).*)",
