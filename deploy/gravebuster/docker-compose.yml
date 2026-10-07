@@ -55,9 +55,11 @@ services:
     ports:
       - "127.0.0.1:${API_HOST_PORT:-8788}:8787"
     env_file:
-      # Secrets (Supabase service role, OpenRouter, admin password, agent tokens).
-      # Optional: without it /health still serves and the API logs config errors
-      # per request. See docs/self-hosting.md.
+      # Secrets (Octo workspace key, OpenRouter, admin password, legacy Supabase).
+      # Create it from .env.api.example. Kept optional so deploy.sh/rollback.sh
+      # (which run `up --no-deps web`) never fail on a missing secret file; without
+      # it /health still serves and the API logs config errors per request. See
+      # docs/self-hosting.md §8.
       - path: .env.api
         required: false
     environment:
