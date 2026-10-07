@@ -53,7 +53,7 @@ services:
       dockerfile: deploy/gravebuster/Dockerfile.api
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${API_HOST_PORT:-8788}:8787"
+      - "127.0.0.1:${API_HOST_PORT:-8789}:8787"
     env_file:
       # Secrets (Octo workspace key, OpenRouter, admin password, legacy Supabase).
       # Create it from .env.api.example. Kept optional so deploy.sh/rollback.sh

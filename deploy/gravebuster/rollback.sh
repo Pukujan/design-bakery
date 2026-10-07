@@ -67,7 +67,7 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
 	set +a
 fi
 WEB_HOST_PORT=${WEB_HOST_PORT:-8085}
-API_HOST_PORT=${API_HOST_PORT:-8788}
+API_HOST_PORT=${API_HOST_PORT:-8789}
 
 # See deploy.sh: the tunnel-network attachment is sticky so a rollback does not drop it.
 [ -n "$WITH_EDGE_FLAG" ] && WITH_EDGE=$WITH_EDGE_FLAG

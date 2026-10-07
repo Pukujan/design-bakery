@@ -1,0 +1,29 @@
+{
+  "project": "design-bakery",
+  "owner": "Pukujan",
+  "purpose": "Personal portfolio and engineering blog: Vite/React frontend served by Caddy, with an Express API container for admin, the publish kit and crawler link previews.",
+  "exposure": {
+    "public": [
+      "design-bakery.com",
+      "www.design-bakery.com",
+      "staging.design-bakery.com",
+      "bench.design-bakery.com"
+    ],
+    "ingress": "cloudflare-tunnel",
+    "network": "study-os_edge",
+    "ports": {
+      "web": "127.0.0.1:8085",
+      "api": "127.0.0.1:8789"
+    }
+  },
+  "data": {
+    "primary": "octo",
+    "workspace": "octo_ws_design_bakery_c192afbc",
+    "notes": "Durable content lives in the owner's octo workspace; the backend reaches it over POST /api/workspaces/:id/query. No self-hosted database."
+  },
+  "compose": {
+    "file": "docker-compose.yml",
+    "edgeOverlay": "docker-compose.edge.yml",
+    "projectName": "design-bakery"
+  }
+}

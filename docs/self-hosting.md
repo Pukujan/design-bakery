@@ -428,8 +428,9 @@ sudo systemctl disable --now design-bakery-autodeploy.timer
 - **Do not touch** the study-os stack, `agent-telemetry`, `langfuse`, `infisical`, or any
   other stack on gravebuster. This deployment only ever touches its own containers
   (`design-bakery-web`, and `design-bakery-api` when enabled), image tags, and the
-  `127.0.0.1:8085` / `127.0.0.1:8788` ports (checked free with `ss -ltn`; the box is
-  busy — re-check before changing `WEB_HOST_PORT` or `API_HOST_PORT`).
+  `127.0.0.1:8085` / `127.0.0.1:8789` ports (checked free with `ss -ltn`; the box is
+  busy — 8788 is taken by another stack, which is why the API default is 8789. Re-check
+  before changing `WEB_HOST_PORT` or `API_HOST_PORT`).
 - **Secrets:** `deploy/gravebuster/.env` is git-ignored and holds no secrets today (only
   the port, image tag and optional public `VITE_*` values). Keep it that way; API
   secrets go in `deploy/gravebuster/.env.api` (§8).
@@ -462,7 +463,7 @@ and `rollback.sh` never build, start, health-check or touch the `api` container.
 | Dockerfile | `deploy/gravebuster/Dockerfile.api` (single stage, `node:24-bookworm-slim`) |
 | Compose service | `api` in `deploy/gravebuster/docker-compose.yml` |
 | Container | `design-bakery-api` (`node backend/lib/server.js`, healthcheck on `/health`) |
-| Published port | `127.0.0.1:${API_HOST_PORT:-8788}` → container `8787` |
+| Published port | `127.0.0.1:${API_HOST_PORT:-8789}` → container `8787` |
 | Secrets | `deploy/gravebuster/.env.api` (git-ignored, **optional**) |
 | Image | `design-bakery-api:<sha12>-<UTC timestamp>` |
 
@@ -476,8 +477,8 @@ because the publish kit rasterizes SVG text through librsvg and probes for DejaV
 ```bash
 # from the repo root
 docker build -f deploy/gravebuster/Dockerfile.api -t design-bakery-api:local .
-docker run --rm -p 127.0.0.1:8788:8787 design-bakery-api:local
-curl -s http://127.0.0.1:8788/health   # {"ok":true,"service":"design-bakery-api"}
+docker run --rm -p 127.0.0.1:8789:8787 design-bakery-api:local
+curl -s http://127.0.0.1:8789/health   # {"ok":true,"service":"design-bakery-api"}
 ```
 
 **Secrets.** The API's secrets live in `deploy/gravebuster/.env.api` — git-ignored,
