@@ -11,10 +11,10 @@ gravebuster, reproducing every rule in `vercel.json`. Full runbook:
 | `Caddyfile` | static server + `vercel.json` redirect/rewrite parity (1:1 comments), plus the `/api/*` and link-preview proxies to `api:8787` |
 | `docker-compose.yml` | the `web` and `api` containers, both published on `127.0.0.1` only |
 | `docker-compose.edge.yml` | optional overlay joining the Cloudflare Tunnel's docker network |
-| `deploy.sh` | fetch ref → build tagged image → swap container → smoke test (auto-rollback on failure); builds/swaps the API too when it is enabled |
-| `rollback.sh` | swap back to the previously deployed image tag (web + API) |
+| `deploy.sh` | fetch ref → build tagged image → swap container → smoke test (auto-rollback on failure); builds/swaps the API too when it is enabled. Takes an exclusive lock so only one deploy runs at a time |
+| `rollback.sh` | swap back to the previously deployed image tag (web + API); takes the same lock |
 | `autodeploy.sh` | poll `origin/main` and deploy on change (run by the systemd timer) |
-| `systemd/` | `design-bakery-autodeploy.{service,timer}` — **not enabled** by default |
+| `systemd/` | `design-bakery-autodeploy.{service,timer}` — **enabled** on gravebuster |
 | `.env.example` | copy to `.env` (git-ignored) for port / image / optional `VITE_*` build args |
 | `.env.api.example` | template for `.env.api` — every variable, with where each value comes from |
 | `.env.api` | **secrets** for the API container (git-ignored, optional) — Octo workspace key, OpenRouter, admin password, legacy Supabase |

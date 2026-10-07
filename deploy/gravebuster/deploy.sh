@@ -20,6 +20,9 @@
 # deploy keeps the `web` container on the tunnel network (a plain deploy would
 # otherwise drop it and the tunnel would 502).
 #
+# Only one deploy or rollback runs at a time: each takes an exclusive lock on
+# deploy/gravebuster/.deploy.lock and exits at once if another already holds it.
+#
 # The API container is deployed when WITH_API=1 or deploy/gravebuster/.env.api exists;
 # --with-api / --no-api override that for a single run.
 #
@@ -33,6 +36,7 @@ EDGE_OVERLAY="$SCRIPT_DIR/docker-compose.edge.yml"
 API_ENV_FILE="$SCRIPT_DIR/.env.api"
 STATE_FILE=${DEPLOY_STATE_FILE:-$SCRIPT_DIR/.deploy-state}
 LOG_FILE=${DEPLOY_LOG_FILE:-$SCRIPT_DIR/deploy.log}
+LOCK_FILE=${DEPLOY_LOCK_FILE:-$SCRIPT_DIR/.deploy.lock}
 IMAGE_REPO=${DESIGN_BAKERY_IMAGE_REPO:-design-bakery-web}
 CONTAINER=${DESIGN_BAKERY_CONTAINER:-design-bakery-web}
 API_IMAGE_REPO=${DESIGN_BAKERY_API_IMAGE_REPO:-design-bakery-api}
@@ -60,7 +64,7 @@ log() { printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" | tee -a "$LOG_
 die() { log "ERROR: $*"; exit 1; }
 
 usage() {
-	sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+	sed -n '2,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 	exit "${1:-0}"
 }
 
@@ -124,6 +128,14 @@ compose() { "${COMPOSE[@]}" "$@"; }
 command -v docker >/dev/null || die "docker not found"
 command -v curl >/dev/null || die "curl not found"
 
+# One deploy at a time. Two runs that overlap interleave their web/api container swaps,
+# and on 2026-10-07 that left the api container stuck in `Created` while the tunnel
+# answered 502. Non-blocking on purpose: the second caller fails fast with this message
+# (and the autodeploy timer simply retries on its next tick) rather than queueing behind
+# a deploy that may take the full 30-minute timeout.
+exec 9>"$LOCK_FILE"
+flock -n 9 || die "another deploy or rollback is running (lock: $LOCK_FILE)"
+
 state_get() {
 	[ -f "$STATE_FILE" ] || return 0
 	sed -n "s/^$1=//p" "$STATE_FILE" | tail -1
@@ -175,6 +187,9 @@ smoke() {
 	check 200 /
 	check 200 /research/papers/db-r-2026-010
 	check 200 /robots.txt
+	# The dashboard's canonical path, and the old /ire/app path redirecting to it.
+	check 200 /ire
+	check 301 /ire/app
 	check 308 /ai-for-good
 	check 307 /studyos
 	return "$failures"

@@ -1,16 +1,34 @@
 <!doctype html>
 <!--
-  Source for frontend/public/ire/og-image.png, the 1200x630 social preview for /ire.
+  Source for frontend/ire-app/public/og-image.png, the 1200x630 social preview for /ire.
   Regenerate with: pnpm ire:og-image   (renders this file with Playwright's Chromium)
-  Colors come from the page's dark theme in frontend/public/ire/theme.css.
+  Colors are the dark palette the retired static /ire page used (its theme.css); they are
+  inlined below because that page is gone. Note the dashboard itself is light — this card
+  is a standalone brand asset, not a screenshot.
   Fonts: Inter and JetBrains Mono if installed, system fallbacks otherwise.
   Copy rules: open-weight models only, no closed model names, no price or discount claims.
 -->
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<link rel="stylesheet" href="../../frontend/public/ire/theme.css">
 <style>
+  /* The dark tokens this card uses, copied from the retired frontend/public/ire/theme.css. */
+  :root {
+    --background: #0F0F0F;
+    --foreground: #FFF9F0;
+    --card: #1A1A1A;
+    --muted: #2A2A2A;
+    --muted-foreground: #A8A8A8;
+    --border: rgba(255, 255, 255, 0.14);
+    --accent: #FFD93D;
+    --link: #93ABFF;
+    --info-bg: rgba(65, 105, 225, 0.18);
+    --success-fg: #74DFA4;
+    --danger-fg: #FF959B;
+    --bar-thin: #E63946;
+    --bar-deep: #A8CC00;
+    --shadow: 0 22px 60px rgba(0, 0, 0, 0.45);
+  }
   html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
   body {
     background: var(--background);

@@ -5,7 +5,8 @@
 # gravebuster is not publicly reachable, so there is no GitHub webhook: this script
 # polls origin/main and deploys when the SHA moves. It is meant to run from a systemd
 # timer (deploy/gravebuster/systemd/) — see docs/self-hosting.md, "Auto-deploy".
-# It is implemented but NOT enabled.
+# Enabled on gravebuster. All the safety lives in deploy.sh, including the lock that
+# keeps a timer run and a hand run from interleaving.
 #
 #   deploy/gravebuster/autodeploy.sh              # deploy if origin/main moved
 #   deploy/gravebuster/autodeploy.sh --dry-run    # report what would happen
@@ -26,7 +27,7 @@ while [ $# -gt 0 ]; do
 	case "$1" in
 		--dry-run) DRY_RUN=1; shift ;;
 		--branch) BRANCH=${2:?--branch needs a value}; shift 2 ;;
-		-h|--help) sed -n '2,13p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+		-h|--help) sed -n '2,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
 		*) die "unknown argument: $1" ;;
 	esac
 done
