@@ -5,7 +5,8 @@
 | **Created** | 2026-10-07 |
 | **Issue** | [#80](https://github.com/Pukujan/design-bakery/issues/80) Step E (last code-only Vercel dependency) |
 | **Branch** | `task/TASK-DB-0077-og-sidecar` |
-| **Status** | Open — PR pending |
+| **PR** | [#96](https://github.com/Pukujan/design-bakery/pull/96) — merged `e3e8c3a` |
+| **Status** | Done — merged and deployed to gravebuster; OG previews verified live |
 
 ## Goal
 
@@ -92,15 +93,38 @@ no new tunnel hostname, no DNS record, no CORS) and route the paths to it from C
   - **API stopped** → blog and case-study paths still 200 with the shell, while
     `/api/*` stays 502.
 
+## Deployed (2026-10-07)
+
+Merged as `e3e8c3a` (PR #96) and deployed to gravebuster with
+`deploy/gravebuster/deploy.sh --ref origin/main`. The image went from `aab743f` to
+`e3e8c3a67f5c`; the smoke test passed (`/healthz`, `/`, `/research/papers/db-r-2026-010`,
+`/robots.txt`, 308 `/ai-for-good`, 307 `/studyos`, and `/api/public/blogs` 200 JSON
+through the Caddy proxy). Verified on the live hostname with a crawler UA
+(`facebookexternalhit/1.1`):
+
+| Path | `<title>` now |
+|---|---|
+| `/blogs/1` | Building Scalable Form Systems in Next.js |
+| `/blogs` | Engineering Blog \| Design Baker |
+| `/case-studies/ekagajpatra` | Ekagajpatra Case Study \| Design Baker |
+| `/case-studies/invest-ai` | InvestAI Case Study \| Design Baker |
+| `/case-studies/ai-agents/v4` | ONI vs Agent-Ready Architecture (v4) \| Design Baker |
+| `/case-studies/legal-workflow-research` | Legal Workflow Research: Building Safer AI Systems for Litigation Operations |
+
+Before the deploy, all of these returned the generic shell
+`Design Baker | Fullstack Design Engineer & AI Workflow Systems`. `/case-studies/studyos`
+still returns the shell — `studyos` is not one of the five known case-study slugs, so
+that is the intended unknown-slug behaviour, not a gap. The injected responses carry
+`Vary: User-Agent` + `Cache-Control: public, max-age=0, must-revalidate`, and a browser
+UA on `/blogs/1` gets the same injected HTML with the `#root` mount for React to hydrate
+over — matching the Edge middleware, which rewrote the shell for every request.
+
 ## Not verifiable here
 
-Docker Desktop is not running on this machine, so the container path is proven
+Docker Desktop is not running on this machine, so the container path was proven
 against the same binaries run directly on the host (real Caddy, the real
 `backend/lib/server.js`), not inside the compose stack. The first real container run
-is on gravebuster.
-
-The deployed image on gravebuster is `aab743f`, which predates this change — **the
-live OG regression is not fixed until this is deployed.**
+was the gravebuster deploy above.
 
 ## Scope
 
