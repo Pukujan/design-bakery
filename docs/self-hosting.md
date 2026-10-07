@@ -132,8 +132,8 @@ matched.
 
 | Difference | Why | Fix if it matters |
 | --- | --- | --- |
-| `/` and `/index.html` body differs in one line | `index.html` references the hashed entry bundle; the JS hash differs because the Vercel build had `VITE_*` env vars inlined and this build did not (same length, so the byte count matches) | set the `VITE_*` values in `deploy/gravebuster/.env` and redeploy |
-| `/sitemap.xml` 4140 bytes vs 10292 | `scripts/generate-sitemap.mjs` prefers the live blog list (Supabase / Railway API) and fell back to the committed `blog-data.json` snapshot, so only the bundled posts are listed | same `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (or `VITE_BLOG_API_URL`) build args |
+| `/` and `/index.html` body differs in one line | `index.html` references the hashed entry bundle; the JS hash differs while any build input differs from the Vercel build. `VITE_BLOG_API_URL` is now set (§3), so the remaining input is `VITE_SUPABASE_*`, deliberately unset (the data layer is octo) | nothing to fix — the hash is content-addressed; the site is no longer compared against Vercel |
+| `/sitemap.xml` size | **Resolved 2026-10-07** — `scripts/generate-sitemap.mjs` reads the live blog list at build time; with `VITE_BLOG_API_URL` set (§3) it lists all 33 posts (66 blog URLs across `/blogs/N` and `/endtoend-engineer/blogs/N`), not the 7-post snapshot | nothing — set `VITE_BLOG_API_URL` (§3), which the box now does |
 | 404 body is `404: NOT_FOUND` (14 B) instead of Vercel's 79-byte page | Vercel's body carries a per-request `NOT_FOUND` id | cosmetic; status and content type match |
 | `/ai-for-good/brand/logo.svg` 404 body 79 B vs 84 B | the 404 comes from the **upstream** ai-for-good Vercel app through the proxy; the last line of its body is a request id (`iad1::zfvxj-…` vs `iad1:iad1::2mqz4-…`) that differs per request on both sides | nothing to fix — not our response |
 | `/ai-for-good` `Location` is relative (`/ai-for-good/`) | the container only ever sees `http://` from the tunnel, so an absolute URL would downgrade the scheme at the edge; RFC 7231 allows a relative `Location` | cosmetic |
