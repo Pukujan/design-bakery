@@ -4,7 +4,8 @@
 |-------|-------|
 | **Created** | 2026-10-07 |
 | **Issue** | [#60](https://github.com/Pukujan/design-bakery/issues/60) (design work order for the IRE Today's Picks page) |
-| **Status** | Built and verified locally; not deployed |
+| **Merged** | [#101](https://github.com/Pukujan/design-bakery/pull/101) (`4640138`) |
+| **Status** | Deployed and verified live at `https://www.design-bakery.com/ire/app/` |
 
 ## Goal
 
@@ -116,11 +117,54 @@ the commit, the snapshot digest and a link to the raw feed.
   additive at `/ire/app/`, and the static page links to it. The static-only contract in
   issue #60 assumed no React; superseding it is a separate decision, and the two browser
   gates are written against the static page's internals, so that flip is its own change.
-- **Deploying.** Nothing here is on gravebuster yet. The Caddyfile and `vercel.json` both
-  gained `/ire/app` directory-index rules so the subpath serves correctly on either host,
-  but the deploy has not run.
+- **Deploying on its own schedule.** The Caddyfile and `vercel.json` both gained
+  `/ire/app` directory-index rules, and the app is now live (below). What is *not* done is
+  any coordination of deploys: the box deploys only when someone runs `deploy.sh` (the
+  auto-deploy timer is installed but not enabled), so two people deploying at once can
+  collide — which is exactly what happened here.
+
+## Deployed
+
+`deploy/gravebuster/deploy.sh` ran on gravebuster against main and the site is live:
+
+- `https://www.design-bakery.com/ire/app/` → 200, `<title>IRE Daily Picks</title>`, with
+  `/ire/app/assets/index-*.js` and `.css` both 200. The shell is the dashboard's own, not
+  the site's SPA fallback.
+- The dashboard renders in a real browser with all eight hooks present (`picks-hero`,
+  `tier-tabs`, `price-chart`, `capability-chart`, `health-summary`, `picks-table`,
+  `utility-section`, `provenance`), reads the live feed (list day "Wed 7 Oct 2026",
+  built 13:47 EDT) and logs no console errors.
+- The feed itself is reachable from the browser: `raw.githubusercontent.com` answers the
+  `data/ire-feed` copy 200 with `Access-Control-Allow-Origin: *`, so no proxy is needed.
+
+### Incident during the deploy: two deploys raced, the API container was lost
+
+Merging is not the deploy — the auto-deploy timer is not enabled — so this task's deploy
+was run by hand. While it was building, a **second session** in the same checkout started
+its own `deploy.sh` for main's later commit `14bc3fce3f3a`. The two runs interleaved:
+each rebuilt and swapped `web`, and their `api` swaps collided on the same container name.
+Docker's compose recreate failed with `No such container: ec034ace994f…`, leaving the API
+container in `Created` — so **`/api/*` answered 502 on the live site** (the blog API and
+the crawler link previews) until it was put back.
+
+Recovery: re-ran the step the failed deploy intended —
+`DESIGN_BAKERY_API_IMAGE=design-bakery-api:14bc3fce3f3a-20261007T222359Z docker compose
+-f docker-compose.yml -f docker-compose.edge.yml up -d --no-deps api`. The first attempt
+inherited a stale container name (`ec034ace994f_design-bakery-api`), which would have
+broken `docker inspect design-bakery-api` on the next deploy, so the container was removed
+and recreated under its compose name. Both containers are now healthy
+(`design-bakery-web` and `design-bakery-api` on `14bc3fce3f3a-…`), `/health` is 200, and
+`/api/public/blogs` is 200 through Caddy.
+
+The stale `.deploy-state` (it still names `4335435`) is not a problem: the next deploy
+compares against the remote and would re-deploy, which is the safe direction.
+
+**Lesson for the next person:** one deploy at a time per box. `deploy.sh` has no lock, and
+the collision cost a live 502 on `/api/*`.
 
 ## Next step
 
-Deploy to gravebuster with `deploy/gravebuster/deploy.sh` and check `/ire/app/` on the
-live hostname, including that the app reaches the feed through the tunnel.
+None — the page and the dashboard are live. Two separate decisions remain, both the
+owner's: whether to retire the static `/ire` page now that the dashboard exists (issue
+#60's static-only contract would need a deliberate revision), and whether to enable the
+auto-deploy timer so a merge deploys without a hand-run script.
