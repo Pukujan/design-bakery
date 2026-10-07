@@ -226,5 +226,26 @@
       {"label": "Today's Picks", "url": "/ire"},
       {"label": "GitHub \u00b7 Public", "url": "https://github.com/Pukujan/inference-recommendation-engine"}
     ]
+  },
+  {
+    "id": 12,
+    "title": "Agent Custom Setup",
+    "tagline": "Who is working, and who may act",
+    "description": "The public onboarding surface in front of Agent Custom Setup. The welcome page states the coordination gap and what each layer owns. The demo lets a visitor paste a repository, preview the install, and see which gates passed, which are pending, and which stay a manual owner action. It does not pretend a partial install is complete.",
+    "tech": ["React", "TypeScript", "Coordination", "GitHub", "Evidence"],
+    "color": "#243028",
+    "accentColor": "#d6a15a",
+    "startedAt": "2026-10-07",
+    "startedAtSource": "Public welcome and demo published at acs.design-bakery.com on 2026-10-07. The requirement was recorded on 2026-10-04.",
+    "status": "ongoing",
+    "stats": [
+      {"label": "Welcome and demo", "icon": "Sparkles"},
+      {"label": "Paste a repository", "icon": "Users"},
+      {"label": "Partial gates stay partial", "icon": "Award"}
+    ],
+    "links": [
+      {"label": "Live site", "url": "https://acs.design-bakery.com"},
+      {"label": "GitHub · Public", "url": "https://github.com/Pukujan/agent-custom-setup"}
+    ]
   }
 ]
