@@ -212,10 +212,19 @@ curl -sS -o /dev/null -w '%{http_code} %{redirect_url}\n' http://127.0.0.1:8085/
 
 ### Build-time config (`deploy/gravebuster/.env`, git-ignored)
 
-Public values only — they are inlined into the JS bundle. Unset is a valid state (the
-blog falls back to the committed snapshot), but for full content parity with the Vercel
-build set `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (anon public key — never
-`service_role`) and/or `VITE_BLOG_API_URL`, then redeploy.
+Public values only — they are inlined into the JS bundle. **Set
+`VITE_BLOG_API_URL=https://www.design-bakery.com`** on gravebuster. That origin is the
+site's own, so the SPA reaches the Caddy `/api/*` proxy same-origin (no CORS, nothing
+in `ALLOWED_ORIGINS` needed) and reads live content from octo; it is also an absolute
+URL, so the **build-time sitemap generator** — a Node script with no browser origin —
+can fetch the live blog list and list all 33 posts instead of the 7-post snapshot. The
+literal `same-origin` also works for the browser (`resolveApiBase` maps it to
+`window.location.origin`) but **not** for the sitemap, which has no origin to resolve
+against, so prefer the absolute URL. Unset is a valid but degraded state: the blog
+falls back to the committed `blog-data.json` snapshot (7 posts) and the sitemap lists
+only those. `VITE_SITE_URL` is optional (canonical URLs fall back to the browser
+origin, which is the public host anyway). Then redeploy — these are build args, so a
+restart alone does not pick them up.
 
 ---
 
@@ -508,18 +517,14 @@ routes return a clear 5xx instead. Check `docker logs design-bakery-api` for the
 config error when a route 5xxs, and see §7 for the rule that `.env` itself stays
 secret-free.
 
-**Still open (owner decision).** How the API is reached publicly:
-
-- *Own tunnel hostname* — e.g. `api.design-bakery.com` → `design-bakery-api:8787`,
-  with `VITE_BLOG_API_URL=https://api.design-bakery.com`. Keeps the API and web
-  independent; needs an `ALLOWED_ORIGINS` entry for the site origin.
-- *Same-origin `/api` proxy* — add `reverse_proxy design-bakery-api:8787` to the
-  `web` Caddyfile under `/api/*` and set `VITE_BLOG_API_URL` empty. No CORS at all,
-  but the two containers become one routing unit.
-
 **Resolved (2026-10-07):** the same-origin `/api/*` proxy is what shipped — Caddy
-proxies `/api/*` to `api:8787` with the prefix intact, and no api hostname or CORS
-entry was needed (TASK-DB-0075 / TASK-DB-0076). Railway is no longer authoritative.
+proxies `/api/*` to `api:8787` with the prefix intact, so no api hostname and no
+`ALLOWED_ORIGINS` CORS entry were needed (TASK-DB-0075 / TASK-DB-0076). The build-time
+half is `VITE_BLOG_API_URL=https://www.design-bakery.com` in `deploy/gravebuster/.env`
+(§3) — the site's own origin, so the SPA calls the proxy same-origin with no CORS, and
+being absolute it also feeds the build-time sitemap generator. Railway is no longer
+authoritative. The alternative (an own `api.design-bakery.com` tunnel hostname + a CORS
+entry) was considered and rejected in favour of the proxy.
 
 ### Link previews (Open Graph)
 
