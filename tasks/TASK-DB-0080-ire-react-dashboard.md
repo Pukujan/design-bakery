@@ -129,7 +129,9 @@ the commit, the snapshot digest and a link to the raw feed.
 
 - `https://www.design-bakery.com/ire/app/` → 200, `<title>IRE Daily Picks</title>`, with
   `/ire/app/assets/index-*.js` and `.css` both 200. The shell is the dashboard's own, not
-  the site's SPA fallback.
+  the site's SPA fallback. *(True when this shipped. TASK-DB-0081 moved the dashboard to
+  `/ire/`, so `/ire/app/` 301s and `/ire/app/assets/*` now falls through to the SPA
+  fallback — see that task's boundaries.)*
 - The dashboard renders in a real browser with all eight hooks present (`picks-hero`,
   `tier-tabs`, `price-chart`, `capability-chart`, `health-summary`, `picks-table`,
   `utility-section`, `provenance`), reads the live feed (list day "Wed 7 Oct 2026",

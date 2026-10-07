@@ -129,6 +129,7 @@ built `frontend/dist`, not by reading it:
 /ire/assets/index-9Sm33WSZ.js -> 200 application/javascript; charset=utf-8
 /ire/app             -> 301 http://127.0.0.1:18085/ire/
 /ire/app/            -> 301 http://127.0.0.1:18085/ire/
+/ire/app/assets/index-9Sm33WSZ.js -> 200 text/html 1973   (SPA fallback, not the asset)
 /ai-for-good         -> 308
 /studyos             -> 307
 /case-studies/cortex -> 200   (regression check on the shared filesystem handlers)
@@ -143,16 +144,40 @@ and `DEPLOY_LOCK_FILE` overrides the path.
 ### Deployed
 
 The timer is enabled on gravebuster (`systemctl is-enabled design-bakery-autodeploy.timer`
-→ `enabled`), and the deploy of this change is the first one it ran on its own.
+→ `enabled`), and the deploy of this change is the first one it ran on its own. The
+`autodeploy.log` line is the proof:
+
+```
+[2026-10-07T23:25:59Z] new commit on origin/main: 260008f4dfc2 (deployed: 4335435b04a2)
+```
+
+The service finished at 23:29:28Z with `deploy OK: 260008f4dfc2 ->
+design-bakery-web:260008f4dfc2-20261007T232559Z`, both containers `healthy` on the new tag,
+and its own smoke test logged `ok` for `/`, `/ire`, `/ire/app` (301), `/ai-for-good` (308),
+`/studyos` (307) and `/api/public/blogs` (the Caddy proxy plus the data layer). Checked
+again from outside, on the public hostname: `/ire` and `/ire/` 200 with
+`<title>Today's open-weight model picks on InferHub | IRE</title>` and
+`og:image https://www.design-bakery.com/ire/og-image.png`, `/ire/app` and `/ire/app/`
+**301 → `https://www.design-bakery.com/ire/`**, `/ire/og-image.png` 200 image/png,
+`/ire/assets/index-9Sm33WSZ.js` 200 application/javascript, and `/api/public/blogs` 200
+JSON.
+
+Rollback is one command if this needs undoing: `deploy/gravebuster/rollback.sh` puts
+`14bc3fce3f3a-…` back on both containers.
 
 ## Boundaries and non-goals
 
 - **The dashboard is client-rendered.** Link previews are covered by the ported `og:*`
   tags and Googlebot renders JS, but a crawler that neither reads `og:*` nor runs JS sees
   an empty body. The static page did not have that gap; this is the cost of the move.
-- **`/ire/app/assets/*` now 404s.** Only `/ire/app` and `/ire/app/` redirect. A stale
-  bookmark of an old hashed asset was already broken by the hash change, so nothing that
-  worked before breaks — but the 404 is a plain 404, not a redirect to the new asset.
+- **`/ire/app/assets/*` serves the SPA shell, not the asset.** Only `/ire/app` and
+  `/ire/app/` redirect; a request for an asset *under* `/ire/app/` misses the redirect
+  rule, misses the filesystem (there is no `dist/ire/app/` any more) and falls through to
+  the SPA fallback, which answers **200 text/html** with the site's app shell. So a stale
+  bookmark of an old hashed asset gets HTML, not a 404 and not a redirect — it was already
+  broken by the hash change, and this is how the site has always answered an unknown
+  non-`.html` path. Measured through `caddy:2-alpine` against the built `dist`, and again
+  live after the deploy.
 - **The site's dev server still has no `/ire` proxy.** The app is developed on its own
   (`pnpm --dir frontend/ire-app dev`); `IrePageRedirect` warns instead of redirecting.
 - **Not touched:** the `/srv` hosting-convention move (issue #98), the Vercel project
