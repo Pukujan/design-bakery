@@ -50,6 +50,6 @@ The pre-flip DNS records are saved outside the repository as a rollback file (`d
 
 ## Non-goals
 
-- The Vercel Edge OG middleware (`middleware.ts` + `frontend/src/og/`) still has no gravebuster equivalent, so crawler link previews for blog and case-study URLs stay the one deliberate parity gap until the Node sidecar in issue #80 Step E lands.
+- The Vercel Edge OG middleware (`middleware.ts` + `frontend/src/og/`) had no gravebuster equivalent at cutover time, so crawler link previews for blog and case-study URLs were the one deliberate parity gap. **Closed by [TASK-DB-0077](TASK-DB-0077-og-sidecar.md)** (issue #80 Step E): the `api` container now serves those paths behind Caddy, and the middleware is deleted.
 - Deleting the old Supabase object bytes. The rows point at `https://files.design-bakery.com/<fileId>`; the bytes stay in Supabase until the owner removes them.
 - Re-minting the Octo workspace key with the `delete` scope.

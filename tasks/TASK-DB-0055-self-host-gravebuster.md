@@ -57,8 +57,10 @@ Nothing in Cloudflare DNS, the tunnel ingress, or the Vercel project was changed
 ## Known gaps
 
 - Social/OG meta injection from the Vercel Edge middleware (`middleware.ts`, not
-  `vercel.json`) is not reproduced — crawlers/link previews on `/blogs/*` and SPA
-  case-study routes get the generic shell title. Status and content type are unaffected.
+  `vercel.json`) was not reproduced by this task — crawlers/link previews on
+  `/blogs/*` and SPA case-study routes got the generic shell title. **Resolved
+  2026-10-07** by [TASK-DB-0077](TASK-DB-0077-og-sidecar.md): the logic now runs in
+  the `api` container behind Caddy (`backend/src/api/ogPreview.ts`).
 - `sitemap.xml` and the JS entry hash differ until the `VITE_*` build args
   (`VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`, or `VITE_BLOG_API_URL`) are set in
   `deploy/gravebuster/.env`.

@@ -4,7 +4,7 @@
 |-------|-------|
 | **Document date** | 2026-05-22 |
 | **Created** | 2026-05-22 |
-| **Last updated** | 2026-10-06 (image bytes on Octo files) |
+| **Last updated** | 2026-10-07 (social-meta crawler pointers moved to the API container) |
 
 **Branch:** `test/blog-publish-kit` (not on `main` until reviewed).
 
@@ -24,6 +24,7 @@
 | 2026-05-25 | **Font diagnostics** — `fontDiagnostics.ts` logs `[publish-kit:fonts]` (fc-match, font files, SVG probe); `pnpm run test:publish-kit-fonts`; Railway `PUBLISH_KIT_FONT_DEBUG=1` |
 | 2026-05-25 | **Admin blog list** — `listBlogPosts({ includeContent: true })` for `/api/content/blogs`; public list stays without body |
 | 2026-10-06 | **Image bytes** — `commit_visual` uploads through Octo's file API. Stored URLs are `https://files.design-bakery.com/<fileId>`. The workspace key needs the `delete` scope before those objects can be removed. |
+| 2026-10-07 | **Social crawlers moved** — the Vercel Edge `middleware.ts` was replaced by the `ogPreview` router in the `api` container (`backend/src/api/ogPreview.ts`, `backend/src/og/`). The OG meta builders themselves are unchanged. See [agent-devlog-og-previews.md](agent-devlog-og-previews.md). |
 | 2026-05-23 | **Railway fonts** — `nixpacks.toml` `aptPkgs = ["fonts-dejavu-core"]` (not nix `dejavu_fonts` — breaks Railway build); system **DejaVu Sans** when `fc-list` finds it; bundled Inter on macOS |
 | 2026-05-25 | **Hero cache** — text-free 1:1 PNG in Supabase + `publish_kit_hero_cache` table; slug match before overlay; skips OpenRouter on hit |
 
@@ -166,7 +167,7 @@ Dimensions: OG **1200×630**, cover **1200×800**.
 
 - **Detail:** [`BlogCoverImage.tsx`](../src/app/components/BlogCoverImage.tsx) — `resolveBlogCoverUrl`; shimmer + lazy load (`useInView`) like Mermaid
 - **List:** `variant="card"` uses `resolveBlogThumbnailUrl` (640×360 `thumbnailImageUrl`, else cover)
-- **Social meta:** [`blogSocialMeta.ts`](../frontend/src/og/blogSocialMeta.ts) — OG + Twitter for Facebook, LinkedIn, Slack, **Discord**, **Telegram**, WhatsApp, X, Mastodon, iMessage, etc. Crawlers: [`linkPreviewCrawlers.ts`](../frontend/src/og/linkPreviewCrawlers.ts) + [`middleware.ts`](../middleware.ts). **`seo.socialOgImageUrl`** — JPEG ~58KB from `commit_visual` / [`backfill-social-og-jpeg.mjs`](../backend/services/scripts/backfill-social-og-jpeg.mjs) (large PNGs break Slack). [`resolveSocialPreviewImage.ts`](../frontend/src/og/resolveSocialPreviewImage.ts) picks social JPEG first.
+- **Social meta:** [`blogSocialMeta.ts`](../../frontend/src/og/blogSocialMeta.ts) — OG + Twitter for Facebook, LinkedIn, Slack, **Discord**, **Telegram**, WhatsApp, X, Mastodon, iMessage, etc. Crawlers are matched by [`linkPreviewCrawlers.ts`](../../backend/src/og/linkPreviewCrawlers.ts) and served by the [`ogPreview` router](../../backend/src/api/ogPreview.ts) in the `api` container behind Caddy (it replaced the Vercel Edge `middleware.ts`; see [`agent-devlog-og-previews.md`](agent-devlog-og-previews.md)). **`seo.socialOgImageUrl`** — JPEG ~58KB from `commit_visual` / [`backfill-social-og-jpeg.mjs`](../../backend/services/scripts/backfill-social-og-jpeg.mjs) (large PNGs break Slack). [`resolveSocialPreviewImage.ts`](../../backend/src/og/resolveSocialPreviewImage.ts) picks social JPEG first.
 - **Admin social preview:** `resolveBlogOgPreviewUrl` → `seo.ogImageThumbUrl` when set (800×420 from `commit_visual`)
 
 ### Unified visuals (v0.3)
