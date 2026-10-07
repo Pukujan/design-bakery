@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-05-22 |
-| **Last updated** | 2026-10-07 (Open Graph link previews moved into the API container) |
+| **Last updated** | 2026-10-07 (live build reads octo — TASK-DB-0078; `/srv` hosting-convention target authored — TASK-DB-0079) |
 
 **Start here** for agent-facing documentation in this repo.
 
@@ -38,7 +38,7 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 
 | Date | Log |
 |------|-----|
-| 2026-10-07 | [dev-log-2026-10-07.md](dev-log-2026-10-07.md) - API container wired into the gravebuster deploy (TASK-DB-0075), design-bakery.com cut over to gravebuster (TASK-DB-0076), Open Graph link previews behind Caddy (TASK-DB-0077) |
+| 2026-10-07 | [dev-log-2026-10-07.md](dev-log-2026-10-07.md) - API container wired into the gravebuster deploy (TASK-DB-0075), design-bakery.com cut over to gravebuster (TASK-DB-0076), Open Graph link previews behind Caddy (TASK-DB-0077), live build reads octo not the 7-post snapshot (TASK-DB-0078), `/srv` hosting-convention target authored (TASK-DB-0079) |
 | 2026-10-06 | [dev-log-2026-10-06.md](dev-log-2026-10-06.md) - Modularization phase 2, orphan strict gate, API container, TypeScript alignment, Octo file uploads for new images |
 | 2026-09-24 | [TASK-DB-0050](../../tasks/TASK-DB-0050-showcase-projects.md) - Fluffy V4 static case study + Ongoing project cards (Eval Lab, PCM, IRE) |
 | 2026-09-23 | [dev-log-2026-09-23.md](dev-log-2026-09-23.md) - DB-R-2026-010 comparative rewrite, live chart verification, CI follow-up |
