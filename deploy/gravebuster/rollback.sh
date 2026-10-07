@@ -8,6 +8,7 @@
 # Usage (on gravebuster):
 #   deploy/gravebuster/rollback.sh                  # back to PREVIOUS_IMAGE
 #   deploy/gravebuster/rollback.sh --image <tag>    # to a specific tag
+#   deploy/gravebuster/rollback.sh --with-edge      # keep the tunnel network attached
 #   deploy/gravebuster/rollback.sh --list           # show deployed images
 set -euo pipefail
 
@@ -22,7 +23,11 @@ CONTAINER=${DESIGN_BAKERY_CONTAINER:-design-bakery-web}
 HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-90}
 HEALTH_PATH=${HEALTH_PATH:-/healthz}
 TARGET_IMAGE=""
-WITH_EDGE=0
+# Empty so deploy/gravebuster/.env (sourced below) can set it; --with-edge / --no-edge
+# override for a single run. A sticky WITH_EDGE=1 keeps a rollback from dropping the
+# tunnel network (see deploy.sh).
+WITH_EDGE=""
+WITH_EDGE_FLAG=""
 
 log() { printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" | tee -a "$LOG_FILE"; }
 die() { log "ERROR: $*"; exit 1; }
@@ -32,7 +37,8 @@ usage() { sed -n '2,14p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit "${1:-
 while [ $# -gt 0 ]; do
 	case "$1" in
 		--image) TARGET_IMAGE=${2:?--image needs a tag}; shift 2 ;;
-		--with-edge) WITH_EDGE=1; shift ;;
+		--with-edge) WITH_EDGE_FLAG=1; shift ;;
+		--no-edge) WITH_EDGE_FLAG=0; shift ;;
 		--port) WEB_HOST_PORT=${2:?--port needs a value}; shift 2 ;;
 		--list) docker images --format '{{.Repository}}:{{.Tag}}\t{{.CreatedSince}}\t{{.Size}}' "$IMAGE_REPO"; exit 0 ;;
 		-h|--help) usage 0 ;;
@@ -47,6 +53,10 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
 	set +a
 fi
 WEB_HOST_PORT=${WEB_HOST_PORT:-8085}
+
+# See deploy.sh: the tunnel-network attachment is sticky so a rollback does not drop it.
+[ -n "$WITH_EDGE_FLAG" ] && WITH_EDGE=$WITH_EDGE_FLAG
+WITH_EDGE=${WITH_EDGE:-0}
 
 COMPOSE=(docker compose -f "$COMPOSE_FILE")
 if [ "$WITH_EDGE" = "1" ]; then

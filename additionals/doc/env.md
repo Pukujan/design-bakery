@@ -13,9 +13,9 @@ cp backend/.env.example backend/.env
 ```
 
 - **Frontend** — `VITE_*` only (Firebase web config, feature flags, `VITE_BLOG_API_URL`, optional **`VITE_SUPABASE_URL`** + **`VITE_SUPABASE_ANON_KEY`** for fast public blog reads)
-- **Backend** — secrets (`OPENROUTER_API_KEY`, Supabase **`service_role`** key, optional legacy Firebase Admin)
+- **Backend** — secrets (`OPENROUTER_API_KEY`, Octo workspace key, optional legacy Supabase Storage)
 
-**Blog images (recommended):** Supabase Storage via `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET` in `backend/.env`. No GCP billing required.
+**Blog images:** Octo file API via `OCTO_WORKSPACE_ID` + `OCTO_API_KEY`. A new upload is published to `https://files.design-bakery.com/<fileId>`. `ASSET_PUBLIC_BASE_URL` is only the legacy `/api/public/assets/:fileId` proxy. `SUPABASE_*` remains only so already-published Supabase object URLs can still be deleted.
 
 **Public blog reads (browser):** `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` in `frontend/.env` / Vercel — use the **anon public** key from the dashboard, **not** `SUPABASE_SERVICE_ROLE_KEY`. See [Get the anon key](#get-the-supabase-anon-key) below.
 

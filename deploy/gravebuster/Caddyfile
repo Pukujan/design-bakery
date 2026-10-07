@@ -42,6 +42,20 @@
 			BODY 307
 		}
 
+		# ------------------------------------------------------------------ /api proxy
+		# Same-origin API (owner decision): the browser talks to /api/* on the site's own
+		# hostname and Caddy proxies it to the Express container over the compose network.
+		# No api subdomain, no DNS record, no CORS. Placed before the filesystem so the
+		# SPA fallback never swallows an API path. The prefix is NOT stripped — the
+		# backend mounts its routes under /api (backend/src/server.ts).
+		#
+		# The upstream is the compose service name: `web` and `api` share the project's
+		# default network in the base file, and docker-compose.edge.yml keeps `web` on
+		# that network while adding the tunnel network, so this resolves in both cases.
+		handle /api/* {
+			reverse_proxy api:8787
+		}
+
 		# ---------------------------------------------------------------- redirects
 		# `respond` + an explicit Location instead of `redir`: Vercel answers these with a
 		# 15-byte `Redirecting...\n` text/plain body, and `redir` cannot carry a body. The

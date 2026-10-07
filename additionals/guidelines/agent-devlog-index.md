@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-05-22 |
-| **Last updated** | 2026-10-06 (session log dev-log-2026-10-06) |
+| **Last updated** | 2026-10-06 (octo file uploads recorded in the session log) |
 
 **Start here** for agent-facing documentation in this repo.
 
@@ -37,7 +37,7 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 
 | Date | Log |
 |------|-----|
-| 2026-10-06 | [dev-log-2026-10-06.md](dev-log-2026-10-06.md) - Modularization phase 2 (dead `ui/` trees, CSS −50%), orphan strict gate, API container, TypeScript alignment |
+| 2026-10-06 | [dev-log-2026-10-06.md](dev-log-2026-10-06.md) - Modularization phase 2, orphan strict gate, API container, TypeScript alignment, Octo file uploads for new images |
 | 2026-09-24 | [TASK-DB-0050](../../tasks/TASK-DB-0050-showcase-projects.md) - Fluffy V4 static case study + Ongoing project cards (Eval Lab, PCM, IRE) |
 | 2026-09-23 | [dev-log-2026-09-23.md](dev-log-2026-09-23.md) - DB-R-2026-010 comparative rewrite, live chart verification, CI follow-up |
 | 2026-09-22 | [dev-log-2026-09-22.md](dev-log-2026-09-22.md) - Consolidated Eval Lab benchmark-comparison paper added to the Research module |

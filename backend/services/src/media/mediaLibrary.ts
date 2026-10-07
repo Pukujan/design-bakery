@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { supabaseAdmin } from '../supabaseClient.js';
+import { dbDelete, dbInsert, dbQueryAll, dbQueryOne, dbUpdate } from '../db.js';
 import { parseImageDataUrl } from './parseDataUrl.js';
 import { deleteMediaStoragePath, uploadMediaBuffer } from './mediaStorage.js';
 import { suggestFilenameFromImage, suggestMediaMetaFromImage } from './ocrFilename.js';
@@ -68,25 +68,18 @@ function normalizeTags(tags: string[] | undefined): string[] {
 }
 
 export async function listMediaAssets(): Promise<MediaAssetDto[]> {
-  const { data, error } = await supabaseAdmin()
-    .from('media_assets')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) throw new Error(`Media list failed: ${error.message}`);
-  return (data as MediaAssetRow[]).map(rowToDto);
+  const rows = await dbQueryAll<MediaAssetRow>(
+    'select * from public.media_assets order by created_at desc',
+  );
+  return rows.map(rowToDto);
 }
 
 export async function getMediaAsset(id: string): Promise<MediaAssetDto | null> {
-  const { data, error } = await supabaseAdmin()
-    .from('media_assets')
-    .select('*')
-    .eq('id', id)
-    .maybeSingle();
-
-  if (error) throw new Error(`Media read failed: ${error.message}`);
-  if (!data) return null;
-  return rowToDto(data as MediaAssetRow);
+  const row = await dbQueryOne<MediaAssetRow>(
+    'select * from public.media_assets where id = $1 limit 1',
+    [id],
+  );
+  return row ? rowToDto(row) : null;
 }
 
 export async function uploadMediaAssets(
@@ -160,8 +153,7 @@ export async function uploadMediaAssetsFromBuffers(
       updated_at: now,
     };
 
-    const { error } = await supabaseAdmin().from('media_assets').insert(row);
-    if (error) throw new Error(`Media insert failed: ${error.message}`);
+    await dbInsert('media_assets', row);
     created.push(rowToDto(row as MediaAssetRow));
   }
 
@@ -193,15 +185,9 @@ export async function updateMediaAsset(
   if (patch.altText !== undefined) updates.alt_text = patch.altText;
   if (patch.notes !== undefined) updates.notes = patch.notes;
 
-  const { data, error } = await supabaseAdmin()
-    .from('media_assets')
-    .update(updates)
-    .eq('id', id)
-    .select('*')
-    .single();
-
-  if (error) throw new Error(`Media update failed: ${error.message}`);
-  return rowToDto(data as MediaAssetRow);
+  const [row] = await dbUpdate<MediaAssetRow>('media_assets', updates, { id }, '*');
+  if (!row) throw new Error(`Media asset ${id} not found`);
+  return rowToDto(row);
 }
 
 export async function previewMediaMetaFromDataUrl(params: {
@@ -231,8 +217,7 @@ export async function deleteMediaAsset(id: string): Promise<void> {
   if (!existing) return;
 
   await deleteMediaStoragePath(existing.storagePath);
-  const { error } = await supabaseAdmin().from('media_assets').delete().eq('id', id);
-  if (error) throw new Error(`Media delete failed: ${error.message}`);
+  await dbDelete('media_assets', { id });
 }
 
 export async function ocrRenameMediaAsset(params: {

@@ -15,6 +15,10 @@
 services:
   web:
     networks:
+      # `default` must be listed explicitly. Declaring `networks:` on a service
+      # REPLACES its implicit default attachment, and Caddy's /api proxy resolves the
+      # `api` service over the default network — so omitting it is a 502 on /api.
+      default: {}
       edge:
         # Stable DNS name for the tunnel ingress target.
         aliases:

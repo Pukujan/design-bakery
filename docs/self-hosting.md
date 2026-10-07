@@ -181,8 +181,16 @@ What `deploy.sh` does, in order:
 8. On failure: swap the previous image back automatically, health-check it, exit 1
    (`--no-rollback` to skip).
 
-Useful flags: `--no-pull` (use the local checkout), `--with-edge` (also attach the
-Cloudflare Tunnel network, see §5), `--port <n>`, `--no-rollback`.
+Useful flags: `--no-pull` (use the local checkout), `--with-edge` (attach the
+Cloudflare Tunnel network for this run, see §5), `--no-edge` (drop it for this run),
+`--port <n>`, `--no-rollback`.
+
+**The edge attachment is sticky once the site is tunnel-fronted.** `deploy.sh` and
+`rollback.sh` read `WITH_EDGE` from `deploy/gravebuster/.env`; set `WITH_EDGE=1` there
+after the tunnel goes live. Without it a plain deploy recreates `web` with only the
+default network, silently dropping `study-os_edge`, and the tunnel returns 502 until
+someone re-runs `--with-edge`. `--with-edge` / `--no-edge` override the file for a
+single run.
 
 Manual verification after any deploy:
 
@@ -252,9 +260,11 @@ reachable *from the cloudflared container*, i.e. on `study-os_edge` — not on t
 
 1. **Attach our container to the tunnel network.** Uses
    `deploy/gravebuster/docker-compose.edge.yml`, which joins `study-os_edge` as an
-   *external* network and adds the alias `design-bakery-web`. It creates, modifies and
-   restarts nothing in the study-os stack — it only adds a second member to a network
-   that stack already owns.
+   *external* network and adds the alias `design-bakery-web` — while keeping the
+   container on the compose project's default network, which the Caddy `/api` proxy
+   needs to resolve the `api` service. It creates, modifies and restarts nothing in
+   the study-os stack — it only adds a second member to a network that stack already
+   owns.
 
    ```bash
    cd ~/apps/design-bakery
@@ -263,6 +273,8 @@ reachable *from the cloudflared container*, i.e. on `study-os_edge` — not on t
    docker compose -f deploy/gravebuster/docker-compose.yml \
                   -f deploy/gravebuster/docker-compose.edge.yml up -d --no-deps web
    ```
+
+   Then set `WITH_EDGE=1` in `deploy/gravebuster/.env` so later deploys keep it (see §3).
 
    Verify the tunnel can reach it. The cloudflared image is distroless — it has no shell,
    `wget` or `getent` — so check reachability from a throwaway container on the same
@@ -433,7 +445,8 @@ curl -s http://127.0.0.1:8788/health   # {"ok":true,"service":"design-bakery-api
 ```
 
 **Secrets.** Copy the Railway variables into `deploy/gravebuster/.env.api`
-(`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`,
+(`OCTO_API_BASE`, `OCTO_WORKSPACE_ID`, `OCTO_API_KEY`, optional legacy `ASSET_PUBLIC_BASE_URL`,
+`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`,
 `OPENROUTER_API_KEY`, `ADMIN_PASSWORD`, `ALLOWED_ORIGINS`, agent-token seeds). The
 file is git-ignored; the compose `env_file` entry is `required: false`, so the
 container still starts (and `/health` still answers) without it.

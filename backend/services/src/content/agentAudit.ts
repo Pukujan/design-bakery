@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '../supabaseClient.js';
+import { dbInsert } from '../db.js';
 
 export type AgentAuditAction = 'agent.post.create' | 'agent.post.update';
 
@@ -12,12 +12,11 @@ export async function recordAgentAudit(input: {
   tokenName: string;
   detail?: Record<string, unknown>;
 }): Promise<void> {
-  const { error } = await supabaseAdmin().from('agent_audit').insert({
+  await dbInsert('agent_audit', {
     user_id: null,
     action: input.action,
     blog_id: input.numericId,
     model: null,
     usage: { agent_token: input.tokenName, ...(input.detail ?? {}) },
   });
-  if (error) throw new Error(`Agent audit write failed: ${error.message}`);
 }

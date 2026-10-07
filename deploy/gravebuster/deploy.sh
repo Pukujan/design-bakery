@@ -11,7 +11,12 @@
 #   deploy/gravebuster/deploy.sh                     # deploy origin/main
 #   deploy/gravebuster/deploy.sh --ref <sha|branch>   # deploy something else
 #   deploy/gravebuster/deploy.sh --with-edge          # also join the tunnel network
+#   deploy/gravebuster/deploy.sh --no-edge            # drop the tunnel network for this run
 #   deploy/gravebuster/deploy.sh --no-pull            # use the local checkout as-is
+#
+# With the site tunnel-fronted, set WITH_EDGE=1 in deploy/gravebuster/.env so every
+# deploy keeps the `web` container on the tunnel network (a plain deploy would
+# otherwise drop it and the tunnel would 502).
 #
 # Config comes from deploy/gravebuster/.env (see .env.example) and/or the environment.
 set -euo pipefail
@@ -29,7 +34,11 @@ HEALTH_PATH=${HEALTH_PATH:-/healthz}
 
 REF=origin/main
 DO_PULL=1
-WITH_EDGE=0
+# Empty so deploy/gravebuster/.env (sourced below) can set it — a literal default
+# here would shadow the .env value and re-introduce the dropped-edge 502.
+WITH_EDGE=""
+# Set by --with-edge / --no-edge; wins over the .env value.
+WITH_EDGE_FLAG=""
 AUTO_ROLLBACK=1
 
 log() { printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" | tee -a "$LOG_FILE"; }
@@ -44,7 +53,8 @@ while [ $# -gt 0 ]; do
 	case "$1" in
 		--ref) REF=${2:?--ref needs a value}; shift 2 ;;
 		--no-pull) DO_PULL=0; shift ;;
-		--with-edge) WITH_EDGE=1; shift ;;
+		--with-edge) WITH_EDGE_FLAG=1; shift ;;
+		--no-edge) WITH_EDGE_FLAG=0; shift ;;
 		--no-rollback) AUTO_ROLLBACK=0; shift ;;
 		--port) WEB_HOST_PORT=${2:?--port needs a value}; shift 2 ;;
 		-h|--help) usage 0 ;;
@@ -60,6 +70,13 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
 	set +a
 fi
 WEB_HOST_PORT=${WEB_HOST_PORT:-8085}
+
+# Edge (tunnel-network) attachment is sticky: once the site is tunnel-fronted the
+# `web` container must stay on the shared network or a plain deploy drops it and the
+# tunnel 502s. Set WITH_EDGE=1 in deploy/gravebuster/.env to make that permanent;
+# --with-edge / --no-edge override it for a single run.
+[ -n "$WITH_EDGE_FLAG" ] && WITH_EDGE=$WITH_EDGE_FLAG
+WITH_EDGE=${WITH_EDGE:-0}
 
 COMPOSE=(docker compose -f "$COMPOSE_FILE")
 if [ "$WITH_EDGE" = "1" ]; then

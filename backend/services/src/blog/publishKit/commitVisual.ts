@@ -58,7 +58,7 @@ export async function commitVisualImages(params: {
   if (!ogUpload?.url) {
     throw new ApiError(
       'failed-precondition',
-      'Could not upload OG image to Storage. Set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_STORAGE_BUCKET on the API.',
+      'Could not upload OG image. Set OCTO_WORKSPACE_ID and OCTO_API_KEY on the API.',
       { code: 'STORAGE' },
     );
   }

@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { supabaseAdmin } from '../../services/lib/supabaseClient.js';
+import { dbQueryOne } from '../../services/lib/db.js';
 
 export type AgentTokenRecord = {
   id: string;
@@ -21,12 +21,9 @@ export function generateAgentToken(): string {
  * random token does not need a constant-time comparison to resist guessing.
  */
 export async function findAgentToken(token: string): Promise<AgentTokenRecord | null> {
-  const { data, error } = await supabaseAdmin()
-    .from('agent_tokens')
-    .select('id, name')
-    .eq('token_hash', hashAgentToken(token))
-    .maybeSingle();
-
-  if (error) throw new Error(`Agent token lookup failed: ${error.message}`);
-  return data ? (data as AgentTokenRecord) : null;
+  const row = await dbQueryOne<AgentTokenRecord>(
+    'select id, name from public.agent_tokens where token_hash = $1 limit 1',
+    [hashAgentToken(token)],
+  );
+  return row ?? null;
 }

@@ -8,11 +8,8 @@ import {
 } from './heroCacheSlugs.js';
 import type { LayoutVariant, TemplateFamily } from './templateSelection.js';
 import type { VisualStylePreset } from './types.js';
-import {
-  isSupabaseStorageConfigured,
-  supabaseAdmin,
-  supabaseStorageBucket,
-} from '../../supabaseClient.js';
+import { dbInsert, dbQueryAll, dbUpdate } from '../../db.js';
+import { deleteOctoFile, isAssetStorageConfigured, readOwnPublicAsset, uploadOctoPublicFile } from '../../octoFiles.js';
 
 export type HeroCacheHit = {
   id: string;
@@ -38,7 +35,7 @@ type HeroCacheRow = {
 function heroCacheEnabled(): boolean {
   const flag = (process.env.PUBLISH_KIT_HERO_CACHE ?? '1').trim().toLowerCase();
   if (flag === '0' || flag === 'false' || flag === 'off') return false;
-  return isSupabaseStorageConfigured();
+  return isAssetStorageConfigured();
 }
 
 function minMatchScore(): number {
@@ -57,6 +54,8 @@ function cacheStoragePath(cacheId: string): string {
 }
 
 async function downloadPng(url: string): Promise<Buffer> {
+  const own = await readOwnPublicAsset(url);
+  if (own) return own;
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Hero cache download failed: HTTP ${res.status}`);
@@ -77,25 +76,23 @@ export async function findCachedHeroPng(params: {
   const matchSlugs = buildHeroMatchSlugs(params.tags, params.category);
   if (matchSlugs.length === 0) return null;
 
-  const supabase = supabaseAdmin();
-  const { data, error } = await supabase
-    .from('publish_kit_hero_cache')
-    .select(
-      'id, storage_path, public_url, prompt_version, category_slug, tag_slugs, family, style_preset, layout, byte_size, use_count',
-    )
-    .eq('prompt_version', HERO_IMAGE_PROMPT_VERSION)
-    .eq('family', params.family)
-    .eq('style_preset', params.stylePreset)
-    .overlaps('tag_slugs', matchSlugs)
-    .order('use_count', { ascending: false })
-    .order('last_used_at', { ascending: false })
-    .limit(24);
-
-  if (error) {
-    console.warn('[publishKit:heroCache] lookup failed:', error.message);
+  let data: HeroCacheRow[];
+  try {
+    data = await dbQueryAll<HeroCacheRow>(
+      `select id, storage_path, public_url, prompt_version, category_slug, tag_slugs, family,
+              style_preset, layout, byte_size, use_count
+         from public.publish_kit_hero_cache
+        where prompt_version = $1 and family = $2 and style_preset = $3
+          and tag_slugs && $4::text[]
+        order by use_count desc, last_used_at desc
+        limit 24`,
+      [HERO_IMAGE_PROMPT_VERSION, params.family, params.stylePreset, matchSlugs],
+    );
+  } catch (err) {
+    console.warn('[publishKit:heroCache] lookup failed:', err instanceof Error ? err.message : err);
     return null;
   }
-  if (!data?.length) return null;
+  if (data.length === 0) return null;
 
   const minScore = minMatchScore();
   const minOverlap = minTagOverlap(matchSlugs.length);
@@ -114,13 +111,11 @@ export async function findCachedHeroPng(params: {
   if (!best) return null;
 
   const { row, score, overlap } = best;
-  void supabase
-    .from('publish_kit_hero_cache')
-    .update({
-      last_used_at: new Date().toISOString(),
-      use_count: (row.use_count ?? 0) + 1,
-    })
-    .eq('id', row.id);
+  void dbUpdate(
+    'publish_kit_hero_cache',
+    { last_used_at: new Date().toISOString(), use_count: (row.use_count ?? 0) + 1 },
+    { id: row.id },
+  ).catch((err) => console.warn('[publishKit:heroCache] touch failed:', err instanceof Error ? err.message : err));
 
   console.log(
     `[publishKit:heroCache] hit id=${row.id} score=${score.toFixed(2)} overlap=${overlap} slugs=${matchSlugs.join(',')}`,
@@ -148,30 +143,23 @@ export async function storeHeroCachePng(params: {
 
   const cacheId = randomUUID();
   const path = cacheStoragePath(cacheId);
-  const bucket = supabaseStorageBucket();
-  const supabase = supabaseAdmin();
-
-  const { error: uploadError } = await supabase.storage.from(bucket).upload(path, params.png, {
+  const stored = await uploadOctoPublicFile({
+    logicalPath: path,
+    buffer: params.png,
     contentType: 'image/png',
-    cacheControl: '31536000',
-    upsert: false,
+  }).catch((err: unknown) => {
+    console.warn(
+      '[publishKit:heroCache] upload failed:',
+      err instanceof Error ? err.message : err,
+    );
+    return null;
   });
-  if (uploadError) {
-    console.warn('[publishKit:heroCache] upload failed:', uploadError.message);
-    return null;
-  }
+  if (!stored) return null;
 
-  const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
-  const publicUrl = urlData.publicUrl;
-  if (!publicUrl) {
-    console.warn('[publishKit:heroCache] missing public URL after upload');
-    return null;
-  }
-
-  const { error: insertError } = await supabase.from('publish_kit_hero_cache').insert({
+  const insertError = await dbInsert('publish_kit_hero_cache', {
     id: cacheId,
-    storage_path: path,
-    public_url: publicUrl,
+    storage_path: stored.fileId,
+    public_url: stored.url,
     prompt_version: HERO_IMAGE_PROMPT_VERSION,
     category_slug: slugifyHeroToken(params.category),
     tag_slugs: matchSlugs,
@@ -180,10 +168,13 @@ export async function storeHeroCachePng(params: {
     layout: params.layout,
     byte_size: params.png.length,
     use_count: 0,
-  });
+  })
+    .then(() => null)
+    .catch((err: unknown) => (err instanceof Error ? err : new Error(String(err))));
 
   if (insertError) {
     console.warn('[publishKit:heroCache] insert failed:', insertError.message);
+    await deleteOctoFile(stored.fileId).catch(() => undefined);
     return null;
   }
 
