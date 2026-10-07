@@ -87,7 +87,7 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
 	set +a
 fi
 WEB_HOST_PORT=${WEB_HOST_PORT:-8085}
-API_HOST_PORT=${API_HOST_PORT:-8788}
+API_HOST_PORT=${API_HOST_PORT:-8789}
 
 # Edge (tunnel-network) attachment is sticky: once the site is tunnel-fronted the
 # `web` container must stay on the shared network or a plain deploy drops it and the
