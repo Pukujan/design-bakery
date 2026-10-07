@@ -6,6 +6,7 @@ import { contentRouter } from './api/content.js';
 import { publicContentRouter } from './api/publicContent.js';
 import { coverStudioLibraryRouter } from './api/coverStudioLibrary.js';
 import { mediaLibraryRouter } from './api/mediaLibrary.js';
+import { ogPreviewRouter } from './api/ogPreview.js';
 import { publishKitRouter } from './api/publishKit.js';
 import { isOriginAllowed, loadServerEnv } from './config/env.js';
 import { requireAgentToken } from './middleware/agentAuth.js';
@@ -41,6 +42,11 @@ app.use('/api/content', requireAdmin, contentRouter);
 app.use('/api/publish-kit', requireAdmin, publishKitRouter);
 app.use('/api/media-library', requireAdmin, mediaLibraryRouter);
 app.use('/api/cover-studio-library', requireAdmin, coverStudioLibraryRouter);
+
+// Link-preview / crawler Open Graph rendering for the SPA blog and case-study
+// routes (issue #80 Step E). These are the public site paths, not `/api/*`: Caddy
+// proxies them here from after its filesystem handlers, so real files still win.
+app.use(ogPreviewRouter);
 
 app.use(
   (

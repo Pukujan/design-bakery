@@ -1,0 +1,35 @@
+---
+description: Open Graph link previews — read agent devlog before touching the OG router or its Caddy routing
+globs:
+  - backend/src/api/ogPreview.ts
+  - backend/src/og/**
+  - frontend/src/og/**
+  - deploy/gravebuster/Caddyfile
+  - scripts/test-og-routing.mjs
+  - scripts/test-og-contract.mjs
+alwaysApply: false
+---
+
+# Open Graph link previews
+
+Read **`additionals/guidelines/agent-devlog-og-previews.md`** before editing the
+link-preview router, its Caddy routing, or either copy of `blogSocialMeta.ts`.
+
+**Index:** `additionals/guidelines/agent-devlog-index.md`
+
+## Quick rules (full detail in that file)
+
+- **Two guards, both in CI:** `pnpm test:og-routing` (Caddy `@ogPreview` ⇄ the router's
+  regexes) and `pnpm test:og-contract` (the duplicated OG modules must not drift).
+- **`blogSocialMeta.ts` exists twice, byte-identical** — `frontend/src/og/` and
+  `backend/src/og/`. Edit one, copy it over the other. The backend's tsconfig
+  `rootDir: "src"` is why there is no shared import.
+- **The router is total over what Caddy sends it** — `OG_PREFIX_RE` is the catch-all
+  shell branch, so a routed path can never hit the Express 404.
+- **`@ogPreview` sits after the filesystem handlers and the `.html` 404**, so a real
+  file or a static case-study directory is served from disk and never reaches the API.
+- **Never cache an injected body.** `Vary: User-Agent` plus `max-age=0` — Cloudflare's
+  cache ignores `Vary: User-Agent`, so a cached body would cross the crawler/browser line.
+- **`handle_errors` keeps the error status** — the shell fallback must
+  `respond "{file./srv/index.html}" 200`, and `{file.}` does not resolve against `root`.
+- **Test:** `curl -A 'facebookexternalhit/1.1' -s https://www.design-bakery.com/blogs/1 | grep -o '<title>[^<]*</title>'`

@@ -8,7 +8,7 @@ gravebuster, reproducing every rule in `vercel.json`. Full runbook:
 | --- | --- |
 | `Dockerfile` | multi-stage: `node:24-bookworm-slim` + pnpm build → `caddy:2-alpine` serving `frontend/dist` |
 | `Dockerfile.api` | single-stage `node:24-bookworm-slim` + pnpm build → runs the Express API (`backend/lib/server.js`) with fontconfig + DejaVu Sans |
-| `Caddyfile` | static server + `vercel.json` redirect/rewrite parity (1:1 comments) |
+| `Caddyfile` | static server + `vercel.json` redirect/rewrite parity (1:1 comments), plus the `/api/*` and link-preview proxies to `api:8787` |
 | `docker-compose.yml` | the `web` and `api` containers, both published on `127.0.0.1` only |
 | `docker-compose.edge.yml` | optional overlay joining the Cloudflare Tunnel's docker network |
 | `deploy.sh` | fetch ref → build tagged image → swap container → smoke test (auto-rollback on failure); builds/swaps the API too when it is enabled |
@@ -37,3 +37,10 @@ The API container (`design-bakery-api`) is deployed only when it is enabled: eit
 `deploy/gravebuster/.env.api` exists, or `WITH_API=1` is set in `.env`. Force it for a
 single run with `--with-api` / `--no-api`. See
 [`docs/self-hosting.md` §8](../../docs/self-hosting.md).
+
+Besides `/api/*`, Caddy sends the blog and case-study paths to `api:8787` so link
+previews get per-post `<title>` / `og:*` tags (the Vercel Edge middleware this
+replaces is gone). Those routes are handled by `backend/src/api/ogPreview.ts`; the
+matcher is `@ogPreview` in the Caddyfile, and `pnpm test:og-routing` keeps the two in
+step. When the API is not deployed, Caddy degrades those paths to the plain SPA shell
+rather than 502ing them.

@@ -3,7 +3,7 @@
  * Edge-safe: no @/ path aliases or app/seo imports.
  */
 
-import { DEFAULT_OG_IMAGE_PATH, SITE_NAME } from '../app/seo/siteSeoDefaults.js';
+import { DEFAULT_OG_IMAGE_PATH, SITE_NAME } from './siteSeoDefaults.js';
 import type { BlogSocialMetaInput } from './blogSocialMeta.js';
 
 type CaseStudyShareEntry = {

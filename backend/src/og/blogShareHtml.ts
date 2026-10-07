@@ -3,11 +3,28 @@
 import {
   collectBlogSocialMetaTags,
   escapeHtml,
-  readEdgeSocialEnv,
   SITE_NAME,
   socialMetaTagsToHtml,
   type BlogSocialMetaInput,
 } from './blogSocialMeta.js';
+
+/**
+ * The server-side counterpart of the browser's `readClientSocialEnv` (which reads
+ * `import.meta.env`). Lives here rather than in the shared `blogSocialMeta.ts` so
+ * that file stays browser-safe and identical to its frontend copy.
+ */
+export function readEdgeSocialEnv(): { fbAppId?: string; twitterSite?: string } {
+  return {
+    fbAppId:
+      process.env.VITE_FB_APP_ID?.trim() ||
+      process.env.FB_APP_ID?.trim() ||
+      undefined,
+    twitterSite:
+      process.env.VITE_TWITTER_SITE?.trim() ||
+      process.env.TWITTER_SITE?.trim() ||
+      undefined,
+  };
+}
 
 export type BlogSharePayload = {
   id: number;

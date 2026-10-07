@@ -79,8 +79,13 @@ function loadAliases() {
 
 const ALIASES = loadAliases();
 
-/** Repo-root files that are entry points but live outside any scanned root. */
-const EXTRA_ENTRIES = ['middleware.ts'];
+/**
+ * Repo-root files that are entry points but live outside any scanned root.
+ * Empty today: `middleware.ts` was the only one, and it was removed with the Vercel
+ * Edge deployment (issue #80, Step E) — the Open Graph routes now live in
+ * `backend/src/api/ogPreview.ts`, reachable from `backend/src/server.ts`.
+ */
+const EXTRA_ENTRIES = [];
 
 /** Paths that are never reported (archives, type declarations, build output). */
 const IGNORE = [
