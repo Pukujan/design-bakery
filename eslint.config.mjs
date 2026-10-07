@@ -19,6 +19,8 @@ export default defineConfig([
       '**/temp/**',
       'additionals/archive/**',
       'frontend/extras/**',
+      // Its own Vite/Tailwind project with its own eslint config (scripts/build-ire-app.mjs).
+      'frontend/ire-app/**',
       '**/*.d.ts',
       '**/tsconfig.tsbuildinfo',
       '**/.codegraph/**',

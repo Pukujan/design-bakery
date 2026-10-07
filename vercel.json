@@ -66,6 +66,14 @@
       "destination": "/ire/index.html"
     },
     {
+      "source": "/ire/app",
+      "destination": "/ire/app/index.html"
+    },
+    {
+      "source": "/ire/app/",
+      "destination": "/ire/app/index.html"
+    },
+    {
       "source": "/((?!.*\\.html$).*)",
       "destination": "/index.html"
     }

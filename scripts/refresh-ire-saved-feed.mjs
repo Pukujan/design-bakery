@@ -26,8 +26,12 @@ function isFeed(d) {
     Array.isArray(d.tiers?.cheap?.entries) &&
     Array.isArray(d.tiers?.strongest_open?.entries) &&
     d.tiers.cheap.entries.length > 0 &&
-    // The page only shows open-weight models; refuse a copy with anything else in it.
-    [...d.tiers.cheap.entries, ...d.tiers.strongest_open.entries].every((e) => e?.open_weight === true)
+    // The text tiers only list open-weight models; refuse a copy with anything else in them.
+    [...d.tiers.cheap.entries, ...d.tiers.strongest_open.entries].every((e) => e?.open_weight === true) &&
+    // The utility tier, when present, carries its own verdict: true or null, never a closed family.
+    (d.tiers.utility === undefined ||
+      (Array.isArray(d.tiers.utility.entries) &&
+        d.tiers.utility.entries.every((e) => e?.open_weight === true || e?.open_weight === null)))
   );
 }
 

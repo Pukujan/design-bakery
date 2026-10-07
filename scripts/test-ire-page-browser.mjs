@@ -172,6 +172,26 @@ await scenario('live feed renders both tabs', { feed: live ? 'live' : 'mock', cl
   await page.click('#tab-strongest_open');
   await toPicks(page);
   await shot(page, 'ire-desktop-strongest-tab.png', false);
+  // The image and multimodal tab appears only when the feed carries the tier.
+  const utility = feed.tiers.utility;
+  if (utility) {
+    assert.ok(await page.isVisible('#tab-utility'), 'utility tab should show when the feed has the tier');
+    await page.click('#tab-utility');
+    assert.ok(await page.isVisible('#panel-utility'));
+    assert.equal(await rowCount(page, 'utility'), utility.entries.length, 'utility rows match the feed');
+    assert.match(await page.textContent('#asof-utility'), /^As of /);
+    const unverified = utility.entries.find((e) => e.open_weight === null);
+    if (unverified) {
+      const row = page.locator('#table-utility tbody tr', { hasText: unverified.model_family });
+      assert.equal(await row.locator('.licnone').count(), 1, 'an unverified family says so instead of linking a licence');
+      assert.match(await row.locator('.verdict').textContent(), /Held back:/, 'an unverified family is held back');
+    }
+    await toPicks(page);
+    await shot(page, 'ire-desktop-utility-tab.png', false);
+    await page.click('#tab-cheap');
+  } else {
+    assert.ok(!(await page.isVisible('#tab-utility')), 'utility tab stays hidden when the feed has no tier');
+  }
   if (!live) assert.ok(!(await page.isVisible('#stale-banner')), 'no stale banner before stale_after');
   assert.ok(!(await page.isVisible('#saved-note')), 'no saved-copy note on a live load');
   const rec = feed.tiers.cheap.entries.find((e) => e.recommended);
