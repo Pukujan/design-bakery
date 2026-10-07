@@ -5,7 +5,7 @@
 | **Created** | 2026-10-07 |
 | **Issue** | [#80](https://github.com/Pukujan/design-bakery/issues/80) (self-host the API off Railway) |
 | **Branch** | `task/TASK-DB-0075-api-deploy-wiring` |
-| **Status** | In progress |
+| **Status** | Merged ([#93](https://github.com/Pukujan/design-bakery/pull/93), `aab743f`) |
 
 ## Goal
 
