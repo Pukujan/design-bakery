@@ -16,7 +16,8 @@ gravebuster, reproducing every rule in `vercel.json`. Full runbook:
 | `autodeploy.sh` | poll `origin/main` and deploy on change (run by the systemd timer) |
 | `systemd/` | `design-bakery-autodeploy.{service,timer}` — **not enabled** by default |
 | `.env.example` | copy to `.env` (git-ignored) for port / image / optional `VITE_*` build args |
-| `.env.api` | **secrets** for the API container (git-ignored, optional) — Supabase, OpenRouter, admin password, agent tokens |
+| `.env.api.example` | template for `.env.api` — every variable, with where each value comes from |
+| `.env.api` | **secrets** for the API container (git-ignored, optional) — Octo workspace key, OpenRouter, admin password, legacy Supabase |
 
 Quick start on gravebuster:
 
