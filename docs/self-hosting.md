@@ -168,21 +168,27 @@ deploy/gravebuster/deploy.sh --ref origin/main
 What `deploy.sh` does, in order:
 
 1. `git fetch --prune origin` and resolve the ref to a SHA.
-2. Remember the currently running image (`docker inspect` on `design-bakery-web`).
+2. Remember the currently running image (`docker inspect` on `design-bakery-web`, and
+   on `design-bakery-api` when the API is enabled).
 3. `git checkout --force --detach <sha>` — the deploy checkout is intentionally detached;
    do not expect a branch there.
 4. `docker compose build` a new image tagged `<sha12>-<UTC timestamp>` (and `<sha12>`).
 5. `docker compose up -d --no-deps web` with the new image.
-6. Health-check `127.0.0.1:8085/healthz` (up to 90 s), then smoke-check
+6. When the API is enabled: build `design-bakery-api:<sha12>-<UTC>` and
+   `compose up -d --no-deps api`, then health-check `127.0.0.1:8788/health` (up to 90 s).
+   An unhealthy API fails the deploy, like an unhealthy web container.
+7. Health-check `127.0.0.1:8085/healthz` (up to 90 s), then smoke-check
    `/`, `/research/papers/db-r-2026-010`, `/robots.txt` (200), `/ai-for-good` (308),
    `/studyos` (307).
-7. On success: write `deploy/gravebuster/.deploy-state` (`SHA`, `CURRENT_IMAGE`,
-   `PREVIOUS_IMAGE`, `DEPLOYED_AT`) and log to `deploy/gravebuster/deploy.log`.
-8. On failure: swap the previous image back automatically, health-check it, exit 1
-   (`--no-rollback` to skip).
+8. On success: write `deploy/gravebuster/.deploy-state` (`SHA`, `CURRENT_IMAGE`,
+   `PREVIOUS_IMAGE`, `CURRENT_API_IMAGE`, `PREVIOUS_API_IMAGE`, `DEPLOYED_AT`) and log
+   to `deploy/gravebuster/deploy.log`.
+9. On failure: swap the previous web image (and API image, when enabled) back
+   automatically, health-check it, exit 1 (`--no-rollback` to skip).
 
 Useful flags: `--no-pull` (use the local checkout), `--with-edge` (attach the
 Cloudflare Tunnel network for this run, see §5), `--no-edge` (drop it for this run),
+`--with-api` / `--no-api` (force the API container on/off for one run, see §8),
 `--port <n>`, `--no-rollback`.
 
 **The edge attachment is sticky once the site is tunnel-fronted.** `deploy.sh` and
@@ -218,9 +224,12 @@ deploy/gravebuster/rollback.sh --image design-bakery-web:97563897ca1e
 ```
 
 `rollback.sh` swaps the container to the recorded previous tag, health-checks it and
-flips `CURRENT_IMAGE`/`PREVIOUS_IMAGE` so the same command rolls forward again. No
-rebuild is involved, so it takes a couple of seconds. Old images are never deleted by
-the scripts; each is ~182 MB, so prune deliberately when the list gets long:
+flips `CURRENT_IMAGE`/`PREVIOUS_IMAGE` so the same command rolls forward again. When the
+API is enabled it swaps `design-bakery-api` back at the same time (under the same enable
+rule as `deploy.sh`, see §8) and leaves the recorded API tags untouched on a web-only
+run. No rebuild is involved, so it takes a couple of seconds. Old images are never
+deleted by the scripts; each is ~182 MB (web) / ~1 GB (api), so prune deliberately when
+the list gets long:
 
 ```bash
 docker images design-bakery-web    # inspect first
@@ -403,12 +412,15 @@ sudo systemctl disable --now design-bakery-autodeploy.timer
 ## 7. Operational notes
 
 - **Do not touch** the study-os stack, `agent-telemetry`, `langfuse`, `infisical`, or any
-  other stack on gravebuster. This deployment only ever touches its own container, image
-  tags, and the `127.0.0.1:8085` port (checked free with `ss -ltn`; the box is busy —
-  re-check before changing `WEB_HOST_PORT`).
+  other stack on gravebuster. This deployment only ever touches its own containers
+  (`design-bakery-web`, and `design-bakery-api` when enabled), image tags, and the
+  `127.0.0.1:8085` / `127.0.0.1:8788` ports (checked free with `ss -ltn`; the box is
+  busy — re-check before changing `WEB_HOST_PORT` or `API_HOST_PORT`).
 - **Secrets:** `deploy/gravebuster/.env` is git-ignored and holds no secrets today (only
-  the port, image tag and optional public `VITE_*` values). Keep it that way.
-- **Disk:** ~182 MB per image, two tags per deploy. Prune old tags deliberately (§4).
+  the port, image tag and optional public `VITE_*` values). Keep it that way; API
+  secrets go in `deploy/gravebuster/.env.api` (§8).
+- **Disk:** ~182 MB per web image, ~1 GB per api image, two tags per deploy of each.
+  Prune old tags deliberately (§4).
 - **Repo checkout:** `~/apps/design-bakery` is managed by `deploy.sh` (detached HEAD).
   Do not develop in it; edits there are overwritten on the next deploy.
 - **Vercel:** unchanged and still deployed. Do not modify the Vercel project or its
@@ -418,8 +430,18 @@ sudo systemctl disable --now design-bakery-autodeploy.timer
 
 ## 8. The API container (issue [#80](https://github.com/Pukujan/design-bakery/issues/80))
 
-The Express API is the second half of the move off hosted platforms. It is
-**not wired up yet** — this section documents the container that exists now.
+The Express API is the second half of the move off hosted platforms. The container
+exists (TASK-DB-0071) and `deploy.sh` / `rollback.sh` now build, swap, health-check and
+roll it back alongside the web container (TASK-DB-0075). It is **off by default** so a
+web-only deploy stays fast.
+
+**Enable rule.** The API is deployed when either is true:
+
+- `deploy/gravebuster/.env.api` exists (it holds the secrets the API needs to be useful);
+- `WITH_API=1` is set in `deploy/gravebuster/.env`.
+
+`--with-api` / `--no-api` override that for a single run. When disabled, `deploy.sh`
+and `rollback.sh` never build, start, health-check or touch the `api` container.
 
 | Piece | Value |
 | --- | --- |

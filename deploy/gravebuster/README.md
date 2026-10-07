@@ -11,8 +11,8 @@ gravebuster, reproducing every rule in `vercel.json`. Full runbook:
 | `Caddyfile` | static server + `vercel.json` redirect/rewrite parity (1:1 comments) |
 | `docker-compose.yml` | the `web` and `api` containers, both published on `127.0.0.1` only |
 | `docker-compose.edge.yml` | optional overlay joining the Cloudflare Tunnel's docker network |
-| `deploy.sh` | fetch ref → build tagged image → swap container → smoke test (auto-rollback on failure) |
-| `rollback.sh` | swap back to the previously deployed image tag |
+| `deploy.sh` | fetch ref → build tagged image → swap container → smoke test (auto-rollback on failure); builds/swaps the API too when it is enabled |
+| `rollback.sh` | swap back to the previously deployed image tag (web + API) |
 | `autodeploy.sh` | poll `origin/main` and deploy on change (run by the systemd timer) |
 | `systemd/` | `design-bakery-autodeploy.{service,timer}` — **not enabled** by default |
 | `.env.example` | copy to `.env` (git-ignored) for port / image / optional `VITE_*` build args |
@@ -31,3 +31,8 @@ curl -sI http://127.0.0.1:8085/ | head -1
 The container is `design-bakery-web`, the image repo is `design-bakery-web`
 (tagged `<sha12>-<utc timestamp>`). Nothing is reachable from outside the host
 until the Cloudflare Tunnel ingress points at it.
+
+The API container (`design-bakery-api`) is deployed only when it is enabled: either
+`deploy/gravebuster/.env.api` exists, or `WITH_API=1` is set in `.env`. Force it for a
+single run with `--with-api` / `--no-api`. See
+[`docs/self-hosting.md` §8](../../docs/self-hosting.md).
