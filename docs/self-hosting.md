@@ -444,12 +444,42 @@ docker run --rm -p 127.0.0.1:8788:8787 design-bakery-api:local
 curl -s http://127.0.0.1:8788/health   # {"ok":true,"service":"design-bakery-api"}
 ```
 
-**Secrets.** Copy the Railway variables into `deploy/gravebuster/.env.api`
-(`OCTO_API_BASE`, `OCTO_WORKSPACE_ID`, `OCTO_API_KEY`, optional legacy `ASSET_PUBLIC_BASE_URL`,
-`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`,
-`OPENROUTER_API_KEY`, `ADMIN_PASSWORD`, `ALLOWED_ORIGINS`, agent-token seeds). The
-file is git-ignored; the compose `env_file` entry is `required: false`, so the
-container still starts (and `/health` still answers) without it.
+**Secrets.** The API's secrets live in `deploy/gravebuster/.env.api` — git-ignored,
+never committed, and never written into `deploy/gravebuster/.env` or the image. On
+gravebuster, create it from the checked-in template and fill in the values from the
+Railway service's Variables tab (Railway stays the rollback, so nothing copies them
+for you):
+
+```bash
+cd ~/apps/design-bakery
+cp deploy/gravebuster/.env.api.example deploy/gravebuster/.env.api
+chmod 600 deploy/gravebuster/.env.api
+$EDITOR deploy/gravebuster/.env.api
+```
+
+`deploy/gravebuster/.env.api.example` lists every variable with a comment saying
+where it comes from. The ones the API cannot serve without:
+
+| Variable | Kind | Source |
+| --- | --- | --- |
+| `ADMIN_JWT_SECRET` | secret | `openssl rand -base64 48` |
+| `ADMIN_EMAIL` (+ `ALLOWED_ADMIN_EMAILS`) | config | the admin login address(es) |
+| `ADMIN_PASSWORD_HASH` (or dev-only `ADMIN_PASSWORD`) | secret | `node backend/scripts/hash-admin-password.mjs '<pw>'` |
+| `OPENROUTER_API_KEY` | secret | openrouter.ai → Keys |
+| `OCTO_WORKSPACE_ID` | config | the design-bakery workspace UUID |
+| `OCTO_API_KEY` | secret | the workspace key (scopes read, write, files, delete) |
+| `ALLOWED_ORIGINS` | public | `https://www.design-bakery.com,https://design-bakery.com` |
+
+`OCTO_API_BASE` defaults to `https://octodb.design-bakery.com` in code.
+`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are only needed while stored image URLs
+still point at Supabase Storage, so a fresh deploy can omit them.
+
+**Missing values fail per request, not at boot.** The compose `env_file` entry is
+`required: false` and the server does not validate its environment at startup, so an
+absent or incomplete `.env.api` still boots and answers `/health` — the affected
+routes return a clear 5xx instead. Check `docker logs design-bakery-api` for the
+config error when a route 5xxs, and see §7 for the rule that `.env` itself stays
+secret-free.
 
 **Still open (owner decision).** How the API is reached publicly:
 
