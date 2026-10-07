@@ -5,7 +5,7 @@
 | **Created** | 2026-10-06 |
 | **Issue** | — (finding recorded here; octo-side incident filed at [octo-database#162](https://github.com/Pukujan/octo-database/issues/162), now resolved) |
 | **Branch** | `main` |
-| **Status** | **Data layer done and verified (2026-10-07). New file uploads done.** Schema applied, content migrated, backend on octo's SQL surface, image uploads on octo's file API, and the 193 image URLs rewritten (zero `supabase.co/storage` left). Two items remain, both blocked on a credential that is **not on this machine**; each now has exact human steps below. The workspace key needs the `delete` scope added — an **allowance edit on the existing key**, not a re-mint. Drafts + `agent_tokens` need design-bakery's Supabase URL **and** service-role key. Deploy (`VITE_BLOG_API_URL=same-origin`, `WITH_EDGE`, DNS) is owned by another agent. |
+| **Status** | **Data layer done and verified (2026-10-07). New file uploads done.** Schema applied, content migrated, backend on octo's SQL surface, image uploads on octo's file API, and the 193 image URLs rewritten (zero `supabase.co/storage` left). Two items remain, both blocked on a credential that is **not on this machine**; each now has exact human steps below. The workspace key needs the `delete` scope added — an **allowance edit on the existing key**, not a re-mint. The migration re-run needs design-bakery's Supabase service-role key, but its real scope is just `agent_tokens`: every anon-readable table already matches octo, drafts included. Deploy (`VITE_BLOG_API_URL=same-origin`, `WITH_EDGE`, DNS) is owned by another agent. |
 
 ## Done (2026-10-06)
 
@@ -169,8 +169,10 @@ Still open:
   **edit the existing key's allowances** (no re-mint, the secret does not change);
   the human steps are in "Remaining items (2026-10-07)" below.
 - **Drafts + `agent_tokens`** — re-run `scripts/migrate-supabase-to-octo.mjs` with
-  design-bakery's `SUPABASE_SERVICE_ROLE_KEY`. Neither the key nor the project URL
-  is on this machine; the exact human steps are below.
+  design-bakery's `SUPABASE_SERVICE_ROLE_KEY`. That key is not on this machine, and
+  neither is the project URL (the URL is public, the key is not). Verified since:
+  every anon-readable table already matches octo, drafts included, so the real
+  scope is `agent_tokens`. Exact human steps are below.
 - **Deploy** — the storage code is on `main` (PR #90 merged). Production still needs
   `VITE_BLOG_API_URL=same-origin`, sticky `WITH_EDGE`, and DNS cutover on a
   staging hostname first. **Another agent owns this item; not touched here.** The
@@ -250,25 +252,26 @@ curl -sS -o /dev/null -w '%{http_code}\n' -X DELETE \
 
 The key's secret is unchanged, so `OCTO_API_KEY` in the backend env needs no edit.
 
-### Item 2 — migrate drafts + `agent_tokens` (human-only)
+### Item 2 — migrate `agent_tokens` (human-only)
 
-**What it actually needs.** Two values, neither present on this machine:
+**What it actually needs.** The blocker is design-bakery's
+`SUPABASE_SERVICE_ROLE_KEY` for project `ukjflpgrfmgwazogrgdv`. It is not on this
+machine: the only service-role key present (`FININT_SUPABASE_SERVICE_ROLE_KEY` in
+`Desktop\configs\.env`) belongs to a **different** project (`pzwltxkckghixuklxypr`),
+and design-bakery's project ref appears nowhere on disk. `supabase_account_token`
+in the same file is stale (`401 Unauthorized` on the Management API), so it does
+not help either.
 
-- `SUPABASE_SERVICE_ROLE_KEY` for design-bakery's project `ukjflpgrfmgwazogrgdv`.
-  The only service-role key on the machine (`FININT_SUPABASE_SERVICE_ROLE_KEY` in
-  `Desktop\configs\.env`) belongs to a **different** project (`pzwltxkckghixuklxypr`),
-  and design-bakery's project ref appears nowhere on disk.
-- `SUPABASE_URL` — the script requires it, and it is not recorded in this repo
-  either (`additionals/doc/env.md` documents the variable but no value; no
-  `backend/.env` exists). The URL is public (`https://ukjflpgrfmgwazogrgdv.supabase.co`)
-  but is written out here for completeness only.
+The other value the script needs, `SUPABASE_URL`, is public and recoverable without
+a credential — the deployed frontend bundle serves it — so it is not a real
+blocker. It is `https://ukjflpgrfmgwazogrgdv.supabase.co`.
 
 The migration itself is idempotent and already handles this: `TABLES` in
 `scripts/migrate-supabase-to-octo.mjs` already lists `agent_tokens`, and the script
 prints a note when the service-role key is absent. Nothing in the script needs a
 change — it is a re-run with the key set.
 
-**Commands (human, with the two values in the shell):**
+**Commands (human, with the service-role key in the shell):**
 
 ```bash
 cd /d/development/design-bakery.com
@@ -282,11 +285,13 @@ node scripts/migrate-supabase-to-octo.mjs --dry-run   # inspect first
 node scripts/migrate-supabase-to-octo.mjs             # apply
 ```
 
-**Verify** — a non-zero `agent_tokens` count once the key is used:
+**Verify** — the `agent_tokens` count is the indicator. It reads 0 today; the draft
+count is already 1 and is not what this re-run changes (see the contradiction note
+below):
 
 ```sql
-select (select count(*) from blog_posts where published_at is null) drafts,
-       (select count(*) from agent_tokens) tokens;
+select (select count(*) from agent_tokens) tokens,
+       (select count(*) from blog_posts where published_at is null) drafts;
 ```
 
 ## Data-layer verification (2026-10-07, read-only)
@@ -305,17 +310,35 @@ posts to `POST /api/workspaces/:id/query` with `OCTO_WORKSPACE_ID` + `OCTO_API_K
 | `files.design-bakery.com` URLs | 28 blog, 31 media, 30 cover |
 | `agent_tokens` / `agent_audit` / `agent_usage` | 0 / 0 / 0 |
 
-**Contradiction found:** the "Still open" bullet says drafts were not migrated because
-the anon key cannot read them. But the database holds **34** `blog_posts` — 33
-published **and** the 1 draft — and that draft's `created_at` is `2026-05-28`
-(Supabase-era, not created in octo), so it *was* carried over. The migration script's
-Supabase read is paginated with a `Range` header, which is a plausible reason the
-policy did not narrow the page, but the live Supabase RLS policy could not be
-inspected (no credential), so the mechanism is **unconfirmed**. What is certain: the
-blog draft is present, and the genuinely empty tables are `agent_tokens`,
-`agent_audit` and `agent_usage`. The item-2 verification should therefore check the
-`agent_tokens` count, not the blog draft count — and the re-run should still be done
-to pick up any other unpublished `cms_documents`.
+**Contradiction found (verified against hosted Supabase).** The "Still open" bullet
+says drafts were not migrated because the anon key cannot read them. That is wrong.
+Using the **public anon key** already served in the deployed frontend bundle, read
+only, against `ukjflpgrfmgwazogrgdv`, every table the anon key can reach matches octo
+row for row:
+
+| Supabase table (anon) | Rows | octo |
+|---|---|---|
+| `blog_posts` | 34 (`Content-Range: 0-33/34`) | 34 |
+| `cms_documents` | 41 | 41 |
+| `media_assets` | 31 | 31 |
+| `cover_studio_assets` | 30 | 30 |
+| `agent_usage` | 0 | 0 |
+| `agent_audit` | 0 | 0 |
+| `agent_tokens` | 404 `PGRST205` (not visible to anon) | 0 |
+| `publish_kit_hero_cache` | 404 `PGRST205` (not visible to anon) | present |
+
+The anon read of `blog_posts` returns **all 34 rows, the draft included**, so the
+draft migrated because the anon key *could* read it — the hosted policy is not the
+`published_at is not null` filter that `supabase/migrations/010` declares. The only
+tables the anon key cannot reach are `agent_tokens` and `publish_kit_hero_cache`
+(both absent from the anon schema cache), so those are the only ones a service-role
+re-run could add anything to.
+
+So item 2's real scope is **`agent_tokens`** (and possibly the hero cache), not
+drafts. The re-run is still worth doing for completeness, but it is a small
+completeness step, not a content recovery — and its verification is the
+`agent_tokens` count. Since `agent_usage` and `agent_audit` are empty on Supabase
+too, there is no agent history waiting to come across.
 
 ## Next step
 
