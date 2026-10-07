@@ -174,12 +174,15 @@ What `deploy.sh` does, in order:
    do not expect a branch there.
 4. `docker compose build` a new image tagged `<sha12>-<UTC timestamp>` (and `<sha12>`).
 5. `docker compose up -d --no-deps web` with the new image.
-6. When the API is enabled: build `design-bakery-api:<sha12>-<UTC>` and
-   `compose up -d --no-deps api`, then health-check `127.0.0.1:8788/health` (up to 90 s).
-   An unhealthy API fails the deploy, like an unhealthy web container.
+6. When the API is enabled: `compose up -d --no-deps api` with the new API image, then
+   health-check `127.0.0.1:$API_HOST_PORT/health` (up to `API_HEALTH_TIMEOUT`, 180 s —
+   Node cold-starts slower than Caddy). An unhealthy API fails the deploy.
 7. Health-check `127.0.0.1:8085/healthz` (up to 90 s), then smoke-check
    `/`, `/research/papers/db-r-2026-010`, `/robots.txt` (200), `/ai-for-good` (308),
-   `/studyos` (307).
+   `/studyos` (307). With the API enabled, also GET `/api/public/blogs` through the web
+   container: a 200 proves the Caddy `/api/*` proxy and the data layer both work; a
+   gateway status (502/503/504) fails the deploy (the proxy is broken — the original
+   bug); a 500 only warns (a data-layer/secret problem, not a routing one).
 8. On success: write `deploy/gravebuster/.deploy-state` (`SHA`, `CURRENT_IMAGE`,
    `PREVIOUS_IMAGE`, `CURRENT_API_IMAGE`, `PREVIOUS_API_IMAGE`, `DEPLOYED_AT`) and log
    to `deploy/gravebuster/deploy.log`.

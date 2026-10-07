@@ -39,6 +39,9 @@ API_IMAGE_REPO=${DESIGN_BAKERY_API_IMAGE_REPO:-design-bakery-api}
 API_CONTAINER=${DESIGN_BAKERY_API_CONTAINER:-design-bakery-api}
 HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-90}
 HEALTH_PATH=${HEALTH_PATH:-/healthz}
+# The API image is ~1 GB and Node cold-starts slower than Caddy, so it gets its own
+# (longer) budget. /health proves the process is up, not that it can reach Octo.
+API_HEALTH_TIMEOUT=${API_HEALTH_TIMEOUT:-180}
 API_HEALTH_PATH=${API_HEALTH_PATH:-/health}
 
 REF=origin/main
@@ -101,6 +104,15 @@ if [ -z "$WITH_API_FLAG" ] && [ -z "$WITH_API" ]; then
 fi
 [ -n "$WITH_API_FLAG" ] && WITH_API=$WITH_API_FLAG
 WITH_API=${WITH_API:-0}
+if [ "$WITH_API" = "1" ]; then
+	if [ -f "$API_ENV_FILE" ]; then
+		log "API: enabled (.env.api present)"
+	else
+		log "API: enabled but $API_ENV_FILE is missing — /health will answer, but content routes will 500"
+	fi
+else
+	log "API: disabled (no $API_ENV_FILE, WITH_API unset)"
+fi
 
 COMPOSE=(docker compose -f "$COMPOSE_FILE")
 if [ "$WITH_EDGE" = "1" ]; then
@@ -168,6 +180,29 @@ smoke() {
 	return "$failures"
 }
 
+# End-to-end check that the Caddy `/api/*` rule actually reaches the API container and
+# that the API can read its data layer. /health only proves the Node process is up, so
+# this is the check that would have caught the original 502. A gateway status (502/503/
+# 504) means the proxy rule is broken — fatal, like a smoke failure. A 5xx from the API
+# itself (500) is a data-layer/secrets problem and only warns: a transient Octo blip
+# should not roll back an otherwise-good web deploy.
+api_content_smoke() {
+	[ "$WITH_API" = "1" ] || return 0
+	local got
+	got=$(http_code "http://127.0.0.1:$WEB_HOST_PORT/api/public/blogs")
+	case "$got" in
+		200)
+			log "  ok   200 /api/public/blogs (caddy proxy + data layer)"
+			return 0 ;;
+		502|503|504)
+			log "  FAIL $got /api/public/blogs — the Caddy /api/* proxy is not reaching the api container"
+			return 1 ;;
+		*)
+			log "  WARN /api/public/blogs returned $got — the api is up but not serving content; check its data-layer secrets in $API_ENV_FILE"
+			return 0 ;;
+	esac
+}
+
 wait_healthy() {
 	local deadline=$((SECONDS + HEALTH_TIMEOUT))
 	while [ "$SECONDS" -lt "$deadline" ]; do
@@ -181,7 +216,7 @@ wait_healthy() {
 
 # The API image runs the same server as Railway; /health answers without secrets.
 wait_api_healthy() {
-	local deadline=$((SECONDS + HEALTH_TIMEOUT))
+	local deadline=$((SECONDS + API_HEALTH_TIMEOUT))
 	while [ "$SECONDS" -lt "$deadline" ]; do
 		if [ "$(http_code "http://127.0.0.1:$API_HOST_PORT$API_HEALTH_PATH")" = "200" ]; then
 			return 0
@@ -244,7 +279,7 @@ if [ "$WITH_API" = "1" ]; then
 	if wait_api_healthy; then
 		log "api health endpoint is up"
 	else
-		log "api health check timed out after ${HEALTH_TIMEOUT}s"
+		log "api health check timed out after ${API_HEALTH_TIMEOUT}s"
 		API_HEALTHY=0
 	fi
 fi
@@ -252,12 +287,16 @@ fi
 if [ "$API_HEALTHY" = "1" ] && wait_healthy; then
 	log "health endpoint is up; running smoke test"
 	if smoke; then
-		state_write "$SHA" "$NEW_IMAGE" "$PREVIOUS_IMAGE" "$(api_state_current "$NEW_API_IMAGE")" "$(api_state_previous "$PREVIOUS_API_IMAGE")"
-		log "deploy OK: $SHORT -> $NEW_IMAGE"
-		log "rollback with: deploy/gravebuster/rollback.sh"
-		exit 0
+		if api_content_smoke; then
+			state_write "$SHA" "$NEW_IMAGE" "$PREVIOUS_IMAGE" "$(api_state_current "$NEW_API_IMAGE")" "$(api_state_previous "$PREVIOUS_API_IMAGE")"
+			log "deploy OK: $SHORT -> $NEW_IMAGE"
+			log "rollback with: deploy/gravebuster/rollback.sh"
+			exit 0
+		fi
+		log "the /api/* proxy check failed"
+	else
+		log "smoke test failed"
 	fi
-	log "smoke test failed"
 elif [ "$API_HEALTHY" = "0" ]; then
 	log "deploy failed: the api container did not become healthy"
 else

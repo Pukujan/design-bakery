@@ -31,9 +31,18 @@ way the web container is.
 - A run that does not deploy the API never blanks the recorded API images
   (`api_state_current`/`api_state_previous` helpers), so a later API rollback still
   has a target.
+- `/health` alone only proves the Node process is up, so the deploy also GETs
+  `/api/public/blogs` **through the web container** when the API is enabled — the check
+  that actually exercises the Caddy `/api/*` rule. A gateway status (502/503/504) fails
+  the deploy (the original bug); a 500 only warns (a data-layer/secret problem, not a
+  routing one, and rolling back does not fix an upstream outage).
+- The API gets its own `API_HEALTH_TIMEOUT` (180 s): the image is ~1 GB and Node
+  cold-starts slower than Caddy.
+- The enable decision is logged at deploy start, including the "enabled but
+  `.env.api` missing → content routes will 500" warning.
 - `.env.example` — documents `API_HOST_PORT`, `DESIGN_BAKERY_API_IMAGE` and the
   `WITH_API` enable knob.
-- `docs/self-hosting.md` §3/§4/§8 and `deploy/gravebuster/README.md`.
+- `docs/self-hosting.md` §3/§4/§7/§8 and `deploy/gravebuster/README.md`.
 
 ## Evidence
 
@@ -43,6 +52,12 @@ way the web container is.
   unit-tested — all as specified.
 - State preservation unit-tested: an API deploy records the API tags; a following
   web-only deploy leaves them intact.
+
+## Not verifiable here
+
+Docker Desktop is not running on this machine, so the container build/swap/health
+path cannot be exercised end-to-end locally — only the script logic and the compose
+config. First real run is on gravebuster.
 
 ## Scope
 
