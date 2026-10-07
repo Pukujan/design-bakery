@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { getBlogByNumericId, listBlogPosts } from '../../services/lib/content/blogPosts.js';
 import { listMediaAssets } from '../../services/lib/media/mediaLibrary.js';
 import { getCmsArray, getCmsObject } from '../../services/lib/content/cmsDocuments.js';
+import { isOctoFileId, OctoFileError, readOctoPublicFile } from '../../services/lib/octoFiles.js';
 import { sendRouteError } from '../middleware/httpErrors.js';
 
 export const publicContentRouter = Router();
@@ -58,6 +59,33 @@ publicContentRouter.get('/doc/:collectionKey/object', async (req, res) => {
     const item = await getCmsObject(key, {});
     res.json({ ok: true, item });
   } catch (error) {
+    sendRouteError(res, error);
+  }
+});
+
+// Legacy proxy. New uploads store the stable public file URL from Octo publish.
+publicContentRouter.get('/assets/:fileId', async (req, res) => {
+  const fileId = req.params.fileId;
+  if (!isOctoFileId(fileId)) {
+    res.status(400).json({ ok: false, code: 'VALIDATION', message: 'Invalid file id.' });
+    return;
+  }
+  try {
+    const file = await readOctoPublicFile(fileId);
+    if (!file) {
+      res.status(404).json({ ok: false, code: 'NOT_FOUND', message: 'Asset not found.' });
+      return;
+    }
+    res.setHeader('Content-Type', file.contentType);
+    res.setHeader('Content-Length', String(file.bytes.length));
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.end(file.bytes);
+  } catch (error) {
+    if (error instanceof OctoFileError) {
+      const status = error.status >= 400 && error.status < 500 ? error.status : 502;
+      res.status(status).json({ ok: false, code: 'STORAGE', message: error.message });
+      return;
+    }
     sendRouteError(res, error);
   }
 });

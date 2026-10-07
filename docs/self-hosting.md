@@ -445,7 +445,8 @@ curl -s http://127.0.0.1:8788/health   # {"ok":true,"service":"design-bakery-api
 ```
 
 **Secrets.** Copy the Railway variables into `deploy/gravebuster/.env.api`
-(`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`,
+(`OCTO_API_BASE`, `OCTO_WORKSPACE_ID`, `OCTO_API_KEY`, optional legacy `ASSET_PUBLIC_BASE_URL`,
+`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`,
 `OPENROUTER_API_KEY`, `ADMIN_PASSWORD`, `ALLOWED_ORIGINS`, agent-token seeds). The
 file is git-ignored; the compose `env_file` entry is `required: false`, so the
 container still starts (and `/health` still answers) without it.

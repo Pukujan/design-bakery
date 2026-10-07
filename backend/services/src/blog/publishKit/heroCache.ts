@@ -9,7 +9,7 @@ import {
 import type { LayoutVariant, TemplateFamily } from './templateSelection.js';
 import type { VisualStylePreset } from './types.js';
 import { dbInsert, dbQueryAll, dbUpdate } from '../../db.js';
-import { isSupabaseStorageConfigured, supabaseAdmin, supabaseStorageBucket } from '../../supabaseClient.js';
+import { deleteOctoFile, isAssetStorageConfigured, readOwnPublicAsset, uploadOctoPublicFile } from '../../octoFiles.js';
 
 export type HeroCacheHit = {
   id: string;
@@ -35,7 +35,7 @@ type HeroCacheRow = {
 function heroCacheEnabled(): boolean {
   const flag = (process.env.PUBLISH_KIT_HERO_CACHE ?? '1').trim().toLowerCase();
   if (flag === '0' || flag === 'false' || flag === 'off') return false;
-  return isSupabaseStorageConfigured();
+  return isAssetStorageConfigured();
 }
 
 function minMatchScore(): number {
@@ -54,6 +54,8 @@ function cacheStoragePath(cacheId: string): string {
 }
 
 async function downloadPng(url: string): Promise<Buffer> {
+  const own = await readOwnPublicAsset(url);
+  if (own) return own;
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Hero cache download failed: HTTP ${res.status}`);
@@ -141,30 +143,23 @@ export async function storeHeroCachePng(params: {
 
   const cacheId = randomUUID();
   const path = cacheStoragePath(cacheId);
-  const bucket = supabaseStorageBucket();
-  const supabase = supabaseAdmin();
-
-  const { error: uploadError } = await supabase.storage.from(bucket).upload(path, params.png, {
+  const stored = await uploadOctoPublicFile({
+    logicalPath: path,
+    buffer: params.png,
     contentType: 'image/png',
-    cacheControl: '31536000',
-    upsert: false,
+  }).catch((err: unknown) => {
+    console.warn(
+      '[publishKit:heroCache] upload failed:',
+      err instanceof Error ? err.message : err,
+    );
+    return null;
   });
-  if (uploadError) {
-    console.warn('[publishKit:heroCache] upload failed:', uploadError.message);
-    return null;
-  }
-
-  const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
-  const publicUrl = urlData.publicUrl;
-  if (!publicUrl) {
-    console.warn('[publishKit:heroCache] missing public URL after upload');
-    return null;
-  }
+  if (!stored) return null;
 
   const insertError = await dbInsert('publish_kit_hero_cache', {
     id: cacheId,
-    storage_path: path,
-    public_url: publicUrl,
+    storage_path: stored.fileId,
+    public_url: stored.url,
     prompt_version: HERO_IMAGE_PROMPT_VERSION,
     category_slug: slugifyHeroToken(params.category),
     tag_slugs: matchSlugs,
@@ -179,6 +174,7 @@ export async function storeHeroCachePng(params: {
 
   if (insertError) {
     console.warn('[publishKit:heroCache] insert failed:', insertError.message);
+    await deleteOctoFile(stored.fileId).catch(() => undefined);
     return null;
   }
 

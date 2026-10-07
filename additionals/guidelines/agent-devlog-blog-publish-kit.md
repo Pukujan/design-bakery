@@ -4,7 +4,7 @@
 |-------|-------|
 | **Document date** | 2026-05-22 |
 | **Created** | 2026-05-22 |
-| **Last updated** | 2026-05-25 (hero image slug cache) |
+| **Last updated** | 2026-10-06 (image bytes on Octo files) |
 
 **Branch:** `test/blog-publish-kit` (not on `main` until reviewed).
 
@@ -23,6 +23,7 @@
 | 2026-05-25 | **Social crawlers** — repo-root `middleware.ts` serves OG HTML for blog detail URLs (Facebook/X/LinkedIn); SPA `BlogPostHead` alone is insufficient |
 | 2026-05-25 | **Font diagnostics** — `fontDiagnostics.ts` logs `[publish-kit:fonts]` (fc-match, font files, SVG probe); `pnpm run test:publish-kit-fonts`; Railway `PUBLISH_KIT_FONT_DEBUG=1` |
 | 2026-05-25 | **Admin blog list** — `listBlogPosts({ includeContent: true })` for `/api/content/blogs`; public list stays without body |
+| 2026-10-06 | **Image bytes** — `commit_visual` uploads through Octo's file API. Stored URLs are `https://files.design-bakery.com/<fileId>`. The workspace key needs the `delete` scope before those objects can be removed. |
 | 2026-05-23 | **Railway fonts** — `nixpacks.toml` `aptPkgs = ["fonts-dejavu-core"]` (not nix `dejavu_fonts` — breaks Railway build); system **DejaVu Sans** when `fc-list` finds it; bundled Inter on macOS |
 | 2026-05-25 | **Hero cache** — text-free 1:1 PNG in Supabase + `publish_kit_hero_cache` table; slug match before overlay; skips OpenRouter on hit |
 

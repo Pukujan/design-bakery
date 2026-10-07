@@ -1,3 +1,10 @@
+/**
+ * Legacy Supabase Storage client.
+ *
+ * Table access moved to `db.ts` (Octo SQL). This module remains for deleting
+ * objects that were uploaded before TASK-DB-0074's file migration, and for the
+ * Firestore → Supabase migration script. New uploads go through `octoFiles.ts`.
+ */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import ws from 'ws';
 

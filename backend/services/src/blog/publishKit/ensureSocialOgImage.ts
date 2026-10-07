@@ -1,7 +1,7 @@
 import sharp from './sharpWithFonts.js';
 import { OG_SIZE } from './visualFormats.js';
 import { uploadBlogAsset } from './storage.js';
-import { isSupabaseStorageConfigured } from '../../supabaseClient.js';
+import { isAssetStorageConfigured, readOwnPublicAsset } from '../../octoFiles.js';
 
 export type SeoLike = Record<string, unknown> | null | undefined;
 
@@ -13,6 +13,8 @@ function ogSourceUrl(seo: SeoLike): string | undefined {
 }
 
 async function fetchImageBuffer(url: string): Promise<Buffer> {
+  const own = await readOwnPublicAsset(url);
+  if (own) return own;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`fetch ${url} → HTTP ${res.status}`);
   return Buffer.from(await res.arrayBuffer());
@@ -26,7 +28,7 @@ export async function ensureSocialOgImageInSeo(
   seo: SeoLike,
   numericId: number,
 ): Promise<Record<string, unknown> | undefined> {
-  if (!isSupabaseStorageConfigured() || !Number.isFinite(numericId) || numericId <= 0) {
+  if (!isAssetStorageConfigured() || !Number.isFinite(numericId) || numericId <= 0) {
     return seo && typeof seo === 'object' ? { ...seo } : undefined;
   }
 

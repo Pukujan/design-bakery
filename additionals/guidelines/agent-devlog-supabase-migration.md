@@ -4,9 +4,11 @@
 |-------|-------|
 | **Document date** | 2026-05-22 |
 | **Created** | 2026-05-22 |
-| **Last updated** | 2026-05-22 |
+| **Last updated** | 2026-10-06 (image uploads moved to Octo files) |
 
 **For Cursor agents.** Read before changing auth, CMS content storage, blog data reads/writes, or image upload paths.
+
+**Current upload path (2026-10-06):** new images go through `backend/services/src/octoFiles.ts`, not Supabase Storage. The stored URL is the stable public file URL Octo returns (`https://files.design-bakery.com/<fileId>`). Supabase remains only for objects already published. Do not point new uploads back at `storage.from()`.
 
 ### Revision history
 
@@ -14,6 +16,7 @@
 |------|--------|
 | 2026-05-22 | Decision + phased plan; Supabase Storage backend in publish kit; why Firebase was abandoned |
 | 2026-05-22 | Phase 5: Firebase deps and client/server fallbacks removed; Supabase + Express only |
+| 2026-10-06 | New image uploads publish through Octo (`octoFiles.ts`) at `https://files.design-bakery.com/<fileId>`. The 193 stored Supabase Storage URLs were rewritten. Supabase Storage is legacy bytes only. See TASK-DB-0074. |
 
 ---
 

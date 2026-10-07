@@ -5,7 +5,7 @@
 | **Created** | 2026-10-06 |
 | **Issue** | — (finding recorded here; octo-side incident filed at [octo-database#162](https://github.com/Pukujan/octo-database/issues/162), now resolved) |
 | **Branch** | `main` |
-| **Status** | **Data layer done.** Schema applied, content migrated, and the backend re-pointed off PostgREST onto octo's SQL surface (2026-10-06). Remaining: migrate Supabase **Storage** (11 call sites) onto octo's file API, and migrate drafts + `agent_tokens` (needs the service-role key). |
+| **Status** | **Data layer done. New file uploads done.** Schema applied, content migrated, backend on octo's SQL surface, and image uploads now go to octo's file API (2026-10-06). Remaining: the workspace key has no `delete` scope; the 193 live Supabase image URLs are not rewritten yet (the public asset route is not deployed); drafts + `agent_tokens` still need the service-role key. |
 
 ## Done (2026-10-06)
 
@@ -133,21 +133,51 @@ Done:
 4. Admin auth is already custom (admin JWT + `ADMIN_PASSWORD`) — not Supabase GoTrue, so it
    is unaffected. `agent_tokens` lookups now go through the data layer.
 
-Remaining:
+## Storage (2026-10-06)
 
-- **Storage** — the **11 `storage.from()` call sites** (media library, cover-studio library,
-  publish-kit hero cache + `storage.ts`) still use Supabase Storage. Moving them onto octo's
-  file API is the largest remaining piece; the Supabase block in `backend/.env.example` is
-  labelled storage-only until then.
-- **Drafts + `agent_tokens`** — only the anon key was available at migration time, so
-  service-role-only rows are not yet migrated. Re-run `scripts/migrate-supabase-to-octo.mjs`
-  with `SUPABASE_SERVICE_ROLE_KEY` set.
-- **Deploy** — set `VITE_BLOG_API_URL=same-origin` in the web build args, deploy the Caddy
-  `/api` proxy + edge attachment fix, and cut DNS over (staging hostname first).
+New uploads go through `backend/services/src/octoFiles.ts`: upload into the
+private bucket, then `POST /api/files/:id/publish`. The stored URL is the stable
+address Octo returns, `https://files.design-bakery.com/<fileId>`. Signed
+download links expire and are not stored. `GET /api/public/assets/:fileId` remains
+only for a URL already saved in that shape.
+
+Call sites: `mediaStorage.ts`, `coverStudioStorage.ts`, `blog/publishKit/storage.ts`,
+`heroCache.ts`. A `storage_path` that is still a Supabase object key (not a UUID)
+is deleted through the old client. Delete unpublishes first (write scope), then
+`DELETE`s the private object. The workspace key is owner and has `read,write,files`.
+It does not have `delete`, so the private object stays when a caller tries to
+remove one.
+
+The live private bucket had been `R2_BUCKET=study-os-transcripts`. 53 Octo objects
+already in that bucket (`workspaces/` and `derived/`, 396,427 bytes) were copied
+into the `octo` bucket, then `R2_BUCKET`, `CLOUDFLARE_R2_BUCKET`, and
+`OCTO_R2_BUCKET` were set to `octo` and `octo-api` was recreated. Compose's
+default image is `octo-api:latest` (the tag from several days ago, no publish
+route). The running API is `octo-api:77b68367ab99`. Recreate with
+`IMAGE_TAG=77b68367ab99`.
+
+`scripts/migrate-supabase-storage-to-octo.mjs --apply` rewrote **193** Supabase
+Storage URLs (28 blog posts, 31 media rows, 30 cover-studio rows, 0 hero-cache
+rows). A follow-up count found zero `supabase.co/storage` URLs left in those
+tables, and a sample cover returned HTTP 200 `image/png` from
+`files.design-bakery.com`.
+
+Still open:
+
+- **Delete scope** — re-mint the workspace key with `read`, `write`, `files`, and
+  `delete` before the app can remove a public asset's private object.
+- **Drafts + `agent_tokens`** — re-run `scripts/migrate-supabase-to-octo.mjs` with
+  `SUPABASE_SERVICE_ROLE_KEY`. That key is not on this machine.
+- **Deploy** — this storage code is uncommitted. Production still needs
+  `VITE_BLOG_API_URL=same-origin`, sticky `WITH_EDGE`, and DNS cutover on a
+  staging hostname first. The rewritten URLs are absolute, so a reader of the
+  Octo rows can load the images before that cutover.
 
 ## Next step
 
-- Apply the remaining Storage migration, then re-run the content migration with the
-  service-role key to pick up drafts + `agent_tokens`.
-- Deploy: `VITE_BLOG_API_URL=same-origin` on the web build; Caddy `/api` + sticky
-  `WITH_EDGE` on gravebuster; Cloudflare tunnel + DNS (staging hostname first).
+- Re-mint the workspace key with the `delete` scope.
+- Re-run `scripts/migrate-supabase-to-octo.mjs` with `SUPABASE_SERVICE_ROLE_KEY`
+  for drafts + `agent_tokens`.
+- Cut DNS over (staging hostname first) with `VITE_BLOG_API_URL=same-origin` and
+  sticky `WITH_EDGE`. Recreate `octo-api` only with `IMAGE_TAG=77b68367ab99`
+  until `latest` is that build.
