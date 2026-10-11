@@ -5,7 +5,7 @@
 | **Created** | 2026-10-11 |
 | **Issues** | None filed — owner direction in session ("host it in my design-bakery … design-bakery.com/version-2") |
 | **Branch** | `task/TASK-DB-0083-version-2-page` |
-| **Status** | Deployed and verified live at `https://www.design-bakery.com/version-2` |
+| **Status** | Merged ([#111](https://github.com/Pukujan/design-bakery/pull/111), `fe30727`) and deployed — live at `https://www.design-bakery.com/version-2` |
 
 ## Goal
 
@@ -130,8 +130,21 @@ Engineer"), all eleven projects present (01–11 WORK), five roles, all seven sc
 requested under `/version-2/` and 200, `scrollWidth === clientWidth` (no overflow),
 zero console errors.
 
+## Merge
+
+This branch was stacked on `task/TASK-DB-0082-mac-hosting-cutover`. Once 0082 merged
+([#110](https://github.com/Pukujan/design-bakery/pull/110), `08b1d62`), the branch was
+rebased onto the new `main` so it would not re-apply 0082's commits, and merged as
+[#111](https://github.com/Pukujan/design-bakery/pull/111) (`fe30727`, squash).
+
+The Mac deploy ran from `973097d` — the pre-rebase tip. The rebase orphaned that SHA, but
+every version-2 path is byte-identical between `973097d` and `main` (`git diff` empty over
+`frontend/version-2-app`, the two scripts, the Caddyfile and `vercel.json`), so the running
+build matches accepted history in content. The next deploy from `main` picks up the same
+code under a main-history SHA.
+
 ## Next step
 
-None outstanding — the page is live. If the two `/version-2` smoke lines are wanted in the
-deploy log, they appear automatically on the next deploy (the script re-parses from the
-newly-checked-out ref on that run).
+None outstanding — the page is live and the branch is merged. If the two `/version-2` smoke
+lines are wanted in the deploy log, they appear automatically on the next deploy (the script
+re-parses from the newly-checked-out ref on that run).

@@ -5,7 +5,7 @@
 | **Created** | 2026-10-11 |
 | **Issues** | [#52](https://github.com/Pukujan/design-bakery/issues/52) (self-host) — the host changed, the issue's goal is unchanged |
 | **Branch** | `task/TASK-DB-0082-mac-hosting-cutover` |
-| **Status** | Deployed and verified live on the Mac; octo data recovery and auto-deploy scheduler still open |
+| **Status** | Merged ([#110](https://github.com/Pukujan/design-bakery/pull/110), `08b1d62`) and deployed live on the Mac; octo data recovery and auto-deploy scheduler still open |
 
 ## Goal
 
