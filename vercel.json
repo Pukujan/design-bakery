@@ -76,6 +76,14 @@
       "destination": "/ire/index.html"
     },
     {
+      "source": "/version-2",
+      "destination": "/version-2/index.html"
+    },
+    {
+      "source": "/version-2/",
+      "destination": "/version-2/index.html"
+    },
+    {
       "source": "/((?!.*\\.html$).*)",
       "destination": "/index.html"
     }

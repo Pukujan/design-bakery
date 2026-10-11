@@ -21,6 +21,8 @@ export default defineConfig([
       'frontend/extras/**',
       // Its own Vite/Tailwind project with its own eslint config (scripts/build-ire-app.mjs).
       'frontend/ire-app/**',
+      // Same, for the /version-2 page (scripts/build-version-2-app.mjs).
+      'frontend/version-2-app/**',
       '**/*.d.ts',
       '**/tsconfig.tsbuildinfo',
       '**/.codegraph/**',
