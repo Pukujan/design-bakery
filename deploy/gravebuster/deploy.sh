@@ -246,6 +246,10 @@ smoke() {
 	# The dashboard's canonical path, and the old /ire/app path redirecting to it.
 	check 200 /ire
 	check 301 /ire/app
+	# The /version-2 page: its shell, and a scene plate under the base path (the plate
+	# proves the app's asset prefix resolves through the rewrite, not just the shell).
+	check 200 /version-2
+	check 200 /version-2/generated-1791737493819-ac12e96dface.png
 	check 308 /ai-for-good
 	check 307 /studyos
 	return "$failures"

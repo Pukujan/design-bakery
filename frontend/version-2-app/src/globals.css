@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Design Bakery — cinematic key-art palette */
+    --db-ink: #150a16;
+    --db-ink-deep: #0b0510;
+    --db-plum: #2a1428;
+    --db-rose: #d96c7f;
+    --db-blush: #f0a396;
+    --db-peach: #f6c79b;
+    --db-gold: #f7dca8;
+    --db-ember: #ff9a4e;
+    --db-indigo: #1a1a3e;
+    --db-moon: #dce6f5;
+    --db-cream: #f8efe7;
+
+    --background: 306 44% 6%;
+    --foreground: 20 45% 94%;
+
+    --card: 306 40% 9%;
+    --card-foreground: 20 45% 94%;
+
+    --popover: 306 44% 8%;
+    --popover-foreground: 20 45% 94%;
+
+    --primary: 350 59% 64%;
+    --primary-foreground: 340 45% 10%;
+
+    --secondary: 305 30% 18%;
+    --secondary-foreground: 20 45% 94%;
+
+    --muted: 305 26% 16%;
+    --muted-foreground: 18 22% 72%;
+
+    --accent: 24 62% 52%;
+    --accent-foreground: 340 45% 10%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 20 45% 96%;
+
+    --border: 22 40% 82%;
+    --input: 305 26% 22%;
+    --ring: 350 59% 64%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 306 44% 7%;
+    --sidebar-foreground: 20 45% 94%;
+    --sidebar-primary: 350 59% 64%;
+    --sidebar-primary-foreground: 340 45% 10%;
+    --sidebar-accent: 305 30% 18%;
+    --sidebar-accent-foreground: 20 45% 94%;
+    --sidebar-border: 305 26% 22%;
+    --sidebar-ring: 350 59% 64%;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    background: var(--db-ink-deep);
+    overflow-x: clip;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-ink text-cream font-sans;
+    margin: 0;
+    overflow-x: clip;
+    min-height: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: rgba(217, 108, 127, 0.4);
+    color: #fff6f0;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--db-blush);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}

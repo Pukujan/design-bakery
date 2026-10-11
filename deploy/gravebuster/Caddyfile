@@ -187,6 +187,21 @@
 		@ireAppLegacy path /ire/app /ire/app/
 		redir @ireAppLegacy /ire/ 301
 
+		# The /version-2 page (the cinematic-journey homepage, built from
+		# frontend/version-2-app into dist/version-2 by scripts/build-version-2-app.mjs).
+		# vercel.json rewrites /version-2 and /version-2/ to its index.html; this mirrors
+		# that so the two configs stay 1:1. `@dirIndex` above would serve it too, but its
+		# `{path}/index.html` join leaves a double slash for a trailing-slash request, so
+		# both spellings are stated explicitly. Hashed assets and the scene plates
+		# (/version-2/assets/*, /version-2/generated-*.png) are real files served by
+		# `@exactFile` above — this matches only the two directory spellings.
+		@version2 path /version-2 /version-2/
+		handle @version2 {
+			rewrite * /version-2/index.html
+			header Cache-Control "public, max-age=0, must-revalidate"
+			file_server
+		}
+
 		# Missing .html file: vercel.json's catch-all excludes `*.html`, so these 404
 		# instead of falling back to the SPA shell.
 		@htmlNotFound path *.html
