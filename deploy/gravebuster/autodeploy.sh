@@ -5,12 +5,16 @@
 # gravebuster is not publicly reachable, so there is no GitHub webhook: this script
 # polls origin/main and deploys when the SHA moves. It is meant to run from a systemd
 # timer (deploy/gravebuster/systemd/) — see docs/self-hosting.md, "Auto-deploy".
-# Enabled on gravebuster. All the safety lives in deploy.sh, including the lock that
-# keeps a timer run and a hand run from interleaving.
+# Enabled on gravebuster via its systemd timer; on the Mac it has no scheduler yet, so
+# it runs by hand. All the safety lives in deploy.sh, including the lock.
 #
 #   deploy/gravebuster/autodeploy.sh              # deploy if origin/main moved
 #   deploy/gravebuster/autodeploy.sh --dry-run    # report what would happen
 set -euo pipefail
+
+# Docker Desktop on macOS installs the CLI in /usr/local/bin, which is NOT on the
+# default non-interactive SSH PATH. Harmless on Linux. deploy.sh (exec'd below) needs it.
+PATH="/usr/local/bin:$PATH"
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO_DIR=${DEPLOY_REPO_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}
