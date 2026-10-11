@@ -4,10 +4,70 @@ Runbook for serving the `frontend` SPA from gravebuster (the owner's Linux box)
 instead of Vercel — TASK-DB-0055, issue
 [#52](https://github.com/Pukujan/design-bakery/issues/52).
 
-**Current state (2026-10-07):** the site is **live on gravebuster** — the tunnel
-serves `www.design-bakery.com` and the apex from `design-bakery-web:80`, and the
-`api` container is deployed behind Caddy's `/api/*` proxy (TASK-DB-0076). The Vercel
+**Current state (2026-10-11): the site is live on the MacBook Pro.** gravebuster
+went offline (Tailscale unreachable; every gravebuster-origin hostname 502s), so
+TASK-DB-0082 moved design-bakery onto the Mac in `~/apps/design-bakery`, beside
+octo — **see §0**. The rest of this runbook describes the gravebuster
+deployment, which is unchanged in shape (the same compose project, scripts,
+Caddyfile and tunnel); the Mac is now the host running it.
+
+**Historical (2026-10-07):** the site was live on gravebuster — the tunnel served
+`www.design-bakery.com` and the apex from `design-bakery-web:80`, and the `api`
+container was deployed behind Caddy's `/api/*` proxy (TASK-DB-0076). The Vercel
 project stays in place, disconnected, as the rollback.
+
+---
+
+## 0. Running on the Mac (TASK-DB-0082)
+
+The MacBook Pro (`ssh mac`; user `teresaguajardo`) runs Docker Desktop and
+already hosts octo. design-bakery is a second compose project on it.
+
+| Piece | Value |
+| --- | --- |
+| Deploy checkout | `~/apps/design-bakery` on the Mac (detached HEAD at the deployed SHA) |
+| Compose project | `design-bakery` (same `deploy/gravebuster/docker-compose.yml`) |
+| Containers | `design-bakery-web` (`127.0.0.1:8085`→80), `design-bakery-api` (`127.0.0.1:8789`→8787) |
+| Tunnel | the **shared** `study-os-gravebuster` tunnel, via the Mac's existing `octo-cloudflared` container — **no Cloudflare/DNS/token change was needed**; its ingress already routed `www`/apex to `design-bakery-web:80` |
+
+**Why it "just worked".** The tunnel is shared by both boxes, and the Mac's
+`octo-cloudflared` was already connected to it. The `www`/apex 502 was purely
+"no container named `design-bakery-web` on the Mac". Standing up that container
+on the tunnel network (`study-os_edge`, via the same `WITH_EDGE=1` +
+`docker-compose.edge.yml` mechanism as §5) restored the site with nothing
+changed at Cloudflare.
+
+**macOS portability.** Three things differ from Linux and are now handled in
+`deploy.sh` / `rollback.sh` / `autodeploy.sh`:
+
+1. **No `flock(1)`.** The deploy lock is a **directory** (`acquire_lock()`):
+   atomic `mkdir`, the holder writes its `pid` inside, an EXIT trap `rm -rf`s it.
+   Stale-takeover rules: a dead pid — or a live-looking pid older than
+   `STALE_LOCK_MAX_MINUTES` (default 1440 m, pid-reuse safety valve) — is taken
+   over; a lock with no `pid` yet only after `STALE_LOCK_MINUTES` (default
+   60 m); a leftover plain FILE at the lock path (the pre-macOS flock scheme) is
+   removed on sight. `DEPLOY_LOCK_DIR` overrides the path (was
+   `DEPLOY_LOCK_FILE`). Still non-blocking.
+2. **Docker Desktop is not on the non-interactive SSH PATH.** `ssh mac <script>`
+   has no `/usr/local/bin`, so all three scripts prepend it to `PATH`
+   (harmless on Linux).
+3. **No systemd.** §6's timer has no macOS equivalent yet — deploys on the Mac
+   are by hand. A launchd agent is the follow-up.
+
+**Watch out — the shared tunnel will split-brain.** When gravebuster comes back,
+its `cloudflared` reconnects to the same tunnel and Cloudflare load-balances
+**every** hostname across both connectors: `www`/apex would split between two
+builds, and study/bench/acs (gravebuster-only origins) would flap to 502
+whenever the Mac connector is chosen. Resolve this before gravebuster returns
+(rotate the shared token, retire gravebuster's connector, or give the Mac its
+own tunnel). Not done as of this writing.
+
+**Open — the octo data did not move.** The Mac's octo has **no design-bakery
+workspace**, so the 136 content rows are still only in gravebuster's
+`octo_ws_design_bakery_c192afbc` (unreachable). Until the owner supplies a new
+workspace id/key and the API container is recreated, `/api/public/blogs` returns
+**500** and the site serves the committed 7-post `blog-data.json` snapshot, and
+crawler link previews (§8) degrade to the plain shell.
 
 ---
 
@@ -204,14 +264,17 @@ default network, silently dropping `study-os_edge`, and the tunnel returns 502 u
 someone re-runs `--with-edge`. `--with-edge` / `--no-edge` override the file for a
 single run.
 
-**One deploy at a time.** Both scripts take an exclusive `flock` on
-`deploy/gravebuster/.deploy.lock` (git-ignored, `DEPLOY_LOCK_FILE` overrides the path) as
-their first action after the environment guards. The lock is non-blocking: a second
-caller logs `another deploy or rollback is running (lock: …)` and exits 1 at once rather
-than queueing. This matters now that the timer can fire on its own — a hand-run deploy
-and a timer tick that overlap interleave the `web`/`api` container swaps, and on
-2026-10-07 that left the API container in `Created` while `/api/*` answered 502 live.
-When the timer hits a busy lock it just retries on its next tick, five minutes later.
+**One deploy at a time.** Both scripts take an exclusive lock on
+`deploy/gravebuster/.deploy.lock` (git-ignored, `DEPLOY_LOCK_DIR` overrides the
+path) as their first action after the environment guards. The lock is a
+**directory** (`acquire_lock()` — portable, since macOS has no `flock(1)`; see
+§0), non-blocking: a second caller logs
+`another deploy or rollback is running (lock: …)` and exits 1 at once rather
+than queueing. This matters now that the timer can fire on its own — a hand-run
+deploy and a timer tick that overlap interleave the `web`/`api` container swaps,
+and on 2026-10-07 that left the API container in `Created` while `/api/*`
+answered 502 live. When the timer hits a busy lock it just retries on its next
+tick, five minutes later.
 
 Manual verification after any deploy:
 
@@ -401,10 +464,15 @@ stays useful for verifying a deploy before the flip.
 
 ## 6. Auto-deploy on merge to main
 
-**Enabled on gravebuster.** gravebuster is not publicly reachable, so there is no
-GitHub webhook to receive; instead a systemd timer polls `origin/main` and deploys when
-the SHA moves. The timer only ever runs `deploy.sh`, so it needs the deploy lock above:
-a merge that lands while someone is deploying by hand must fail fast, not interleave.
+**Enabled on gravebuster; not yet on the Mac.** gravebuster is not publicly reachable,
+so there is no GitHub webhook to receive; instead a systemd timer polls `origin/main`
+and deploys when the SHA moves. The timer only ever runs `deploy.sh`, so it needs the
+deploy lock above: a merge that lands while someone is deploying by hand must fail
+fast, not interleave.
+
+> **On the Mac (TASK-DB-0082) there is no scheduler** — `autodeploy.sh` works when
+> run by hand, but macOS has no systemd and no launchd agent has been written. Deploys
+> on the Mac are manual until that follow-up lands.
 
 ```bash
 # enable (as root; the units use User=yoav like the other gravebuster timers)
