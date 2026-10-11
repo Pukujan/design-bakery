@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Deploy design-bakery on gravebuster (TASK-DB-0055).
+# Deploy design-bakery (TASK-DB-0055). Runs on the Mac host since TASK-DB-0082.
 #
 # Pulls a git ref into the deploy checkout, builds a new tagged image, swaps the
 # container, smoke-checks the running site and records the previous image tag so
 # rollback.sh can put it back. Nothing here touches the Cloudflare Tunnel or the
 # study-os stack.
 #
-# Usage (on gravebuster):
+# Usage (the deploy checkout, e.g. ~/apps/design-bakery):
 #   deploy/gravebuster/deploy.sh                     # deploy origin/main
 #   deploy/gravebuster/deploy.sh --ref <sha|branch>   # deploy something else
 #   deploy/gravebuster/deploy.sh --with-edge          # also join the tunnel network
@@ -20,14 +20,19 @@
 # deploy keeps the `web` container on the tunnel network (a plain deploy would
 # otherwise drop it and the tunnel would 502).
 #
-# Only one deploy or rollback runs at a time: each takes an exclusive lock on
-# deploy/gravebuster/.deploy.lock and exits at once if another already holds it.
+# Only one deploy or rollback runs at a time: each takes an exclusive lock DIRECTORY
+# (deploy/gravebuster/.deploy.lock) and exits at once if another already holds it.
 #
 # The API container is deployed when WITH_API=1 or deploy/gravebuster/.env.api exists;
 # --with-api / --no-api override that for a single run.
 #
 # Config comes from deploy/gravebuster/.env (see .env.example) and/or the environment.
 set -euo pipefail
+
+# Docker Desktop on macOS installs the CLI in /usr/local/bin, which is NOT on the
+# default non-interactive SSH PATH (a login shell has it, `ssh host <script>` does
+# not). Harmless on Linux. The Mac host runs this over plain SSH.
+PATH="/usr/local/bin:$PATH"
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO_DIR=${DEPLOY_REPO_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}
@@ -36,7 +41,10 @@ EDGE_OVERLAY="$SCRIPT_DIR/docker-compose.edge.yml"
 API_ENV_FILE="$SCRIPT_DIR/.env.api"
 STATE_FILE=${DEPLOY_STATE_FILE:-$SCRIPT_DIR/.deploy-state}
 LOG_FILE=${DEPLOY_LOG_FILE:-$SCRIPT_DIR/deploy.log}
-LOCK_FILE=${DEPLOY_LOCK_FILE:-$SCRIPT_DIR/.deploy.lock}
+# The lock is a DIRECTORY (see acquire_lock below) — macOS has no flock(1).
+LOCK_DIR=${DEPLOY_LOCK_DIR:-$SCRIPT_DIR/.deploy.lock}
+STALE_LOCK_MINUTES=${STALE_LOCK_MINUTES:-60}
+STALE_LOCK_MAX_MINUTES=${STALE_LOCK_MAX_MINUTES:-1440}
 IMAGE_REPO=${DESIGN_BAKERY_IMAGE_REPO:-design-bakery-web}
 CONTAINER=${DESIGN_BAKERY_CONTAINER:-design-bakery-web}
 API_IMAGE_REPO=${DESIGN_BAKERY_API_IMAGE_REPO:-design-bakery-api}
@@ -132,9 +140,57 @@ command -v curl >/dev/null || die "curl not found"
 # and on 2026-10-07 that left the api container stuck in `Created` while the tunnel
 # answered 502. Non-blocking on purpose: the second caller fails fast with this message
 # (and the autodeploy timer simply retries on its next tick) rather than queueing behind
-# a deploy that may take the full 30-minute timeout.
-exec 9>"$LOCK_FILE"
-flock -n 9 || die "another deploy or rollback is running (lock: $LOCK_FILE)"
+# a deploy that may run to the full timeout.
+#
+# Portable lock: an exclusive mkdir on a lock DIRECTORY (atomic on Linux and macOS),
+# released by rmdir on EXIT. macOS has no flock(1), which this used to rely on. The
+# holder writes its pid; a live pid means busy, a dead pid means the holder crashed and
+# the lock is taken over. A lock whose pid file is not yet written is only taken over
+# once it is older than STALE_LOCK_MINUTES (the mkdir→write-pid window); a live-looking
+# pid still loses after STALE_LOCK_MAX_MINUTES (pid-reuse safety valve — no deploy runs
+# that long). A plain FILE at this path is a leftover of the old flock scheme.
+acquire_lock() {
+	# Guard the rm -rf below against a pathological LOCK_DIR.
+	[ -n "$LOCK_DIR" ] && [ "/" != "$LOCK_DIR" ] && [ "$PWD" != "$LOCK_DIR" ] \
+		|| die "refusing to lock at unsafe path: '$LOCK_DIR'"
+	if [ -d "$LOCK_DIR" ]; then
+		if [ -f "$LOCK_DIR/pid" ]; then
+			local lock_pid
+			lock_pid=$(cat "$LOCK_DIR/pid" 2>/dev/null || true)
+			case "$lock_pid" in
+				''|*[!0-9]*)
+					log "removing unreadable lock at $LOCK_DIR (pid file is not a pid)"
+					rm -rf "$LOCK_DIR" ;;
+				*)
+					if kill -0 "$lock_pid" 2>/dev/null \
+						&& [ -z "$(find "$LOCK_DIR" -maxdepth 0 -mmin +"$STALE_LOCK_MAX_MINUTES" 2>/dev/null)" ]; then
+						die "another deploy or rollback is running (lock: $LOCK_DIR, pid $lock_pid)"
+					fi
+					log "removing stale lock at $LOCK_DIR (pid $lock_pid not running, or lock older than ${STALE_LOCK_MAX_MINUTES}m)"
+					rm -rf "$LOCK_DIR" ;;
+			esac
+		else
+			if [ -z "$(find "$LOCK_DIR" -maxdepth 0 -mmin +"$STALE_LOCK_MINUTES" 2>/dev/null)" ]; then
+				die "another deploy or rollback is starting (lock: $LOCK_DIR, pid not yet written)"
+			fi
+			log "removing stale lock at $LOCK_DIR (no pid, older than ${STALE_LOCK_MINUTES}m)"
+			rm -rf "$LOCK_DIR"
+		fi
+	elif [ -e "$LOCK_DIR" ]; then
+		log "removing stale lock FILE at $LOCK_DIR (pre-directory lock scheme)"
+		rm -f "$LOCK_DIR"
+	fi
+	mkdir "$LOCK_DIR" 2>/dev/null || die "another deploy or rollback is running (lock: $LOCK_DIR)"
+	if ! printf '%s\n' "$$" >"$LOCK_DIR/pid" 2>/dev/null; then
+		rm -rf "$LOCK_DIR" 2>/dev/null || true
+		die "could not write lock pid at $LOCK_DIR"
+	fi
+	# rm -rf, not rmdir: the lock dir holds the pid file, and rmdir only removes
+	# empty directories — it would silently leave the lock behind on every run.
+	trap 'rm -rf "$LOCK_DIR" 2>/dev/null || true' EXIT
+}
+
+acquire_lock
 
 state_get() {
 	[ -f "$STATE_FILE" ] || return 0
