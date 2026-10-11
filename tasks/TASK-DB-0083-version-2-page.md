@@ -5,7 +5,7 @@
 | **Created** | 2026-10-11 |
 | **Issues** | None filed — owner direction in session ("host it in my design-bakery … design-bakery.com/version-2") |
 | **Branch** | `task/TASK-DB-0083-version-2-page` |
-| **Status** | Built and verified locally; deploy pending |
+| **Status** | Deployed and verified live at `https://www.design-bakery.com/version-2` |
 
 ## Goal
 
@@ -102,7 +102,36 @@ zero console errors.
 - **Not touched:** `task/TASK-DB-0082-mac-hosting-cutover` (this branch is stacked on it —
   the Mac runs that ref today), the octo data move, the tunnel split-brain.
 
+## Deploy
+
+Deployed from the Mac checkout (`~/apps/design-bakery`) with
+`deploy/gravebuster/deploy.sh --ref 973097d7ffb41751148cd4b131f8dc0ce1fa00ea`, exit 0.
+Image `design-bakery-web:973097d7ffb4-20261011T195949Z` built and swapped in; the API
+container was rebuilt from the same ref and its health endpoint came up.
+
+The smoke block that ran was the one already parsed from the previously-deployed ref
+(d9d23cd), so the log shows `/ire` → `/ire/app` → `/ai-for-good` with no `/version-2`
+lines: `deploy.sh` checks out the requested ref at line 330 but does not re-exec, so a
+deploy always runs the *outgoing* script's checks. The new `/version-2` and plate smoke
+lines are committed and run on the next deploy; live behaviour was verified directly
+instead (below).
+
+### Verified from the public edge, after the deploy
+
+| Check | Result |
+|---|---|
+| `GET https://www.design-bakery.com/version-2` | 200 — `<title>Design Bakery — AI Engineer</title>` |
+| `GET https://www.design-bakery.com/version-2/` | 200 |
+| `GET …/version-2/generated-1791737493819-ac12e96dface.png` | 200 `image/png` 2,646,363 bytes |
+| `GET https://www.design-bakery.com/` | 200 — site shell unchanged (`Design Baker | Fullstack …`) |
+
+Headless Chromium against the live URL: arrival line renders ("Design Bakery — AI
+Engineer"), all eleven projects present (01–11 WORK), five roles, all seven scene plates
+requested under `/version-2/` and 200, `scrollWidth === clientWidth` (no overflow),
+zero console errors.
+
 ## Next step
 
-Deploy the branch on the Mac (`deploy/gravebuster/deploy.sh --ref <sha>`) and verify
-`/version-2` from the public hostname, then record the deploy here.
+None outstanding — the page is live. If the two `/version-2` smoke lines are wanted in the
+deploy log, they appear automatically on the next deploy (the script re-parses from the
+newly-checked-out ref on that run).
