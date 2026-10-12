@@ -263,14 +263,20 @@ export const SKILLS = [
 export const CONTACT = {
   email: "hello@design-bakery.com",
   github: "https://github.com/Pukujan",
-  linkedin: "https://www.linkedin.com/",
-  resume: "/resume",
+  linkedin: "https://www.linkedin.com/in/pujan3645",
 } as const;
 
+/** In-page anchors within the journey. */
 export const NAV = [
   { label: "Home", href: "#arrival" },
   { label: "About", href: "#about" },
   { label: "Work", href: "#work" },
   { label: "Journey", href: "#cut" },
   { label: "Contact", href: "#contact" },
+] as const;
+
+/** Real routes on the site, alongside the journey. */
+export const SITE_NAV = [
+  { label: "Writing", href: "/blogs" },
+  { label: "Research", href: "/research" },
 ] as const;

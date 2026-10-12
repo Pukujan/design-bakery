@@ -50,15 +50,11 @@ export function Stage() {
         {daylight}
       </div>
 
-      {/* the sun, the moon, and the weather of the world */}
+      {/* the sun and the weather of the world */}
       <div className="db-orb">
         <div className="db-sun-track">
           <div className="db-sun-glow" />
           <div className="db-sun" />
-        </div>
-        <div className="db-moon-track">
-          <div className="db-moon-halo" />
-          <div className="db-moon" />
         </div>
       </div>
 

@@ -7,10 +7,17 @@ const noise = (i: number) => {
   return v - Math.floor(v) - 0.5;
 };
 
+/** 1 where the tip lands (the seam centre), falling off toward the frame edges */
+const bump = (g: number) => Math.exp(-Math.pow(g * 3.05, 2));
+
+type Node = { x: number; y: number; hw: number; fa: number; fb: number };
+
 /**
- * The torn seam: two ragged ember edges with lifted paper fibres, drawn in
- * viewport pixel space so they line up exactly with the masked daylight halves.
- * Each edge is pushed apart by the scroll driver via --seam-a-tf / --seam-b-tf.
+ * The torn seam: a white-hot core that keeps its heat for as long as the cut is
+ * open, wrapped in a warm ember glow, with ragged lifted paper fibres on both
+ * edges and a flare where the sword tip strikes. Drawn in viewport pixel space
+ * so it lines up exactly with the masked daylight halves; each edge is pushed
+ * apart by the scroll driver via --seam-a-tf / --seam-b-tf.
  */
 export function SeamCut() {
   const [size, setSize] = useState({ w: 1440, h: 900 });
@@ -22,7 +29,7 @@ export function SeamCut() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  const { dCore, dFibreA, dFibreB } = useMemo(() => {
+  const geo = useMemo(() => {
     const { w, h } = size;
     const cx = w / 2;
     const cy = h / 2;
@@ -43,23 +50,71 @@ export function SeamCut() {
     }
     if (!Number.isFinite(t) || t <= 0) t = Math.hypot(w, h);
 
-    const steps = 30;
-    const core: string[] = [];
-    const fa: string[] = [];
-    const fb: string[] = [];
+    // keep the rip readable on a phone without losing mass on a desktop
+    const k = Math.hypot(w, h) / 1500;
+    const scale = Math.min(1.4, Math.max(0.6, k));
+
+    const steps = 46;
+    const nodes: Node[] = [];
     for (let i = 0; i <= steps; i++) {
       const s = -t + (2 * t * i) / steps;
-      const wob = noise(i * 3.1) * 14 + noise(i * 7.7) * 7;
-      const x = cx + px * s + SEAM.nx * wob;
-      const y = cy + py * s + SEAM.ny * wob;
-      const cmd = i === 0 ? "M" : "L";
-      core.push(`${cmd}${x.toFixed(1)} ${y.toFixed(1)}`);
+      const c = bump(s / t);
 
-      const f = 6 + Math.abs(noise(i * 5.3 + 1)) * 20;
-      fa.push(`${cmd}${(x - SEAM.nx * f).toFixed(1)} ${(y - SEAM.ny * f).toFixed(1)}`);
-      fb.push(`${cmd}${(x + SEAM.nx * f).toFixed(1)} ${(y + SEAM.ny * f).toFixed(1)}`);
+      // three octaves of noise, deeper near the strike: ripped, not sliced
+      const rip =
+        (noise(i * 3.1) * 12 + noise(i * 7.7) * 8 + noise(i * 19.3) * 5.5) *
+        (0.6 + 1.2 * c) *
+        scale;
+      const x = cx + px * s + SEAM.nx * rip;
+      const y = cy + py * s + SEAM.ny * rip;
+
+      // the molten core: fat where the tip landed, never uniform
+      const hw = (2.4 + 11 * c + Math.abs(noise(i * 5.7 + 2)) * 3) * scale;
+      // torn fibres lifted off each edge, ragged and uneven
+      const fa = hw * 1.4 + (4 + Math.abs(noise(i * 11.3 + 4)) * 24) * scale;
+      const fb = hw * 1.4 + (4 + Math.abs(noise(i * 13.1 + 9)) * 24) * scale;
+      nodes.push({ x, y, hw, fa, fb });
     }
-    return { dCore: core.join(" "), dFibreA: fa.join(" "), dFibreB: fb.join(" ") };
+
+    const at = (n: Node, d: number) =>
+      `${(n.x + SEAM.nx * d).toFixed(1)} ${(n.y + SEAM.ny * d).toFixed(1)}`;
+
+    /** a closed lens: the heat profile, widened by k on both sides of the core */
+    const lens = (k2: number) =>
+      `M${nodes.map((n) => at(n, n.hw * k2)).join(" L")} L` +
+      nodes
+        .slice()
+        .reverse()
+        .map((n) => at(n, -n.hw * k2))
+        .join(" L") +
+      " Z";
+
+    const edge = (key: "fa" | "fb", sign: 1 | -1) =>
+      `M${nodes.map((n) => at(n, sign * n[key])).join(" L")}`;
+
+    /** short bright fibres standing off each edge — the ripped paper teeth */
+    const teeth = (key: "fa" | "fb", sign: 1 | -1) => {
+      const d: string[] = [];
+      for (let i = 1; i < steps; i += 2) {
+        const n = nodes[i];
+        const out = n[key] + (5 + Math.abs(noise(i * 8.9 + (sign > 0 ? 3 : 17))) * 26) * scale;
+        d.push(`M${at(n, sign * n[key])} L${at(n, sign * out)}`);
+      }
+      return d.join(" ");
+    };
+
+    return {
+      cx,
+      cy,
+      halo: lens(3.1),
+      ember: lens(1.55),
+      core: lens(1),
+      line: `M${nodes.map((n) => at(n, 0)).join(" L")}`,
+      fibreA: edge("fa", -1),
+      fibreB: edge("fb", 1),
+      toothA: teeth("fa", -1),
+      toothB: teeth("fb", 1),
+    };
   }, [size]);
 
   return (
@@ -69,35 +124,47 @@ export function SeamCut() {
         full-screen layer: when the seam is closed the whole subtree is skipped,
         which keeps the steady-state compositing cost low.
       */}
-      <div className="db-img db-seam-texture" style={{ backgroundImage: `url(${ART.tear})` }} />
+      <div className="db-seam-texture">
+        <div className="db-img db-seam-washi" style={{ backgroundImage: `url(${ART.tear})` }} />
+      </div>
 
       <svg className="db-seam-svg" viewBox={`0 0 ${size.w} ${size.h}`} preserveAspectRatio="none">
         <defs>
-          <linearGradient id="db-ember" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#ff7a3c" stopOpacity="0.1" />
-            <stop offset="26%" stopColor="#ffb765" stopOpacity="0.95" />
-            <stop offset="50%" stopColor="#fff3d4" stopOpacity="1" />
-            <stop offset="74%" stopColor="#ffb765" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="#ff6a3c" stopOpacity="0.1" />
-          </linearGradient>
+          {/* the white-hot landing point, carried by each edge as it separates */}
+          <radialGradient id="db-flare">
+            <stop offset="0%" stopColor="#fffdf6" stopOpacity="0.95" />
+            <stop offset="30%" stopColor="#ffd68f" stopOpacity="0.6" />
+            <stop offset="62%" stopColor="#ff8a3c" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="#ff6a2c" stopOpacity="0" />
+          </radialGradient>
         </defs>
 
-        {/* the hot seam — the wide glow is handled by the CSS bleed layer,
-            so no SVG blur filter is paid for across the whole viewport */}
-        <g style={{ transform: "var(--seam-a-tf, none)" }}>
-          <path d={dCore} fill="none" stroke="rgba(255,116,56,0.5)" strokeWidth={11} strokeLinecap="round" />
-          <path d={dCore} fill="none" stroke="url(#db-ember)" strokeWidth={4} strokeLinecap="round" />
-          <path d={dCore} fill="none" stroke="#fff8e6" strokeWidth={1.4} strokeLinecap="round" />
-          <path d={dFibreA} fill="none" stroke="rgba(255,236,214,0.34)" strokeWidth={1} strokeDasharray="3 10" />
-        </g>
-
-        {/* the lower-right half of the split */}
-        <g style={{ transform: "var(--seam-b-tf, none)" }}>
-          <path d={dCore} fill="none" stroke="rgba(255,116,56,0.5)" strokeWidth={11} strokeLinecap="round" />
-          <path d={dCore} fill="none" stroke="url(#db-ember)" strokeWidth={4} strokeLinecap="round" />
-          <path d={dCore} fill="none" stroke="#fff8e6" strokeWidth={1.4} strokeLinecap="round" />
-          <path d={dFibreB} fill="none" stroke="rgba(255,236,214,0.34)" strokeWidth={1} strokeDasharray="3 10" />
-        </g>
+        {/*
+          Each half carries its own torn edge. The heat is layered fills rather
+          than an SVG blur, so nothing re-rasterizes the viewport per frame, and
+          every layer is near-white or ember — never pale.
+        */}
+        {[
+          { tf: "var(--seam-a-tf, none)", fibre: geo.fibreA, tooth: geo.toothA },
+          { tf: "var(--seam-b-tf, none)", fibre: geo.fibreB, tooth: geo.toothB },
+        ].map((half, i) => (
+          <g key={i} style={{ transform: half.tf }}>
+            <ellipse
+              className="db-seam-flare"
+              cx={geo.cx}
+              cy={geo.cy}
+              rx={150}
+              ry={92}
+              fill="url(#db-flare)"
+            />
+            <path className="db-seam-halo" d={geo.halo} />
+            <path className="db-seam-ember" d={geo.ember} />
+            <path className="db-seam-core" d={geo.core} />
+            <path className="db-seam-line" d={geo.line} />
+            <path className="db-seam-fibre" d={half.fibre} />
+            <path className="db-seam-tooth" d={half.tooth} />
+          </g>
+        ))}
       </svg>
     </div>
   );

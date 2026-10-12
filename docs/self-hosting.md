@@ -105,15 +105,27 @@ the result. Node 24 comes from `.node-version`, pnpm 10.32.1 from
 commented 1:1. The important semantics, which are easy to get wrong:
 
 1. `redirects` are evaluated **before** the filesystem (`/ai-for-good` → `/ai-for-good/` 308,
-   `/studyos[/…]` → `https://study.design-bakery.com/…` 307).
+   `/studyos[/…]` → `https://study.design-bakery.com/…` 307, `/version-2[/]` → `/` 308).
 2. `rewrites` are evaluated **after** the filesystem — so `/case-studies/cortex` serves the
    real `case-studies/cortex/index.html`, and only `/case-studies/cortex/a` (which exists
    solely as `…/a/index.html`) hits the cortex rewrite.
-3. The catch-all `/((?!.*\.html$).*)` → `/index.html` is the SPA fallback, and paths ending
-   in `.html` deliberately 404 instead of falling back.
+3. The catch-all `/((?!.*\.html$).*)` → `/shell/index.html` is the SPA fallback, and paths
+   ending in `.html` deliberately 404 instead of falling back.
 4. Not in `vercel.json`: the apex → `https://www.design-bakery.com` **307** is Vercel
    *domain* configuration. It is reproduced in the Caddyfile (`@apex host design-bakery.com`)
    so both hostnames can point at this container without serving the site twice.
+
+**Two documents, one origin.** The build publishes two independent HTML documents
+(TASK-DB-0084): the cinematic-journey homepage at `/` and the site shell SPA at
+`/shell/index.html`. This is forced by rule 2 above — a rewrite runs *after* the
+filesystem, so no rule can change what `/` serves; the file at `frontend/dist/index.html`
+**is** the homepage. `scripts/build-home-app.mjs` therefore performs a build-time swap:
+`vite build` writes the shell to `dist/index.html`, the script moves it to
+`dist/shell/index.html` and copies the journey build over `dist/index.html`. Every
+consumer that reads the shell by path follows it — the SPA fallback (rule 3) and
+`backend/src/og/blogShareHtml.ts`'s crawler HTML both use `/shell/index.html`. The old
+`/version-2` path (where the journey first shipped, TASK-DB-0083) is a permanent redirect
+to `/`.
 
 `/ai-for-good/*` is proxied to the separate `ai-for-good-livid.vercel.app` app with
 `Host` rewritten to the destination, matching Vercel's rewrite proxy. That app is out of
@@ -167,7 +179,8 @@ Body-level checks (md5 of the response body, local vs live): **byte-identical** 
 `/images/site-og.png` and all four redirect responses (`Redirecting...` + newline,
 `42c939d0ba4bbdc4c7eab1b5c34aaf71`). The cortex sizes match exactly (537 / 49858 / 454
 bytes), as does the proxied app (2190 / 227478 bytes). `/` and `/index.html` are the same
-size but not byte-identical — the entry-bundle hash differs (see below). The only other
+document (the journey homepage) and byte-identical; before TASK-DB-0084 they were the
+shell and differed in the entry-bundle hash. The only other
 size differences are `/sitemap.xml` (content, see below), the 404 body (Vercel appends a
 per-request id) and `/healthz` (our own endpoint).
 
@@ -192,7 +205,7 @@ matched.
 
 | Difference | Why | Fix if it matters |
 | --- | --- | --- |
-| `/` and `/index.html` body differs in one line | `index.html` references the hashed entry bundle; the JS hash differs while any build input differs from the Vercel build. `VITE_BLOG_API_URL` is now set (§3), so the remaining input is `VITE_SUPABASE_*`, deliberately unset (the data layer is octo) | nothing to fix — the hash is content-addressed; the site is no longer compared against Vercel |
+| ~~`/` and `/index.html` body differs in one line~~ | **Resolved 2026-10-12** (TASK-DB-0084) — the two-document swap makes `/` and `/index.html` the same journey document, so they are byte-identical. The old difference was the entry-bundle hash (the shell referenced its own hashed bundle) | nothing to fix |
 | `/sitemap.xml` size | **Resolved 2026-10-07** — `scripts/generate-sitemap.mjs` reads the live blog list at build time; with `VITE_BLOG_API_URL` set (§3) it lists all 33 posts (66 blog URLs across `/blogs/N` and `/endtoend-engineer/blogs/N`), not the 7-post snapshot | nothing — set `VITE_BLOG_API_URL` (§3), which the box now does |
 | 404 body is `404: NOT_FOUND` (14 B) instead of Vercel's 79-byte page | Vercel's body carries a per-request `NOT_FOUND` id | cosmetic; status and content type match |
 | `/ai-for-good/brand/logo.svg` 404 body 79 B vs 84 B | the 404 comes from the **upstream** ai-for-good Vercel app through the proxy; the last line of its body is a request id (`iad1::zfvxj-…` vs `iad1:iad1::2mqz4-…`) that differs per request on both sides | nothing to fix — not our response |
@@ -234,23 +247,33 @@ What `deploy.sh` does, in order:
    on `design-bakery-api` when the API is enabled).
 3. `git checkout --force --detach <sha>` — the deploy checkout is intentionally detached;
    do not expect a branch there.
-4. `docker compose build` a new image tagged `<sha12>-<UTC timestamp>` (and `<sha12>`).
-5. `docker compose up -d --no-deps web` with the new image.
-6. When the API is enabled: `compose up -d --no-deps api` with the new API image, then
+4. **Re-exec the freshly checked-out script** (TASK-DB-0084). The checkout above rewrote
+   `deploy.sh` itself, and bash reads a script incrementally, so continuing would run the
+   *outgoing* revision's `smoke()` against the *incoming* container — a routing change
+   would be rolled back by its own stale smoke line. `DEPLOY_REEXEC=1 exec "$SELF" "$@"`
+   replaces the process image once, before anything is built; `exec` keeps the pid, so the
+   deploy lock taken before step 1 stays ours.
+5. `docker compose build` a new image tagged `<sha12>-<UTC timestamp>` (and `<sha12>`).
+6. `docker compose up -d --no-deps web` with the new image.
+7. When the API is enabled: `compose up -d --no-deps api` with the new API image, then
    health-check `127.0.0.1:$API_HOST_PORT/health` (up to `API_HEALTH_TIMEOUT`, 180 s —
    Node cold-starts slower than Caddy). An unhealthy API fails the deploy.
-7. Health-check `127.0.0.1:8085/healthz` (up to 90 s), then smoke-check
-   `/`, `/research/papers/db-r-2026-010`, `/robots.txt`, `/ire` (200), `/ire/app` (301),
-   `/ai-for-good` (308), `/studyos` (307). With the API enabled, also GET
+8. Health-check `127.0.0.1:8085/healthz` (up to 90 s), then smoke-check `/`, `/healthz`,
+   `/shell/index.html`, `/research/papers/db-r-2026-010`, `/robots.txt`, a journey scene
+   plate at the site root, `/ire` (200), `/ire/app` (301), `/version-2` (308),
+   `/ai-for-good` (308), `/studyos` (307). Two of those are body checks, not status
+   checks: `/` must **not** contain the shell's title marker and `/shell/index.html` must
+   contain it, which is what proves the build-time document swap actually published
+   (TASK-DB-0084). With the API enabled, also GET
    `/api/public/blogs` through the web container: a 200 proves the Caddy `/api/*` proxy
    and the data layer both work; a gateway status (502/503/504) fails the deploy (the
    proxy is broken — the original bug); a 500 only warns (a data-layer/secret problem,
    not a routing one).
-8. On success: write `deploy/gravebuster/.deploy-state` (`SHA`, `CURRENT_IMAGE`,
+9. On success: write `deploy/gravebuster/.deploy-state` (`SHA`, `CURRENT_IMAGE`,
    `PREVIOUS_IMAGE`, `CURRENT_API_IMAGE`, `PREVIOUS_API_IMAGE`, `DEPLOYED_AT`) and log
    to `deploy/gravebuster/deploy.log`.
-9. On failure: swap the previous web image (and API image, when enabled) back
-   automatically, health-check it, exit 1 (`--no-rollback` to skip).
+10. On failure: swap the previous web image (and API image, when enabled) back
+    automatically, health-check it, exit 1 (`--no-rollback` to skip).
 
 Useful flags: `--no-pull` (use the local checkout), `--with-edge` (attach the
 Cloudflare Tunnel network for this run, see §5), `--no-edge` (drop it for this run),

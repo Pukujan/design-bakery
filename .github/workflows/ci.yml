@@ -72,8 +72,8 @@ jobs:
       - name: Check the IRE dashboard wiring, SEO tags and routing
         run: pnpm test:ire-app
 
-      - name: Check the /version-2 page wiring and routing
-        run: pnpm test:version-2-app
+      - name: Check the cinematic homepage wiring, the shell path and routing
+        run: pnpm test:home-app
 
       - name: Install Chromium for the IRE dashboard browser checks
         run: pnpm exec playwright install --with-deps chromium

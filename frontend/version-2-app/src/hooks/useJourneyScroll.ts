@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { ART, ORB, SEAM, sunPosition } from "@/lib/art";
-import { journey, type Tier } from "@/lib/journey-state";
+import { journey, detectTier, type Tier } from "@/lib/journey-state";
 
 const clamp = (v: number, a = 0, b = 1) => (v < a ? a : v > b ? b : v);
 const phase = (v: number, a: number, b: number) => clamp((v - a) / (b - a || 1));
@@ -21,8 +21,7 @@ export function useJourneyScroll() {
 
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     let reduced = mq.matches;
-    const tier: Tier =
-      window.innerWidth < 768 || (navigator.hardwareConcurrency ?? 8) <= 4 ? "coarse" : "fine";
+    const tier: Tier = detectTier();
 
     journey.tier = tier;
     journey.reduced = reduced;
@@ -52,13 +51,12 @@ export function useJourneyScroll() {
       journey.vw = vw;
       max = Math.max(1, document.body.scrollHeight - vh);
 
-      // the bloom and the moon sit on the sun already painted into the plate
+      // the bloom sits on the sun already painted into the plate
       sunPct = sunPosition(vw, vh);
       root.style.setProperty("--sun-x", `${sunPct.x.toFixed(2)}%`);
       root.style.setProperty("--sun-y", `${sunPct.y.toFixed(2)}%`);
       const size = ORB.size(vw);
       root.style.setProperty("--sun-size", `${size}vmin`);
-      root.style.setProperty("--moon-size", `${(size * ORB.moonRatio).toFixed(2)}vmin`);
 
       const next: Record<Scene, number> = { ...anchors };
       for (const s of SCENES) {
@@ -113,7 +111,7 @@ export function useJourneyScroll() {
 
       /* --------------------------------------------------------- the blade cut */
       const through = clamp((y + vh - cut.top) / (cut.height + vh));
-      const bladeSweep = phase(through, 0.03, 0.2);
+      const bladeSweep = phase(through, 0.02, 0.24);
       const tear = reduced ? smooth(phase(through, 0.2, 0.8)) : smooth(phase(through, 0.16, 0.82));
       const nightT = smooth(phase(tear, 0.3, 1));
 
@@ -126,7 +124,7 @@ export function useJourneyScroll() {
       /*
        * The tear is aimed at the sun, not at the middle of the frame: the
        * centre of the cut sits where the painted sun is, so the split passes
-       * through it and the sun becomes the moon.
+       * through it.
        */
       const sunX = (sunPct.x / 100) * vw;
       const sunY = (sunPct.y / 100) * vh;
@@ -144,10 +142,10 @@ export function useJourneyScroll() {
 
       const fine = tier === "fine" && !reduced;
       const halfA = fine
-        ? `translate3d(${-SEAM.nx * off}px, ${-SEAM.ny * off}px, 0) rotate(${-0.7 * tear}deg) scale(${1 + 0.03 * tear})`
+        ? `translate3d(${-SEAM.nx * off}px, ${-SEAM.ny * off}px, 0) rotate(${-1.6 * tear}deg) scale(${1 + 0.045 * tear})`
         : "none";
       const halfB = fine
-        ? `translate3d(${SEAM.nx * off}px, ${SEAM.ny * off}px, 0) rotate(${0.7 * tear}deg) scale(${1 + 0.03 * tear})`
+        ? `translate3d(${SEAM.nx * off}px, ${SEAM.ny * off}px, 0) rotate(${1.6 * tear}deg) scale(${1 + 0.045 * tear})`
         : "none";
 
       /* -------------------------------------------------------- eyes in the cut */
@@ -155,10 +153,31 @@ export function useJourneyScroll() {
       const eyes = phase(tear, 0.06, 0.22) * (1 - phase(tear, 0.5, 0.82));
 
       /* ----------------------------------------------------------------- blade */
-      const bladeTravel = (bladeSweep * 2.7 - 1.35) * Math.hypot(vw, vh);
-      const bladeOp = reduced || tier === "coarse" ? 0 : Math.sin(Math.PI * clamp(bladeSweep)) * 1.15;
-      // the torn-paper texture only shows through the instant the cut is made
-      const flash = reduced ? 0 : Math.sin(Math.PI * clamp(phase(tear, 0, 0.45))) * 0.95;
+      /*
+       * The sword arrives before the cut does. `thrust` grows the blade out of
+       * the background toward the viewer and `slash` is the carve that follows
+       * once the tip has landed; `impact` spikes at the moment of contact and is
+       * read by the particle field to throw sparks.
+       */
+      const thrust = phase(bladeSweep, 0, 0.42);
+      const slash = phase(bladeSweep, 0.4, 1);
+      const impact = reduced
+        ? 0
+        : Math.pow(Math.sin(Math.PI * clamp(phase(bladeSweep, 0.34, 0.66))), 3);
+      const bladeTravel = (slash * 2.2 - 1.1) * Math.hypot(vw, vh);
+      const bladeOp =
+        reduced || tier === "coarse"
+          ? 0
+          : clamp(thrust * 1.8) * (1 - phase(bladeSweep, 0.82, 1));
+      // the tip starts far off and grows until it is through the screen plane
+      const thrustScale = 0.1 + 1.7 * thrust;
+      // the torn paper stays lit while the cut is open: it used to fall away by
+      // the time the tear reached its widest
+      const flash = reduced
+        ? 0
+        : clamp(phase(tear, 0.01, 0.2)) * (1 - 0.45 * phase(tear, 0.7, 1));
+
+      journey.impact = impact;
 
       /* ------------------------------------------------------------ foreground */
       const fgDay = 1 - smooth(phase(sp, anchors.cut - 0.08, anchors.cut + 0.06));
@@ -173,7 +192,7 @@ export function useJourneyScroll() {
       set("--plate-dusk", dayBlend.toFixed(4));
       set("--night-t", nightT.toFixed(4));
       set("--tear", tear.toFixed(4));
-      set("--veil", clamp(0.08 + 0.4 * phase(sp, anchors.about, anchors.cut) - 0.26 * nightT).toFixed(4));
+      set("--veil", clamp(0.18 + 0.34 * phase(sp, anchors.about, anchors.cut) - 0.26 * nightT).toFixed(4));
       set("--seam-c", `${c.toFixed(3)}%`);
       set("--shift-x", `${(d * SEAM.nx).toFixed(1)}px`);
       set("--shift-y", `${(d * SEAM.ny).toFixed(1)}px`);
@@ -190,11 +209,16 @@ export function useJourneyScroll() {
         `translate3d(${SEAM.nx * off}px, ${SEAM.ny * off}px, 0)`,
       );
       set("--band", `${off.toFixed(1)}px`);
-      set("--seam-op", (phase(tear, 0.01, 0.07) * (1 - phase(tear, 0.5, 0.92))).toFixed(4));
+      // the seam holds its heat for as long as the cut is open. it used to fade
+      // across the widest part of the tear, dimming the core exactly when the
+      // two halves were furthest apart
+      set("--seam-op", (phase(tear, 0.01, 0.05) * (1 - 0.4 * phase(tear, 0.9, 1))).toFixed(4));
       set("--seam-flash", flash.toFixed(4));
       set("--eyes-op", eyes.toFixed(4));
       set("--eyes-scale", (0.9 + 0.14 * tear).toFixed(4));
       set("--blade-op", clamp(bladeOp).toFixed(4));
+      set("--blade-thrust", `scale(${thrustScale.toFixed(4)})`);
+      set("--blade-arc", slash.toFixed(4));
       // the blade rides the same line the world tears along, through the sun
       set(
         "--blade-tf",
@@ -202,10 +226,8 @@ export function useJourneyScroll() {
           `translate(-50%, -50%) rotate(${SEAM.slash}deg) translate3d(${bladeTravel.toFixed(1)}px, 0, 0)`,
       );
       set("--orb-t", smooth(phase(tear, 0.34, 0.72)).toFixed(4));
-      // the sun goes down as the cut opens; the moon climbs into the night
+      // the sun goes down as the cut opens
       set("--sun-sink", `${(vh * ORB.sunSink * tear).toFixed(1)}px`);
-      set("--moon-lift", `${(-vh * ORB.moonLift * nightT).toFixed(1)}px`);
-      set("--moon-grow", (0.8 + 0.2 * nightT).toFixed(4));
       set("--par-far", `${parFar.toFixed(1)}px`);
       set("--par-mid", `${parMid.toFixed(1)}px`);
       set("--par-near", `${parNear.toFixed(1)}px`);

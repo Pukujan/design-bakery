@@ -35,6 +35,7 @@ set -euo pipefail
 PATH="/usr/local/bin:$PATH"
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+SELF="$SCRIPT_DIR/$(basename "${BASH_SOURCE[0]}")"
 REPO_DIR=${DEPLOY_REPO_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}
 COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
 EDGE_OVERLAY="$SCRIPT_DIR/docker-compose.edge.yml"
@@ -190,7 +191,15 @@ acquire_lock() {
 	trap 'rm -rf "$LOCK_DIR" 2>/dev/null || true' EXIT
 }
 
-acquire_lock
+# Take the deploy lock, unless this run is a re-exec (below) of the freshly checked-out
+# script: `exec` keeps our pid, so the lock the first pass took is still ours. `exec` also
+# clears the EXIT trap, so re-arm it here or the lock would be left behind.
+if [ "${DEPLOY_REEXEC:-0}" = "1" ]; then
+	[ -d "$LOCK_DIR" ] || die "re-exec lost the deploy lock at $LOCK_DIR"
+	trap 'rm -rf "$LOCK_DIR" 2>/dev/null || true' EXIT
+else
+	acquire_lock
+fi
 
 state_get() {
 	[ -f "$STATE_FILE" ] || return 0
@@ -225,7 +234,8 @@ api_state_previous() { # <value to record when the API was deployed this run>
 }
 
 # Smoke test: the health endpoint plus the routes that exercise the vercel.json
-# parity rules (SPA fallback, static asset, proxy redirect, external redirect).
+# parity rules (homepage identity, shell path, static asset, proxy redirect, external
+# redirect).
 smoke() {
 	local base="http://127.0.0.1:$WEB_HOST_PORT"
 	local failures=0
@@ -239,17 +249,45 @@ smoke() {
 			failures=$((failures + 1))
 		fi
 	}
+	# <path> <needle> / <path> <needle>: the body must contain / must not contain the
+	# needle. The needles are ASCII-only on purpose — the titles they come from carry an
+	# em dash, and the deploy host's locale is not guaranteed UTF-8.
+	body_has() {
+		if curl -sS --max-time 10 "$base$1" 2>/dev/null | grep -qF -- "$2"; then
+			log "  ok   body has \"$2\" at $1"
+		else
+			log "  FAIL body missing \"$2\" at $1"
+			failures=$((failures + 1))
+		fi
+	}
+	body_lacks() {
+		if curl -sS --max-time 10 "$base$1" 2>/dev/null | grep -qF -- "$2"; then
+			log "  FAIL body unexpectedly has \"$2\" at $1"
+			failures=$((failures + 1))
+		else
+			log "  ok   body lacks \"$2\" at $1"
+		fi
+	}
 	check 200 "$HEALTH_PATH"
 	check 200 /
+	# Homepage identity (TASK-DB-0084): `/` must BE the cinematic journey, not the site
+	# shell. Vercel and Caddy evaluate rewrites *after* the filesystem, so no rule can
+	# change what `/` serves — the swap is done at build time and this is the check that
+	# proves it happened. The shell's title carries "Fullstack Design Engineer" and the
+	# journey's does not, so the pair of body checks below pins the two documents apart.
+	body_lacks / "Fullstack Design Engineer"
+	check 200 /shell/index.html
+	body_has /shell/index.html "Fullstack Design Engineer"
 	check 200 /research/papers/db-r-2026-010
 	check 200 /robots.txt
+	# A journey scene plate, now served from the site root (the journey's assets land
+	# beside the shell's after the swap).
+	check 200 /plate-arrival.png
 	# The dashboard's canonical path, and the old /ire/app path redirecting to it.
 	check 200 /ire
 	check 301 /ire/app
-	# The /version-2 page: its shell, and a scene plate under the base path (the plate
-	# proves the app's asset prefix resolves through the rewrite, not just the shell).
-	check 200 /version-2
-	check 200 /version-2/generated-1791737493819-ac12e96dface.png
+	# The journey's retired path permanently redirects to the homepage it became.
+	check 308 /version-2
 	check 308 /ai-for-good
 	check 307 /studyos
 	return "$failures"
@@ -328,6 +366,18 @@ NEW_API_IMAGE=""
 
 log "checking out $SHORT (detached)"
 git -C "$REPO_DIR" checkout --force --detach "$SHA" >/dev/null 2>&1 || die "checkout failed"
+
+# The checkout above rewrote THIS file. Bash reads a script incrementally, so continuing
+# would run the *outgoing* revision's `smoke()` against the *incoming* container — the
+# trap that once rolled a routing change back on its own smoke line (TASK-DB-0084).
+# Re-exec the freshly checked-out script once, before anything is built, so the new
+# revision's own checks run. `exec` keeps our pid, so the lock stays ours and the first
+# pass's EXIT trap is re-armed by the branch above; DEPLOY_REEXEC is exported into the
+# child so this block does not loop.
+if [ "${DEPLOY_REEXEC:-0}" != "1" ]; then
+	log "re-executing the checked-out revision's deploy script"
+	DEPLOY_REEXEC=1 exec "$SELF" "$@"
+fi
 
 log "building $NEW_IMAGE"
 if ! DESIGN_BAKERY_IMAGE="$NEW_IMAGE" compose build --pull web; then

@@ -25,8 +25,6 @@ function Device({ project, children }: { project: Project; children: ReactNode }
       {device === "passing" ? (
         <div className={`${frameClass} overflow-hidden pb-14 pt-6 sm:pt-7`}>
           {children}
-          {/* the lit windows of a night train sliding past below the panel */}
-          <div className="db-rail" />
         </div>
       ) : (
         <div className={`${frameClass} p-6 sm:p-7`}>{children}</div>
@@ -63,7 +61,7 @@ export function ProjectMoment({ project }: { project: Project }) {
             {stats.map((s) => (
               <div key={s.label}>
                 <dt className="db-display text-[1.4rem] leading-none text-dusk-gold">{s.value}</dt>
-                <dd className="db-label mt-1.5 text-[0.5rem] text-cream/60">{s.label}</dd>
+                <dd className="db-label mt-1.5 text-[0.56rem] text-cream/60">{s.label}</dd>
               </div>
             ))}
           </dl>
@@ -78,7 +76,7 @@ export function ProjectMoment({ project }: { project: Project }) {
         </ul>
 
         {links.length > 0 && (
-          <ul className="mt-5 flex flex-wrap gap-2 border-t border-cream/12 pt-4">
+          <ul className="db-links mt-5 flex flex-wrap gap-2 border-t border-cream/12 pt-4">
             {links.map((l) => (
               <li key={l.label}>
                 <a

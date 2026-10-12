@@ -6,14 +6,14 @@
 
 /**
  * The scene plates live in public/ and are served under the app's base path
- * (/version-2/ on the site, / in dev). import.meta.env.BASE_URL carries that prefix,
- * so the same source works at either mount point.
+ * (the site root). import.meta.env.BASE_URL carries that prefix, so the same
+ * source works at either mount point.
  */
 const plate = (name: string) => `${import.meta.env.BASE_URL}${name}`;
 
 export const ART = {
   /** Scene 1 / 2 — pastel sunset arrival */
-  sunset: plate("generated-1791737493819-ac12e96dface.png"),
+  sunset: plate("plate-arrival.png"),
   /** Scene 3 — warm dusk, the house balcony */
   dusk: plate("generated-1791737575036-a882ca3f26ae.png"),
   /** Scene 5 — moonlit night, the lantern street */
@@ -40,28 +40,28 @@ export const SEAM = {
   nx: Math.sin((ANGLE * Math.PI) / 180),
   ny: -Math.cos((ANGLE * Math.PI) / 180),
   /** how far the two halves drift apart, as a fraction of the diagonal */
-  separation: 0.055,
+  separation: 0.07,
   /** how wide the paper band opens, in percent of the gradient length */
-  spread: 30,
+  spread: 34,
   feather: 1.4,
   /** the slash, in degrees, for anything that must sit inside it */
   slash: -28,
 } as const;
 
 /**
- * The sun already painted into the plate. The CSS bloom and the moon are
- * placed on top of it, so the cut transforms *that* sun rather than lighting a
- * second one. Position is given in image-space fractions, and `cover` cropping
- * is solved for in the scroll driver because the on-screen position depends on
- * the viewport's aspect ratio.
+ * The sun already painted into the plate. The CSS bloom is placed on top of it,
+ * so the cut transforms *that* sun rather than lighting a second one. Position
+ * is given in image-space fractions, and `cover` cropping is solved for in the
+ * scroll driver because the on-screen position depends on the viewport's aspect
+ * ratio.
  */
 export const SUN = {
   /** fraction across the source plate */
-  fx: 0.43,
+  fx: 0.3753,
   /** fraction down the source plate */
-  fy: 0.395,
-  /** the plate's aspect ratio (16:9 key art) */
-  aspect: 16 / 9,
+  fy: 0.5307,
+  /** the plate's aspect ratio (1792x1024) */
+  aspect: 1792 / 1024,
   /** .db-plate-sunset geometry: inset -5% -3%, background-position center 60% */
   insetY: 0.05,
   insetX: 0.03,
@@ -69,11 +69,9 @@ export const SUN = {
 } as const;
 
 export const ORB = {
-  moonRatio: 0.82,
-  /** how far the sun drops and the moon climbs, as a fraction of viewport height */
+  /** how far the sun drops, as a fraction of viewport height */
   sunSink: 0.13,
-  moonLift: 0.1,
-  /** the disc sizes, in vmin */
+  /** the disc size, in vmin */
   size: (vw: number) => (vw < 768 ? 21 : 16),
 } as const;
 

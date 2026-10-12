@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { SEAM } from "@/lib/art";
-import { journey } from "@/lib/journey-state";
+import { journey, detectTier } from "@/lib/journey-state";
 
 type P = {
   x: number;
@@ -15,10 +15,26 @@ type P = {
 };
 
 /**
+ * A live spark. `hot` ones are thrown off the point where the blade tip lands,
+ * fast and white; the others are motes lifting off the two torn edges while the
+ * cut stays open.
+ */
+type Spark = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  r: number;
+  life: number;
+  max: number;
+  hot: 0 | 1;
+};
+
+/**
  * Canvas 2D particle field — no WebGL anywhere. Petals drift through the day,
- * embers rise through the night, and sparks fly along the two ragged edges of
- * the cut. Counts are halved on the coarse tier and the canvas is skipped
- * entirely when the visitor asks for reduced motion.
+ * embers rise through the night, and sparks fly from the cut. Counts are halved
+ * on the coarse tier and the canvas is skipped entirely when the visitor asks
+ * for reduced motion.
  */
 export function ParticleField() {
   const ref = useRef<HTMLCanvasElement | null>(null);
@@ -32,12 +48,15 @@ export function ParticleField() {
     let w = 0;
     let h = 0;
     let particles: P[] = [];
+    let sparks: Spark[] = [];
+    let free: number[] = [];
+    let moteDebt = 0;
     let raf = 0;
     let last = performance.now();
 
     const count = () => {
-      const area = (journey.vw * journey.vh) / 1_000_000;
-      const base = journey.tier === "coarse" ? 24 : 52;
+      const area = (window.innerWidth * window.innerHeight) / 1_000_000;
+      const base = detectTier() === "coarse" ? 24 : 52;
       return Math.round(Math.min(base, Math.max(12, base * (0.5 + area))));
     };
 
@@ -56,16 +75,39 @@ export function ParticleField() {
 
     const resize = () => {
       const dpr = Math.min(1.5, window.devicePixelRatio || 1);
-      w = journey.vw;
-      h = journey.vh;
+      // measured here, not from journey.vw: child effects run before the
+      // scroll driver's effect has written anything, so reading the shared
+      // state on mount sized the canvas 0x0 and the petals never appeared
+      w = window.innerWidth;
+      h = window.innerHeight;
+      journey.vw = w;
+      journey.vh = h;
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       particles = Array.from({ length: count() }, () => seed({} as P, true));
+      // one pooled spark per slot, so a burst never allocates mid-frame
+      const cap = detectTier() === "coarse" ? 150 : 420;
+      sparks = Array.from({ length: cap }, () => ({
+        x: 0, y: 0, vx: 0, vy: 0, r: 1, life: 0, max: 1, hot: 0,
+      })) as Spark[];
+      free = sparks.map((_, i) => i).reverse();
+      moteDebt = 0;
     };
 
     resize();
     window.addEventListener("resize", resize);
+
+    /** take a dead slot, or drop the particle if the pool is saturated */
+    const emit = (
+      x: number, y: number, vx: number, vy: number, r: number, life: number, hot: 0 | 1,
+    ) => {
+      const i = free.pop();
+      if (i === undefined) return;
+      const s = sparks[i];
+      s.x = x; s.y = y; s.vx = vx; s.vy = vy; s.r = r;
+      s.life = life; s.max = life; s.hot = hot;
+    };
 
     const draw = (now: number) => {
       raf = requestAnimationFrame(draw);
@@ -77,6 +119,7 @@ export function ParticleField() {
 
       const night = journey.nightT;
       const tear = journey.tear;
+      const coarse = journey.tier === "coarse";
 
       for (const p of particles) {
         const weight = p.kind === 0 ? 1 - night : night;
@@ -109,42 +152,130 @@ export function ParticleField() {
         }
       }
 
-      // sparks thrown off along the two ragged edges of the cut
-      if (tear > 0.02 && tear < 0.995) {
-        const per = journey.tier === "coarse" ? 6 : 14;
-        const along = Math.hypot(w, h) * 0.92;
-        const cx = w / 2;
-        const cy = h / 2;
-        const px = -SEAM.ny;
-        const py = SEAM.nx;
+      const px = -SEAM.ny;
+      const py = SEAM.nx;
+      const along = Math.hypot(w, h) * 0.46;
 
-        ctx.globalCompositeOperation = "lighter";
-        for (const [off, dir] of [
-          [-journey.offA, -1],
-          [journey.offB, 1],
-        ] as [number, number][]) {
-          const ex = cx + SEAM.nx * (journey.seamD + off);
-          const ey = cy + SEAM.ny * (journey.seamD + off);
-          for (let i = 0; i < per; i++) {
-            const t = (i / per - 0.5) * 2;
-            const jitter = Math.sin(now / 300 + i * 2.3 + dir) * (10 + 26 * tear);
-            const x = ex - px * t * along + SEAM.nx * jitter * dir;
-            const y = ey - py * t * along + SEAM.ny * jitter * dir;
-            const r = 0.7 + Math.abs(Math.sin(now / 250 + i)) * 2.1;
-            const a =
-              (0.16 + 0.5 * Math.abs(Math.sin(now / 380 + i * 1.7))) *
-              (1 - Math.abs(t)) *
-              Math.min(1, tear * 3);
-            if (a <= 0.01) continue;
-            ctx.globalAlpha = a;
-            ctx.fillStyle = i % 3 === 0 ? "#ffe0a8" : "#ff9a4e";
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.fill();
-          }
+      /*
+       * The pierce. Sparks pour out of the point where the tip lands — the seam
+       * centre, the same place the sword's tip is pinned — densest and hottest
+       * at the instant of contact, then thinning as `impact` falls away. They
+       * are biased along the slash, because that is the way the blade travels.
+       */
+      const imp = journey.impact;
+      if (imp > 0.02) {
+        const ix = w / 2 + SEAM.nx * journey.seamD;
+        const iy = h / 2 + SEAM.ny * journey.seamD;
+        const per = Math.min(coarse ? 5 : 11, Math.round((coarse ? 7 : 20) * imp));
+        for (let n = 0; n < per; n++) {
+          const a = Math.random() * 2 - 1;
+          const o = Math.random() * 2 - 1;
+          const sp = (70 + Math.random() * 560) * (0.45 + imp);
+          const big = Math.random() < 0.18;
+          emit(
+            ix + px * a * 26 + SEAM.nx * o * 8,
+            iy + py * a * 26 + SEAM.ny * o * 8,
+            px * a * sp + SEAM.nx * o * sp * 0.75,
+            py * a * sp + SEAM.ny * o * sp * 0.75,
+            (big ? 2.6 : 1) * (0.9 + Math.random() * 2.3),
+            0.3 + Math.random() * 0.5 + imp * 0.4,
+            1,
+          );
         }
-        ctx.globalCompositeOperation = "source-over";
       }
+
+      /*
+       * Glowing motes lifting off both torn edges for as long as the cut is
+       * open. They leave the ragged edge slowly and drift outward, so the split
+       * keeps shedding heat instead of going dark as it widens.
+       */
+      if (tear > 0.02 && tear < 0.995) {
+        moteDebt += (coarse ? 16 : 46) * dt * (0.4 + 0.6 * tear);
+        while (moteDebt >= 1) {
+          moteDebt -= 1;
+          const side = Math.random() < 0.5 ? -1 : 1;
+          const d = journey.seamD + side * (side < 0 ? journey.offA : journey.offB);
+          const u = Math.random() * 2 - 1;
+          const sp = 18 + Math.random() * 74;
+          emit(
+            w / 2 + SEAM.nx * d + px * u * along + SEAM.nx * side * Math.random() * 9,
+            h / 2 + SEAM.ny * d + py * u * along + SEAM.ny * side * Math.random() * 9,
+            SEAM.nx * side * sp * 0.8 + px * (Math.random() * 2 - 1) * 30,
+            SEAM.ny * side * sp * 0.8 + py * (Math.random() * 2 - 1) * 30 - 18,
+            0.8 + Math.random() * 1.9,
+            0.9 + Math.random() * 1.5,
+            0,
+          );
+        }
+      }
+
+      // integrate and draw the spark pool under additive blending
+      const drag = Math.exp(-dt * 2);
+      ctx.globalCompositeOperation = "lighter";
+      for (let i = 0; i < sparks.length; i++) {
+        const s = sparks[i];
+        if (s.life <= 0) continue;
+
+        s.vx *= drag;
+        s.vy = s.vy * drag + (s.hot ? 210 : -26) * dt;
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+        s.life -= dt;
+        if (s.life <= 0 || s.x < -60 || s.x > w + 60 || s.y < -60 || s.y > h + 60) {
+          s.life = 0;
+          free.push(i);
+          continue;
+        }
+
+        const k = s.life / s.max;
+        const a = Math.min(1, s.hot ? 0.5 + 0.8 * k : 0.24 + 0.5 * k);
+        const heat = s.hot ? k : k * 0.78;
+        const r = s.r * (0.55 + 0.45 * k);
+
+        // the halo first, then the cooling core: two flat arcs, no gradients
+        ctx.globalAlpha = a * 0.3;
+        ctx.fillStyle = s.hot ? "#ff8a3a" : "#ff7a34";
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, r * 3.6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.globalAlpha = a;
+        ctx.fillStyle = heat > 0.7 ? "#fffdf4" : heat > 0.4 ? "#ffd68f" : "#ff8a3c";
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // hot sparks streak, so the burst reads as thrown-off metal, not dust
+        if (s.hot && k > 0.22) {
+          ctx.globalAlpha = a * 0.55;
+          ctx.strokeStyle = "#ffeecb";
+          ctx.lineWidth = r * 0.85;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(s.x, s.y);
+          ctx.lineTo(s.x - s.vx * 0.02, s.y - s.vy * 0.02);
+          ctx.stroke();
+        }
+      }
+
+      // the white-hot instant the tip lands
+      if (imp > 0.05) {
+        const ix = w / 2 + SEAM.nx * journey.seamD;
+        const iy = h / 2 + SEAM.ny * journey.seamD;
+        const rad = 60 + 330 * imp;
+        const g = ctx.createRadialGradient(ix, iy, 0, ix, iy, rad);
+        g.addColorStop(0, `rgba(255, 255, 250, ${0.6 * imp})`);
+        g.addColorStop(0.24, `rgba(255, 216, 142, ${0.42 * imp})`);
+        g.addColorStop(0.58, `rgba(255, 122, 52, ${0.2 * imp})`);
+        g.addColorStop(1, "rgba(255, 90, 40, 0)");
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(ix, iy, rad, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.globalCompositeOperation = "source-over";
 
       // a scatter of fixed stars, only once the world is dark
       if (night > 0.05) {
