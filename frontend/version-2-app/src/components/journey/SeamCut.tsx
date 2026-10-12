@@ -15,7 +15,7 @@ type Node = { x: number; y: number; hw: number; fa: number; fb: number };
 /**
  * The torn seam: a white-hot core that keeps its heat for as long as the cut is
  * open, wrapped in a warm ember glow, with ragged lifted paper fibres on both
- * edges and a flare where the sword tip strikes. Drawn in viewport pixel space
+ * edges and a flare where the rip opens. Drawn in viewport pixel space
  * so it lines up exactly with the masked daylight halves; each edge is pushed
  * apart by the scroll driver via --seam-a-tf / --seam-b-tf.
  */

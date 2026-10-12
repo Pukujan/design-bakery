@@ -1,12 +1,12 @@
 /* ==========================================================================
    Design Bakery — the journey stage
-   One continuous scroll-driven world: pastel afternoon -> blade cut -> night.
+   One continuous scroll-driven world: pastel afternoon -> the cut -> night.
    The stage is fixed; the scrollbar writes CSS custom properties that only ever
    feed transform / opacity, so the story stays smooth and never thrashes.
 
    Layer order (low to high):
      sky day / sky night -> night plate -> daylight half A / half B ->
-        sun -> haze -> ember bleed -> torn seam -> eyes -> blade ->
+        sun -> haze -> ember bleed -> torn seam -> eyes ->
      foreground silhouettes -> lanterns -> particles -> veils
    ========================================================================== */
 
@@ -451,46 +451,6 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
   mix-blend-mode: screen;
 }
 
-/* the blade and its trail — nothing holds it */
-.db-blade {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 9;
-  width: min(150vw, 1500px);
-  height: 300px;
-  transform: var(--blade-tf, translate(-50%, -50%));
-  opacity: var(--blade-op, 0);
-  mix-blend-mode: screen;
-  /*
-   * A tight halo only. A wide uniform bloom wraps the far hilt in the same light
-   * as the near tip, which erases the taper and puts the sword back in the plane
-   * of the picture; kept narrow, the point reads hot and the steel cools as it
-   * recedes into the scene.
-   */
-  filter: drop-shadow(0 0 9px rgba(255, 176, 96, 0.5)) drop-shadow(0 0 30px rgba(255, 122, 60, 0.24));
-  will-change: transform, opacity;
-}
-
-/*
- * The thrust. The sword group carries the SVG translate/rotate, and the CSS
- * scale lives on the child so the two do not overwrite each other — a CSS
- * transform property wins over the SVG transform attribute. Origin 0 0 is the
- * blade's tip in its own coordinate system, and the tip is the only place the
- * sword touches the seam, so growing about it holds the point exactly on the
- * split while the hilt is driven back into the scene. That is the whole depth
- * cue: the near end gets bigger and stays pinned, the far end stays small.
- */
-.db-sword-depth {
-  transform: scale(var(--blade-thrust, 1));
-  transform-origin: 0 0;
-}
-
-/* the arc of the cut only ignites once the tip has landed */
-.db-blade-arc {
-  opacity: var(--blade-arc, 0);
-}
-
 /* --------------------------------------------------- foreground silhouettes
    One band, not two: it fades out as the cut lands and the night band fades in,
    which keeps a single full-screen blended surface on the compositor. */
@@ -613,7 +573,7 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
  * The lead-in to the cut is measured in the same unit as the beat that holds it.
  * A bare `vh` here would be the *large* height while the beat is the *small* one,
  * so under a shrinking mobile URL bar the heading would slide away from the
- * moment the blade actually lands.
+ * moment the cut actually lands.
  */
 .db-cut-lead {
   padding-top: 58vh;
@@ -1051,7 +1011,6 @@ html[data-reduced="true"] .db-root-node {
     0 0 26px 10px rgba(217, 108, 127, 0.22) !important;
 }
 
-html[data-reduced="true"] .db-blade,
 html[data-reduced="true"] .db-canvas,
 html[data-reduced="true"] .db-seam-texture,
 html[data-reduced="true"] .db-seam,

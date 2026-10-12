@@ -3,8 +3,8 @@ import { Reveal } from "./Reveal";
 
 /**
  * Scene 4 — the turn. This block is tall and mostly empty on purpose: the
- * blade sweeps as it passes the viewport, tears the daylight open, and the
- * sun becomes the moon. No figure, no face, no prop — only a blade and eyes.
+ * seam tears the daylight open as it passes the viewport, and the sun becomes
+ * the moon. No figure, no face, no prop — only the tear and the eyes.
  */
 export function Cut() {
   return (

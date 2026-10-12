@@ -1,6 +1,5 @@
 import type { CSSProperties } from "react";
 import { ART } from "@/lib/art";
-import { BladeArc } from "./BladeArc";
 import { ParticleField } from "./ParticleField";
 import { SeamCut } from "./SeamCut";
 
@@ -68,7 +67,6 @@ export function Stage() {
       <SeamCut />
 
       <div className="db-img db-eyes" style={{ backgroundImage: `url(${ART.eyes})` }} />
-      <BladeArc />
 
       {/* near-camera silhouette: one band, warmed by day and cooled by night */}
       <div

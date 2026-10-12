@@ -19,9 +19,7 @@ export const journey = {
   p: 0,
   /** how far the tear has opened */
   tear: 0,
-  /** how far the blade has swept */
-  blade: 0,
-  /** the pierce itself — spikes once when the tip lands, read by the sparks */
+  /** the rip itself — spikes once when the tear opens, read by the sparks */
   impact: 0,
   /** 0 = day particles (petals), 1 = night particles (embers, stars) */
   night: 0,

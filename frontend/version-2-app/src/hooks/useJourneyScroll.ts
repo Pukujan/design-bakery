@@ -99,23 +99,22 @@ export function useJourneyScroll() {
 
       // critically damped follow, so fast flicks stay smooth
       const k = reduced ? 1 : 1 - Math.exp(-dt / 70);
-      current += (target - current) * k;
       target = p;
+      current += (target - current) * k;
       const sp = current;
+      const ey = sp * max;
 
       journey.p = sp;
-      journey.scrollY = y;
+      journey.scrollY = ey;
 
       /* ---------------------------------------------------- light of the world */
       const dayBlend = smooth(phase(sp, anchors.work, anchors.about));
 
-      /* --------------------------------------------------------- the blade cut */
-      const through = clamp((y + vh - cut.top) / (cut.height + vh));
-      const bladeSweep = phase(through, 0.02, 0.24);
+      /* --------------------------------------------------------------- the cut */
+      const through = clamp((ey + vh - cut.top) / (cut.height + vh));
       const tear = reduced ? smooth(phase(through, 0.2, 0.8)) : smooth(phase(through, 0.16, 0.82));
       const nightT = smooth(phase(tear, 0.3, 1));
 
-      journey.blade = bladeSweep;
       journey.tear = tear;
       journey.nightT = nightT;
 
@@ -152,25 +151,13 @@ export function useJourneyScroll() {
       // they look out while the seam is fresh, then sink back into the night
       const eyes = phase(tear, 0.06, 0.22) * (1 - phase(tear, 0.5, 0.82));
 
-      /* ----------------------------------------------------------------- blade */
       /*
-       * The sword arrives before the cut does. `thrust` grows the blade out of
-       * the background toward the viewer and `slash` is the carve that follows
-       * once the tip has landed; `impact` spikes at the moment of contact and is
+       * The burst is the rip itself: it spikes once as the tear opens, and is
        * read by the particle field to throw sparks.
        */
-      const thrust = phase(bladeSweep, 0, 0.42);
-      const slash = phase(bladeSweep, 0.4, 1);
       const impact = reduced
         ? 0
-        : Math.pow(Math.sin(Math.PI * clamp(phase(bladeSweep, 0.34, 0.66))), 3);
-      const bladeTravel = (slash * 2.2 - 1.1) * Math.hypot(vw, vh);
-      const bladeOp =
-        reduced || tier === "coarse"
-          ? 0
-          : clamp(thrust * 1.8) * (1 - phase(bladeSweep, 0.82, 1));
-      // the tip starts far off and grows until it is through the screen plane
-      const thrustScale = 0.1 + 1.7 * thrust;
+        : Math.pow(Math.sin(Math.PI * clamp(phase(tear, 0.04, 0.24))), 3);
       // the torn paper stays lit while the cut is open: it used to fall away by
       // the time the tear reached its widest
       const flash = reduced
@@ -216,15 +203,6 @@ export function useJourneyScroll() {
       set("--seam-flash", flash.toFixed(4));
       set("--eyes-op", eyes.toFixed(4));
       set("--eyes-scale", (0.9 + 0.14 * tear).toFixed(4));
-      set("--blade-op", clamp(bladeOp).toFixed(4));
-      set("--blade-thrust", `scale(${thrustScale.toFixed(4)})`);
-      set("--blade-arc", slash.toFixed(4));
-      // the blade rides the same line the world tears along, through the sun
-      set(
-        "--blade-tf",
-        `translate3d(${(d * SEAM.nx).toFixed(1)}px, ${(d * SEAM.ny).toFixed(1)}px, 0) ` +
-          `translate(-50%, -50%) rotate(${SEAM.slash}deg) translate3d(${bladeTravel.toFixed(1)}px, 0, 0)`,
-      );
       set("--orb-t", smooth(phase(tear, 0.34, 0.72)).toFixed(4));
       // the sun goes down as the cut opens
       set("--sun-sink", `${(vh * ORB.sunSink * tear).toFixed(1)}px`);
