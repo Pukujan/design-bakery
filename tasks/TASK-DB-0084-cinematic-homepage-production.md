@@ -6,7 +6,7 @@
 | **Issues** | None filed — owner direction in session ("finish the design and replace it") |
 | **Branch** | `task/TASK-DB-0084-cinematic-homepage-production` |
 | **Base** | `main` @ `0e91fd9c1bed` |
-| **Status** | In progress — code complete and verified locally; not yet merged or deployed |
+| **Status** | **Done — merged, auto-deployed, and verified live.** Merged as PR [#113](https://github.com/Pukujan/design-bakery/pull/113) (`7c2343a1`, 2026-10-12T08:01Z); the Mac auto-deploy timer picked it up; verified from the public edge and walked in a real browser 2026-10-12. |
 
 ## Goal
 
@@ -93,7 +93,11 @@ so the deploy lock taken earlier stays ours and the EXIT trap is re-armed.
   paths render the shell, `/version-2` and `/version-2/` 308 → `/`, the root scene plate
   200, `/ire` 200, `/ire/app` 301, `/ai-for-good` 308, `/studyos` 307, `/healthz` 200,
   and the og-preview paths degrade to the shell while the API is absent.
-- **Not yet verified:** the live deploy (Mac) and the browser walk of the finished design.
+- **Not yet verified:** ~~the live deploy (Mac) and the browser walk of the finished design.~~ — **both verified 2026-10-12 after the merge:**
+  - CI on the merge commit `7c2343a1`: `quality` and `orphans` both **success** (combined status `success`).
+  - **The Mac auto-deploy timer served the site without a hand deploy** — no `deploy.sh` run was needed. From the public edge: `/` → 200 and is the journey (`<title>Design Bakery — AI Engineer</title>`), `/shell/index.html` → 200, `/version-2` → **308 → `/`**, `/plate-arrival.png` → 200, `/blogs` and `/research` → 200, `/healthz` → 200.
+  - **Real-browser walk (headless Chromium, live site, 2026-10-12):** at 1440×900 and 390×844, at 10 scroll fractions each — **no horizontal overflow anywhere, zero console errors, zero page errors**. Content contract holds in the rendered DOM: brand, the exact arrival line `Design Bakery — AI Engineer`, `Pujan Bajracharya` only in About, projects and roles present, none of the invented spike names.
+  - **The cut verified on live, not just locally:** `--seam-op` reaches 1.0 at y≈8300 and **holds through tear 0.14 → 0.67** (the fix — the core used to dim exactly when the halves were widest), decaying to 0.6 only as the night reveal completes. Screenshots of the thrust window, impact and tear match the accepted runB variant.
 
 ## Open owner decisions
 
@@ -104,5 +108,11 @@ so the deploy lock taken earlier stays ours and the EXIT trap is re-armed.
 
 ## Next
 
-Deploy to the Mac (`deploy.sh --ref <main sha>`), verify from the public edge that `/` is
-the journey and `/version-2` 308s, then walk the journey in a real browser.
+**Done.** The homepage is the cinematic journey, live at `https://www.design-bakery.com/`, and
+the browser walk the plan asked for is recorded above. What remains is not this task's work:
+
+- The two open owner decisions below (the retired shell's path; the `version-2-app` → `home-app`
+  rename).
+- The next piece of the "redesign everything" scope — **the blogs listing and the blog creator**
+  are the parts the owner named that this task did not touch (case-study and research pages stay
+  out of scope).
