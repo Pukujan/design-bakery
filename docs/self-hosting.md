@@ -51,8 +51,9 @@ changed at Cloudflare.
 2. **Docker Desktop is not on the non-interactive SSH PATH.** `ssh mac <script>`
    has no `/usr/local/bin`, so all three scripts prepend it to `PATH`
    (harmless on Linux).
-3. **No systemd.** §6's timer has no macOS equivalent yet — deploys on the Mac
-   are by hand. A launchd agent is the follow-up.
+3. **No systemd.** §6's timer has no macOS equivalent; the Mac uses a launchd agent
+   (`deploy/gravebuster/launchd/com.designbakery.autodeploy.plist`, TASK-DB-0086) that runs
+   the same `autodeploy.sh`. It is installed and enabled — see §6.
 
 **Watch out — the shared tunnel will split-brain.** When gravebuster comes back,
 its `cloudflared` reconnects to the same tunnel and Cloudflare load-balances
@@ -486,18 +487,14 @@ stays useful for verifying a deploy before the flip.
 
 ## 6. Auto-deploy on merge to main
 
-**Enabled on gravebuster; not yet on the Mac.** gravebuster is not publicly reachable,
-so there is no GitHub webhook to receive; instead a systemd timer polls `origin/main`
-and deploys when the SHA moves. The timer only ever runs `deploy.sh`, so it needs the
-deploy lock above: a merge that lands while someone is deploying by hand must fail
-fast, not interleave.
-
-> **On the Mac (TASK-DB-0082) there is no scheduler** — `autodeploy.sh` works when
-> run by hand, but macOS has no systemd and no launchd agent has been written. Deploys
-> on the Mac are manual until that follow-up lands.
+**Enabled on both hosts** — gravebuster via a systemd timer, the Mac via a launchd agent
+(TASK-DB-0086). Neither host is publicly reachable, so there is no GitHub webhook to
+receive; instead a scheduler polls `origin/main` and deploys when the SHA moves. The
+scheduler only ever runs `deploy.sh`, so it needs the deploy lock above: a merge that
+lands while someone is deploying by hand must fail fast, not interleave.
 
 ```bash
-# enable (as root; the units use User=yoav like the other gravebuster timers)
+# gravebuster — systemd (as root; the units use User=yoav like the other timers)
 sudo cp ~/apps/design-bakery/deploy/gravebuster/systemd/design-bakery-autodeploy.{service,timer} /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now design-bakery-autodeploy.timer
@@ -510,18 +507,40 @@ tail -f ~/apps/design-bakery/deploy/gravebuster/autodeploy.log
 sudo systemctl disable --now design-bakery-autodeploy.timer
 ```
 
+```bash
+# the Mac — launchd (no sudo: it is a per-user agent, like com.octo.autodeploy)
+cp ~/apps/design-bakery/deploy/gravebuster/launchd/com.designbakery.autodeploy.plist \
+	~/Library/LaunchAgents/
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.designbakery.autodeploy.plist
+launchctl kickstart gui/$(id -u)/com.designbakery.autodeploy   # run once now
+
+launchctl print gui/$(id -u)/com.designbakery.autodeploy | grep -E 'state|last exit'
+tail -f ~/apps/design-bakery/deploy/gravebuster/autodeploy.log
+
+# disable
+launchctl bootout gui/$(id -u)/com.designbakery.autodeploy
+```
+
 - `autodeploy.sh` fetches `origin/main`, compares it with the deployed `SHA` in
   `.deploy-state`, and calls `deploy.sh --no-pull --ref <sha>` only when it differs.
   `--dry-run` reports without deploying. It delegates the lock and every safety check to
-  `deploy.sh`, so a timer run and a hand run cannot collide.
-- The timer fires every 5 minutes (`OnCalendar=*:0/5`, `RandomizedDelaySec=90`), so a
-  merge to main goes live within ~5 minutes. It is `Type=oneshot`, `Nice=10`,
-  `CPUSchedulingPolicy=batch` to stay out of the way of the other stacks on the box.
-- A failed deploy is logged and rolls back automatically (see §3 step 8); the timer keeps
-  firing regardless. `journalctl`/`autodeploy.log` are the source of truth.
-- Alternatives considered: a GitHub Action that SSHes into gravebuster (needs inbound
-  reachability or a self-hosted runner), or `watchtower`-style image polling. The
-  pull-based timer needs no inbound access and no credentials on GitHub.
+  `deploy.sh`, so a scheduled run and a hand run cannot collide. `deploy.sh` writes `SHA`
+  back to `.deploy-state` only after its smoke test passes, so a failed deploy is retried
+  on the next tick rather than being recorded as done.
+- gravebuster's timer fires every 5 minutes (`OnCalendar=*:0/5`, `RandomizedDelaySec=90`),
+  `Type=oneshot`, `Nice=10`, `CPUSchedulingPolicy=batch` to stay out of the way of the
+  other stacks on the box. The Mac agent is `StartInterval=300` with `RunAtLoad`, matching
+  the `com.octo.autodeploy` agent already on that machine. Either way a merge to main goes
+  live within ~5 minutes.
+- A failed deploy is logged and rolls back automatically (see §3 step 8); the scheduler
+  keeps firing regardless. `journalctl`/`autodeploy.log` are the source of truth.
+- Alternatives considered: a GitHub Action that SSHes in (needs inbound reachability, or a
+  Tailscale OAuth client and SSH key as repo secrets), or `watchtower`-style image polling.
+  The pull-based scheduler needs no inbound access and no credentials on GitHub.
+- **`gh` is not installed on the Mac**, and the checkout's `origin` is HTTPS — the poller
+  authenticates through the login keychain (`credential.helper=osxkeychain`). That works
+  from a launchd agent in the user's session (it is how `com.octo.autodeploy` fetches), but
+  it is the one dependency worth remembering if the agent ever starts failing its fetch.
 
 ---
 
