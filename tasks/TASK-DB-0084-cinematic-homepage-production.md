@@ -6,7 +6,7 @@
 | **Issues** | None filed — owner direction in session ("finish the design and replace it") |
 | **Branch** | `task/TASK-DB-0084-cinematic-homepage-production` |
 | **Base** | `main` @ `0e91fd9c1bed` |
-| **Status** | **Done — merged, deployed, and verified live.** Merged as PR [#113](https://github.com/Pukujan/design-bakery/pull/113) (`7c2343a1`, 2026-10-12T08:01Z); deployed by hand on the Mac the same morning (there is **no** design-bakery autodeploy timer — see below); verified from the public edge and walked in a real browser 2026-10-12. |
+| **Status** | **Superseded — reverted by [TASK-DB-0085](TASK-DB-0085-journey-back-to-version-2.md).** It was merged, deployed, and verified live, but the homepage replacement was not wanted: the journey is an additive page and `/` belongs to the site shell. TASK-DB-0085 restores the additive wiring and keeps this task's design work. See that task for what survived. |
 
 ## Goal
 
