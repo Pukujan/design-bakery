@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-05-22 |
-| **Last updated** | 2026-10-12 (the TASK-DB-0084 homepage promotion is reverted — the cinematic journey is back at `/version-2` and `/` is the site shell again; TASK-DB-0085) |
+| **Last updated** | 2026-10-12 (TASK-DB-0085 revert recorded; TASK-DB-0086 — the Mac gains a launchd auto-deploy agent) |
 
 **Start here** for agent-facing documentation in this repo.
 
@@ -38,7 +38,7 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 
 | Date | Log |
 |------|-----|
-| 2026-10-12 | [dev-log-2026-10-12.md](dev-log-2026-10-12.md) - the TASK-DB-0084 homepage promotion (cinematic journey to `/`, shell to `/shell/index.html`) is reverted by TASK-DB-0085: `/` is the site shell again and the journey is back at `/version-2` as an additive page, keeping all of #113's design work |
+| 2026-10-12 | [dev-log-2026-10-12.md](dev-log-2026-10-12.md) - the TASK-DB-0084 homepage promotion (cinematic journey to `/`, shell to `/shell/index.html`) is reverted by TASK-DB-0085: `/` is the site shell again and the journey is back at `/version-2` as an additive page, keeping all of #113's design work; the Mac gains a launchd auto-deploy agent (TASK-DB-0086) so a merge to `main` deploys itself within ~5 minutes |
 | 2026-10-11 | [dev-log-2026-10-11.md](dev-log-2026-10-11.md) - design-bakery.com hosted on the MacBook Pro while gravebuster is offline (TASK-DB-0082); the deploy kit made macOS-portable (no `flock(1)`, Docker off the non-interactive SSH PATH) |
 | 2026-10-07 | [dev-log-2026-10-07.md](dev-log-2026-10-07.md) - API container wired into the gravebuster deploy (TASK-DB-0075), design-bakery.com cut over to gravebuster (TASK-DB-0076), Open Graph link previews behind Caddy (TASK-DB-0077), live build reads octo not the 7-post snapshot (TASK-DB-0078), `/srv` hosting-convention target authored (TASK-DB-0079), the IRE dashboard becomes the `/ire` page with `/ire/app/` redirecting to it and the auto-deploy timer enabled behind a deploy lock (TASK-DB-0081) |
 | 2026-10-06 | [dev-log-2026-10-06.md](dev-log-2026-10-06.md) - Modularization phase 2, orphan strict gate, API container, TypeScript alignment, Octo file uploads for new images |
