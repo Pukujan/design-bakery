@@ -187,7 +187,7 @@
 		@ireAppLegacy path /ire/app /ire/app/
 		redir @ireAppLegacy /ire/ 301
 
-		# The /version-2 page (the cinematic-journey homepage, built from
+		# The /version-2 page (the additive cinematic-journey page, built from
 		# frontend/version-2-app into dist/version-2 by scripts/build-version-2-app.mjs).
 		# vercel.json rewrites /version-2 and /version-2/ to its index.html; this mirrors
 		# that so the two configs stay 1:1. `@dirIndex` above would serve it too, but its
