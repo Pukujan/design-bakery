@@ -6,7 +6,7 @@
 | **Issues** | None filed — owner caught the TASK-DB-0084 promotion in session ("Was my main homepage just replaced by version 2? It was to stay in version 2, not replace my old homepage") |
 | **Branch** | `task/TASK-DB-0085-journey-back-to-version-2` |
 | **Base** | `origin/main` @ `2e0d6be` |
-| **Status** | In progress — code complete and verified locally; not yet merged or deployed |
+| **Status** | **Done** — merged (PR #116 → `4b5f95c`) and deployed to the Mac; verified live from the public edge 2026-10-12 |
 
 ## Goal
 
@@ -90,11 +90,29 @@ The revert restores the pre-promotion (`0e91fd9`) wiring and keeps the design. C
 - **Headless browser walk** of `/version-2/` at 1440×900 and 390×844: arrival plate, nav,
   work cards and About section render, the scroll journey drives (doc height ≈ 12.6k px),
   zero console errors. `/` renders the shell homepage.
-- **Not yet verified:** the live deploy (Mac).
+- **Verified live (Mac) 2026-10-12.** Merged as PR #116 (squash → `4b5f95c`); CI `quality`
+  and `orphans` both success. Deploy run by hand over SSH
+  (`deploy/gravebuster/deploy.sh --ref 4b5f95c`, owner-gated), exit 0:
+  `deploy OK: 4b5f95c2960b -> design-bakery-web:4b5f95c2960b-20261012T181318Z`, the re-exec
+  fired ("re-executing the checked-out revision's deploy script"), and the incoming
+  revision's own smoke passed every line — `ok 200 /`, `ok 200 /version-2`,
+  `ok body has "/version-2/assets/" at /version-2`, `ok body has "Fullstack Design
+  Engineer" at /`.
+  From the public edge: `/` → 200 serving the shell
+  (`<title>Design Baker | Fullstack Design Engineer & AI Workflow Systems</title>`),
+  `/version-2` → 200 serving the journey (`<title>Design Bakery — AI Engineer</title>`)
+  with `/version-2/assets/index-Bw0C0Ji8.js` + `index-CU4Xgei0.css`,
+  `/version-2/plate-arrival.png` → 200, `/healthz` → 200.
 
 ## Next
 
-Merge, then deploy to the Mac (`deploy.sh --ref <main sha>`) — **owner-gated**. The re-exec
-fix means the incoming revision's own smoke (`/` is the shell, `/version-2` is 200) gates the
-swap and auto-rolls-back if it does not hold. Then verify from the public edge that `/` is
-the shell and `/version-2` is the journey, and walk the journey in a real browser.
+**Done.** The homepage is the shell again and the journey is live additively at
+`https://www.design-bakery.com/version-2`, verified from the public edge. What remains is
+not this task's work:
+
+- The re-exec fix is what made this deploy safe (the outgoing revision's smoke expected
+  `/version-2` 200, which this change restores) — it is recorded in TASK-DB-0084 and now
+  load-bearing on every deploy.
+- Open owner work, unchanged: the Mac still has no auto-deploy scheduler, and the Mac's
+  octo has no design-bakery workspace (the 136 content rows remain only in gravebuster's
+  `octo_ws_design_bakery_c192afbc`; the site serves the committed 7-post snapshot).
