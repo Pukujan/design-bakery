@@ -214,9 +214,7 @@ ${tagsHtml}`;
 
 export async function fetchSpaIndexHtml(origin: string): Promise<string | null> {
   try {
-    // The site shell, not the homepage: `/` is the cinematic-journey document, and the
-    // shell SPA that renders blog pages is served from /shell/index.html (TASK-DB-0084).
-    const res = await fetch(new URL('/shell/index.html', origin), {
+    const res = await fetch(new URL('/index.html', origin), {
       headers: { Accept: 'text/html' },
     });
     if (!res.ok) return null;

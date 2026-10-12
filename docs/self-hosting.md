@@ -105,27 +105,25 @@ the result. Node 24 comes from `.node-version`, pnpm 10.32.1 from
 commented 1:1. The important semantics, which are easy to get wrong:
 
 1. `redirects` are evaluated **before** the filesystem (`/ai-for-good` → `/ai-for-good/` 308,
-   `/studyos[/…]` → `https://study.design-bakery.com/…` 307, `/version-2[/]` → `/` 308).
+   `/studyos[/…]` → `https://study.design-bakery.com/…` 307).
 2. `rewrites` are evaluated **after** the filesystem — so `/case-studies/cortex` serves the
    real `case-studies/cortex/index.html`, and only `/case-studies/cortex/a` (which exists
    solely as `…/a/index.html`) hits the cortex rewrite.
-3. The catch-all `/((?!.*\.html$).*)` → `/shell/index.html` is the SPA fallback, and paths
+3. The catch-all `/((?!.*\.html$).*)` → `/index.html` is the SPA fallback, and paths
    ending in `.html` deliberately 404 instead of falling back.
 4. Not in `vercel.json`: the apex → `https://www.design-bakery.com` **307** is Vercel
    *domain* configuration. It is reproduced in the Caddyfile (`@apex host design-bakery.com`)
    so both hostnames can point at this container without serving the site twice.
 
-**Two documents, one origin.** The build publishes two independent HTML documents
-(TASK-DB-0084): the cinematic-journey homepage at `/` and the site shell SPA at
-`/shell/index.html`. This is forced by rule 2 above — a rewrite runs *after* the
-filesystem, so no rule can change what `/` serves; the file at `frontend/dist/index.html`
-**is** the homepage. `scripts/build-home-app.mjs` therefore performs a build-time swap:
-`vite build` writes the shell to `dist/index.html`, the script moves it to
-`dist/shell/index.html` and copies the journey build over `dist/index.html`. Every
-consumer that reads the shell by path follows it — the SPA fallback (rule 3) and
-`backend/src/og/blogShareHtml.ts`'s crawler HTML both use `/shell/index.html`. The old
-`/version-2` path (where the journey first shipped, TASK-DB-0083) is a permanent redirect
-to `/`.
+**The `/version-2` sub-app.** The cinematic-journey page (TASK-DB-0083) is an **additive**
+page: `frontend/version-2-app` builds with `base: "/version-2/"`, `scripts/build-version-2-app.mjs`
+copies its output into `frontend/dist/version-2`, and both hosts rewrite `/version-2` and
+`/version-2/` to `/version-2/index.html` (the Caddyfile's `@version2` block, mirroring
+`@ire`). `/` itself is the site shell SPA — the same document every other unmatched path
+falls back to (rule 3), and the document `backend/src/og/blogShareHtml.ts` reads for crawler
+HTML. A brief experiment (TASK-DB-0084) promoted the journey to `/` and moved the shell to
+`/shell/index.html`; it was reverted in TASK-DB-0085, and the owners' intent is that the
+journey stays additive.
 
 `/ai-for-good/*` is proxied to the separate `ai-for-good-livid.vercel.app` app with
 `Host` rewritten to the destination, matching Vercel's rewrite proxy. That app is out of
@@ -259,12 +257,13 @@ What `deploy.sh` does, in order:
    health-check `127.0.0.1:$API_HOST_PORT/health` (up to `API_HEALTH_TIMEOUT`, 180 s —
    Node cold-starts slower than Caddy). An unhealthy API fails the deploy.
 8. Health-check `127.0.0.1:8085/healthz` (up to 90 s), then smoke-check `/`, `/healthz`,
-   `/shell/index.html`, `/research/papers/db-r-2026-010`, `/robots.txt`, a journey scene
-   plate at the site root, `/ire` (200), `/ire/app` (301), `/version-2` (308),
+   `/research/papers/db-r-2026-010`, `/robots.txt`, `/version-2` (200) and a journey scene
+   plate under the `/version-2/` prefix, `/ire` (200), `/ire/app` (301),
    `/ai-for-good` (308), `/studyos` (307). Two of those are body checks, not status
-   checks: `/` must **not** contain the shell's title marker and `/shell/index.html` must
-   contain it, which is what proves the build-time document swap actually published
-   (TASK-DB-0084). With the API enabled, also GET
+   checks: `/` must contain the shell's title marker and `/version-2` must reference its
+   own `/version-2/assets/` prefix — a status-only smoke cannot tell the two documents
+   apart, and this is the check that catches a routing mistake that serves the wrong one
+   with a 200. With the API enabled, also GET
    `/api/public/blogs` through the web container: a 200 proves the Caddy `/api/*` proxy
    and the data layer both work; a gateway status (502/503/504) fails the deploy (the
    proxy is broken — the original bug); a 500 only warns (a data-layer/secret problem,
