@@ -6,7 +6,7 @@
 | **Issues** | None filed — owner direction in session ("finish the design and replace it") |
 | **Branch** | `task/TASK-DB-0084-cinematic-homepage-production` |
 | **Base** | `main` @ `0e91fd9c1bed` |
-| **Status** | **Done — merged, auto-deployed, and verified live.** Merged as PR [#113](https://github.com/Pukujan/design-bakery/pull/113) (`7c2343a1`, 2026-10-12T08:01Z); the Mac auto-deploy timer picked it up; verified from the public edge and walked in a real browser 2026-10-12. |
+| **Status** | **Done — merged, deployed, and verified live.** Merged as PR [#113](https://github.com/Pukujan/design-bakery/pull/113) (`7c2343a1`, 2026-10-12T08:01Z); deployed by hand on the Mac the same morning (there is **no** design-bakery autodeploy timer — see below); verified from the public edge and walked in a real browser 2026-10-12. |
 
 ## Goal
 
@@ -95,7 +95,7 @@ so the deploy lock taken earlier stays ours and the EXIT trap is re-armed.
   and the og-preview paths degrade to the shell while the API is absent.
 - **Not yet verified:** ~~the live deploy (Mac) and the browser walk of the finished design.~~ — **both verified 2026-10-12 after the merge:**
   - CI on the merge commit `7c2343a1`: `quality` and `orphans` both **success** (combined status `success`).
-  - **The Mac auto-deploy timer served the site without a hand deploy** — no `deploy.sh` run was needed. From the public edge: `/` → 200 and is the journey (`<title>Design Bakery — AI Engineer</title>`), `/shell/index.html` → 200, `/version-2` → **308 → `/`**, `/plate-arrival.png` → 200, `/blogs` and `/research` → 200, `/healthz` → 200.
+  - **The Mac deploy was run by hand, and it took two attempts.** There is **no** design-bakery autodeploy timer on the Mac — no LaunchAgent, no LaunchDaemon, no crontab, and no `autodeploy.log` anywhere in the checkout (the repo's own `autodeploy.sh` header says it "runs by hand" there; the only Mac autodeploy agent, `com.octo.autodeploy`, belongs to octo and deploys `origin/production` of that repo). The first hand run, `2026-10-12T08:04:05Z`, **failed its smoke test and rolled itself back** — `FAIL expected 200, got 308 for /version-2` — because it ran the *outgoing* revision's smoke block; the second run at `08:10:16Z` re-exec'd the checked-out revision's script (the re-exec fix recorded below) and logged `deploy OK: 7c2343a1d82f -> design-bakery-web:7c2343a1d82f-20261012T081017Z`, with smoke green including `ok 200 /api/public/blogs (caddy proxy + data layer)`. From the public edge: `/` → 200 and is the journey (`<title>Design Bakery — AI Engineer</title>`), `/shell/index.html` → 200, `/version-2` → **308 → `/`**, `/plate-arrival.png` → 200, `/blogs` and `/research` → 200, `/healthz` → 200.
   - **Real-browser walk (headless Chromium, live site, 2026-10-12):** at 1440×900 and 390×844, at 10 scroll fractions each — **no horizontal overflow anywhere, zero console errors, zero page errors**. Content contract holds in the rendered DOM: brand, the exact arrival line `Design Bakery — AI Engineer`, `Pujan Bajracharya` only in About, projects and roles present, none of the invented spike names.
   - **The cut verified on live, not just locally:** `--seam-op` reaches 1.0 at y≈8300 and **holds through tear 0.14 → 0.67** (the fix — the core used to dim exactly when the halves were widest), decaying to 0.6 only as the night reveal completes. Screenshots of the thrust window, impact and tear match the accepted runB variant.
 
@@ -105,6 +105,9 @@ so the deploy lock taken earlier stays ours and the EXIT trap is re-armed.
   only reachable at `/shell/index.html`, which is a build artefact path, not a page).
 - The `frontend/version-2-app` → `home-app` directory rename (blocked locally by a
   Windows file lock; the directory deliberately keeps its historical name).
+- **The Mac still has no auto-deploy scheduler** — `deploy/gravebuster/autodeploy.sh`
+  exists but nothing runs it there, so every deploy is a hand run. Installing a
+  LaunchAgent for it is open owner work, not part of this task.
 
 ## Next
 
