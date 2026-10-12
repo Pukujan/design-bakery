@@ -15,7 +15,7 @@ type P = {
 };
 
 /**
- * A live spark. `hot` ones are thrown off the point where the blade tip lands,
+ * A live spark. `hot` ones are thrown off the point where the rip opens,
  * fast and white; the others are motes lifting off the two torn edges while the
  * cut stays open.
  */
@@ -157,10 +157,10 @@ export function ParticleField() {
       const along = Math.hypot(w, h) * 0.46;
 
       /*
-       * The pierce. Sparks pour out of the point where the tip lands — the seam
-       * centre, the same place the sword's tip is pinned — densest and hottest
-       * at the instant of contact, then thinning as `impact` falls away. They
-       * are biased along the slash, because that is the way the blade travels.
+       * The rip. Sparks pour out of the point where the tear opens — the seam
+       * centre — densest and hottest at the instant it gives way, then thinning
+       * as `impact` falls away. They fly outward from where the rip opens,
+       * biased along the seam, because that is the way the tear travels.
        */
       const imp = journey.impact;
       if (imp > 0.02) {

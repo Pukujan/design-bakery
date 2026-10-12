@@ -6,7 +6,7 @@
 | **Issues** | None filed — owner directed both fixes in session |
 | **Branch** | `task/TASK-DB-0087-journey-scroll-and-sword` |
 | **Base** | `origin/main` @ `60bc668` |
-| **Status** | **Diagnosed, ready to implement** — findings below; work handed to a second session |
+| **Status** | **Implemented, pending merge** — sword removed, driver unified on the eased clock, reveal registry rewritten to sweep each frame's segment (a hard jump at 15 fps leapfrogged the point sample). 49/49 headless checks pass on the built page (both viewports, both directions); the app type-checks, builds and lints green. |
 
 ## Goal
 

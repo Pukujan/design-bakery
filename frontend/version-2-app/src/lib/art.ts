@@ -29,7 +29,7 @@ export const ART = {
 } as const;
 
 /**
- * The blade line. A 152deg gradient axis means the tear itself runs shallow
+ * The seam line. A 152deg gradient axis means the tear itself runs shallow
  * from the lower-left of the frame up to the upper-right — the classic slash —
  * and the two halves pull apart along `normal`.
  */
