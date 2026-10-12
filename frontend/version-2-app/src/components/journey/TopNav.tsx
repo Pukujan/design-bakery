@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NAV } from "@/data/content";
+import { NAV, SITE_NAV } from "@/data/content";
 
 /** Slim top nav. It darkens as the descent carries it into the world. */
 export function TopNav() {
@@ -16,12 +16,16 @@ export function TopNav() {
     const el = document.querySelector<HTMLElement>(`${href}`);
     if (!el) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY, behavior: reduce ? "auto" : "smooth" });
+    // the header is fixed, so land the target clear of it instead of under it;
+    // measuring beats a magic number when the nav's height changes by breakpoint
+    const nav = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
+    const top = el.getBoundingClientRect().top + window.scrollY - nav - 24;
+    window.scrollTo({ top: Math.max(0, top), behavior: reduce ? "auto" : "smooth" });
   };
 
   return (
     <header
-      className="fixed inset-x-0 top-0 z-50"
+      className="db-topbar fixed inset-x-0 top-0 z-50"
       style={{
         background: "linear-gradient(180deg, rgba(11,5,16,calc(0.55 * var(--nav-dark,0) + 0.18)) 0%, rgba(11,5,16,0) 100%)",
       }}
@@ -53,6 +57,17 @@ export function TopNav() {
               </a>
             </li>
           ))}
+          <li aria-hidden="true" className="h-4 w-px bg-cream/20" />
+          {SITE_NAV.map((n) => (
+            <li key={n.label}>
+              <a
+                href={n.href}
+                className="db-label text-[0.6rem] text-cream/70 transition-colors hover:text-dusk-gold"
+              >
+                {n.label}
+              </a>
+            </li>
+          ))}
         </ul>
 
         <button
@@ -60,7 +75,7 @@ export function TopNav() {
           aria-expanded={open}
           aria-label={open ? "Close menu" : "Open menu"}
           onClick={() => setOpen((v) => !v)}
-          className="db-plaque flex h-9 w-9 items-center justify-center rounded-full md:hidden"
+          className="db-plaque flex h-11 w-11 items-center justify-center rounded-full md:hidden"
         >
           <span className="relative block h-3 w-4">
             <span
@@ -77,7 +92,7 @@ export function TopNav() {
 
       <div
         className="overflow-hidden px-5 transition-[max-height,opacity] duration-500 md:hidden"
-        style={{ maxHeight: open ? 260 : 0, opacity: open ? 1 : 0 }}
+        style={{ maxHeight: open ? 420 : 0, opacity: open ? 1 : 0 }}
       >
         <ul className="db-plaque mx-auto max-w-6xl space-y-1 rounded-2xl p-4">
           {NAV.map((n) => (
@@ -88,7 +103,17 @@ export function TopNav() {
                   e.preventDefault();
                   go(n.href);
                 }}
-                className="db-label block rounded-lg px-3 py-2.5 text-[0.62rem] text-cream/80 hover:bg-cream/10 hover:text-dusk-gold"
+                className="db-label flex min-h-11 items-center rounded-lg px-3 py-2.5 text-[0.62rem] text-cream/80 hover:bg-cream/10 hover:text-dusk-gold"
+              >
+                {n.label}
+              </a>
+            </li>
+          ))}
+          {SITE_NAV.map((n) => (
+            <li key={n.label}>
+              <a
+                href={n.href}
+                className="db-label flex min-h-11 items-center rounded-lg px-3 py-2.5 text-[0.62rem] text-cream/80 hover:bg-cream/10 hover:text-dusk-gold"
               >
                 {n.label}
               </a>

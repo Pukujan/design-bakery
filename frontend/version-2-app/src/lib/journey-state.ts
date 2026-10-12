@@ -4,6 +4,16 @@
  */
 export type Tier = "fine" | "coarse";
 
+/**
+ * Which tier this device gets. It lives here rather than in the driver because
+ * the particle field needs the same answer before the driver has run: child
+ * effects fire before the parent's, so anything that reads a value the driver
+ * writes would see the default on first paint.
+ */
+export function detectTier(): Tier {
+  return window.innerWidth < 768 || (navigator.hardwareConcurrency ?? 8) <= 4 ? "coarse" : "fine";
+}
+
 export const journey = {
   /** whole-document progress, 0 (afternoon) -> 1 (night) */
   p: 0,
@@ -11,6 +21,8 @@ export const journey = {
   tear: 0,
   /** how far the blade has swept */
   blade: 0,
+  /** the pierce itself — spikes once when the tip lands, read by the sparks */
+  impact: 0,
   /** 0 = day particles (petals), 1 = night particles (embers, stars) */
   night: 0,
   /** how much the world has gone to night */

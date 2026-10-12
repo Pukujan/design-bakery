@@ -5,7 +5,6 @@ import { Reveal } from "./Reveal";
 const CONTACT_LINKS = [
   { label: "GitHub", href: CONTACT.github },
   { label: "LinkedIn", href: CONTACT.linkedin },
-  { label: "Resume", href: CONTACT.resume },
 ];
 
 /** Scene 5 — moonlight: the roles and the craft. */
@@ -37,7 +36,7 @@ export function Night() {
                     {job.role}
                   </p>
                 </div>
-                <p className="db-label shrink-0 text-[0.5rem] text-dusk-gold/75 sm:text-[0.55rem]">{job.period}</p>
+                <p className="db-label shrink-0 text-[0.58rem] text-dusk-gold/75 sm:text-[0.62rem]">{job.period}</p>
               </div>
             </Reveal>
           ))}
@@ -95,14 +94,14 @@ export function Contact() {
             </a>
           </div>
 
-          <ul className="mt-7 flex flex-wrap items-center justify-center gap-x-7 gap-y-3">
+          <ul className="db-links mt-7 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
             {CONTACT_LINKS.map((l) => (
               <li key={l.label}>
                 <a
                   href={l.href}
                   target={l.href.startsWith("http") ? "_blank" : undefined}
                   rel={l.href.startsWith("http") ? "noreferrer noopener" : undefined}
-                  className="db-label text-[0.52rem] text-cream/70 hover:text-dusk-gold sm:text-[0.56rem]"
+                  className="db-link inline-flex items-center rounded-full border border-cream/30 bg-cream/[0.06] px-4 py-2 text-[0.72rem] font-semibold tracking-wide text-cream/95 sm:px-5 sm:text-[0.76rem]"
                 >
                   {l.label}
                 </a>

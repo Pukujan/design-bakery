@@ -11,7 +11,7 @@ export function Cut() {
     <section
       id="cut"
       data-scene="cut"
-      className="db-beat-cut relative flex flex-col items-center justify-start px-5 pt-[64vh] sm:px-8"
+      className="db-beat-cut db-cut-lead relative flex flex-col items-center justify-start px-5 pb-16 sm:px-8"
     >
       <Reveal threshold={0.4} className="w-full max-w-2xl text-center">
         <p className="db-label text-[0.5rem] text-cream/55 sm:text-[0.55rem]">The turn</p>

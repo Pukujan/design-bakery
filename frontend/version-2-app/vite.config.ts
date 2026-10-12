@@ -3,10 +3,8 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(() => ({
-  // Served from /version-2/ by Caddy and Vercel (both rewrite /version-2 and
-  // /version-2/ to this build's index.html); the assets must be referenced with that
-  // prefix or they 404.
-  base: "/version-2/",
+  // Served at the site root: Caddy and Vercel serve this build's index.html for /.
+  base: "/",
   server: {
     host: "::",
     port: 8080,
