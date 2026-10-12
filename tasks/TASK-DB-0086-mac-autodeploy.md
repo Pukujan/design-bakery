@@ -6,7 +6,7 @@
 | **Issues** | None filed — owner direction in session ("create a cd pipeline for auto deployments") |
 | **Branch** | `task/TASK-DB-0086-mac-autodeploy` |
 | **Base** | `main` @ `bc7512a` |
-| **Status** | In progress — agent installed and running on the Mac; first cycle observed |
+| **Status** | **Done** — agent installed and running on the Mac; its first cycle deployed `bc7512a` with no human step, smoke green, edge-verified. Merged as [#119](https://github.com/Pukujan/design-bakery/pull/119). |
 
 ## Goal
 
@@ -59,12 +59,15 @@ a failed deploy is retried on the next tick rather than being recorded as done.
   (`GIT_TERMINAL_PROMPT=0 git fetch --prune origin main`, exit 0).
 - `autodeploy.sh --dry-run` on the Mac reported the correct pending move
   (`new commit on origin/main: bc7512a975a1 (deployed: 4b5f95c2960b)`).
-- **First real cycle (the CD proof):** installing the agent deployed `bc7512a` on its own
-  with no human step — see the deploy evidence in
-  [TASK-DB-0085](TASK-DB-0085-journey-back-to-version-2.md)'s follow-up / this task's log.
+- **First real cycle (the CD proof):** bootstrapping the agent deployed `bc7512a` on its own,
+  no hand run — `deploy OK: bc7512a975a1 -> design-bakery-web:bc7512a975a1-20261012T184332Z`
+  at 2026-10-12T18:44:11Z, every smoke line green including
+  `ok 200 /api/public/blogs (caddy proxy + data layer)`. From the public edge afterwards:
+  `/` 200 shell, `/version-2` 200 journey, `/version-2/plate-arrival.png` 200, `/healthz` 200.
+- `launchctl print` shows the agent loaded (`state = active`, `runs = 1` → recurring).
 
 ## Next
 
-- Confirm the first cycle's smoke result, then verify from the public edge.
-- Watch the next merge to `main` deploy without any hand run — that is the actual acceptance
-  test for "CD".
+**Done.** CD is live: merge to `main`, and the Mac deploys it within ~5 minutes. Not this
+task's work: the Mac's octo workspace gap (the 7-post snapshot), and gravebuster's return
+(the shared tunnel will split-brain; §0's warning stands).

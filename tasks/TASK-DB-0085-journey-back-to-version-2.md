@@ -113,6 +113,9 @@ not this task's work:
 - The re-exec fix is what made this deploy safe (the outgoing revision's smoke expected
   `/version-2` 200, which this change restores) — it is recorded in TASK-DB-0084 and now
   load-bearing on every deploy.
-- Open owner work, unchanged: the Mac still has no auto-deploy scheduler, and the Mac's
-  octo has no design-bakery workspace (the 136 content rows remain only in gravebuster's
-  `octo_ws_design_bakery_c192afbc`; the site serves the committed 7-post snapshot).
+- The Mac's auto-deploy scheduler, open here, landed the same day as
+  [TASK-DB-0086](TASK-DB-0086-mac-autodeploy.md) — the hand run this task needed is now the
+  exception rather than the rule.
+- Still open, not this task's work: the Mac's octo has no design-bakery workspace (the 136
+  content rows remain only in gravebuster's `octo_ws_design_bakery_c192afbc`; the site serves
+  the committed 7-post snapshot).
