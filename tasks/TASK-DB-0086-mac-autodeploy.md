@@ -6,7 +6,7 @@
 | **Issues** | None filed — owner direction in session ("create a cd pipeline for auto deployments") |
 | **Branch** | `task/TASK-DB-0086-mac-autodeploy` |
 | **Base** | `main` @ `bc7512a` |
-| **Status** | **Done** — agent installed and running on the Mac; its first cycle deployed `bc7512a` with no human step, smoke green, edge-verified. Merged as [#119](https://github.com/Pukujan/design-bakery/pull/119). |
+| **Status** | **Done** — agent installed and running on the Mac; its first cycle deployed `bc7512a` with no human step, smoke green, edge-verified. Shipped as [#119](https://github.com/Pukujan/design-bakery/pull/119). |
 
 ## Goal
 
