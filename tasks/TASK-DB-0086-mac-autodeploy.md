@@ -64,7 +64,15 @@ a failed deploy is retried on the next tick rather than being recorded as done.
   at 2026-10-12T18:44:11Z, every smoke line green including
   `ok 200 /api/public/blogs (caddy proxy + data layer)`. From the public edge afterwards:
   `/` 200 shell, `/version-2` 200 journey, `/version-2/plate-arrival.png` 200, `/healthz` 200.
-- `launchctl print` shows the agent loaded (`state = active`, `runs = 1` → recurring).
+- **Second cycle, on the timer rather than on load — the acceptance test.** Merging #118 moved
+  `main` to `54624ca`; the agent's next `StartInterval` tick picked it up with no human
+  involvement (`[18:49:12Z] new commit on origin/main: 54624cae8e4f (deployed: bc7512a975a1)`)
+  and `.deploy-state` advanced to `SHA=54624ca…` — which `deploy.sh` only writes after its
+  smoke test passes. `launchctl print` shows `runs = 2`, `last exit code = 0`. Edge after:
+  `/` 200 shell, `/version-2` 200 journey, plate 200, `/healthz` 200. The two cycles together
+  are the proof it is a recurring poller, not a one-shot `RunAtLoad`.
+- `launchctl print-disabled` does not list the label, so the agent is **enabled** and will come
+  back after a reboot; `plutil -lint` on the installed copy is OK.
 
 ## Next
 
