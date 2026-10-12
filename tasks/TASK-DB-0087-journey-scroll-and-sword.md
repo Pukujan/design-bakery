@@ -6,7 +6,8 @@
 | **Issues** | None filed — owner directed both fixes in session |
 | **Branch** | `task/TASK-DB-0087-journey-scroll-and-sword` |
 | **Base** | `origin/main` @ `60bc668` |
-| **Status** | **Implemented, pending merge** — sword removed, driver unified on the eased clock, reveal registry rewritten to sweep each frame's segment (a hard jump at 15 fps leapfrogged the point sample). 49/49 headless checks pass on the built page (both viewports, both directions); the app type-checks, builds and lints green. |
+| **Status** | **Merged and deployed** — sword removed, driver unified on the eased clock, reveal registry rewritten to sweep each frame's segment (a hard jump at 15 fps leapfrogged the point sample). Merged ([#121](https://github.com/Pukujan/design-bakery/pull/121), `79eee3f`, CI `quality` + `orphans` green) and auto-deployed on the Mac by the launchd agent with no hand run (`deploy OK: 79eee3fccc35`). **53/53 headless checks pass against the live production page** at 1440×900 and 390×844, both directions, including a single-teleport no-descent case; the app type-checks, builds and lints green. |
+| **Result** | `origin/main` @ `79eee3f` — see the *Record* section at the end. |
 
 ## Goal
 
@@ -249,3 +250,33 @@ go, it is the one `impact` definition in Step 1.1.
 - Sources vendored back into `frontend/version-2-app/`, repo tests updated,
   PR merged; live at `https://www.design-bakery.com/version-2` via the Mac
   auto-deploy.
+
+---
+
+## Record — merged and deployed
+
+Made **through ABA's runner in iterate mode** on the Mac, per `docs/DRIVING_ABA.md`, not
+hand-edited into the generated app. Three iterate runs were needed: the sword + one-clock
+change, a first reveal registry that still point-sampled (it did **not** fix the skip), then
+the swept-interval evaluation that did. The generated sources were vendored back into
+`frontend/version-2-app/` by content hash, so exactly the intended files moved and no
+scaffold residue leaked in.
+
+- **Merged:** [PR #121](https://github.com/Pukujan/design-bakery/pull/121) squash-merged to
+  `79eee3f` (CI `quality` pass 1m24s, `orphans` pass, Vercel pass).
+- **Deployed:** by the launchd agent on the Mac, **no hand run** —
+  `[2026-10-12T23:47:03Z] deploy OK: 79eee3fccc35 -> design-bakery-web:79eee3fccc35-20261012T234624Z`,
+  every smoke line green including `ok 200 /version-2` and
+  `ok body has "/version-2/assets/" at /version-2`.
+- **Verified live:** the harness run against `https://www.design-bakery.com/version-2/`
+  passes **53/53** — 11/11 tree nodes lit after a flick, 0 in-view reveals missed, `--p`
+  tracks the scrollbar (`0.6198` vs `0.6200`), the eased clock replays rather than snaps,
+  the blade is absent from the DOM/CSS/driver, the seam mask is still 152° with the washi
+  mirror on the child, reduced motion draws all 60 root paths and lights 11/11 nodes, zero
+  page errors, no horizontal overflow at either viewport.
+
+**Done means — all met.** Zero un-revealed blocks on fast scroll, both directions (the
+`hardJump` no-descent case is the strictest form of that assertion). Katana gone from the
+DOM, CSS and driver. `tsc` + `vite build` + root lint green; content contract intact
+(11 projects, 5 roles). No mobile overflow at 390 px. Vendored, PR merged, live via the
+Mac auto-deploy.
