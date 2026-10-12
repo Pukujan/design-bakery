@@ -234,8 +234,7 @@ api_state_previous() { # <value to record when the API was deployed this run>
 }
 
 # Smoke test: the health endpoint plus the routes that exercise the vercel.json
-# parity rules (homepage identity, shell path, static asset, proxy redirect, external
-# redirect).
+# parity rules (SPA fallback, static asset, proxy redirect, external redirect).
 smoke() {
 	local base="http://127.0.0.1:$WEB_HOST_PORT"
 	local failures=0
@@ -249,9 +248,11 @@ smoke() {
 			failures=$((failures + 1))
 		fi
 	}
-	# <path> <needle> / <path> <needle>: the body must contain / must not contain the
-	# needle. The needles are ASCII-only on purpose — the titles they come from carry an
-	# em dash, and the deploy host's locale is not guaranteed UTF-8.
+	# <path> <needle>: the body must contain the needle. The needles are ASCII-only on
+	# purpose — the titles they come from carry an em dash, and the deploy host's locale
+	# is not guaranteed UTF-8. Both documents get a body check because a status-only
+	# smoke cannot tell them apart: a routing mistake that makes `/` serve the /version-2
+	# document would still return 200 everywhere.
 	body_has() {
 		if curl -sS --max-time 10 "$base$1" 2>/dev/null | grep -qF -- "$2"; then
 			log "  ok   body has \"$2\" at $1"
@@ -260,34 +261,22 @@ smoke() {
 			failures=$((failures + 1))
 		fi
 	}
-	body_lacks() {
-		if curl -sS --max-time 10 "$base$1" 2>/dev/null | grep -qF -- "$2"; then
-			log "  FAIL body unexpectedly has \"$2\" at $1"
-			failures=$((failures + 1))
-		else
-			log "  ok   body lacks \"$2\" at $1"
-		fi
-	}
 	check 200 "$HEALTH_PATH"
 	check 200 /
-	# Homepage identity (TASK-DB-0084): `/` must BE the cinematic journey, not the site
-	# shell. Vercel and Caddy evaluate rewrites *after* the filesystem, so no rule can
-	# change what `/` serves — the swap is done at build time and this is the check that
-	# proves it happened. The shell's title carries "Fullstack Design Engineer" and the
-	# journey's does not, so the pair of body checks below pins the two documents apart.
-	body_lacks / "Fullstack Design Engineer"
-	check 200 /shell/index.html
-	body_has /shell/index.html "Fullstack Design Engineer"
+	# Homepage identity (TASK-DB-0085): `/` must BE the site shell, and /version-2 the
+	# journey. The shell's title carries "Fullstack Design Engineer"; the journey's
+	# document references its own base-prefixed assets, which the shell never does.
+	body_has / "Fullstack Design Engineer"
 	check 200 /research/papers/db-r-2026-010
 	check 200 /robots.txt
-	# A journey scene plate, now served from the site root (the journey's assets land
-	# beside the shell's after the swap).
-	check 200 /plate-arrival.png
+	# The /version-2 page: its shell, and a scene plate under the base path (the plate
+	# proves the app's asset prefix resolves through the rewrite, not just the shell).
+	check 200 /version-2
+	body_has /version-2 "/version-2/assets/"
+	check 200 /version-2/plate-arrival.png
 	# The dashboard's canonical path, and the old /ire/app path redirecting to it.
 	check 200 /ire
 	check 301 /ire/app
-	# The journey's retired path permanently redirects to the homepage it became.
-	check 308 /version-2
 	check 308 /ai-for-good
 	check 307 /studyos
 	return "$failures"

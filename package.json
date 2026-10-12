@@ -26,7 +26,7 @@
     "test:og-routing": "node scripts/test-og-routing.mjs",
     "test:og-contract": "node scripts/test-og-contract.mjs",
     "test:ire-app": "node scripts/test-ire-app.mjs",
-    "test:home-app": "node scripts/test-home-app.mjs",
+    "test:version-2-app": "node scripts/test-version-2-app.mjs",
     "test:ire-app:browser": "node scripts/test-ire-app-browser.mjs",
     "ire:og-image": "node scripts/render-ire-og-image.mjs",
     "codegraph:init": "codegraph init -i",

@@ -199,7 +199,7 @@ assert.match(
   'Caddyfile should mirror the /ire rewrite',
 );
 assert.ok(
-  caddy.indexOf('handle @ire') < caddy.indexOf('rewrite * /shell/index.html'),
+  caddy.indexOf('handle @ire') < caddy.indexOf('rewrite * /index.html'),
   'the Caddy /ire rule must come before the SPA fallback',
 );
 assert.match(
