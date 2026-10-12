@@ -6,7 +6,7 @@
 | **Issues** | None filed — owner direction in session ("create a cd pipeline for auto deployments") |
 | **Branch** | `task/TASK-DB-0086-mac-autodeploy` |
 | **Base** | `main` @ `bc7512a` |
-| **Status** | **Done** — agent installed and running on the Mac; its first cycle deployed `bc7512a` with no human step, smoke green, edge-verified. Shipped as [#119](https://github.com/Pukujan/design-bakery/pull/119). |
+| **Status** | **Done** — merged ([#119](https://github.com/Pukujan/design-bakery/pull/119) → `b69d1e4`); agent installed and enabled on the Mac, with three unattended deploys observed (two before the merge, one after). |
 
 ## Goal
 
@@ -71,6 +71,10 @@ a failed deploy is retried on the next tick rather than being recorded as done.
   smoke test passes. `launchctl print` shows `runs = 2`, `last exit code = 0`. Edge after:
   `/` 200 shell, `/version-2` 200 journey, plate 200, `/healthz` 200. The two cycles together
   are the proof it is a recurring poller, not a one-shot `RunAtLoad`.
+- **Third cycle — the pipeline deploying itself.** This task's own merge (`b69d1e4`) was picked
+  up the same way: `[18:54:49Z] new commit on origin/main: b69d1e4dbcaf (deployed:
+  54624cae8e4f)`, `runs = 3`, `last exit code = 0`. Nothing about the agent's own delivery
+  needed a hand run.
 - `launchctl print-disabled` does not list the label, so the agent is **enabled** and will come
   back after a reboot; `plutil -lint` on the installed copy is OK.
 
