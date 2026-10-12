@@ -1,6 +1,9 @@
 # gravebuster deploy stack is checked out on Linux — never let git convert line
-# endings there (a CRLF shell script fails with "bad interpreter").
-deploy/gravebuster/* text eol=lf
+# endings there (a CRLF shell script fails with "bad interpreter"). `**`, not `*`:
+# a single `*` does not cross a directory separator, so it silently missed the
+# systemd/ units and the launchd/ agent — the two places a stray CR is least
+# welcome.
+deploy/gravebuster/** text eol=lf
 
 # OIO (TASK-DB-0061) records byte-exact SHA-256 hashes of its managed files.
 # With core.autocrlf=true a Windows checkout rewrites them to CRLF and the
