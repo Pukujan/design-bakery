@@ -6,7 +6,7 @@
 | **Issues** | None filed — owner direction in session. **This direction was carried in session and never written down durably until this file** — see *Provenance* below. |
 | **Branch** | `task/TASK-DB-0088-bloom-and-card-parallax` |
 | **Base** | `origin/main` @ `a3f9d6c` |
-| **Status** | **Requirement captured — not started.** No code exists. Plates must be generated through ABA's runner before any UI work. |
+| **Status** | **Merged and deployed.** Both sequences implemented through ABA's runner in iterate mode (three runs: work plates, card reveal + tree retirement, intro bloom), vendored into `frontend/version-2-app/`, merged ([#123](https://github.com/Pukujan/design-bakery/pull/123), `b9e9b60`, CI `quality` + `orphans` + Vercel green), auto-deployed on the Mac by the launchd agent and verified live. See the *Record* section at the end. |
 
 ## Goal
 
@@ -163,3 +163,53 @@ The result is the muddy dark translucent mass in
 - `tsc` + build + lint green; the TASK-DB-0087 harness assertions still pass; no mobile overflow.
 - Made through ABA's runner in iterate mode, sources vendored back into
   `frontend/version-2-app/`, PR merged, and live at `https://www.design-bakery.com/version-2`.
+
+---
+
+## Record — merged and deployed
+
+Made **through ABA's runner in iterate mode** on the Mac (`~/aba/workspaces/design-bakery-v3`,
+driven from Windows by `.scratch/aba-mac/aba-run-db.ps1` on a dedicated checkout so the
+two concurrent sessions could not clobber each other's HEAD), per `docs/DRIVING_ABA.md` —
+never hand-edited into the generated app. Four iterate runs:
+
+1. **`cr-0088-work-plates`** — the three Work-section photographic plates
+   (`plate-work-bg/mid/fg.png`) generated and wired (this was the asset half; the mechanic
+   was deferred).
+2. **`cr-0088b-plate-alpha`** — after a capability widening in ABA itself (PR
+   [Pukujan/app-builder-automation#102](https://github.com/Pukujan/app-builder-automation/pull/102),
+   `size` + `background:"transparent"` on `generate_image`), the plates were regenerated
+   with real alpha (colortype 6, 66.9–74.5 % transparent) instead of opaque rectangles.
+3. **`cr-0088c-card-reveal`** — Sequence 2: `SakuraTree.tsx` deleted (`ProjectRow` moved
+   into `Work.tsx`), the per-card emphasis curve on the single eased clock, the plaques
+   restyled to translucent glass. Gates PASS (44 build steps, 0 repairs).
+4. **`cr-0088d-intro-bloom`** — Sequence 1: the two bloom plates
+   (`plate-bloom-buds.png` / `plate-bloom-full.png`, both real-alpha RGBA at 1792×1024)
+   and the one-time 2.5 s cross-fade with the scale swell, buds residual, ambient sway,
+   `--bloom-op` gating and reduced-motion static frame. Gates PASS (48 build steps,
+   0 repairs).
+
+The runner verified its own work in-browser (`--view-render`): plate composites over the
+real arrival plate, the bloom timeline at t = 0 / 0.4 / 1.0 / 1.8 s, the work beat showing
+`--bloom-op 0.0000` with `--work-fg 0.7952` (no stacking), reduced-motion static frame,
+and mobile 390 px `overflow-x: no`.
+
+**Vendoring:** sources copied into `frontend/version-2-app/` by content — 8 modified
+files, `SakuraTree.tsx` deleted, 5 new plates; scaffold residue (`App.css`,
+`made-with-dyad.tsx`, stray `generated-*.png`) excluded. `content.ts` byte-identical to
+the frozen contract. Repo checks: `test:version-2-app` pass, `tsc --noEmit` clean,
+`npm run build` clean.
+
+- **Merged:** [PR #123](https://github.com/Pukujan/design-bakery/pull/123) squash-merged to
+  `b9e9b60` (CI `quality` + `orphans` + Vercel green).
+- **Deployed:** by the launchd agent on the Mac, no hand run.
+- **Verified live:** 18/18 headless checks against the production page
+  (`https://www.design-bakery.com/version-2/`, 2026-10-13, Playwright chromium at
+  1440×900 and 390×844): bloom one-shot settled (`db-bloom-open, db-bloom-sway`,
+  full=1, buds residual=0.4), h1 the frozen arrival line, tree gone from the DOM
+  (0 matches), 11 `.db-card` present, parallax vars move with fg > mid > far
+  amplitude (160.0 / 19.9 / 10.6 px), `--work-fg` reaches 1.0 at the work beat
+  while `--bloom-op` reads 0 (no stacking), card emphasis spans 0.42–0.935
+  (spread 0.515), all night-scene selectors present, zero page errors, no
+  horizontal overflow at either viewport. Probe:
+  `.scratch/verify-0088-live.mjs` (session scratch, not committed).
