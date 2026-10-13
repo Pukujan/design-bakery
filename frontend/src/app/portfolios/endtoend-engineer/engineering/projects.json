@@ -226,5 +226,46 @@
       {"label": "Today's Picks", "url": "/ire"},
       {"label": "GitHub \u00b7 Public", "url": "https://github.com/Pukujan/inference-recommendation-engine"}
     ]
+  },
+  {
+    "id": 12,
+    "title": "Agent Custom Setup",
+    "tagline": "One agent in charge, the rest in the queue",
+    "description": "A coordination pack you drop into a repository so several coding agents can work on it at once. Roles join in a fixed order and one agent at a time holds the lease, with a first-in-first-out queue handing out the tickets. A watchdog marks a stalled seat vacant so the queue can move on, and finished work lands as pull requests a human merges. It coordinates a single repository.",
+    "tech": ["Python", "Multi-Agent", "Coordination", "Git", "Claim Queue", "Watchdog"],
+    "color": "#243028",
+    "accentColor": "#d6a15a",
+    "startedAt": "2026-09-25",
+    "startedAtSource": "GitHub repo creation date of Pukujan/agent-custom-setup (public; 2026-09-25T20:31Z)",
+    "status": "ongoing",
+    "stats": [
+      {"label": "Roles join in order", "icon": "Users"},
+      {"label": "One leader at a time", "icon": "Award"},
+      {"label": "Proposals land as PRs", "icon": "TrendingUp"}
+    ],
+    "links": [
+      {"label": "Live Site", "url": "https://acs.design-bakery.com"},
+      {"label": "GitHub \u00b7 Public", "url": "https://github.com/Pukujan/agent-custom-setup"}
+    ]
+  },
+  {
+    "id": 13,
+    "title": "Orbitgraph",
+    "tagline": "Every repo is a planet",
+    "description": "An explorable 3D constellation of a GitHub account. A repository's primary language sets its planet's color, and its commit activity over the last 52 weeks sets the size and the ring. Repositories that share a language are linked by a line, and clicking a planet opens its card. Without a GitHub token the app renders clearly-labelled sample planets.",
+    "tech": ["React", "TypeScript", "Three.js", "Vite", "Nitro", "Tailwind"],
+    "color": "#1C2250",
+    "accentColor": "#4FD8E8",
+    "startedAt": "2026-10-11",
+    "startedAtSource": "GitHub repo creation date of Pukujan/github-planets (private; 2026-10-11T13:43Z)",
+    "status": "ongoing",
+    "stats": [
+      {"label": "One planet per repo", "icon": "Sparkles"},
+      {"label": "Linked by language", "icon": "Users"},
+      {"label": "Size by commit activity", "icon": "TrendingUp"}
+    ],
+    "links": [
+      {"label": "Live App", "url": "https://www.design-bakery.com/github-planets"}
+    ]
   }
 ]
