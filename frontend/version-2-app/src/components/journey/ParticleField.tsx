@@ -119,16 +119,41 @@ export function ParticleField() {
 
       const night = journey.nightT;
       const tear = journey.tear;
+      const lead = journey.lead;
       const coarse = journey.tier === "coarse";
+
+      /*
+       * The seam's own axis — the way the slash runs: lower-left toward
+       * upper-right. The day motes are steered onto it as the cut approaches,
+       * so the run-up leads into the tear instead of raining straight down.
+       */
+      const ax = SEAM.ny;
+      const ay = -SEAM.nx;
 
       for (const p of particles) {
         const weight = p.kind === 0 ? 1 - night : night;
 
-        p.x += p.vx * dt + Math.sin(now / 1400 + p.rot) * 14 * dt;
-        p.y += p.vy * dt;
+        // petals only: embers rise straight up, and by then the cut is behind us
+        const spd = Math.hypot(p.vx, p.vy);
+        const vx = p.kind === 0 ? p.vx + (ax * spd - p.vx) * lead : p.vx;
+        const vy = p.kind === 0 ? p.vy + (ay * spd - p.vy) * lead : p.vy;
+
+        p.x += vx * dt + Math.sin(now / 1400 + p.rot) * 14 * dt;
+        p.y += vy * dt;
         p.rot += p.spin * dt;
 
-        if (p.y > h + 30 || p.y < -30 || p.x < -40 || p.x > w + 40) seed(p, false);
+        if (p.y > h + 30 || p.y < -30 || p.x < -40 || p.x > w + 40) {
+          seed(p, false);
+          /*
+           * A petal steered up the seam re-enters at the bottom of that path —
+           * `seed` puts falling petals on the top edge, which is the side they
+           * are now leaving through.
+           */
+          if (p.kind === 0 && lead > 0.4) {
+            p.x = -30 + Math.random() * (w * 0.7);
+            p.y = h + 20;
+          }
+        }
 
         const alpha = p.a * weight;
         if (alpha <= 0.01) continue;

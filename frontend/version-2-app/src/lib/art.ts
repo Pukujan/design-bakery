@@ -26,6 +26,19 @@ export const ART = {
   band: plate("generated-1791738524759-8c7e0a4eca57.png"),
   /** Luminous cloud and mist bands (composited with screen) */
   clouds: plate("generated-1791737951319-4f89fd991e69.png"),
+  /** Scene 2 — the work scene, far plane: sky, cloud, low sun, mountains, water */
+  workBg: plate("plate-work-bg.png"),
+  /** Scene 2 — the work scene, mid plane: torii, lantern village, pagodas, boat */
+  workMid: plate("plate-work-mid.png"),
+  /** Scene 2 — the work scene, near plane: blurred sakura crossing the frame edges */
+  workFg: plate("plate-work-fg.png"),
+  /**
+   * Scene 1 — the intro bloom, two transparent foreground-only plates of the
+   * same edge-framing composition: buds at t=0 and full blossom at full bloom.
+   * They are cross-faded over the frozen arrival plate, which never changes.
+   */
+  bloomBuds: plate("plate-bloom-buds.png"),
+  bloomFull: plate("plate-bloom-full.png"),
 } as const;
 
 /**

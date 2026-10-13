@@ -21,6 +21,8 @@ export const journey = {
   tear: 0,
   /** the rip itself — spikes once when the tear opens, read by the sparks */
   impact: 0,
+  /** 0 = ambient drift, 1 = motes flowing along the seam toward the cut */
+  lead: 0,
   /** 0 = day particles (petals), 1 = night particles (embers, stars) */
   night: 0,
   /** how much the world has gone to night */
