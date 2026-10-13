@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { ART, ORB, SEAM, sunPosition } from "@/lib/art";
+import { ART, ORB, SEAM, moonPosition, sunPosition } from "@/lib/art";
 import { journey, detectTier, type Tier } from "@/lib/journey-state";
 
 const clamp = (v: number, a = 0, b = 1) => (v < a ? a : v > b ? b : v);
@@ -72,6 +72,16 @@ export function useJourneyScroll() {
       root.style.setProperty("--sun-y", `${sunPct.y.toFixed(2)}%`);
       const size = ORB.size(vw);
       root.style.setProperty("--sun-size", `${size}vmin`);
+
+      // The moon is placed from viewport percentages rather than solved from a
+      // plate crop. It has no painted anchor to sit on, and on a portrait phone
+      // `cover` shows only the middle of the landscape plates, which is what
+      // pushed the orb out of the visible band. Viewport percentages put it in
+      // the upper third on either aspect.
+      const moon = moonPosition(vw, vh);
+      root.style.setProperty("--moon-x", `${moon.x.toFixed(2)}%`);
+      root.style.setProperty("--moon-y", `${moon.y.toFixed(2)}%`);
+      root.style.setProperty("--moon-size", `${ORB.moonSize(vw)}vmin`);
 
       const next: Record<Scene, number> = { ...anchors };
       for (const s of SCENES) {
@@ -217,7 +227,7 @@ export function useJourneyScroll() {
        * else and adds no second listener.
        */
       const bloomOut = clamp((vh / max) * 0.85, 0.008, 0.5);
-      set("--bloom-op", (1 - phase(sp, bloomOut * 0.35, bloomOut)).toFixed(4));
+      set("--bloom-op", (1 - phase(sp, bloomOut * 0.72, bloomOut)).toFixed(4));
       set("--night-t", nightT.toFixed(4));
       set("--tear", tear.toFixed(4));
       set("--veil", clamp(0.18 + 0.34 * phase(sp, anchors.about, anchors.cut) - 0.26 * nightT).toFixed(4));
@@ -245,6 +255,9 @@ export function useJourneyScroll() {
       set("--eyes-op", eyes.toFixed(4));
       set("--eyes-scale", (0.9 + 0.14 * tear).toFixed(4));
       set("--orb-t", smooth(phase(tear, 0.34, 0.72)).toFixed(4));
+      // the moon takes over from the sun as the night settles in, so it is
+      // clear of the cut and only appears once the world is actually dark
+      set("--moon-op", smooth(phase(nightT, 0.3, 0.85)).toFixed(4));
       // the sun goes down as the cut opens
       set("--sun-sink", `${(vh * ORB.sunSink * tear).toFixed(1)}px`);
       set("--par-far", `${parFar.toFixed(1)}px`);

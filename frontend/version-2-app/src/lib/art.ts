@@ -30,8 +30,19 @@ export const ART = {
   workBg: plate("plate-work-bg.png"),
   /** Scene 2 — the work scene, mid plane: torii, lantern village, pagodas, boat */
   workMid: plate("plate-work-mid.png"),
-  /** Scene 2 — the work scene, near plane: blurred sakura crossing the frame edges */
+  /**
+   * Scene 2 — the work scene, near plane: sharp sakura sprays framing the frame
+   * edges, centre open. Alpha feathered to nothing well inside the plate, so no
+   * rectangular edge can show.
+   */
   workFg: plate("plate-work-fg.png"),
+  /**
+   * The portrait compositions. A landscape plate under `cover` on a phone shows
+   * only its centre quarter, which magnifies every blossom about four times and
+   * can bring the plate's own edge into view; these are painted for the tall
+   * frame instead, so the sprays sit on the margins at their intended scale.
+   */
+  workFgPortrait: plate("plate-work-fg-portrait.png"),
   /**
    * Scene 1 — the intro bloom, two transparent foreground-only plates of the
    * same edge-framing composition: buds at t=0 and full blossom at full bloom.
@@ -39,6 +50,8 @@ export const ART = {
    */
   bloomBuds: plate("plate-bloom-buds.png"),
   bloomFull: plate("plate-bloom-full.png"),
+  bloomBudsPortrait: plate("plate-bloom-buds-portrait.png"),
+  bloomFullPortrait: plate("plate-bloom-full-portrait.png"),
 } as const;
 
 /**
@@ -86,7 +99,25 @@ export const ORB = {
   sunSink: 0.13,
   /** the disc size, in vmin */
   size: (vw: number) => (vw < 768 ? 21 : 16),
+  /** the moon's own disc size, in vmin — a touch smaller than the sun's bloom */
+  moonSize: (vw: number) => (vw < 768 ? 19 : 12),
 } as const;
+
+/**
+ * The moon, as a % of the viewport.
+ *
+ * The sun bloom has to be solved from the arrival plate's crop, because it sits
+ * on a sun painted into that plate. The moon has no such anchor: the night plate
+ * is a different scene, and on a portrait phone the landscape plates under
+ * `cover` show only their centre quarter, which is what pushed the orb out to
+ * the very edge of the frame. Placing it from viewport percentages instead puts
+ * it where a moon belongs — the upper third — on either aspect. Portrait sits a
+ * little higher and nearer the right margin, because its frame is tall and
+ * narrow.
+ */
+export function moonPosition(vw: number, vh: number) {
+  return vw < vh ? { x: 67, y: 17 } : { x: 69, y: 20 };
+}
 
 /** Where the painted sun actually lands on screen, as a % of the viewport. */
 export function sunPosition(vw: number, vh: number) {

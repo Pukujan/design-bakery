@@ -72,23 +72,51 @@ export function Stage() {
       </div>
 
       {/*
+        The moon. It shares the orb's slot in the scene — above the night plate
+        and the daylight halves, below the tear — but not its geometry: the sun
+        bloom is solved from a sun painted into the arrival plate, while the moon
+        has no such anchor, so the driver places it from viewport percentages
+        (see moonPosition). It sits above the haze so the weather cannot wash it
+        out, and its own opacity carries the change of light, so it is never the
+        layer that crosses the cut.
+      */}
+      <div className="db-moon" aria-hidden="true">
+        <div className="db-moon-track">
+          <div className="db-moon-halo" />
+          <div className="db-moon-disc" />
+        </div>
+      </div>
+
+      {/*
         The intro bloom. Two transparent foreground-only plates — buds at t=0,
         full blossom at full bloom — cross-faded once on load over the frozen
-        arrival plate, which itself never changes. They sit above the daylight
-        halves and below every page layer, and the driver closes --bloom-op
-        before the near branch plane's window opens, so the two fixed foreground
-        layers never stack.
+        arrival plate, which itself never changes. Each plate carries both the
+        landscape and the portrait composition as custom properties and CSS picks
+        one, so the tall frame gets artwork painted for it. They sit above the
+        daylight halves and below every page layer, and the driver closes
+        --bloom-op before the near branch plane's window opens, so the two fixed
+        foreground layers never stack.
       */}
       <div className="db-bloom db-bloom-buds" aria-hidden="true">
         <div
           className="db-bloom-plate db-bloom-plate-buds"
-          style={{ backgroundImage: `url(${ART.bloomBuds})` }}
+          style={
+            {
+              "--bg-land": `url(${ART.bloomBuds})`,
+              "--bg-port": `url(${ART.bloomBudsPortrait})`,
+            } as CSSProperties
+          }
         />
       </div>
       <div className="db-bloom db-bloom-full" aria-hidden="true">
         <div
           className="db-bloom-plate db-bloom-plate-full"
-          style={{ backgroundImage: `url(${ART.bloomFull})` }}
+          style={
+            {
+              "--bg-land": `url(${ART.bloomFull})`,
+              "--bg-port": `url(${ART.bloomFullPortrait})`,
+            } as CSSProperties
+          }
         />
       </div>
 
