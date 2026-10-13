@@ -156,8 +156,12 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
      long before the cut doubles the scene into two halves */
   opacity: calc(1 - var(--plate-dusk, 0));
   /* the plate is a soft pastel wash on its own; the lift in contrast and the
-     small pull on brightness is what gives the opening frame its depth */
-  filter: contrast(1.16) saturate(1.12) brightness(0.9);
+     small pull on brightness is what gives the opening frame its depth.
+     sepia + hue-rotate + saturate are the shared grade: they carry the plate's
+     pink-magenta cast into the dusk plate's amber, so the two plates read as
+     one scene at two times of day rather than two photographs. The same three
+     terms appear on .db-plate-dusk, and both are static. */
+  filter: contrast(1.16) sepia(0.3) hue-rotate(8deg) saturate(1.35) brightness(0.45);
   transform: translate3d(0, var(--par-far, 0px), 0);
 }
 
@@ -165,7 +169,180 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
   inset: -5% -3%;
   background-position: center 62%;
   opacity: var(--plate-dusk, 0);
+  /* the other half of the shared grade — see .db-plate-sunset */
+  filter: sepia(0.3) hue-rotate(8deg) saturate(1.35);
   transform: translate3d(0, var(--par-far, 0px), 0);
+}
+
+/*
+ * The dusk plate has a pale sun painted into it, and it sits where the arrival
+ * sun does not, so the CSS bloom misses it and the disc reads as a hard edge.
+ * A broad warm wash centred on the same --sun-x/--sun-y the orb uses lifts the
+ * whole area toward the disc's brightness, so the baked sun melts into a bloom
+ * instead of standing as a cut-out. It rides inside the plate, so it is masked
+ * and torn with it; the parent's opacity ties it to --plate-dusk and this ties
+ * it to the light going out, because the dusk plate is still up at night.
+ */
+.db-plate-dusk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: calc(1 - var(--night-t, 0));
+  background:
+    radial-gradient(
+      circle 26vmin at var(--sun-x, 48%) var(--sun-y, 27%),
+      rgba(255, 228, 186, 0.4) 0%,
+      rgba(250, 196, 150, 0.22) 46%,
+      rgba(238, 160, 132, 0.06) 74%,
+      rgba(238, 160, 132, 0) 100%
+    ),
+    radial-gradient(
+      circle 54vmin at var(--sun-x, 48%) var(--sun-y, 27%),
+      rgba(250, 198, 152, 0.18) 0%,
+      rgba(240, 168, 136, 0.09) 52%,
+      rgba(232, 150, 130, 0) 100%
+    );
+}
+
+/* ----------------------------------------------------------- the intro bloom */
+/*
+ * Sequence 1. Two transparent foreground-only plates of the same edge-framing
+ * composition — buds at t=0, full blossom at full bloom — cross-faded once on
+ * load over the frozen arrival plate, which itself never changes. The plates
+ * carry their own alpha, so there is no mask and no blend mode: the scene and
+ * the title read straight through the transparent centre.
+ *
+ * The window is gated to the arrival beat by --bloom-op, which the driver closes
+ * before the near branch plane's window opens, so this fixed foreground layer
+ * and .db-work-fg can never stack. These are load-time animations, not scroll
+ * effects, so nothing here retriggers when the visitor scrolls back up.
+ */
+.db-bloom {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  opacity: var(--bloom-op, 1);
+}
+
+.db-bloom-plate {
+  position: absolute;
+  inset: -3% -3%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  will-change: transform, opacity;
+}
+
+/*
+ * The buds are the t=0 state. They settle at a residual opacity rather than
+ * fading right out: the two plates are independent generations, so their
+ * branches do not sit in exactly the same place, and holding the buds under the
+ * blossom masks the mismatch — which is also what real branches do at full
+ * bloom. One-shot, filled forwards; nothing here loops.
+ */
+.db-bloom-plate-buds {
+  animation: db-bloom-buds 2.5s cubic-bezier(0.4, 0, 0.3, 1) 1 forwards;
+}
+
+/*
+ * The blossom opens over the buds and swells a touch as it does (1 -> 1.035), so
+ * the change reads as the branch opening rather than as a flat dissolve. Once
+ * the one-shot keyframes have filled, a slow ambient sway takes over on a
+ * separate property: the fill leaves `transform` at its last keyframe and the
+ * sway animates `translate`, so the two never fight over the same channel.
+ */
+.db-bloom-plate-full {
+  animation:
+    db-bloom-open 2.5s cubic-bezier(0.4, 0, 0.3, 1) 1 forwards,
+    db-bloom-sway 15s ease-in-out 2.5s infinite;
+}
+
+@keyframes db-bloom-buds {
+  0% {
+    opacity: 1;
+  }
+  76% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes db-bloom-open {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  16% {
+    opacity: 0.34;
+  }
+  40% {
+    opacity: 0.62;
+  }
+  72% {
+    opacity: 1;
+    transform: scale(1.035);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.035);
+  }
+}
+
+@keyframes db-bloom-sway {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -7px;
+  }
+}
+
+/* ------------------------------------------------------------- the work scene */
+/*
+ * The work scene, in depth slices. The two far planes live inside the daylight
+ * halves, so the cut tears them with the rest of the world; they hand off from
+ * the arrival plate exactly as the single dusk plate did, which is what keeps
+ * the arrival -> work transition continuous. The near branch plane is the one
+ * layer mounted above the page instead (see .db-work-fg), so that it can pass in
+ * front of the cards. All three ride the eased clock the driver writes.
+ */
+.db-work-bg {
+  inset: -6% -4%;
+  background-position: center 62%;
+  opacity: var(--plate-dusk, 0);
+  transform: translate3d(0, var(--par-far, 0px), 0);
+}
+
+.db-work-mid {
+  /* deeper bleed than the far plane, because it travels further */
+  inset: -12% -6%;
+  background-position: center 66%;
+  opacity: var(--plate-dusk, 0);
+  transform: translate3d(0, var(--par-mid, 0px), 0);
+}
+
+/*
+ * The near-camera branches: the fastest plane, mounted above the page (z-index
+ * 30 clears the cards' 10 and stays under the fixed nav's 50) so it covers and
+ * reveals the cards as it passes. It is transparent through the centre, so the
+ * scene and the cards read through it, and its window closes before the About
+ * beat — this plane must never cross the cut, the night or the page chrome.
+ */
+.db-work-fg {
+  position: fixed;
+  inset: -8% -6%;
+  z-index: 30;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  opacity: var(--work-fg, 0);
+  transform: translate3d(0, var(--par-fg, 0px), 0);
+  will-change: transform, opacity;
 }
 
 /* the paper left at the edges of the frame cools into the night */
@@ -209,10 +386,10 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
   height: calc(var(--sun-size, 20vmin) * 3.6);
   margin-left: calc(var(--sun-size, 20vmin) * -1.8);
   margin-top: calc(var(--sun-size, 20vmin) * -1.8);
-  opacity: calc((1 - var(--orb-t, 0)) * 0.85);
+  opacity: calc((1 - var(--orb-t, 0)) * 0.5);
   background: radial-gradient(
     circle,
-    rgba(255, 220, 168, 0.4) 0%,
+    rgba(255, 220, 168, 0.26) 0%,
     rgba(255, 176, 140, 0.14) 36%,
     rgba(255, 150, 130, 0) 68%
   );
@@ -225,11 +402,11 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
   height: var(--sun-size, 20vmin);
   margin-left: calc(var(--sun-size, 20vmin) / -2);
   margin-top: calc(var(--sun-size, 20vmin) / -2);
-  opacity: calc((1 - var(--orb-t, 0)) * 0.9);
+  opacity: calc((1 - var(--orb-t, 0)) * 0.62);
   background: radial-gradient(
     circle,
-    rgba(255, 250, 236, 0.95) 0%,
-    rgba(252, 231, 190, 0.85) 34%,
+    rgba(255, 250, 236, 0.72) 0%,
+    rgba(252, 231, 190, 0.62) 34%,
     rgba(246, 196, 152, 0.4) 58%,
     rgba(232, 152, 140, 0) 82%
   );
@@ -251,7 +428,7 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
   inset: -14% -22%;
   background-position: center;
   mix-blend-mode: screen;
-  opacity: calc((0.36 - var(--night-t, 0) * 0.18) * (1 - var(--tear, 0) * 0.7));
+  opacity: calc(0.18 * (1 - var(--tear, 0) * 0.7));
   animation: db-drift 150s linear infinite;
 }
 
@@ -267,7 +444,7 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
     rgba(255, 216, 200, 0.3) 48%,
     rgba(255, 208, 196, 0) 100%
   );
-  opacity: calc((0.66 - var(--plate-dusk, 0) * 0.2 - var(--night-t, 0) * 0.4) * (1 - var(--tear, 0) * 0.7));
+  opacity: calc((0.35 - var(--plate-dusk, 0) * 0.2 - var(--night-t, 0) * 0.09) * (1 - var(--tear, 0) * 0.7));
   animation: db-mist-slide 76s ease-in-out infinite alternate;
 }
 
@@ -457,8 +634,12 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
 .db-band {
   left: -6%;
   right: -6%;
-  bottom: -3%;
-  height: 34%;
+  /* the bleed must outlast the near layer's lift (--par-near peaks at -95px),
+     or the silhouette's base rises off the frame bottom and shows the night
+     plate beneath it. the height grows by the same 110px, so the top edge —
+     and the part of the frame the band covers — stays exactly where it was. */
+  bottom: calc(-3% - 110px);
+  height: calc(34% + 110px);
   z-index: 10;
   background-position: center bottom;
   mix-blend-mode: multiply;
@@ -673,6 +854,26 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
     0 30px 70px -34px rgba(11, 5, 16, 0.98);
 }
 
+/* --------------------------------------------------------------- the glass
+   A project card is a pane of glass, not an opaque panel: a dark translucent
+   fill the scene reads through, a hairline edge, and a lift that peaks as the
+   card crosses the middle of the frame. The driver writes --card-emph from the
+   eased clock; only transform and opacity move, so no frame touches layout and
+   the card is never taken away entirely — the floor is the dim edge state. */
+.db-card {
+  position: relative;
+  transform-origin: center;
+  transform: scale(calc(0.97 + 0.03 * var(--card-emph, 1)));
+  opacity: calc(0.86 + 0.14 * var(--card-emph, 1));
+  background: linear-gradient(168deg, rgba(40, 20, 38, 0.58) 0%, rgba(14, 7, 18, 0.7) 100%);
+  border: 1px solid rgba(248, 239, 231, 0.16);
+  -webkit-backdrop-filter: blur(9px) saturate(1.12);
+  backdrop-filter: blur(9px) saturate(1.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 226, 196, 0.14),
+    0 30px 70px -34px rgba(11, 5, 16, 0.95);
+}
+
 /* the two posts a signboard stands on */
 .db-plaque-posts::before,
 .db-plaque-posts::after {
@@ -757,93 +958,6 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
 .db-rule {
   height: 1px;
   background: linear-gradient(90deg, rgba(248, 239, 231, 0.32), rgba(248, 239, 231, 0));
-}
-
-/* ------------------------------------------------- the sakura root timeline
-   One silhouette tree at the hinge of the Work section: the canopy stands up as
-   the section begins, the roots grow downward as the visitor descends, and each
-   project hangs from a root node that ignites in sakura. The layer is a shadow,
-   not a drawn object — dark, no interior detail, behind everything in the
-   column. Its box is the column's box, so the SVG's viewBox is in exact pixels. */
-.db-tree {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.db-tree-svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/* the canopy rises as the Work section begins */
-.db-tree-canopy {
-  transform: translateY(var(--tree-rise, 0px));
-  transition: transform 240ms linear;
-}
-
-.db-tree-skirt {
-  fill: none;
-  stroke-linecap: round;
-  stroke-width: 44;
-}
-
-.db-tree-bough {
-  fill: none;
-  stroke-linecap: round;
-  stroke-width: 16;
-}
-
-/* roots: the silhouette stays dark, sakura lives in the nodes */
-.db-root {
-  fill: none;
-  stroke: rgba(11, 5, 16, 0.5);
-  stroke-width: 1.4;
-  stroke-linecap: round;
-}
-
-.db-root-spine {
-  stroke-width: 1.8;
-  stroke: rgba(11, 5, 16, 0.55);
-}
-
-.db-root-hair {
-  stroke: rgba(11, 5, 16, 0.4);
-  stroke-width: 1;
-}
-
-/* the same root drawn again, faintly sakura, sharing its reveal window */
-.db-root-tint {
-  fill: none;
-  stroke: rgba(240, 163, 150, 0.18);
-  stroke-width: 1.2;
-  stroke-linecap: round;
-}
-
-/* the node a project hangs from — centred with margins, not a transform */
-.db-root-node {
-  position: absolute;
-  top: 50%;
-  left: var(--tree-lane, 50%);
-  width: 9px;
-  height: 9px;
-  margin: -4.5px 0 0 -4.5px;
-  border-radius: 9999px;
-  background: #f6c79b;
-  opacity: 0.5;
-  pointer-events: none;
-  transition: background-color 0.8s ease, box-shadow 0.8s ease, opacity 0.8s ease;
-}
-
-.db-root-node[data-lit="true"] {
-  background: #f0a396;
-  opacity: 1;
-  box-shadow:
-    0 0 10px 3px rgba(240, 163, 150, 0.55),
-    0 0 26px 10px rgba(217, 108, 127, 0.22);
 }
 
 /* ------------------------------------------------------------------ motion */
@@ -955,24 +1069,10 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
     transform: none !important;
   }
 
-  /* a reduced-motion visitor sees the whole tree, not an empty column */
-  .db-tree-canopy {
-    transition: none !important;
+  /* the cards compose to a still frame: every one at its centre emphasis */
+  .db-card {
     transform: none !important;
-  }
-
-  .db-root,
-  .db-root-tint {
-    stroke-dashoffset: 0 !important;
-  }
-
-  .db-root-node {
-    transition: none !important;
-    background: #f0a396 !important;
     opacity: 1 !important;
-    box-shadow:
-      0 0 10px 3px rgba(240, 163, 150, 0.55),
-      0 0 26px 10px rgba(217, 108, 127, 0.22) !important;
   }
 }
 
@@ -992,23 +1092,36 @@ html[data-reduced="true"] .db-reveal {
   transform: none !important;
 }
 
-html[data-reduced="true"] .db-tree-canopy {
-  transition: none !important;
+html[data-reduced="true"] .db-card {
   transform: none !important;
-}
-
-html[data-reduced="true"] .db-root,
-html[data-reduced="true"] .db-root-tint {
-  stroke-dashoffset: 0 !important;
-}
-
-html[data-reduced="true"] .db-root-node {
-  transition: none !important;
-  background: #f0a396 !important;
   opacity: 1 !important;
-  box-shadow:
-    0 0 10px 3px rgba(240, 163, 150, 0.55),
-    0 0 26px 10px rgba(217, 108, 127, 0.22) !important;
+}
+
+/*
+ * The calm version of the intro: no bloom, no sway. The full-bloom plate is
+ * simply there from the first frame, so the arrival reads as a complete static
+ * picture rather than an animation that has been slowed down.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .db-bloom-plate-buds {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+
+  .db-bloom-plate-full {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
+html[data-reduced="true"] .db-bloom-plate-buds {
+  animation: none !important;
+  opacity: 0 !important;
+}
+
+html[data-reduced="true"] .db-bloom-plate-full {
+  animation: none !important;
+  opacity: 1 !important;
 }
 
 html[data-reduced="true"] .db-canvas,
@@ -1016,4 +1129,15 @@ html[data-reduced="true"] .db-seam-texture,
 html[data-reduced="true"] .db-seam,
 html[data-reduced="true"] .db-bleed {
   display: none;
+}
+
+/*
+ * Reduced motion: the three work planes still compose the frame, they just do
+ * not travel. The depth is carried by the artwork alone, so the plate is a still
+ * photograph rather than a parallax rig.
+ */
+html[data-reduced="true"] .db-work-bg,
+html[data-reduced="true"] .db-work-mid,
+html[data-reduced="true"] .db-work-fg {
+  transform: none !important;
 }

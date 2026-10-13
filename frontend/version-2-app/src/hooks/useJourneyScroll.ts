@@ -44,6 +44,21 @@ export function useJourneyScroll() {
     let max = 1;
     let sunPct = { x: 43, y: 38 };
 
+    /*
+     * The project cards. Their document-space centres are read in measure() — on
+     * resize, load and font-ready, never inside the frame — and the frame then
+     * turns each one into a distance from the middle of the viewport.
+     */
+    type Card = { el: HTMLElement; mid: number; v: string };
+    let cards: Card[] = [];
+
+    /** one card's emphasis, written only when it actually changes */
+    const writeEmph = (c: Card, v: string) => {
+      if (c.v === v) return;
+      c.v = v;
+      c.el.style.setProperty("--card-emph", v);
+    };
+
     const measure = () => {
       const vh = window.innerHeight;
       const vw = window.innerWidth;
@@ -70,6 +85,14 @@ export function useJourneyScroll() {
         const r = cutEl.getBoundingClientRect();
         cut = { top: r.top + window.scrollY, height: Math.max(1, r.height) };
       }
+
+      // the cards, cached: the frame must never read layout back
+      cards = Array.from(document.querySelectorAll<HTMLElement>(".db-card")).map((el) => {
+        const r = el.getBoundingClientRect();
+        return { el, mid: r.top + r.height / 2 + window.scrollY, v: "" };
+      });
+      // reduced motion composes to a still frame: every card at its centre
+      if (reduced) for (const c of cards) writeEmph(c, "1");
     };
 
     const vars = new Map<string, string>();
@@ -117,6 +140,7 @@ export function useJourneyScroll() {
 
       journey.tear = tear;
       journey.nightT = nightT;
+      journey.lead = phase(sp, anchors.about, anchors.cut);
 
       const gradLen = Math.abs(vw * SEAM.nx) + Math.abs(vh * SEAM.ny);
 
@@ -173,10 +197,27 @@ export function useJourneyScroll() {
       const parFar = (0.5 - sp) * 64;
       const parMid = (0.5 - sp) * 120;
       const parNear = (0.5 - sp) * 190;
+      // the near-camera branch plane has to visibly outpace the cards, which
+      // scroll with the page, so it gets a deeper amplitude than --par-near
+      const parFg = (0.5 - sp) * 320;
 
       /* ------------------------------------------------------------------ out */
       set("--p", sp.toFixed(4));
       set("--plate-dusk", dayBlend.toFixed(4));
+      /*
+       * The intro bloom is gated to the arrival beat, which is exactly one
+       * viewport tall — so its share of the page is vh / max and its handoff to
+       * the work scene is the same fraction of the eased clock. The window is 1
+       * at the top of the page, where the load-time animation runs, and closes
+       * over the second half of that beat, so the blossom dissolves away as the
+       * arrival hands over and is gone before the work scene is the active one
+       * — which is what keeps it from ever being read on top of the cards or
+       * stacked with the near branch plane. Derived rather than fixed, so it
+       * holds on any viewport, and it rides the same eased clock as everything
+       * else and adds no second listener.
+       */
+      const bloomOut = clamp((vh / max) * 0.85, 0.008, 0.5);
+      set("--bloom-op", (1 - phase(sp, bloomOut * 0.35, bloomOut)).toFixed(4));
       set("--night-t", nightT.toFixed(4));
       set("--tear", tear.toFixed(4));
       set("--veil", clamp(0.18 + 0.34 * phase(sp, anchors.about, anchors.cut) - 0.26 * nightT).toFixed(4));
@@ -209,11 +250,40 @@ export function useJourneyScroll() {
       set("--par-far", `${parFar.toFixed(1)}px`);
       set("--par-mid", `${parMid.toFixed(1)}px`);
       set("--par-near", `${parNear.toFixed(1)}px`);
+      set("--par-fg", `${parFg.toFixed(1)}px`);
+      // the branch plane only exists over the work beat: it fades up as the
+      // section arrives and is gone well before About, so it can never cross the
+      // cut, the night or the page chrome
+      set(
+        "--work-fg",
+        clamp(
+          phase(sp, anchors.work - 0.02, anchors.work + 0.06) *
+            (1 - phase(sp, anchors.about - 0.06, anchors.about - 0.01)),
+        ).toFixed(4),
+      );
       set("--fg-day", fgDay.toFixed(4));
       set("--fg-night", fgNight.toFixed(4));
       set("--night-scale", (1.05 - 0.05 * nightT).toFixed(4));
       set("--particle-op", reduced ? "0" : "1");
       set("--nav-dark", clamp(phase(sp, anchors.work - 0.05, anchors.work + 0.08)).toFixed(4));
+
+      /* -------------------------------------------------------- card emphasis */
+      /*
+       * The centre reveal: a card swells to full strength as it crosses the
+       * middle of the frame and gives way toward the edges, so the one being
+       * read stands proud of the ones entering and leaving. It rides the same
+       * eased clock as the rest of the world — the centres were measured on
+       * resize, so nothing here reads layout — and it never removes a card: the
+       * floor is the dim, small edge state.
+       */
+      if (!reduced) {
+        const middle = ey + vh / 2;
+        const reach = vh * 0.62;
+        for (const c of cards) {
+          const e = 1 - clamp(Math.abs(c.mid - middle) / reach);
+          writeEmph(c, (0.42 + 0.58 * smooth(e)).toFixed(3));
+        }
+      }
     };
 
     const onScroll = () => {
@@ -237,6 +307,9 @@ export function useJourneyScroll() {
       reduced = e.matches;
       journey.reduced = reduced;
       root.dataset.reduced = reduced ? "true" : "false";
+      // a reduced-motion visitor gets the still frame, so re-measure the cards
+      // and settle them at their centre emphasis instead of leaving them mid-curve
+      if (reduced) measure();
       dirty = true;
     };
     mq.addEventListener("change", onMotion);

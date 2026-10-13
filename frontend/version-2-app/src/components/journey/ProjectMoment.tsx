@@ -4,7 +4,7 @@ import { Reveal } from "./Reveal";
 
 const isExternal = (href: string) => /^https?:\/\//.test(href);
 
-/** The frame each project hangs in — a beat in the landscape, not a card. */
+/** The frame each project hangs in — a pane of glass in the landscape. */
 function Device({ project, children }: { project: Project; children: ReactNode }) {
   const { device, side } = project;
 
@@ -13,21 +13,23 @@ function Device({ project, children }: { project: Project; children: ReactNode }
 
   const frameClass =
     device === "billboard"
-      ? "db-plaque db-billboard rounded-md"
+      ? "db-billboard rounded-[1.6rem]"
       : device === "lantern"
-        ? "db-plaque db-hang rounded-[2rem]"
+        ? "db-hang rounded-[2.25rem]"
         : device === "passing"
-          ? "db-plaque rounded-sm"
-          : "db-plaque db-plaque-posts rounded-lg";
+          ? "rounded-[1.25rem]"
+          : "db-plaque-posts rounded-[1.75rem]";
 
   return (
     <div className={`db-device w-full max-w-[30rem] sm:max-w-[32rem] ${tilt}`}>
       {device === "passing" ? (
-        <div className={`${frameClass} overflow-hidden pb-14 pt-6 sm:pt-7`}>
+        /* the one frame that keeps its own signature: a tight top and a deep
+           bottom, so the glass reads as sliding past rather than resting */
+        <div className={`db-card ${frameClass} overflow-hidden px-7 pb-16 pt-7 sm:px-9 sm:pt-8`}>
           {children}
         </div>
       ) : (
-        <div className={`${frameClass} p-6 sm:p-7`}>{children}</div>
+        <div className={`db-card ${frameClass} p-7 sm:p-9`}>{children}</div>
       )}
     </div>
   );
@@ -76,7 +78,7 @@ export function ProjectMoment({ project }: { project: Project }) {
         </ul>
 
         {links.length > 0 && (
-          <ul className="db-links mt-5 flex flex-wrap gap-2 border-t border-cream/12 pt-4">
+          <ul className="db-links mt-5 flex flex-wrap gap-2 border-t border-cream/20 pt-4">
             {links.map((l) => (
               <li key={l.label}>
                 <a

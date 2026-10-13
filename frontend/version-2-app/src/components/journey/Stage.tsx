@@ -24,7 +24,15 @@ export function Stage() {
   const daylight = (
     <>
       <div className="db-img db-plate-sunset" style={{ backgroundImage: `url(${ART.sunset})` }} />
-      <div className="db-img db-plate-dusk" style={{ backgroundImage: `url(${ART.dusk})` }} />
+      {/*
+        The work scene, in two depth slices that hand off from the arrival plate
+        exactly as the single dusk plate did. They live inside the halves so the
+        cut tears them with the rest of the daylight; the near branch plane is
+        mounted above the page instead (see Work), so it can pass in front of
+        the cards rather than behind them.
+      */}
+      <div className="db-img db-work-bg" style={{ backgroundImage: `url(${ART.workBg})` }} />
+      <div className="db-img db-work-mid" style={{ backgroundImage: `url(${ART.workMid})` }} />
       {/* the paper itself cools as the light goes out of it */}
       <div className="db-img db-day-tint" />
     </>
@@ -61,6 +69,27 @@ export function Stage() {
         <div className="db-img db-clouds" style={{ backgroundImage: `url(${ART.clouds})` }} />
         <div className="db-mist" />
         <div className="db-water" />
+      </div>
+
+      {/*
+        The intro bloom. Two transparent foreground-only plates — buds at t=0,
+        full blossom at full bloom — cross-faded once on load over the frozen
+        arrival plate, which itself never changes. They sit above the daylight
+        halves and below every page layer, and the driver closes --bloom-op
+        before the near branch plane's window opens, so the two fixed foreground
+        layers never stack.
+      */}
+      <div className="db-bloom db-bloom-buds" aria-hidden="true">
+        <div
+          className="db-bloom-plate db-bloom-plate-buds"
+          style={{ backgroundImage: `url(${ART.bloomBuds})` }}
+        />
+      </div>
+      <div className="db-bloom db-bloom-full" aria-hidden="true">
+        <div
+          className="db-bloom-plate db-bloom-plate-full"
+          style={{ backgroundImage: `url(${ART.bloomFull})` }}
+        />
       </div>
 
       <div className="db-bleed" />
