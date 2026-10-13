@@ -132,6 +132,35 @@ for (const title of ['Eval Lab', 'Project Continuity Modules', 'Inference Recomm
   assert.ok(project, `${title} should be in the showcase`);
   assert.equal(project.status, 'ongoing', `${title} should be marked ongoing`);
 }
+// Orbitgraph is served by its own container through the tunnel, not by this SPA, so its
+// card must use the absolute URL — a relative path would render as an in-app <Link>.
+const orbitgraph = projects.find((p) => p.title === 'Orbitgraph');
+assert.ok(orbitgraph, 'Orbitgraph should be in the showcase');
+assert.equal(orbitgraph.startedAt, '2026-10-11', 'Orbitgraph startedAt is its repo creation date');
+assert.ok(
+  orbitgraph.links.some(
+    (link) => link.label === 'Live App' && link.url === 'https://www.design-bakery.com/github-planets',
+  ),
+  'Orbitgraph should link to the absolute design-bakery URL of its live app',
+);
+// github-planets is a private repo; linking it would 404 for every visitor.
+for (const project of projects) {
+  assert.ok(
+    !project.links.some((link) => link.url.includes('github.com/Pukujan/github-planets')),
+    `${project.title} must not link to the private github-planets repo`,
+  );
+}
+const acs = projects.find((p) => p.title === 'Agent Custom Setup');
+assert.ok(acs, 'Agent Custom Setup should be in the showcase');
+assert.equal(acs.startedAt, '2026-09-25', 'Agent Custom Setup startedAt is its repo creation date');
+assert.ok(
+  acs.links.some((link) => link.label === 'Live Site' && link.url === 'https://acs.design-bakery.com'),
+  'Agent Custom Setup should link to its live site',
+);
+assert.ok(
+  acs.links.some((link) => link.url === 'https://github.com/Pukujan/agent-custom-setup'),
+  'Agent Custom Setup should link to its public GitHub repo',
+);
 assert.equal(relevantExperience.experiences[0].company, 'Nepasoft LLC');
 assert.equal(skillMeta.headingRight, 'SYSTEMS');
 assert.ok(
