@@ -74,7 +74,16 @@ export function ParticleField() {
     };
 
     const resize = () => {
-      const dpr = Math.min(1.5, window.devicePixelRatio || 1);
+      /*
+       * The backing store is resolution-capped, not just DPR-capped. The canvas
+       * is a full-viewport transparent surface re-uploaded every frame, so its
+       * pixel count is the whole cost of the effect — and on the coarse tier it
+       * was a 1.5x backing store over the tear, which is exactly where the
+       * particle field peaks and where the frame budget is thinnest. Capping the
+       * coarse tier at 1.0 keeps the sparks the same size in CSS pixels while
+       * cutting the fill by more than half; the fine tier keeps its 1.5.
+       */
+      const dpr = Math.min(detectTier() === "coarse" ? 1 : 1.5, window.devicePixelRatio || 1);
       // measured here, not from journey.vw: child effects run before the
       // scroll driver's effect has written anything, so reading the shared
       // state on mount sized the canvas 0x0 and the petals never appeared
@@ -86,8 +95,10 @@ export function ParticleField() {
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       particles = Array.from({ length: count() }, () => seed({} as P, true));
-      // one pooled spark per slot, so a burst never allocates mid-frame
-      const cap = detectTier() === "coarse" ? 150 : 420;
+      // one pooled spark per slot, so a burst never allocates mid-frame. the
+      // pool is sized to what the emitters can actually ask for on this tier,
+      // because every live slot is integrated and drawn with two or three arcs
+      const cap = detectTier() === "coarse" ? 96 : 420;
       sparks = Array.from({ length: cap }, () => ({
         x: 0, y: 0, vx: 0, vy: 0, r: 1, life: 0, max: 1, hot: 0,
       })) as Spark[];
@@ -191,7 +202,7 @@ export function ParticleField() {
       if (imp > 0.02) {
         const ix = w / 2 + SEAM.nx * journey.seamD;
         const iy = h / 2 + SEAM.ny * journey.seamD;
-        const per = Math.min(coarse ? 5 : 11, Math.round((coarse ? 7 : 20) * imp));
+        const per = Math.min(coarse ? 3 : 11, Math.round((coarse ? 4 : 20) * imp));
         for (let n = 0; n < per; n++) {
           const a = Math.random() * 2 - 1;
           const o = Math.random() * 2 - 1;
@@ -215,7 +226,7 @@ export function ParticleField() {
        * keeps shedding heat instead of going dark as it widens.
        */
       if (tear > 0.02 && tear < 0.995) {
-        moteDebt += (coarse ? 16 : 46) * dt * (0.4 + 0.6 * tear);
+        moteDebt += (coarse ? 11 : 46) * dt * (0.4 + 0.6 * tear);
         while (moteDebt >= 1) {
           moteDebt -= 1;
           const side = Math.random() < 0.5 ? -1 : 1;

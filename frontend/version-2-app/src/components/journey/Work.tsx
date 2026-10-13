@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { PROJECTS, JP_ACCENTS, SCENE_LINES, type Project } from "@/data/content";
 import { ART } from "@/lib/art";
 import { JpAccent } from "./JpAccent";
@@ -31,7 +32,12 @@ export function Work() {
       <div
         className="db-work-fg"
         aria-hidden="true"
-        style={{ backgroundImage: `url(${ART.workFg})` }}
+        style={
+          {
+            "--bg-land": `url(${ART.workFg})`,
+            "--bg-port": `url(${ART.workFgPortrait})`,
+          } as CSSProperties
+        }
       />
 
       <div className="relative mx-auto max-w-5xl">

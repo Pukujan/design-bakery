@@ -225,13 +225,25 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
   opacity: var(--bloom-op, 1);
 }
 
+/*
+ * The box and the background position are the near branch plane's own (see
+ * .db-work-fg), so the bloom and the branch plane are crops of the same kind of
+ * image at the same scale in the same place. They are the two layers that
+ * actually cross-fade — the bloom is still fading out while --work-fg is already
+ * ramping up — so if their crops drifted apart that dissolve would read as a
+ * sudden zoom. Matched, the handoff is a pure cross-fade.
+ *
+ * The plate itself is chosen in CSS from the two URLs the component hands down,
+ * so the portrait composition can replace the landscape one with nothing inline
+ * to fight and no base path baked into this file.
+ */
 .db-bloom-plate {
   position: absolute;
-  inset: -3% -3%;
+  inset: -8% -6%;
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
-  will-change: transform, opacity;
+  background-image: var(--bg-land, none);
 }
 
 /*
@@ -340,9 +352,33 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
+  background-image: var(--bg-land, none);
   opacity: var(--work-fg, 0);
   transform: translate3d(0, var(--par-fg, 0px), 0);
   will-change: transform, opacity;
+}
+
+/*
+ * Portrait phones. A 1792x1024 plate under `cover` in a 390x844 frame shows only
+ * its centre quarter — every blossom is magnified about four times and the
+ * plate's own edge can walk into the viewport. These plates are painted for the
+ * tall frame instead (sprays down both margins, centre open), and because the
+ * box is the viewport exactly, `cover` on the portrait aspect can never bring a
+ * plate edge into view.
+ *
+ * The bloom and the branch plane take the same box and the same fit, so the
+ * handoff between them stays a cross-fade here too.
+ */
+@media (orientation: portrait) {
+  .db-bloom-plate {
+    inset: 0;
+    background-image: var(--bg-port, var(--bg-land, none));
+  }
+
+  .db-work-fg {
+    inset: 0;
+    background-image: var(--bg-port, var(--bg-land, none));
+  }
 }
 
 /* the paper left at the edges of the frame cools into the night */
@@ -410,6 +446,67 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
     rgba(246, 196, 152, 0.4) 58%,
     rgba(232, 152, 140, 0) 82%
   );
+}
+
+/*
+ * The moon. Same shape of rig as the sun — a zero-size track the disc is centred
+ * on with margins, so the breathing animation can keep ownership of the
+ * transform — but placed from viewport percentages rather than solved from a
+ * plate crop, which is what keeps it in the upper third on a portrait phone.
+ * Its own opacity carries the change of light, so it fades up as the night
+ * settles and is never the layer that crosses the cut.
+ */
+.db-moon {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  opacity: var(--moon-op, 0);
+}
+
+.db-moon-track {
+  position: absolute;
+  left: var(--moon-x, 69%);
+  top: var(--moon-y, 20%);
+  width: 0;
+  height: 0;
+}
+
+.db-moon-halo,
+.db-moon-disc {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 9999px;
+}
+
+.db-moon-halo {
+  width: calc(var(--moon-size, 12vmin) * 4.4);
+  height: calc(var(--moon-size, 12vmin) * 4.4);
+  margin-left: calc(var(--moon-size, 12vmin) * -2.2);
+  margin-top: calc(var(--moon-size, 12vmin) * -2.2);
+  background: radial-gradient(
+    circle,
+    rgba(214, 228, 255, 0.24) 0%,
+    rgba(184, 204, 255, 0.1) 38%,
+    rgba(150, 175, 235, 0) 70%
+  );
+  animation: db-breathe 27s ease-in-out infinite;
+}
+
+/* a pale disc with its light coming from the upper left, so it reads as a moon */
+.db-moon-disc {
+  width: var(--moon-size, 12vmin);
+  height: var(--moon-size, 12vmin);
+  margin-left: calc(var(--moon-size, 12vmin) / -2);
+  margin-top: calc(var(--moon-size, 12vmin) / -2);
+  background: radial-gradient(
+    circle at 38% 34%,
+    #ffffff 0%,
+    #eef3ff 40%,
+    #d2ddf5 70%,
+    #aebddf 100%
+  );
+  box-shadow: 0 0 42px 14px rgba(188, 208, 255, 0.22);
 }
 
 /* -------------------------------------------------------------------- haze */
@@ -872,6 +969,20 @@ html[data-reduced="true"] .db-daylight[data-half="b"] {
   box-shadow:
     inset 0 1px 0 rgba(255, 226, 196, 0.14),
     0 30px 70px -34px rgba(11, 5, 16, 0.95);
+}
+
+/*
+ * Coarse tier. The backdrop-filter is the most expensive thing on the page: it
+ * re-filters a full-width strip behind the card whenever anything under it
+ * moves, and the cut moves everything at once — which is what made the tear
+ * stutter on a phone. The card is a dark translucent pane either way, so the
+ * blur goes and only a little softness with it. The fine tier keeps it.
+ */
+@media (max-width: 767px) {
+  .db-card {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 /* the two posts a signboard stands on */
