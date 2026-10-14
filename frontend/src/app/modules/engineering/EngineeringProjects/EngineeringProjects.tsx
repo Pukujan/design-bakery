@@ -20,7 +20,13 @@ import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useProjectsContent } from '../../../lib/contentHooks';
 import { isInternalAppPath } from '../../../lib/caseStudyRoutes';
-import { sortProjectsByStartedAtDesc } from '../../../lib/projectOrder';
+import {
+  isProjectCategory,
+  orderProjectsForShowcase,
+  PROJECT_CATEGORIES,
+  PROJECT_CATEGORY_LABEL,
+  type ShowcaseFilter,
+} from '../../../lib/projectOrder';
 import {
   OPEN_FEATURED_PROJECT_EVENT,
   parseProjectHash,
@@ -36,6 +42,19 @@ const projectIconMap = {
 } as const;
 
 const PROJECTS_PAGE_SIZE = 4;
+
+function CategoryBadge({ category, size = 'md' }: { category?: string; size?: 'sm' | 'md' }) {
+  if (!category || !isProjectCategory(category)) return null;
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border-black bg-white font-black uppercase tracking-wide text-gray-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+        size === 'sm' ? 'border-2 px-2 py-0.5 text-[10px]' : 'border-3 px-3 py-1 text-xs'
+      }`}
+    >
+      {PROJECT_CATEGORY_LABEL[category]}
+    </span>
+  );
+}
 
 function OngoingBadge({ size = 'md' }: { size?: 'sm' | 'md' }) {
   return (
@@ -53,8 +72,9 @@ function OngoingBadge({ size = 'md' }: { size?: 'sm' | 'md' }) {
 export function EngineeringProjects() {
   const location = useLocation();
   const rawProjects = useProjectsContent();
-  // Newest first by `startedAt` (stable for ties), so new entries sort themselves.
-  const allProjects = sortProjectsByStartedAtDesc(rawProjects).map((project) => ({
+  const [category, setCategory] = useState<ShowcaseFilter>('all');
+  // Default is All: lead trio, then shipped products and system features, then the rest.
+  const allProjects = orderProjectsForShowcase(rawProjects, category).map((project) => ({
     ...project,
     stats: (project.stats ?? []).map((stat) => ({
       ...stat,
@@ -67,13 +87,29 @@ export function EngineeringProjects() {
   const [shouldScroll, setShouldScroll] = useState(false);
   const featuredCardRef = useRef<HTMLDivElement>(null);
 
+  const selectCategory = (next: ShowcaseFilter) => {
+    setCategory(next);
+    setStartIndex(0);
+    setFeaturedIndex(0);
+    setShouldScroll(false);
+  };
+
   const visibleProjects = allProjects.slice(startIndex, startIndex + PROJECTS_PAGE_SIZE);
   const canGoPrev = startIndex > 0;
   const canGoNext = startIndex + PROJECTS_PAGE_SIZE < allProjects.length;
 
   const featureProjectById = useCallback(
     (projectId: number) => {
-      const projectIndex = allProjects.findIndex((project) => project.id === projectId);
+      const project = rawProjects.find((item) => item.id === projectId);
+      if (!project) return;
+      const inCurrent = orderProjectsForShowcase(rawProjects, category).some((item) => item.id === projectId);
+      const home: ShowcaseFilter =
+        project.category && isProjectCategory(project.category) ? project.category : 'all';
+      const nextFilter = inCurrent ? category : home;
+      if (nextFilter !== category) setCategory(nextFilter);
+      const projectIndex = orderProjectsForShowcase(rawProjects, nextFilter).findIndex(
+        (item) => item.id === projectId,
+      );
       if (projectIndex < 0) return;
       const { startIndex: nextStart, featuredIndex: nextFeatured } = projectCarouselPosition(
         projectIndex,
@@ -83,7 +119,7 @@ export function EngineeringProjects() {
       setFeaturedIndex(nextFeatured);
       setShouldScroll(true);
     },
-    [allProjects],
+    [rawProjects, category],
   );
 
   useEffect(() => {
@@ -225,6 +261,30 @@ export function EngineeringProjects() {
             Systems built for scale, reliability, and real-world impact
           </p>
           <Squiggle color="#FF6B9D" className="mx-auto" />
+          <div
+            className="mt-8 flex flex-wrap items-center justify-center gap-2"
+            role="tablist"
+            aria-label="Filter projects"
+          >
+            {(['all', ...PROJECT_CATEGORIES] as ShowcaseFilter[]).map((id) => {
+              const selected = category === id;
+              const label = id === 'all' ? 'All' : PROJECT_CATEGORY_LABEL[id];
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => selectCategory(id)}
+                  className={`rounded-full border-4 border-black px-4 py-2 text-sm font-black uppercase tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-0.5 ${
+                    selected ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </motion.div>
 
         {/* Project Cards */}
@@ -262,6 +322,7 @@ export function EngineeringProjects() {
                         <div>
                           <h3 className="text-3xl md:text-4xl font-black text-white flex flex-wrap items-center gap-3">
                             {featuredProject.title}
+                            <CategoryBadge category={featuredProject.category} />
                             {featuredProject.status === 'ongoing' && <OngoingBadge />}
                           </h3>
                           <p className="text-lg font-bold text-white/90">
@@ -434,11 +495,10 @@ export function EngineeringProjects() {
                           <Icon className="w-6 h-6 text-white" />
                         </motion.div>
                         <div className="flex-1 min-w-0">
-                          {project.status === 'ongoing' && (
-                            <div className="mb-1">
-                              <OngoingBadge size="sm" />
-                            </div>
-                          )}
+                          <div className="mb-1 flex flex-wrap items-center gap-1">
+                            <CategoryBadge category={project.category} size="sm" />
+                            {project.status === 'ongoing' && <OngoingBadge size="sm" />}
+                          </div>
                           <h3 className="text-xl font-black text-white truncate">
                             {project.title}
                           </h3>

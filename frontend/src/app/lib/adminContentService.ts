@@ -18,6 +18,7 @@ import {
 } from '@/modules/blog/data/blogData';
 import { normalizeBlogSeo } from '@/modules/blog/seo/blogMeta';
 import { normalizeProjectLinks } from './caseStudyRoutes';
+import type { ProjectCategory } from './projectOrder';
 
 // Local JSON fallbacks (used when Firestore collection is empty / not yet seeded)
 import _socialLinksJson from '../components/social-links.json';
@@ -312,7 +313,9 @@ export interface Project {
   links: { label: string; url: string }[];
   /** Optional lifecycle marker; `ongoing` renders an "Ongoing" badge on the project card. */
   status?: 'ongoing';
-  /** Project start, `YYYY-MM-DD` or `YYYY-MM`. The showcase sorts newest first by this. */
+  /** Homepage filter bucket. The default All view weights shipped and systems ahead of the rest. */
+  category?: ProjectCategory;
+  /** Project start, `YYYY-MM-DD` or `YYYY-MM`. Kept as evidence; the showcase uses `category` order. */
   startedAt?: string;
   /** Where `startedAt` came from (repo creation date, experience entry, …). Not rendered. */
   startedAtSource?: string;

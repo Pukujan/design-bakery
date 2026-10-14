@@ -2,6 +2,7 @@
   {
     "id": 7,
     "title": "Study OS",
+    "category": "shipped",
     "tagline": "When it doesn't click, change the explanation",
     "description": "A public AI learning project exploring a new market gap: models can generate endless explanations, but learners still need help finding the one that makes sense to them. Study OS learns from where a student gets stuck, tries a different representation, and keeps the evidence tied to real learning sessions.",
     "tech": ["AI Learning", "Adaptive Tutoring", "Learning Science", "Representation Design", "Python"],
@@ -24,6 +25,7 @@
   {
     "id": 1,
     "title": "Cortex",
+    "category": "systems",
     "tagline": "A reliability kernel for AI agents",
     "description": "Coding agents are capable, but you can't trust their output without reviewing it, and reviewing costs about what the work did. So I inverted the usual bet: instead of a smarter agent, build the machinery around it. A deny-by-default reference monitor, unforgeable content-bound receipts, trust-graded sandboxes, and deterministic oracle gates let interchangeable models do real work on a codebase you never have to read to trust. It composes decades-proven OS-security patterns into a trust kernel for agent software production, built contract-first and self-hosting: every module ships through the same gates it will one day enforce.",
     "tech": ["AI Agents", "Reliability Kernel", "Reference Monitor", "Deny-by-default", "Sandboxing", "Formal Invariants", "Contract-first"],
@@ -44,6 +46,7 @@
   {
     "id": 6,
     "title": "FOSSIL",
+    "category": "research",
     "tagline": "Keep the why",
     "description": "Preserves the research, evidence, rejected paths and changing reasoning behind human-led technical decisions so the reason for a choice stays inspectable months later.",
     "tech": ["Decision Lineage", "Provenance", "Evidence", "AI-Assisted Work"],
@@ -64,6 +67,7 @@
   {
     "id": 2,
     "title": "ONI vs My Agent Ready Architecture",
+    "category": "systems",
     "tagline": "@pukujan/create-modular-monolith",
     "description": "Software architecture has not caught up with agent-first coding yet. I built an npm package so repos keep agent speed without losing planning time, audit trails, or architecture shape — modular boundaries, contracts, versioned dev logs, agent-readable JSON audits, prompt versioning, evals, and patch/rollback context stronger than git alone. Inspired by Oxygen Not Included systems thinking; tested with multi-agent pipelines up to 500 agents and designed to grow naturally toward microservices.",
     "tech": ["AI Agents", "Modular Monolith", "Audit Logs", "Prompt Versioning", "Evals", "Microservices"],
@@ -86,6 +90,7 @@
   {
     "id": 3,
     "title": "Ekagajpatra",
+    "category": "shipped",
     "tagline": "Civic-Tech Workflow Platform",
     "description": "Built a civic-tech product that turned complex government and legal-documentation processes into guided workflows for real users.",
     "tech": ["Workflow Design", "Product Engineering", "Civic Tech", "User Research", "Full-Stack"],
@@ -106,6 +111,7 @@
   {
     "id": 4,
     "title": "SaaS Dashboard Systems",
+    "category": "client",
     "tagline": "Client Operations Tools",
     "description": "Built dashboards, analytics views, workflow prototypes, and client-specific tools for legal, financial, and business operations teams.",
     "tech": ["Solutions Engineering", "React", "Node.js", "Dashboards", "SaaS", "APIs"],
@@ -126,6 +132,7 @@
   {
     "id": 5,
     "title": "Legal Workflow Research",
+    "category": "research",
     "tagline": "AI-Assisted Litigation & Document Intelligence",
     "description": "Independent research into safer AI-assisted legal workflows using document intelligence, confidence routing, source authority, human review, and procedural memory.",
     "tech": ["Legal AI", "RAG", "Workflow Systems", "Python", "Node.js"],
@@ -146,6 +153,7 @@
   {
     "id": 8,
     "title": "Fluffy V4",
+    "category": "experiments",
     "tagline": "Same product. Different worlds.",
     "description": "Fluffy is an agent workflow that researches a product, its buyers, market and proof before it writes any marketing, then renders several genuinely different directions for a human to judge. V4 is an eight-direction review gallery covering Fluffy itself and two pilot products, and it is now being rebuilt one page at a time with a reference-first visual pipeline.",
     "tech": ["AI Agents", "Product Marketing", "HTML/CSS", "Three.js", "SVG", "Generated Imagery"],
@@ -168,6 +176,7 @@
   {
     "id": 9,
     "title": "Eval Lab",
+    "category": "research",
     "tagline": "When should we trust the judge?",
     "description": "A reproducible research lab for lightweight AI judges. It compares judge decisions with objective evidence such as answer keys, deterministic verifiers and executable tests, and reports accuracy together with coverage and failure states. The current paper gives 25 judges, from small local models to frontier APIs, the same 760 objective decisions. Selective escalation to a stronger judge or a person is future work.",
     "tech": ["Python", "LLM Judges", "Benchmarks", "Coverage", "Reproducibility"],
@@ -189,6 +198,7 @@
   {
     "id": 10,
     "title": "Project Continuity Modules",
+    "category": "systems",
     "tagline": "Projects outlast agent sessions",
     "description": "A protocol and a small Python CLI (continuity) that keep a project's working memory in Git as plain Markdown and JSON: what the project is, where it stands, the active task and the last checkpoint, so any fresh human or agent session can resume the work. Source-only for now; not a replacement for Git or a hosted memory service.",
     "tech": ["Python", "CLI", "Git", "Markdown/JSON", "Agent Workflows"],
@@ -209,6 +219,7 @@
   {
     "id": 11,
     "title": "Inference Recommendation Engine",
+    "category": "research",
     "tagline": "The lowest price is not the decision",
     "description": "A local, provider-neutral engine that ranks inference routes from price ladders, observed supply, runtime evidence and an editable, versioned policy. It returns deterministic scores, evidence status and gate reasons so a recommendation can be inspected and reproduced. It is a small core package, not a hosted router.",
     "tech": ["JavaScript", "Node.js", "Python", "Property Testing", "Inference Routing"],
@@ -230,6 +241,7 @@
   {
     "id": 12,
     "title": "Agent Custom Setup",
+    "category": "systems",
     "tagline": "One agent in charge, the rest in the queue",
     "description": "A coordination pack you drop into a repository so several coding agents can work on it at once. Roles join in a fixed order and one agent at a time holds the lease, with a first-in-first-out queue handing out the tickets. A watchdog marks a stalled seat vacant so the queue can move on, and finished work lands as pull requests a human merges. It coordinates a single repository.",
     "tech": ["Python", "Multi-Agent", "Coordination", "Git", "Claim Queue", "Watchdog"],
@@ -251,6 +263,7 @@
   {
     "id": 13,
     "title": "Orbitgraph",
+    "category": "experiments",
     "tagline": "Every repo is a planet",
     "description": "An explorable 3D constellation of a GitHub account. A repository's primary language sets its planet's color, and its commit activity over the last 52 weeks sets the size and the ring. Repositories that share a language are linked by a line, and clicking a planet opens its card. Without a GitHub token the app renders clearly-labelled sample planets.",
     "tech": ["React", "TypeScript", "Three.js", "Vite", "Nitro", "Tailwind"],
@@ -271,6 +284,7 @@
   {
     "id": 14,
     "title": "Voidfeed",
+    "category": "experiments",
     "tagline": "Shatter the world, feed it to the void",
     "description": "A single-page 3D arcade game on three.js. Each stage is a whole planet: fly down, destroy the guardians that walk it and shoot back, then cut the sealed checkpoints open with the right-mouse beam. The cracked world goes supernova into the singularity overhead and its corpse streams in, and the gate opens the moment it cracks. Fly in early and it kills you instead. Four worlds in a run, with every visual and every sound generated at runtime.",
     "tech": ["TypeScript", "React", "Three.js", "WebGL", "Vite", "Web Audio"],

@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
+  PROJECT_CATEGORIES,
   STARTED_AT_PATTERN,
+  orderProjectsForShowcase,
   sortProjectsByStartedAtDesc,
 } from '../frontend/src/app/lib/projectOrder.ts';
 
@@ -55,8 +57,9 @@ assert.equal(
   about.roleTitle,
   'I build AI agents that improve through data, testing, and human feedback.',
 );
-// Showcase order: every project has a start date (plus its evidence) and the carousel
-// renders newest first. The sort is done in code, so the JSON order does not matter.
+// Every project keeps a start date as evidence. The carousel does not sort by it:
+// the default All view leads with Ekagajpatra, Eval Lab, and Agent Custom Setup,
+// then the remaining shipped products and system features.
 for (const project of projects) {
   assert.match(
     project.startedAt ?? '',
@@ -64,17 +67,47 @@ for (const project of projects) {
     `${project.title} needs startedAt as YYYY-MM-DD or YYYY-MM`,
   );
   assert.ok(project.startedAtSource, `${project.title} needs startedAtSource (evidence for startedAt)`);
-}
-const rendered = sortProjectsByStartedAtDesc(projects);
-for (let i = 1; i < rendered.length; i += 1) {
   assert.ok(
-    rendered[i - 1].startedAt >= rendered[i].startedAt,
-    `showcase must be newest first: ${rendered[i - 1].title} (${rendered[i - 1].startedAt}) before ${rendered[i].title} (${rendered[i].startedAt})`,
+    PROJECT_CATEGORIES.includes(project.category),
+    `${project.title} needs a showcase category`,
   );
 }
-const newestStart = projects.map((p) => p.startedAt).sort().at(-1);
-assert.equal(rendered[0].startedAt, newestStart, 'the newest project should be first');
-// Ties keep data order (stable sort).
+const rendered = orderProjectsForShowcase(projects, 'all');
+assert.deepEqual(
+  rendered.map((project) => project.title),
+  [
+    'Ekagajpatra',
+    'Eval Lab',
+    'Agent Custom Setup',
+    'Study OS',
+    'Cortex',
+    'Project Continuity Modules',
+    'ONI vs My Agent Ready Architecture',
+    'Legal Workflow Research',
+    'Inference Recommendation Engine',
+    'FOSSIL',
+    'Orbitgraph',
+    'Fluffy V4',
+    'Voidfeed',
+    'SaaS Dashboard Systems',
+  ],
+  'All should lead with the named trio, then shipped and systems',
+);
+assert.deepEqual(
+  orderProjectsForShowcase(projects, 'shipped').map((project) => project.title),
+  ['Ekagajpatra', 'Study OS'],
+);
+assert.deepEqual(
+  orderProjectsForShowcase(projects, 'systems').map((project) => project.title),
+  ['Agent Custom Setup', 'Cortex', 'Project Continuity Modules', 'ONI vs My Agent Ready Architecture'],
+);
+assert.equal(orderProjectsForShowcase(projects, 'client')[0].title, 'SaaS Dashboard Systems');
+assert.equal(orderProjectsForShowcase(projects, 'research')[0].title, 'Eval Lab');
+assert.deepEqual(
+  orderProjectsForShowcase(projects, 'experiments').map((project) => project.title),
+  ['Orbitgraph', 'Fluffy V4', 'Voidfeed'],
+);
+// Date sort stays available and stable; it is no longer the showcase order.
 const tie = sortProjectsByStartedAtDesc([
   { title: 'a', startedAt: '2026-01' },
   { title: 'b', startedAt: '2026-01' },
@@ -86,8 +119,12 @@ const projectsCarouselSource = await readFile(
   'utf8',
 );
 assert.ok(
-  projectsCarouselSource.includes('sortProjectsByStartedAtDesc(rawProjects)'),
-  'the projects carousel should render projects sorted by startedAt (newest first)',
+  projectsCarouselSource.includes('orderProjectsForShowcase(rawProjects, category)'),
+  'the projects carousel should render the curated showcase order',
+);
+assert.ok(
+  projectsCarouselSource.includes('useState<ShowcaseFilter>(\'all\')'),
+  'the project filter should default to All',
 );
 // Project cards: unique ids, exactly 3 stats (the card grid and icon assume it), and a
 // known status value. Case-study links to static pages must point at a real file.
@@ -155,10 +192,12 @@ assert.ok(
   ),
   'Voidfeed should link to the absolute URL of its live app',
 );
-assert.equal(
-  rendered[0].title,
-  'Voidfeed',
-  'Voidfeed is the newest project and renders as the featured card',
+assert.equal(rendered[0].title, 'Ekagajpatra', 'the default All view features Ekagajpatra');
+assert.equal(voidfeed.category, 'experiments', 'Voidfeed is an experiment, not the default feature');
+assert.ok(
+  rendered.findIndex((project) => project.title === 'Voidfeed') >
+    rendered.findIndex((project) => project.title === 'Agent Custom Setup'),
+  'system features stay ahead of experiments in the default view',
 );
 // github-planets and voidfeed are private repos; linking them would 404 for every visitor.
 for (const project of projects) {
