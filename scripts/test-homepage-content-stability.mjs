@@ -143,11 +143,32 @@ assert.ok(
   ),
   'Orbitgraph should link to the absolute design-bakery URL of its live app',
 );
-// github-planets is a private repo; linking it would 404 for every visitor.
+// Voidfeed is served by its own container through the tunnel, not by this SPA, so its
+// card must use the absolute URL — a relative path would render as an in-app <Link>.
+const voidfeed = projects.find((p) => p.title === 'Voidfeed');
+assert.ok(voidfeed, 'Voidfeed should be in the showcase');
+assert.equal(voidfeed.id, 14, 'Voidfeed takes the next free project id');
+assert.equal(voidfeed.startedAt, '2026-10-13', 'Voidfeed startedAt is its repo creation date');
+assert.ok(
+  voidfeed.links.some(
+    (link) => link.label === 'Live App' && link.url === 'https://voidfeed.design-bakery.com',
+  ),
+  'Voidfeed should link to the absolute URL of its live app',
+);
+assert.equal(
+  rendered[0].title,
+  'Voidfeed',
+  'Voidfeed is the newest project and renders as the featured card',
+);
+// github-planets and voidfeed are private repos; linking them would 404 for every visitor.
 for (const project of projects) {
   assert.ok(
     !project.links.some((link) => link.url.includes('github.com/Pukujan/github-planets')),
     `${project.title} must not link to the private github-planets repo`,
+  );
+  assert.ok(
+    !project.links.some((link) => link.url.includes('github.com/Pukujan/voidfeed')),
+    `${project.title} must not link to the private voidfeed repo`,
   );
 }
 const acs = projects.find((p) => p.title === 'Agent Custom Setup');
