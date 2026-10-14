@@ -267,5 +267,25 @@
     "links": [
       {"label": "Live App", "url": "https://www.design-bakery.com/github-planets"}
     ]
+  },
+  {
+    "id": 14,
+    "title": "Voidfeed",
+    "tagline": "Shatter the world, feed it to the void",
+    "description": "A single-page 3D arcade game on three.js. Each stage is a whole planet: fly down, destroy the guardians that walk it and shoot back, then cut the sealed checkpoints open with the right-mouse beam. The cracked world goes supernova into the singularity overhead and its corpse streams in, and the gate opens the moment it cracks. Fly in early and it kills you instead. Four worlds in a run, with every visual and every sound generated at runtime.",
+    "tech": ["TypeScript", "React", "Three.js", "WebGL", "Vite", "Web Audio"],
+    "color": "#1A0A16",
+    "accentColor": "#E33B7E",
+    "startedAt": "2026-10-13",
+    "startedAtSource": "GitHub repo creation date of Pukujan/voidfeed (private; 2026-10-14T00:10:19Z = 2026-10-13 ET)",
+    "status": "ongoing",
+    "stats": [
+      {"label": "Four worlds, one hunger", "icon": "Sparkles"},
+      {"label": "Guardians gate the checkpoints", "icon": "Award"},
+      {"label": "Procedural terrain and shaders", "icon": "TrendingUp"}
+    ],
+    "links": [
+      {"label": "Live App", "url": "https://voidfeed.design-bakery.com"}
+    ]
   }
 ]
