@@ -58,8 +58,8 @@ assert.equal(
   'I build AI agents that improve through data, testing, and human feedback.',
 );
 // Every project keeps a start date as evidence. The carousel does not sort by it:
-// the default All view leads with Ekagajpatra, Eval Lab, and Agent Custom Setup,
-// then the remaining shipped products and system features.
+// the default All view leads with Starfield, then Ekagajpatra, Eval Lab, and
+// Agent Custom Setup, then the remaining shipped products and system features.
 for (const project of projects) {
   assert.match(
     project.startedAt ?? '',
@@ -76,6 +76,7 @@ const rendered = orderProjectsForShowcase(projects, 'all');
 assert.deepEqual(
   rendered.map((project) => project.title),
   [
+    'Starfield',
     'Ekagajpatra',
     'Eval Lab',
     'Agent Custom Setup',
@@ -91,11 +92,11 @@ assert.deepEqual(
     'Voidfeed',
     'SaaS Dashboard Systems',
   ],
-  'All should lead with the named trio, then shipped and systems',
+  'All should lead with Starfield, then the named leads, then shipped and systems',
 );
 assert.deepEqual(
   orderProjectsForShowcase(projects, 'shipped').map((project) => project.title),
-  ['Ekagajpatra', 'Study OS'],
+  ['Starfield', 'Ekagajpatra', 'Study OS'],
 );
 assert.deepEqual(
   orderProjectsForShowcase(projects, 'systems').map((project) => project.title),
@@ -192,7 +193,22 @@ assert.ok(
   ),
   'Voidfeed should link to the absolute URL of its live app',
 );
-assert.equal(rendered[0].title, 'Ekagajpatra', 'the default All view features Ekagajpatra');
+assert.equal(rendered[0].title, 'Starfield', 'the default All view features Starfield');
+const starfield = projects.find((p) => p.title === 'Starfield');
+assert.ok(starfield, 'Starfield should be in the showcase');
+assert.equal(starfield.id, 15, 'Starfield takes the next free project id');
+assert.equal(starfield.startedAt, '2026-10-16', 'Starfield startedAt is its repo creation date');
+assert.equal(starfield.category, 'shipped', 'Starfield is a live product');
+assert.ok(
+  starfield.links.some(
+    (link) => link.label === 'Live App' && link.url === 'https://legal-rag.design-bakery.com',
+  ),
+  'Starfield should link to the absolute URL of its live app',
+);
+assert.ok(
+  starfield.links.some((link) => link.url === 'https://github.com/Pukujan/legal-rag'),
+  'Starfield should link to its public GitHub repo',
+);
 assert.equal(voidfeed.category, 'experiments', 'Voidfeed is an experiment, not the default feature');
 assert.ok(
   rendered.findIndex((project) => project.title === 'Voidfeed') >

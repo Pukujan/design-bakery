@@ -301,5 +301,27 @@
     "links": [
       {"label": "Live App", "url": "https://voidfeed.design-bakery.com"}
     ]
+  },
+  {
+    "id": 15,
+    "title": "Starfield",
+    "category": "shipped",
+    "tagline": "US case law, shown with its receipts",
+    "description": "Ask one question about US case law and the search draws itself. Word matches and the citation links between opinions light up on a map as each step finishes, and every sentence in the answer points at the passage it came from. The questions people ask are published on the Benchmarks page.",
+    "tech": ["React", "TypeScript", "Python", "BM25", "Citation graph", "Vite"],
+    "color": "#15203A",
+    "accentColor": "#E8C06A",
+    "startedAt": "2026-10-16",
+    "startedAtSource": "GitHub repo creation date of Pukujan/legal-rag (public; 2026-10-16T07:48:16Z)",
+    "status": "ongoing",
+    "stats": [
+      {"label": "Passage behind each sentence", "icon": "Award"},
+      {"label": "Citation links on the map", "icon": "Sparkles"},
+      {"label": "Questions published", "icon": "Users"}
+    ],
+    "links": [
+      {"label": "Live App", "url": "https://legal-rag.design-bakery.com"},
+      {"label": "GitHub · Public", "url": "https://github.com/Pukujan/legal-rag"}
+    ]
   }
 ]
