@@ -45,13 +45,13 @@ const CATEGORY_RANK: Record<ProjectCategory, number> = {
 };
 
 /**
- * Default All view leads with the named trio, then the remaining shipped products
+ * Default All view leads with these titles, then the remaining shipped products
  * and system features, then research, experiments, and client work.
  */
-const ALL_LEAD_TITLES = ['Ekagajpatra', 'Eval Lab', 'Agent Custom Setup'];
+const ALL_LEAD_TITLES = ['Starfield', 'Ekagajpatra', 'Eval Lab', 'Agent Custom Setup'];
 
 const WITHIN_CATEGORY: Record<ProjectCategory, readonly string[]> = {
-  shipped: ['Ekagajpatra', 'Study OS'],
+  shipped: ['Starfield', 'Ekagajpatra', 'Study OS'],
   systems: [
     'Agent Custom Setup',
     'Cortex',
@@ -80,7 +80,7 @@ function withinRank(category: ProjectCategory | undefined, title: string): numbe
 }
 
 /**
- * Order the homepage showcase. `all` is the default: the lead trio first, then
+ * Order the homepage showcase. `all` is the default: the named lead first, then
  * shipped and systems ahead of research, experiments, and client work.
  * A category filter keeps that category's own order. Sort is stable for ties.
  */
