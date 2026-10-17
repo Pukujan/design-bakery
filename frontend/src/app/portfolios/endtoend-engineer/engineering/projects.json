@@ -304,24 +304,24 @@
   },
   {
     "id": 15,
-    "title": "Starfield",
+    "title": "Precedent",
     "category": "shipped",
-    "tagline": "US case law, shown with its receipts",
-    "description": "Ask one question about US case law and the search draws itself. Word matches and the citation links between opinions light up on a map as each step finishes, and every sentence in the answer points at the passage it came from. The questions people ask are published on the Benchmarks page.",
-    "tech": ["React", "TypeScript", "Python", "BM25", "Citation graph", "Vite"],
-    "color": "#15203A",
-    "accentColor": "#E8C06A",
+    "tagline": "Legal research that can't cite a case it didn't retrieve",
+    "description": "Legal research AI is fast, but it can cite a case that doesn't exist, and nobody catches it until opposing counsel does. Precedent answers a question with a short memo whose every citation comes from cases it actually retrieved, then refuses any draft that cites anything else. It is built for the part of legal workflow AI I care about: source authority, grounded evidence, and an answer a reviewer can check instead of trust.",
+    "tech": ["Python", "FastAPI", "RAG", "Citation Graph", "Arize Evals", "Legal Workflows"],
+    "color": "#0B1020",
+    "accentColor": "#818CF8",
     "startedAt": "2026-10-16",
-    "startedAtSource": "GitHub repo creation date of Pukujan/legal-rag (public; 2026-10-16T07:48:16Z)",
+    "startedAtSource": "GitHub repo creation date of Pukujan/arize-ai-hackersprint (public; 2026-10-16T14:26:07Z)",
     "status": "ongoing",
     "stats": [
-      {"label": "Passage behind each sentence", "icon": "Award"},
-      {"label": "Citation links on the map", "icon": "Sparkles"},
-      {"label": "Questions published", "icon": "Users"}
+      {"label": "Every citation retrieved", "icon": "Award"},
+      {"label": "Groundedness judged, not assumed", "icon": "Sparkles"},
+      {"label": "Top 8 of 380 at HackSprint NYC", "icon": "TrendingUp"}
     ],
     "links": [
-      {"label": "Live App", "url": "https://legal-rag.design-bakery.com"},
-      {"label": "GitHub · Public", "url": "https://github.com/Pukujan/legal-rag"}
+      {"label": "Live App", "url": "https://arize.design-bakery.com"},
+      {"label": "GitHub · Public", "url": "https://github.com/Pukujan/arize-ai-hackersprint"}
     ]
   }
 ]

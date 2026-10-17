@@ -48,10 +48,10 @@ const CATEGORY_RANK: Record<ProjectCategory, number> = {
  * Default All view leads with these titles, then the remaining shipped products
  * and system features, then research, experiments, and client work.
  */
-const ALL_LEAD_TITLES = ['Starfield', 'Ekagajpatra', 'Eval Lab', 'Agent Custom Setup'];
+const ALL_LEAD_TITLES = ['Precedent', 'Ekagajpatra', 'Eval Lab', 'Agent Custom Setup'];
 
 const WITHIN_CATEGORY: Record<ProjectCategory, readonly string[]> = {
-  shipped: ['Starfield', 'Ekagajpatra', 'Study OS'],
+  shipped: ['Precedent', 'Ekagajpatra', 'Study OS'],
   systems: [
     'Agent Custom Setup',
     'Cortex',
