@@ -26,6 +26,21 @@
       content="Fullstack design engineer building AI-assisted workflow systems, document intelligence, legal-tech products, and agent architecture."
     />
     <meta name="twitter:image" content="https://www.design-bakery.com/images/site-og.png" />
+    <script>
+      // Pre-paint theme: a stored choice wins, otherwise follow the OS.
+      // Keep in sync with frontend/src/app/components/ThemeSwitcher.tsx.
+      (function () {
+        var dark = false;
+        try {
+          var stored = localStorage.getItem('mode');
+          if (stored === 'dark' || stored === 'light') dark = stored === 'dark';
+          else if (window.matchMedia) dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        } catch (error) {
+          /* storage blocked: fall back to light */
+        }
+        document.documentElement.classList.toggle('dark', dark);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
