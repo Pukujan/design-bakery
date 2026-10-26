@@ -2,6 +2,7 @@
 
 :root {
   --font-size: 16px;
+  color-scheme: light;
   
   /* Vibrant Portfolio Colors */
   --theme-pink: #FF6B9D;
@@ -54,6 +55,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: #0F0F0F;
   --foreground: var(--theme-cream);
   --card: #1A1A1A;

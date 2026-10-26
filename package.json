@@ -28,6 +28,7 @@
     "test:ire-app": "node scripts/test-ire-app.mjs",
     "test:version-2-app": "node scripts/test-version-2-app.mjs",
     "test:ire-app:browser": "node scripts/test-ire-app-browser.mjs",
+    "test:theme-preference": "node scripts/test-theme-preference.mjs",
     "ire:og-image": "node scripts/render-ire-og-image.mjs",
     "codegraph:init": "codegraph init -i",
     "codegraph:sync": "codegraph sync",

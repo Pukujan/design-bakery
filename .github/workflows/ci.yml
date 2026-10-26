@@ -81,6 +81,9 @@ jobs:
       - name: Run the IRE dashboard browser checks (test hooks, tier switch, open-weight copy)
         run: pnpm test:ire-app:browser
 
+      - name: Run the theme preference browser checks (stored choice wins, otherwise the OS)
+        run: pnpm test:theme-preference
+
       - name: Check out the release train
         uses: actions/checkout@v7.0.1
         with:
