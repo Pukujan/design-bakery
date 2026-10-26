@@ -5,7 +5,7 @@
 | **Created** | 2026-10-26 |
 | **Branch** | `task/TASK-DB-0095-theme-system-preference` (branched from `origin/main` @ `2ea93c0`) |
 | **Issue** | [#133](https://github.com/Pukujan/design-bakery/issues/133) — observational, class 3 (`human-via-agent` claimed, awaiting owner attestation) |
-| **Status** | In progress |
+| **Status** | Done — merged ([#134](https://github.com/Pukujan/design-bakery/pull/134), `c715789`) and auto-deployed on the Mac; verified live |
 
 ## Goal
 
@@ -43,6 +43,12 @@ production build: `os=dark mode=unset -> class="" bg=rgb(255,249,240)`.
   `find-orphans --strict` — pass.
 - Local preview of the built output: all six combinations resolve as documented, and the
   live OS change is followed without writing a preference.
+- Production `https://www.design-bakery.com/` after the auto-deploy (`assets/index-CY4hw1qO.js`):
+  all six combinations resolve as documented, a live OS change is followed with nothing
+  stored, a click wins and survives reload, and the class is on `<html>` before the bundle
+  runs. `/`, `/blogs`, `/research`, `/version-2` and `/ire` all answer 200; `/ire` stays
+  light (`bg rgb(244,243,235)`) and `/version-2` keeps its own scene background
+  (`rgb(21,10,22)`), both unaffected under a dark OS.
 
 ## Non-goals
 
