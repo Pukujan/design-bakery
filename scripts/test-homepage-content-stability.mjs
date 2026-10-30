@@ -58,7 +58,7 @@ assert.equal(
   'I build AI agents that improve through data, testing, and human feedback.',
 );
 // Every project keeps a start date as evidence. The carousel does not sort by it:
-// the default All view leads with Precedent, then Ekagajpatra, Eval Lab, and
+// the default All view leads with Website Copilot, then Precedent, Ekagajpatra, Eval Lab, and
 // Agent Custom Setup, then the remaining shipped products and system features.
 for (const project of projects) {
   assert.match(
@@ -76,6 +76,7 @@ const rendered = orderProjectsForShowcase(projects, 'all');
 assert.deepEqual(
   rendered.map((project) => project.title),
   [
+    'Website Copilot',
     'Precedent',
     'Ekagajpatra',
     'Eval Lab',
@@ -92,11 +93,11 @@ assert.deepEqual(
     'Voidfeed',
     'SaaS Dashboard Systems',
   ],
-  'All should lead with Precedent, then the named leads, then shipped and systems',
+  'All should lead with Website Copilot, then the named leads, then shipped and systems',
 );
 assert.deepEqual(
   orderProjectsForShowcase(projects, 'shipped').map((project) => project.title),
-  ['Precedent', 'Ekagajpatra', 'Study OS'],
+  ['Website Copilot', 'Precedent', 'Ekagajpatra', 'Study OS'],
 );
 assert.deepEqual(
   orderProjectsForShowcase(projects, 'systems').map((project) => project.title),
@@ -193,7 +194,21 @@ assert.ok(
   ),
   'Voidfeed should link to the absolute URL of its live app',
 );
-assert.equal(rendered[0].title, 'Precedent', 'the default All view features Precedent');
+assert.equal(rendered[0].title, 'Website Copilot', 'the default All view features Website Copilot');
+const copilot = projects.find((p) => p.title === 'Website Copilot');
+assert.ok(copilot, 'Website Copilot should be in the showcase');
+assert.equal(copilot.id, 16, 'Website Copilot takes the next free project id');
+assert.equal(copilot.startedAt, '2026-10-28', 'Website Copilot startedAt is its repo creation date');
+assert.equal(copilot.category, 'shipped', 'Website Copilot is a live product');
+assert.deepEqual(
+  copilot.links.map((link) => link.url),
+  ['https://demo.design-bakery.com', 'https://copilot.design-bakery.com'],
+  'Website Copilot links its live demo and concept video only',
+);
+assert.ok(
+  !copilot.links.some((link) => link.url.includes('github.com')),
+  'Website Copilot must not link a GitHub repo (owner decision)',
+);
 const precedent = projects.find((p) => p.title === 'Precedent');
 assert.ok(precedent, 'Precedent should be in the showcase');
 assert.equal(precedent.id, 15, 'Precedent takes the next free project id');

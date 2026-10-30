@@ -1,5 +1,27 @@
 [
   {
+    "id": 16,
+    "title": "Website Copilot",
+    "category": "shipped",
+    "tagline": "A voice call that helps visitors finish the form",
+    "description": "Visitors give up on long forms and help pages, and a chatbot that guesses makes it worse. Website Copilot is a voice call on the page: it asks one question at a time, fills each field only after the visitor confirms, and never presses Submit. Answers come from the company's own documents, or it says it doesn't know. It runs on open models and keeps customer data in house. The live demo puts the same fictional sites side by side, with and without the call.",
+    "tech": ["Voice Agents", "RAG", "Form Filling", "Open Models", "Octo", "React"],
+    "color": "#0A1A17",
+    "accentColor": "#34D399",
+    "startedAt": "2026-10-28",
+    "startedAtSource": "GitHub repo creation date of Pukujan/voice-agent-research (2026-10-29T03:37:53Z, which is 2026-10-28 US Eastern)",
+    "status": "ongoing",
+    "stats": [
+      {"label": "Never presses Submit", "icon": "Award"},
+      {"label": "Answers from your documents or says it doesn't know", "icon": "Sparkles"},
+      {"label": "Live demo, with and without the call", "icon": "TrendingUp"}
+    ],
+    "links": [
+      {"label": "Live Demo", "url": "https://demo.design-bakery.com"},
+      {"label": "Concept Video", "url": "https://copilot.design-bakery.com"}
+    ]
+  },
+  {
     "id": 7,
     "title": "Study OS",
     "category": "shipped",
