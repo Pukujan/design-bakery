@@ -1,4 +1,4 @@
-# TASK-DB-0097 — install agent stack 1.0.0 from one checkout
+# TASK-DB-0097 — install agent stack 1.0.1 from one checkout
 
 | Field | Value |
 |-------|-------|
@@ -10,14 +10,14 @@
 ## Goal
 
 The agent stack used to ship from four repositories and now ships from one,
-`Pukujan/agent-stack-train`, certified as 1.0.0 at `edfe418`. Move this repo onto
+`Pukujan/agent-stack-train`, certified as 1.0.1 at `2e32f2c`. Move this repo onto
 it by rerunning the ACS installer from that checkout.
 
 ## Done
 
 - `stack-manifest.json` lists one pin, `agent-stack-train`, left empty so the repo keeps following the train.
-- `.coord/assignment.json` and `.coord/hotload.lock.json` pin PCM 0.7.0, CGM 0.5.13 and OIO 0.3.0 to `edfe418`. Seats are unchanged: `agents` and `boss_failover` are untouched, only `recorded_at`, `notes` and `pins` moved.
-- OIO 0.3.0 replaces its managed files (issue form, triage script, installer, ontology, schemas). `issue-triage.yml` already matched OIO's file and did not change.
+- `.coord/assignment.json` and `.coord/hotload.lock.json` pin PCM 0.7.0, CGM 0.5.13 and OIO 0.3.0 to `2e32f2c`. Seats are unchanged: `agents` and `boss_failover` are untouched, only `recorded_at`, `notes` and `pins` moved.
+- OIO 0.3.0 replaces its managed files (issue form, triage script, installer, ontology, schemas). `issue-triage.yml` changes only to read its runner from the repository variable `OIO_RUNS_ON` (new in stack 1.0.1); unset, it stays on `ubuntu-latest`.
 - `oio-close-on-merge.yml` and `oio-close-sweep.yml` are new. A merged pull request closes the issues it names with Closes, Fixes or Resolves; Refs never closes. The sweep only reports until the repository variable `OIO_CLOSE_SWEEP_APPLY` is `true`.
 
 ## Not changed
@@ -27,7 +27,7 @@ it by rerunning the ACS installer from that checkout.
 
 ## Checks (local, 2026-10-31)
 
-- ACS installer from Pukujan/agent-stack-train#26, `--stack-root` at `v1.0.0`: `acs_install: OK (state=READY)`.
+- ACS installer from Pukujan/agent-stack-train#26, `--stack-root` at `v1.0.1`: `acs_install: OK (state=READY)`.
 - `check_manifest.py` against the live train: OK.
 - `oio_installer.py --check`: VALID.
 - `hotload_check.py`: OK.
@@ -35,6 +35,6 @@ it by rerunning the ACS installer from that checkout.
 
 ## Next step
 
-- Merge Pukujan/agent-stack-train#26 first, then this PR when `quality` is green.
+- Merge this PR when `quality` is green. Pukujan/agent-stack-train#26 is merged.
 - Optional: set `OIO_CLOSE_SWEEP_APPLY=true` after reading the sweep's first report.
-- Decide whether to move the `.content-system/system-version.json` pointer to CGM 0.5.13 at `edfe418`, as TASK-DB-0062 did for 0.5.12.
+- Decide whether to move the `.content-system/system-version.json` pointer to CGM 0.5.13 at `2e32f2c`, as TASK-DB-0062 did for 0.5.12.
