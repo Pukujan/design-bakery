@@ -1,15 +1,18 @@
 {
   "schema": "acs.hotload.lock.v1",
-  "installed_at": "2026-10-06T00:04:12+00:00",
+  "installed_at": "2026-10-31T18:03:01+00:00",
   "state": "READY",
+  "stack": {
+    "repository": "Pukujan/agent-stack-train",
+    "commit": "2e32f2c5ef010e784a28253e88e4aeeadf9cba5f"
+  },
   "acs": {
     "module_id": "multi-agent-hotload",
     "module_version": "0.1.0",
-    "commit": "25be219bb7341addba8849a8ffb6dba8695ff17d"
+    "commit": "2e32f2c5ef010e784a28253e88e4aeeadf9cba5f"
   },
   "pins": {
     "cgm": {
-      "version": "0.5.12",
       "module_count": 8,
       "module_count_word": "eight",
       "modules": [
@@ -22,29 +25,30 @@
         "image-generation",
         "html-demo"
       ],
-      "commit": "62340f3de702f6d2a7d97b9e16465b98360976a3"
-    },
-    "pcm": {
-      "cli_version": "0.7.0",
-      "commit": "851bcf72eb618e6fe4f49c3f0b8e26fefb90410f"
+      "commit": "2e32f2c5ef010e784a28253e88e4aeeadf9cba5f",
+      "version": "0.5.13"
     },
     "acs_hotload_module": {
       "id": "multi-agent-hotload",
       "version": "0.1.0"
+    },
+    "pcm": {
+      "commit": "2e32f2c5ef010e784a28253e88e4aeeadf9cba5f",
+      "cli_version": "0.7.0"
     }
   },
   "stack_manifest": "stack-manifest.json",
   "checkouts": {
     "pcm": {
-      "commit": "851bcf72eb618e6fe4f49c3f0b8e26fefb90410f",
+      "commit": "2e32f2c5ef010e784a28253e88e4aeeadf9cba5f",
       "verified": true
     },
     "cgm": {
-      "commit": "62340f3de702f6d2a7d97b9e16465b98360976a3",
+      "commit": "2e32f2c5ef010e784a28253e88e4aeeadf9cba5f",
       "verified": true
     },
     "oio": {
-      "commit": "a4bba77b770e5674d1124383cd0d26704236963d",
+      "commit": "2e32f2c5ef010e784a28253e88e4aeeadf9cba5f",
       "verified": true
     }
   },
