@@ -13,11 +13,18 @@
     "env:split": "node ../scripts/split-env.mjs"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "3.0.71",
+    "@opentelemetry/api": "1.9.1",
+    "@opentelemetry/exporter-trace-otlp-proto": "0.223.0",
+    "@opentelemetry/resources": "2.12.0",
+    "@opentelemetry/sdk-trace-base": "2.12.0",
+    "ai": "7.0.143",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^4.21.2",
-    "jose": "^6.2.3"
+    "jose": "^6.2.3",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",

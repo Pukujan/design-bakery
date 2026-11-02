@@ -42,14 +42,6 @@ const CASE_STUDY_SHARE_ENTRIES: CaseStudyShareEntry[] = [
     imageAlt: 'ONI vs agent-ready architecture case study',
   },
   {
-    title: `ONI vs Agent-Ready Architecture (v4) | ${SITE_NAME}`,
-    description:
-      'Reorganized interactive case study: ONI analogy, agent architecture, 500-agent pipeline, and risk — built around modular monolith engineering.',
-    canonicalPath: '/case-studies/ai-agents/v4',
-    ogImage: DEFAULT_OG_IMAGE_PATH,
-    imageAlt: 'ONI vs agent-ready architecture v4 case study',
-  },
-  {
     title: `Legal Workflow Research Case Study | ${SITE_NAME}`,
     description:
       'A technical case study on building safer AI systems for litigation operations using document intelligence, confidence routing, authority-aware reasoning, human review, procedural memory, and agent-safe architecture.',

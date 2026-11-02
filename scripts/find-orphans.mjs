@@ -39,7 +39,6 @@ const ROOTS = [
       'frontend/extras/Create Presentation Case Study/src/app/App.tsx',
       'frontend/extras/invest-ai-case-study/src/app/App.tsx',
       'frontend/extras/oni_agent_interactive_page_svg_darkmode_src/app/App.tsx',
-      'frontend/extras/oni_agent_interactive_page_svg_darkmode_v4_src/app/App.tsx',
     ],
   },
   {

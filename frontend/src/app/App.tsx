@@ -45,10 +45,6 @@ const AiAgentsCaseStudyV3Page = lazyPage(
   async () =>
     (await import('./modules/case-studies/ai-agents/AiAgentsCaseStudyV3Page')).AiAgentsCaseStudyV3Page,
 );
-const AiAgentsCaseStudyV4Page = lazyPage(
-  async () =>
-    (await import('./modules/case-studies/ai-agents/AiAgentsCaseStudyV4Page')).AiAgentsCaseStudyV4Page,
-);
 const LegalWorkflowResearchCaseStudyPage = lazyPage(
   async () =>
     (await import('./modules/case-studies/legal-workflow-research/LegalWorkflowResearchCaseStudyPage'))
@@ -125,10 +121,6 @@ function publicRoutes(): ReactElement[] {
     <Route
       path="/case-studies/ai-agents/v3"
       element={<AiAgentsCaseStudyV3Page />}
-    />,
-    <Route
-      path="/case-studies/ai-agents/v4"
-      element={<AiAgentsCaseStudyV4Page />}
     />,
     <Route
       path="/case-studies/legal-workflow-research"
