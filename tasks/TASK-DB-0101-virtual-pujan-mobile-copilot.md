@@ -116,3 +116,26 @@ Blocked/uncertain:
 
 Next:
 - Pass required GitHub checks and auto-merge, then verify Komodo production deployment.
+
+### 2026-11-02 16:04:54 UTC — codex
+
+<!-- continuity:checkpoint {"agent":"codex","blocked":["Gmail delivery remains intentionally unavailable; physical-phone and real microphone verification pending."],"changed":["none"],"completed":["Corrected Contact desktop heading placement after visual review."],"decisions":["Retain homepage flow effects while keeping Contact form headings stable."],"evidence":["Native desktop screenshot exposed flowing-heading displacement; stable headings and a dark intro label were verified; typecheck and lint passed."],"next_action":"Review and merge the Contact correction, then verify the final Komodo deployment.","protocol_version":"0.1.0-draft","schema":"project-continuity.checkpoint.v1","task_id":"DB-0101","timestamp":"2026-11-02T16:04:54Z"} -->
+<!-- continuity:checkpoint-operation {"payload_sha256":"899e7a5302f0dff4fabe0511f480cd303b0610e600a24bd7ab9e00edc1940e91","request_id":"db0101-20261102-contact-desktop","schema":"project-continuity.checkpoint-operation.v1","task_id":"DB-0101"} -->
+
+Completed:
+- Corrected Contact desktop heading placement after visual review.
+
+Evidence:
+- Native desktop screenshot exposed flowing-heading displacement; stable headings and a dark intro label were verified; typecheck and lint passed.
+
+Decisions:
+- Retain homepage flow effects while keeping Contact form headings stable.
+
+Changed:
+- none
+
+Blocked/uncertain:
+- Gmail delivery remains intentionally unavailable; physical-phone and real microphone verification pending.
+
+Next:
+- Review and merge the Contact correction, then verify the final Komodo deployment.
