@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useLocation, useOutlet } from 'react-router-dom';
 import { LabBackdrop } from './LabBackdrop';
 import { LabBar } from './LabHeader';
+import { PortfolioProvider } from '../../portfolios/PortfolioContext';
 import './lab.css';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
@@ -15,7 +17,16 @@ export function LabStage() {
   const outlet = useOutlet();
   const reduceMotion = useReducedMotion();
 
+  // The stage is always dark, so the dark variants of the paper figures and styles apply here.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (root.classList.contains('dark')) return;
+    root.classList.add('dark');
+    return () => root.classList.remove('dark');
+  }, []);
+
   return (
+    <PortfolioProvider portfolioId="endtoend-engineer">
     <div className="lab-stage">
       <LabBackdrop />
       <LabBar />
@@ -32,5 +43,6 @@ export function LabStage() {
         </motion.div>
       </AnimatePresence>
     </div>
+    </PortfolioProvider>
   );
 }

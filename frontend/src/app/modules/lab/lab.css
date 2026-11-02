@@ -115,6 +115,9 @@
   --lab-muted: #8f8b82;
   --lab-line: #2a2925;
   --lab-accent: #c6f432;
+  --lab-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
+  --lab-serif: 'Instrument Serif', Georgia, serif;
+  --lab-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
   position: relative;
   min-height: 100vh;
   background: var(--lab-ink);
@@ -881,4 +884,179 @@ button.lab-chip--solid:hover {
   .lab-tile-media::after {
     display: none;
   }
+}
+
+/* ---- Blog and research pages in the lab theme ----
+   Their markup keeps its Tailwind classes; these rules recolour and re-type them inside the stage. */
+.lab-stage {
+  font-family: var(--lab-display);
+  color: var(--lab-paper);
+}
+
+.lab-stage .min-h-screen {
+  background: transparent;
+}
+
+.lab-stage .bg-white,
+.lab-stage .bg-background,
+.lab-stage .bg-neutral-50,
+.lab-stage .bg-gray-50 {
+  background-color: transparent;
+}
+
+.lab-stage .text-gray-900,
+.lab-stage .text-black,
+.lab-stage .text-neutral-900,
+.lab-stage .text-foreground,
+.lab-stage .dark\:text-neutral-100 {
+  color: var(--lab-paper);
+}
+
+.lab-stage .text-gray-500,
+.lab-stage .text-gray-600,
+.lab-stage .text-neutral-500,
+.lab-stage .text-neutral-600,
+.lab-stage .dark\:text-neutral-400 {
+  color: var(--lab-muted);
+}
+
+.lab-stage .border-black,
+.lab-stage .border-gray-200,
+.lab-stage .border-neutral-300,
+.lab-stage .border-neutral-200,
+.lab-stage .dark\:border-neutral-700 {
+  border-color: var(--lab-line);
+}
+
+.lab-stage .text-blue-600,
+.lab-stage .text-blue-700,
+.lab-stage .dark\:text-blue-400 {
+  color: var(--lab-accent);
+}
+
+.lab-stage .font-mono {
+  font-family: var(--lab-mono);
+}
+
+.lab-stage h1,
+.lab-stage h2,
+.lab-stage h3,
+.lab-stage .font-black,
+.lab-stage .font-bold {
+  font-family: var(--lab-display);
+  color: var(--lab-paper);
+}
+
+.lab-stage h1 {
+  font-stretch: 75%;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.lab-stage a {
+  color: inherit;
+}
+
+.lab-stage a:hover {
+  color: var(--lab-accent);
+}
+
+.lab-stage button {
+  border-color: var(--lab-line);
+  color: var(--lab-paper);
+}
+
+.lab-stage button:hover {
+  border-color: var(--lab-accent);
+  color: var(--lab-accent);
+}
+
+/* The blog's cards and controls drop the heavy outlines and offset shadows inside the lab stage. */
+.lab-stage [class*="shadow-["] {
+  box-shadow: none !important;
+}
+
+.lab-stage [class*="border-black"] {
+  border-color: var(--lab-line) !important;
+}
+
+.lab-stage [class*="border-dashed"] {
+  border-style: solid !important;
+}
+
+.lab-stage [class*="border-3"],
+.lab-stage [class*="border-4"],
+.lab-stage [class*="border-6"] {
+  border-width: 1px !important;
+}
+
+.lab-stage [class*="bg-white"] {
+  background-color: rgb(255 255 255 / 0.03) !important;
+}
+
+/* Cards read as glass: a tinted, blurred pane with a soft edge and a faint top highlight. */
+.lab-stage [class*="rounded-xl"] {
+  background-color: rgb(255 255 255 / 0.04);
+  -webkit-backdrop-filter: blur(16px) saturate(1.25);
+  backdrop-filter: blur(16px) saturate(1.25);
+  border-color: rgb(255 255 255 / 0.14) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 18px 40px rgb(0 0 0 / 0.35);
+}
+
+/* Inside the stage every grey or neutral text colour is light enough to read on the dark ground. */
+.lab-stage [class*="text-gray-"],
+.lab-stage [class*="text-neutral-"] {
+  color: var(--lab-muted) !important;
+}
+
+.lab-stage [class*="text-gray-800"],
+.lab-stage [class*="text-gray-900"],
+.lab-stage [class*="text-neutral-800"],
+.lab-stage [class*="text-neutral-900"],
+.lab-stage [class*="text-black"] {
+  color: var(--lab-paper) !important;
+}
+
+/* Black text on a dark ground: body copy and any dark text colour inside the stage read as paper. */
+.lab-stage main p,
+.lab-stage main li,
+.lab-stage main [class*="text-slate-"],
+.lab-stage main [class*="text-zinc-"],
+.lab-stage main [class*="text-stone-"],
+.lab-stage main [class*="-950"],
+.lab-stage main [class*="-900"]:not([class*="bg-"]) {
+  color: var(--lab-paper) !important;
+}
+
+/* Blog cards: the coloured accent bar goes; the card keeps its glass. */
+.lab-stage [class*="h-2"][style*="background-color"] {
+  display: none !important;
+}
+
+/* Mermaid diagrams keep their own light colours on a light panel. */
+.lab-stage [class*="mermaid"] {
+  background-color: #f5f3ee !important;
+  border-radius: 14px;
+  padding: 16px;
+  color: #1a1a1a !important;
+}
+
+/* Blog colours follow the lab palette: the active and primary controls take the accent, the
+   yellow and blue chips and the coloured dots stop competing with the content. */
+.lab-stage [class*="bg-yellow-"],
+.lab-stage [class*="bg-blue-"] {
+  background-color: var(--lab-accent) !important;
+  color: var(--lab-ink) !important;
+  border-color: var(--lab-accent) !important;
+}
+
+.lab-stage [class*="bg-orange-"],
+.lab-stage [class*="bg-pink-"],
+.lab-stage [class*="bg-purple-"] {
+  background-color: rgb(255 255 255 / 0.08) !important;
+}
+
+.lab-stage [class*="text-muted"],
+.lab-stage [class*="placeholder"] {
+  color: var(--lab-muted) !important;
 }

@@ -34,6 +34,32 @@ publicContentRouter.get('/blogs/:numericId', async (req, res) => {
   }
 });
 
+/** The main portfolio's content documents (cms_documents, endtoend-engineer). Read-only, allowlisted. */
+const PORTFOLIO_COLLECTIONS: Record<string, 'item' | 'items'> = {
+  engineering_hero_content: 'item',
+  engineering_about_content: 'item',
+  engineering_projects: 'items',
+  engineering_skills: 'items',
+  engineering_skills_meta: 'item',
+  relevant_experience_content: 'item',
+  relevant_experience_rendered: 'item',
+};
+
+publicContentRouter.get('/portfolio/:collection', async (req, res) => {
+  try {
+    const wrapper = PORTFOLIO_COLLECTIONS[req.params.collection];
+    if (!wrapper) {
+      res.status(404).json({ ok: false, code: 'NOT_FOUND', message: 'Unknown portfolio collection.' });
+      return;
+    }
+    const key = `ete__${req.params.collection}`;
+    const value = wrapper === 'items' ? await getCmsArray(key, [] as unknown[]) : await getCmsObject(key, null);
+    res.set('cache-control', 'public, max-age=60').json({ ok: true, value });
+  } catch (error) {
+    sendRouteError(res, error);
+  }
+});
+
 publicContentRouter.get('/blog-categories', async (_req, res) => {
   try {
     const items = await getCmsArray('blog_categories', []);

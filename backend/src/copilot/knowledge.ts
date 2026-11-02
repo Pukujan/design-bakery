@@ -9,6 +9,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getBlogByNumericId, listBlogPosts } from '../../services/lib/content/blogPosts.js';
+import { getCmsArray, getCmsObject } from '../../services/lib/content/cmsDocuments.js';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const PORTFOLIO = path.join(REPO, 'frontend/src/app/portfolios/endtoend-engineer/engineering');
@@ -72,7 +73,42 @@ async function cached<T>(file: string, parse: (text: string) => T): Promise<T> {
   return value;
 }
 
-const json = <T>(name: string) => cached<T>(path.join(PORTFOLIO, name), (text) => JSON.parse(text) as T);
+/**
+ * Octo is the source for the portfolio content (cms_documents, portfolio endtoend-engineer, key prefix ete__).
+ * The repo JSON is the fallback when Octo cannot be read. Octo reads are cached for a minute.
+ */
+const OCTO_DOCS: Record<string, { collection: string; wrapper: 'item' | 'items' }> = {
+  'hero.json': { collection: 'engineering_hero_content', wrapper: 'item' },
+  'about.json': { collection: 'engineering_about_content', wrapper: 'item' },
+  'projects.json': { collection: 'engineering_projects', wrapper: 'items' },
+  'skill-categories.json': { collection: 'engineering_skills', wrapper: 'items' },
+  'skills-meta.json': { collection: 'engineering_skills_meta', wrapper: 'item' },
+  'relevant-experience.json': { collection: 'relevant_experience_content', wrapper: 'item' },
+};
+const octoCache = new Map<string, { at: number; value: unknown }>();
+
+async function fromOcto<T>(name: string): Promise<T | null> {
+  const doc = OCTO_DOCS[name];
+  if (!doc) return null;
+  const hit = octoCache.get(name);
+  if (hit && Date.now() - hit.at < 60_000) return hit.value as T | null;
+  try {
+    const key = `ete__${doc.collection}`;
+    const value = doc.wrapper === 'items' ? await getCmsArray(key, [] as unknown[]) : await getCmsObject(key, null);
+    const empty = Array.isArray(value) && value.length === 0;
+    const result = (value && !empty ? value : null) as T | null;
+    if (result) octoCache.set(name, { at: Date.now(), value: result });
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+const json = async <T>(name: string): Promise<T> => {
+  const fromDb = await fromOcto<T>(name);
+  if (fromDb) return fromDb;
+  return cached<T>(path.join(PORTFOLIO, name), (text) => JSON.parse(text) as T);
+};
 
 export const loadProjects = () => json<Project[]>('projects.json');
 

@@ -1,9 +1,9 @@
 import { useRef, type PointerEvent } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
-import rawProjects from '../../portfolios/endtoend-engineer/engineering/projects.json';
+import { useProjectRecords, type ProjectRecord } from '../../lib/portfolioDocs';
 import { orderProjectsForShowcase, PROJECT_CATEGORY_LABEL, isProjectCategory } from '../../lib/projectOrder';
 
-type Project = (typeof rawProjects)[number];
+type Project = ProjectRecord;
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
 
@@ -107,7 +107,7 @@ function WorkTile({ project, index }: { project: Project; index: number }) {
 }
 
 export function LabWork() {
-  const projects = orderProjectsForShowcase(rawProjects, 'all');
+  const projects = orderProjectsForShowcase(useProjectRecords(), 'all');
 
   return (
     <section className="lab-work" id="work" aria-labelledby="lab-work-title">

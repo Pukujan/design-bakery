@@ -6,9 +6,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Squiggle } from '@/components/GraphicElements';
 import {
-  BlogPageDecor,
   MotionSection,
   blogCardMotion,
 } from '@/modules/blog/shared/BlogPageMotion';
@@ -369,7 +367,6 @@ export function BlogDetailPage() {
   return (
     <section className="min-h-screen pt-28 sm:pt-32 md:pt-36 pb-12 sm:pb-14 md:pb-16 px-4 sm:px-5 md:px-6 bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 relative overflow-hidden">
       <BlogPostHead blog={blog} />
-      <BlogPageDecor variant="detail" seed={blogId ?? blog.id} />
 
       {/* Fixed Back Button */}
       <motion.div
@@ -435,7 +432,6 @@ export function BlogDetailPage() {
               </div>
 
               <div className="hidden md:block ml-11 sm:ml-12 md:ml-0">
-                <Squiggle color={blog.color} />
               </div>
             </MotionSection>
 

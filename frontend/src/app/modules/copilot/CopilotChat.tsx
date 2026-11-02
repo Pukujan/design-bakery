@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { motion, useReducedMotion } from 'motion/react';
 import { ArrowUp, Square } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import rawProjects from '../../portfolios/endtoend-engineer/engineering/projects.json';
+import { useProjectRecords } from '../../lib/portfolioDocs';
 import { PLACEHOLDER_QUESTIONS, SUGGESTIONS } from '../lab/copilotAnswers';
 import { copilot, useCopilot, type CopilotAction, type CopilotMessage } from './store';
 
@@ -18,7 +18,6 @@ const STEP_LABEL: Record<string, string> = {
   book_call: 'Opening the booking page',
 };
 
-const projectBySlug = new Map(rawProjects.map((p) => [p.slug, p]));
 
 /** Types out example questions in the empty composer. */
 function useTypedPlaceholder(active: boolean) {
@@ -54,6 +53,8 @@ function useTypedPlaceholder(active: boolean) {
 }
 
 function ActionView({ action }: { action: CopilotAction }) {
+  const records = useProjectRecords();
+  const projectBySlug = new Map(records.map((p) => [p.slug, p]));
   if (action.kind === 'navigate') {
     return (
       <button type="button" className="lab-chip lab-chip--solid" onClick={() => copilot.go(action.path)}>

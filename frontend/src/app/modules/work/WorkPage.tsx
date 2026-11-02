@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
-import rawProjects from '../../portfolios/endtoend-engineer/engineering/projects.json';
+import { useProjectRecords, type ProjectRecord } from '../../lib/portfolioDocs';
 import { orderProjectsForShowcase, PROJECT_CATEGORY_LABEL, isProjectCategory } from '../../lib/projectOrder';
 import { NotFoundPage } from '../../components/NotFoundPage';
 import { PageSeo } from '@/seo/PageSeo';
@@ -9,17 +9,18 @@ import { copilot } from '../copilot/store';
 import '../lab/lab.css';
 import './work.css';
 
-type Project = (typeof rawProjects)[number];
+type Project = ProjectRecord;
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
-const ordered = orderProjectsForShowcase(rawProjects, 'all');
 
 const isExternal = (url: string) => /^https?:\/\//.test(url);
 
 /** One presentation page per project: what it is, why, the evidence, and where to go next. */
 export function WorkPage() {
   const { slug } = useParams();
-  const project = rawProjects.find((p) => p.slug === slug);
+  const records = useProjectRecords();
+  const ordered = orderProjectsForShowcase(records, 'all');
+  const project = records.find((p) => p.slug === slug);
   const reduceMotion = useReducedMotion();
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });

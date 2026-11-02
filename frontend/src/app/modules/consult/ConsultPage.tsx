@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
 import { copilot } from '../copilot/store';
 import '../lab/lab.css';
 import './consult.css';
@@ -12,14 +11,11 @@ const LINKS = [
   { label: 'GitHub', url: 'https://github.com/pukujan' },
   { label: 'Email', url: 'mailto:pujan3645@gmail.com' },
 ];
-const EASE = [0.2, 0.7, 0.1, 1] as const;
 
-/** The consultation page: pick an area, say what it is about, then pick a time. */
+/** The consultation page: choose an area, say what it is about, then pick a time. */
 export function ConsultPage() {
   const [area, setArea] = useState<(typeof AREAS)[number] | null>(null);
   const [topic, setTopic] = useState('');
-  const reduceMotion = useReducedMotion();
-  const rise = reduceMotion ? {} : { initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 } };
 
   // Booking from the chat: the copilot asks for what it still needs and then shows the booking card.
   const bookFromChat = () => {
@@ -31,60 +27,65 @@ export function ConsultPage() {
   return (
     <div className="lab-root consult">
       <main className="consult-main">
-        <motion.p className="lab-mono consult-kicker" {...rise} transition={{ duration: 0.6, ease: EASE }}>
-          Free · 30 minutes · video call
-        </motion.p>
-        <motion.h1 className="consult-title" {...rise} transition={{ duration: 0.9, delay: 0.1, ease: EASE }}>
-          Let's talk about <em>your</em> project.
-        </motion.h1>
+        <p className="consult-intro">Free 30-minute video consultations</p>
+        <h1 className="consult-title">
+          Talk to <em>me.</em>
+        </h1>
 
-        <motion.section className="consult-step" {...rise} transition={{ duration: 0.8, delay: 0.25, ease: EASE }}>
-          <h2 className="lab-mono">1 · What is it about?</h2>
-          <div className="consult-areas" role="group" aria-label="Consultation area">
-            {AREAS.map((item) => (
-              <button
-                key={item}
-                type="button"
-                className="consult-area"
-                aria-pressed={area === item}
-                onClick={() => setArea(item)}
-              >
-                {item}
-              </button>
+        <section className="consult-section" aria-labelledby="consult-area">
+          <h2 id="consult-area" className="consult-label">
+            What is it about
+          </h2>
+          <ul className="consult-areas">
+            {AREAS.map((item, index) => (
+              <li key={item}>
+                <button
+                  type="button"
+                  className="consult-area"
+                  aria-pressed={area === item}
+                  onClick={() => setArea(item)}
+                >
+                  <span className="consult-index">0{index + 1}</span>
+                  <span className="consult-area-name">{item}</span>
+                  <span className="consult-area-mark" aria-hidden="true" />
+                </button>
+              </li>
             ))}
-          </div>
-        </motion.section>
+          </ul>
+        </section>
 
-        <motion.section className="consult-step" {...rise} transition={{ duration: 0.8, delay: 0.35, ease: EASE }}>
-          <h2 className="lab-mono">2 · Tell me a little</h2>
+        <section className="consult-section" aria-labelledby="consult-topic-label">
+          <h2 id="consult-topic-label" className="consult-label">
+            Tell me more
+          </h2>
           <label htmlFor="consult-topic" className="sr-only">
             What you are working on
           </label>
           <textarea
             id="consult-topic"
             className="consult-topic"
-            rows={3}
+            rows={2}
             maxLength={600}
             value={topic}
             onChange={(event) => setTopic(event.target.value)}
             placeholder="What are you building, and what is stuck?"
           />
-        </motion.section>
+        </section>
 
-        <motion.section className="consult-step" {...rise} transition={{ duration: 0.8, delay: 0.45, ease: EASE }}>
-          <h2 className="lab-mono">3 · Pick a time</h2>
-          <div className="consult-actions">
-            <a className="lab-chip lab-chip--solid consult-book" href={BOOKING_URL} target="_blank" rel="noopener noreferrer" data-cursor="Book">
-              {area ? `Pick a time for ${area} ↗` : 'Pick a time ↗'}
-            </a>
-            <button type="button" className="lab-chip consult-ask" onClick={bookFromChat}>
-              Book from the chat
-            </button>
-          </div>
-          <p className="consult-note">You choose the time on the next page. Nothing is booked until you pick one.</p>
-        </motion.section>
+        <section className="consult-section consult-book-section" aria-labelledby="consult-book-label">
+          <h2 id="consult-book-label" className="consult-label">
+            Pick a time
+          </h2>
+          <a className="consult-book" href={BOOKING_URL} target="_blank" rel="noopener noreferrer">
+            {area ? `Book ${area.toLowerCase()}` : 'Book a time'}
+            <span aria-hidden="true"> →</span>
+          </a>
+          <button type="button" className="consult-chat" onClick={bookFromChat}>
+            or book through the chat
+          </button>
+        </section>
 
-        <nav className="consult-links lab-mono" aria-label="Elsewhere">
+        <nav className="consult-links" aria-label="Elsewhere">
           {LINKS.map((link) => (
             <a
               key={link.label}
@@ -92,7 +93,7 @@ export function ConsultPage() {
               target={link.url.startsWith('mailto:') ? undefined : '_blank'}
               rel={link.url.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
             >
-              {link.label} ↗
+              {link.label}
             </a>
           ))}
         </nav>

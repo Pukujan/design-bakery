@@ -38,6 +38,9 @@ export function getSkillsMetaFallback(_portfolioId: PortfolioId): EngineeringSki
   return ENGINEERING_SKILLS_META_DEFAULT;
 }
 
+export const ETE_EXPERIENCE_BASE = eteExperience as RelevantExperienceContent;
+export const ETE_EXPERIENCE_RENDERED = eteRenderedExperienceList as RelevantExperienceContent;
+
 const eteExperienceMerged: RelevantExperienceContent = {
   ...(eteRenderedExperienceList as RelevantExperienceContent),
   subtitle: (eteExperience as RelevantExperienceContent).subtitle,

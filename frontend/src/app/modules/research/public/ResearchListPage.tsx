@@ -78,7 +78,7 @@ export function ResearchListPage() {
           </div>
         </div>
 
-        <p className="mt-4 font-mono text-[12px] text-neutral-500 dark:text-neutral-400">
+        <p className="mt-4 text-sm text-neutral-500 dark:text-neutral-400">
           Showing {papers.length} {papers.length === 1 ? 'paper' : 'papers'}
         </p>
 
@@ -86,27 +86,7 @@ export function ResearchListPage() {
         <ul className="mt-2 divide-y divide-neutral-200 dark:divide-neutral-800">
           {papers.map((p) => (
             <li key={p.id} className="py-6">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-neutral-500 dark:text-neutral-400">
-                <span>{p.id}</span>
-                <span>{p.submitted}</span>
-                <span
-                  className={
-                    p.status === 'approved'
-                      ? 'rounded-full bg-emerald-100 dark:bg-emerald-900/40 px-2 py-0.5 uppercase tracking-wide text-emerald-700 dark:text-emerald-400'
-                      : 'rounded-full bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 uppercase tracking-wide text-amber-700 dark:text-amber-400'
-                  }
-                >
-                  {p.status}
-                </span>
-                {p.tags.map((t) => (
-                  <span
-                    key={t}
-                    className="rounded-full border border-neutral-300 dark:border-neutral-700 px-2 py-0.5 uppercase tracking-wide"
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">{p.submitted}</p>
               <h2 className="mt-2 text-lg font-bold leading-snug">
                 <Link
                   to={`/research/papers/${p.id}`}

@@ -5,9 +5,7 @@ import { Search, X } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Squiggle } from '@/components/GraphicElements';
 import {
-  BlogPageDecor,
   PlayfulBlogTitle,
   blogButtonMotion,
 } from '@/modules/blog/shared/BlogPageMotion';
@@ -148,7 +146,6 @@ export function BlogListPage() {
     <>
       <BlogListHead />
       <section className="relative min-h-screen overflow-x-clip bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 py-24 px-6 dark:from-purple-950 dark:via-indigo-950 dark:to-blue-950 md:overflow-x-visible">
-      <BlogPageDecor variant="list" seed={`blogs-${selectedCategory}`} />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
@@ -168,7 +165,6 @@ export function BlogListPage() {
             Technical study logs on AI/ML systems, LLM workflows, legal-tech AI,
             eval engineering, and document intelligence
           </p>
-          <Squiggle color="#4169E1" className="mx-auto" />
         </motion.div>
 
         {/* Search */}
