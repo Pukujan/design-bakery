@@ -89,8 +89,8 @@ export function BlogListPage() {
                 <Link to={pathTo(`/blogs/${id}`)} className="writing-row">
                   <span className="writing-index lab-mono">{String(index + 1).padStart(2, '0')}</span>
                   <span className="writing-date lab-mono">{blog.date}</span>
-                  <span className="writing-name">{blog.title}</span>
-                  {blog.excerpt ? <span className="writing-excerpt">{blog.excerpt}</span> : null}
+                  <FlowText as="span" className="writing-name" text={blog.title}>{blog.title}</FlowText>
+                  {blog.excerpt ? <FlowText as="span" className="writing-excerpt" text={blog.excerpt}>{blog.excerpt}</FlowText> : null}
                 </Link>
               </li>
             );

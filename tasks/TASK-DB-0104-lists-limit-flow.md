@@ -1,4 +1,4 @@
-# TASK-DB-0104 — limit Pretext on the writing and research lists
+# TASK-DB-0104 — smaller sky body on the writing and research lists
 
 | Field | Value |
 |-------|-------|
@@ -12,8 +12,13 @@ The owner found the writing (blog) list unusable: every title and excerpt flowed
 
 ## Done
 
-- `/blogs` and `/research`: row titles and excerpts are plain text. The page heading ("Notes from building it.", "Working papers.") keeps Pretext, so the effect stays where it is a single short line.
+- Row titles and excerpts on `/blogs` and `/research` keep Pretext. The sky body on those two pages is drawn at 50% size (`compact` on `LabBackdrop`, `COMPACT_SCALE`), and the flow obstacle shrinks with it, so only the rows next to it move.
+- First attempt (plain rows) was rejected by the owner and replaced.
 
 ## Checks
 
-- tsc passes. Local dev server: `/blogs` rows align and read cleanly with the body behind them.
+- tsc passes. Local dev server: `/blogs` rows far from the body sit straight; the ones beside it flow round the smaller body.
+
+## Tune
+
+`COMPACT_SCALE` in `LabBackdrop.tsx` is the one number to change.

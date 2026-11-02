@@ -57,6 +57,8 @@ const STALL_MS = 1000;
 const CORNER_X = 0.8;
 const CORNER_Y = 0.72;
 const CORNER_SCALE = 0.45;
+/** List pages: the body stays in place at this share of its size, so the flowing text is pushed around less. */
+const COMPACT_SCALE = 0.5;
 /** The pace of a switch between bodies. */
 const FLIGHT_SPEED = 0.55;
 /** How far away the warp starts, in world units. */
@@ -159,12 +161,23 @@ function easeOut(t: number): number {
 
 
 /** `corner` tucks the body into the bottom-right corner, smaller, so a reading page has the whole width. */
-export function LabBackdrop({ variant = 'hole', corner = false }: { variant?: BackdropVariant; corner?: boolean }) {
+/** `compact` keeps the body where it is but smaller, and the text that flows round it gets a smaller obstacle. */
+export function LabBackdrop({
+  variant = 'hole',
+  corner = false,
+  compact = false,
+}: {
+  variant?: BackdropVariant;
+  corner?: boolean;
+  compact?: boolean;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const variantRef = useRef<BackdropVariant>(variant);
   variantRef.current = variant;
   const cornerRef = useRef(corner);
   cornerRef.current = corner;
+  const compactRef = useRef(compact);
+  compactRef.current = compact;
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -302,7 +315,7 @@ export function LabBackdrop({ variant = 'hole', corner = false }: { variant?: Ba
     observer.observe(container);
     resize();
 
-    let cornerK = cornerRef.current ? CORNER_SCALE : 1;
+    let cornerK = cornerRef.current ? CORNER_SCALE : compactRef.current ? COMPACT_SCALE : 1;
     let frame = 0;
     let last = performance.now();
     let visible = true;
@@ -445,7 +458,7 @@ export function LabBackdrop({ variant = 'hole', corner = false }: { variant?: Ba
       const current = body as Body | null;
       if (!current) return;
       // Ease toward the corner size, or jump there under reduced motion.
-      const cornerSize = cornerRef.current ? CORNER_SCALE : 1;
+      const cornerSize = cornerRef.current ? CORNER_SCALE : compactRef.current ? COMPACT_SCALE : 1;
       cornerK += (cornerSize - cornerK) * (reduceMotion ? 1 : 0.06);
       intro = reduceMotion ? 1 : Math.min(1, intro + delta * 1.4);
       current.group.scale.setScalar(Math.max(0.001, easeOut(intro)) * cornerK);
