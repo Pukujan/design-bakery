@@ -37,16 +37,29 @@ async function verifyTurnstile(token: string, ip: string): Promise<boolean> {
 }
 
 /** A pass for a visitor who solved the challenge, or null. */
-export async function issuePass(turnstileToken: string, ip: string): Promise<{ pass: string; session: string } | null> {
+export async function issuePass(turnstileToken: string, ip: string, visitorProof?: string): Promise<{ pass: string; session: string; visitor: string } | null> {
   if (!(await verifyTurnstile(turnstileToken, ip))) return null;
-  const session = randomUUID();
+  let session: string | undefined;
+  if (visitorProof) {
+    try {
+      const { payload } = await jwtVerify(visitorProof, secret(), { algorithms: ['HS256'] });
+      if (payload.kind === 'copilot-visitor' && typeof payload.sub === 'string') session = payload.sub;
+    } catch { /* An expired or invalid proof gets a new visitor identity. */ }
+  }
+  session ??= randomUUID();
+  const visitor = await new SignJWT({ kind: 'copilot-visitor' })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setSubject(session)
+    .setIssuedAt()
+    .setExpirationTime('30d')
+    .sign(secret());
   const pass = await new SignJWT({ kind: 'copilot' })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(session)
     .setIssuedAt()
     .setExpirationTime(PASS_TTL)
     .sign(secret());
-  return { pass, session };
+  return { pass, session, visitor };
 }
 
 /** The pass's session id, or null when it is missing, forged or expired. */

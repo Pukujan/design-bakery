@@ -24,7 +24,7 @@ export const flowField: { obstacles: FlowObstacle[] } = { obstacles: [] };
 
 export type FlowLine = { text: string; x: number; y: number };
 
-/** A line never takes less than this share of the column; if it cannot, it runs over the disc. */
+/** A line never takes less than this share of the column. */
 const MIN_SPAN = 0.38;
 /** ...and never less than this many line heights, so a short label is not broken into a column of letters. */
 const MIN_EM = 4;
@@ -92,8 +92,9 @@ export function flowLines(
   const lines: FlowLine[] = [];
   if (width <= 0) return lines;
   let cursor: LayoutCursor = { segmentIndex: 0, graphemeIndex: 0 };
-  while (lines.length < MAX_LINES) {
-    const row = lines.length;
+  let row = 0;
+  let skipped = 0;
+  while (row < MAX_LINES) {
     const blocked: Span[] = [];
     for (const fraction of SAMPLES) {
       const y = top + (row + fraction) * lineHeight;
@@ -110,7 +111,15 @@ export function flowLines(
         widest = free.end - free.start;
       }
     }
-    if (widest < Math.max(width * MIN_SPAN, lineHeight * MIN_EM)) span = { start: 0, end: width };
+    const minimum = Math.min(width, Math.max(width * MIN_SPAN, lineHeight * MIN_EM));
+    if (widest < minimum && blocked.length && skipped < 24) {
+      // Move below an obstacle that leaves too little room for a readable line.
+      // The cap prevents an enormous blank area for an unusually large obstacle.
+      row += 1;
+      skipped += 1;
+      continue;
+    }
+    if (widest < minimum) span = { start: 0, end: width };
 
     const range = layoutNextLineRange(prepared, span.end - span.start, cursor);
     if (!range) break;
@@ -119,6 +128,8 @@ export function flowLines(
 
     lines.push({ text: materializeLineRange(prepared, range).text, x: span.start, y: row * lineHeight });
     cursor = range.end;
+    row += 1;
+    skipped = 0;
   }
   return lines;
 }

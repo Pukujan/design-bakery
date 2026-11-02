@@ -28,7 +28,7 @@ function stretchKeyword(computed: string): string {
 /** A rendered run of text as Pretext measures it: the text, and where each of its characters sits in the raw text. */
 type Source = { text: string; map: number[]; nodes: { node: Text; start: number }[] };
 
-type Frame = { lines: FlowLine[]; lineHeight: number };
+type Frame = { lines: FlowLine[]; lineHeight: number; insetLeft: number; insetTop: number; extraHeight: number };
 
 /** One run's flow: read its box and lay it out, then paint the lines. */
 type Flow = {
@@ -144,13 +144,10 @@ export function FlowText({
     const element = source?.parentElement;
     if (!source || !lines || !element) return;
 
-    const style = getComputedStyle(element);
-    const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.5;
-    const font = `${style.fontStyle} ${style.fontWeight} ${stretchKeyword(style.fontStretch)} ${style.fontSize} ${style.fontFamily}`;
-    const letterSpacing = parseFloat(style.letterSpacing) || 0;
     const content = sourceOf(source);
 
     let prepared: PreparedTextWithSegments | null = null;
+    let fontKey = '';
     let onScreen = true;
     let key = '';
     let spans: HTMLSpanElement[] = [];
@@ -171,6 +168,9 @@ export function FlowText({
     };
     syncNarrow();
     narrowScreen.addEventListener('change', syncNarrow);
+    // A later font load can change glyph widths without changing the CSS font string.
+    const refreshFont = () => { fontKey = ''; };
+    document.fonts.addEventListener('loadingdone', refreshFont);
 
     const observer = new IntersectionObserver(([entry]) => {
       onScreen = entry.isIntersecting;
@@ -180,21 +180,43 @@ export function FlowText({
     const flow: Flow = {
       measure: () => {
         if (!prepared || !onScreen || narrow) return null;
-        const width = element.clientWidth;
+        const style = getComputedStyle(element);
+        const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.5;
+        const font = `${style.fontStyle} ${style.fontWeight} ${stretchKeyword(style.fontStretch)} ${style.fontSize} ${style.fontFamily}`;
+        const letterSpacing = parseFloat(style.letterSpacing) || 0;
+        const nextFontKey = `${font}|${letterSpacing}`;
+        if (nextFontKey !== fontKey) {
+          prepared = prepareWithSegments(content.text, font, { letterSpacing });
+          fontKey = nextFontKey;
+        }
+        const px = (value: string) => parseFloat(value) || 0;
+        const left = px(style.paddingLeft);
+        const right = px(style.paddingRight);
+        const top = px(style.paddingTop);
+        const bottom = px(style.paddingBottom);
+        const borderLeft = px(style.borderLeftWidth);
+        const borderTop = px(style.borderTopWidth);
+        const width = element.clientWidth - left - right;
         if (width <= 0) return null;
         const box = element.getBoundingClientRect();
-        return { lines: flowLines(prepared, width, lineHeight, box.top, box.left, flowField.obstacles), lineHeight };
+        const extraHeight = style.boxSizing === 'border-box'
+          ? top + bottom + borderTop + px(style.borderBottomWidth)
+          : 0;
+        return {
+          lines: flowLines(prepared, width, lineHeight, box.top + borderTop + top, box.left + borderLeft + left, flowField.obstacles),
+          lineHeight, insetLeft: left, insetTop: top, extraHeight,
+        };
       },
-      paint: ({ lines: next, lineHeight: height }) => {
+      paint: ({ lines: next, lineHeight: height, insetLeft, insetTop, extraHeight }) => {
         const nextKey = next.map((line) => line.text).join('\n');
         if (nextKey !== key) {
           key = nextKey;
           spans = buildLines(content, next, lines);
         }
         next.forEach((line, i) => {
-          spans[i].style.transform = `translate(${line.x}px, ${line.y}px)`;
+          spans[i].style.transform = `translate(${line.x + insetLeft}px, ${line.y + insetTop}px)`;
         });
-        element.style.height = `${next.length * height}px`;
+        element.style.height = `${(next.length ? next[next.length - 1].y + height : 0) + extraHeight}px`;
         source.style.visibility = 'hidden';
       },
     };
@@ -202,7 +224,12 @@ export function FlowText({
     // Prepare once the font is ready, since Pretext measures with the font it is given.
     void document.fonts.ready.then(() => {
       if (disposed || !element.isConnected || !content.text) return;
+      // Prepare using the current computed style in measure(), after fonts have loaded.
+      const style = getComputedStyle(element);
+      const font = `${style.fontStyle} ${style.fontWeight} ${stretchKeyword(style.fontStretch)} ${style.fontSize} ${style.fontFamily}`;
+      const letterSpacing = parseFloat(style.letterSpacing) || 0;
       prepared = prepareWithSegments(content.text, font, { letterSpacing });
+      fontKey = `${font}|${letterSpacing}`;
       unsubscribe = subscribe(flow);
     });
 
@@ -210,7 +237,11 @@ export function FlowText({
       disposed = true;
       observer.disconnect();
       narrowScreen.removeEventListener('change', syncNarrow);
+      document.fonts.removeEventListener('loadingdone', refreshFont);
       unsubscribe?.();
+      source.style.visibility = '';
+      lines.replaceChildren();
+      element.style.height = '';
     };
   }, [text]);
 

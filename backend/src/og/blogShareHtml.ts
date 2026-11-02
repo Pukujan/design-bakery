@@ -7,6 +7,7 @@ import {
   socialMetaTagsToHtml,
   type BlogSocialMetaInput,
 } from './blogSocialMeta.js';
+import { DEFAULT_OG_IMAGE_PATH } from './siteSeoDefaults.js';
 
 /**
  * The server-side counterpart of the browser's `readClientSocialEnv` (which reads
@@ -55,6 +56,12 @@ export type BlogListShareItem = {
 
 export { escapeHtml, SITE_NAME };
 
+/** Blog aliases remain navigable, but share one canonical list and detail URL. */
+export function canonicalBlogUrl(siteOrigin: string, numericId?: number): string {
+  const origin = siteOrigin.replace(/\/$/, '');
+  return numericId === undefined ? `${origin}/blogs` : `${origin}/blogs/${numericId}`;
+}
+
 export function stripMarkdownForCrawlers(markdown: string, maxLen = 12_000): string {
   return markdown
     .replace(/```[\s\S]*?```/g, ' ')
@@ -75,7 +82,8 @@ export async function resolveShareMeta(
   const { resolveSocialPreviewImage } = await import('./resolveSocialPreviewImage.js');
   const metaTitle = blog.seo?.metaTitle?.trim();
   const metaDescription = blog.seo?.metaDescription?.trim();
-  const ogImage = await resolveSocialPreviewImage(blog);
+  const previewImage = await resolveSocialPreviewImage(blog);
+  const ogImage = previewImage ?? `${new URL(canonicalUrl).origin}${DEFAULT_OG_IMAGE_PATH}`;
   const rawTitle = metaTitle || blog.title.trim();
   const description = metaDescription || blog.excerpt?.trim() || blog.title.trim();
   const pageTitle = metaTitle || rawTitle;
@@ -86,7 +94,7 @@ export async function resolveShareMeta(
     description,
     canonicalUrl,
     ogImage,
-    imageAlt: rawTitle,
+    imageAlt: previewImage ? rawTitle : `${SITE_NAME} — AI/ML, product and design engineering`,
     author: blog.author,
     publishedTime: blog.date,
     siteName: SITE_NAME,
@@ -134,6 +142,7 @@ export function buildBlogListShareHtml(params: {
   pageTitle: string;
   canonicalUrl: string;
   description: string;
+  ogImage?: string;
   posts: BlogListShareItem[];
 }): string {
   const title = escapeHtml(params.pageTitle);
@@ -145,6 +154,9 @@ export function buildBlogListShareHtml(params: {
       pageTitle: params.pageTitle,
       description: params.description,
       canonicalUrl: params.canonicalUrl,
+      ogImage: params.ogImage,
+      imageAlt: `${SITE_NAME} engineering blog`,
+      ogType: 'website',
       siteName: SITE_NAME,
       fbAppId: env.fbAppId,
       twitterSite: env.twitterSite,
@@ -166,7 +178,6 @@ export function buildBlogListShareHtml(params: {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${title}</title>
-    <meta name="description" content="${desc}" />
 ${tagsHtml}
     <link rel="canonical" href="${url}" />
   </head>

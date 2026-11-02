@@ -338,10 +338,8 @@
 
 .lab-msg--user {
   align-self: flex-end;
-  padding: 0.6rem 1rem;
-  border-radius: 18px 18px 4px 18px;
-  background: var(--lab-paper);
-  color: var(--lab-ink);
+  color: var(--lab-paper);
+  text-align: right;
   font-weight: 500;
 }
 
@@ -1026,7 +1024,7 @@ button.lab-chip--solid:hover {
   color: var(--lab-paper) !important;
 }
 
-/* Black text on a dark ground: body copy and any dark text colour inside the stage read as paper. */
+/* Body copy is light on the dark stage. */
 .lab-stage main p,
 .lab-stage main li,
 .lab-stage main [class*="text-slate-"],

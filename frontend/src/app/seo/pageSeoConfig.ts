@@ -107,9 +107,6 @@ export const CASE_STUDY_SEO = {
 /** Sitemap static paths (relative). Blog posts are appended at build time. */
 export const SITEMAP_STATIC_PATHS = [
   '/',
-  '/#about',
-  '/#projects',
-  '/#contact',
   '/blogs',
   EKAGAJPATRA_CASE_STUDY_PATH,
   INVEST_AI_CASE_STUDY_PATH,

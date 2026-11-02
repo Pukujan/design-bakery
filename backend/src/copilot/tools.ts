@@ -78,7 +78,7 @@ export function makeTools(emit: (action: CopilotAction) => void) {
 
     navigate: tool({
       description:
-        'Take the visitor to a page on this site while you keep talking: a section (/#about, /#experience, /#projects, /#contact), /work/<slug>, /blogs, /blogs/<id>, /research, /research/papers/<id>. Use it whenever the visitor asks to see something, and during a tour.',
+        'Take the visitor to a page on this site while you keep talking: a section (/#about, /#experience, /#work), /contact, /work/<slug>, /blogs, /blogs/<id>, /research, /research/papers/<id>. Use it whenever the visitor asks to see something, and during a tour.',
       inputSchema: z.object({ path: z.string(), label: z.string().max(60) }),
       execute: async ({ path, label }) => {
         if (!(await knownPath(path))) return { ok: false, error: 'not a page on this site' };

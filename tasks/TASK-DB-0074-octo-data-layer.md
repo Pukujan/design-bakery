@@ -10,7 +10,7 @@
 ## Done (2026-10-06)
 
 1. **Boot block** pasted into `AGENTS.md` (§ Data layer — Octo).
-2. **Schema applied** to `octo_ws_design_bakery_c192afbc` via `POST /api/workspaces/:id/query`.
+2. **Schema applied** to the design-bakery workspace via `POST /api/workspaces/:id/query`.
    `supabase/migrations/000_octo_bootstrap.sql` defines the `auth.role()` / `auth.uid()`
    stubs the 001–010 files need (they are plain PostgreSQL otherwise; `gen_random_uuid()`
    is native on pg16). Result: 8 tables, RLS on, policies created.
@@ -88,7 +88,7 @@ done** (owner-side, later on 2026-10-06):
 | octo deployed on gravebuster | `eb43f9b7aba3`, deployed 2026-10-06T16:01Z (has Slice 20 + 21) |
 | `octo.workspace_databases` | exists |
 | design-bakery workspace database | **provisioned** 2026-10-06T14:13Z |
-| db / role | `octo_ws_design_bakery_c192afbc` / `octo_ws_design_bakery_c192afbc_rw` (`active`) |
+| db / role | the design-bakery workspace / its rw role (`active`) |
 | `octo.workspace_database_credentials` | exists (encrypted role password, Slice 21) |
 | incident #162 | resolved by PR #163 (`docs/consuming-octo.md` + README pointer) |
 | tables in the database | **0** — schema not yet applied |
@@ -105,7 +105,7 @@ Verified working with the existing `octo_db_design_bakery` workspace key:
 curl -sS -X POST "https://octodb.design-bakery.com/api/workspaces/e2f12428-518a-4f10-bf16-7b90ad9a8751/query" \
   -H "Authorization: Bearer $OCTO_WS_KEY" -H "Content-Type: application/json" \
   -d '{"sql":"SELECT current_database() AS db, current_user AS role"}'
-# → {"db":"octo_ws_design_bakery_c192afbc","role":"octo_ws_design_bakery_c192afbc_rw", ...}
+# → {"db":"the design-bakery workspace","role":"the workspace's rw role", ...}
 ```
 
 So design-bakery can apply its schema and migrate its data **without ever handling a

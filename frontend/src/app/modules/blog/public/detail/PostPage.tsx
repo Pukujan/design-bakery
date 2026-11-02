@@ -4,6 +4,8 @@ import { resolveBlogCategoryId } from '@/modules/blog/lib/blogCategoryNav';
 import { usePortfolio } from '@/portfolios/PortfolioContext';
 import { Article } from '@/modules/lab/Article';
 import { ArticleToc } from '@/modules/lab/ArticleToc';
+import { PageSeo } from '@/seo/PageSeo';
+import { resolveBlogMeta } from '@/modules/blog/seo/blogMeta';
 import '@/modules/lab/lab.css';
 import '@/modules/blog/public/list/writing.css';
 import '@/modules/lab/post.css';
@@ -31,9 +33,11 @@ export function BlogPostPage() {
   const topic = categories.find((c) => c.id === resolveBlogCategoryId(blog.category, categories))?.label ?? blog.category;
   const index = blogs.findIndex((item) => item.id === blog.id);
   const next = index >= 0 && blogs.length > 1 ? blogs[(index + 1) % blogs.length] : undefined;
+  const seo = resolveBlogMeta(blog);
 
   return (
     <article className="writing post">
+      <PageSeo title={seo.pageTitle} description={seo.description} canonicalPath={`/blogs/${blog.id}`} ogImage={seo.imageUrl} imageAlt={blog.title} ogType="article" author={blog.author} publishedTime={blog.date} />
       <Link to={pathTo('/blogs')} className="post-back lab-mono">
         ← Writing
       </Link>

@@ -139,8 +139,8 @@ octo key arrives (this is the designed fallback, TASK-DB-0078's inverse).
   recreate, and the OG router also needs the data layer).
 - **The octo data gap is real.** The Mac's octo has no design-bakery
   workspace (workspaces: `personal`, `aba`, `personal-branding-project`,
-  `chatgpt` + guests; DBs: no `octo_ws_design_bakery_*`). The content lives
-  in gravebuster's octo (`octo_ws_design_bakery_c192afbc`), which is
+  `chatgpt` + guests; DBs: no `octo_ws_*`). The content lives
+  in gravebuster's octo (the design-bakery workspace), which is
   unreachable. The owner said they will provide a new workspace key later —
   that fixes the API's *access*, but the 136 content rows themselves still
   need to come back from gravebuster (or be re-migrated from the Supabase

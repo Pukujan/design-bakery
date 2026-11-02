@@ -26,6 +26,10 @@ export default defineConfig([
       '**/*.d.ts',
       '**/tsconfig.tsbuildinfo',
       '**/.codegraph/**',
+      // Agent worktrees are separate checkouts of this repo; linting them from here makes
+      // ESLint see two tsconfig roots and fail on every file.
+      '.claude/**',
+      '**/.claude/**',
     ],
   },
   {

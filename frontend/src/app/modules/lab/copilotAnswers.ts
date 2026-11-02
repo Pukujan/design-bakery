@@ -1,5 +1,6 @@
 import rawProjects from '../../portfolios/endtoend-engineer/engineering/projects.json';
 import hero from '../../portfolios/endtoend-engineer/engineering/hero.json';
+import experience from '../../portfolios/endtoend-engineer/engineering/relevant-experience.json';
 import { orderProjectsForShowcase } from '../../lib/projectOrder';
 
 export type CopilotProject = (typeof rawProjects)[number];
@@ -75,7 +76,15 @@ export function answer(question: string): CopilotAnswer {
   if (/\b(contact|hire|email|reach|available|freelance)\b/.test(q)) {
     return {
       text: 'The quickest way is the contact form on the main site. Tell me what you are building and I will point you to the most relevant work first.',
-      actions: [{ kind: 'link', label: 'Go to contact', href: '/#contact' }],
+      actions: [{ kind: 'link', label: 'Go to contact', href: '/contact' }],
+    };
+  }
+
+  if (/\b(experience|experiences|work history|career|employment|jobs|roles)\b/.test(q)) {
+    const roles = experience.experiences.map((item) => `${item.role} at ${item.company} (${item.period})`);
+    return {
+      text: `The site lists Pujan's experience as ${roles.join('; ')}.`,
+      actions: [{ kind: 'scroll', label: 'See work history', target: '#experience' }],
     };
   }
 

@@ -65,7 +65,7 @@ own tunnel). Not done as of this writing.
 
 **Open — the octo data did not move.** The Mac's octo has **no design-bakery
 workspace**, so the 136 content rows are still only in gravebuster's
-`octo_ws_design_bakery_c192afbc` (unreachable). Until the owner supplies a new
+the workspace named in `deploy/gravebuster/.env.api` (unreachable). Until the owner supplies a new
 workspace id/key and the API container is recreated, `/api/public/blogs` returns
 **500** and the site serves the committed 7-post `blog-data.json` snapshot, and
 crawler link previews (§8) degrade to the plain shell.

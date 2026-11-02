@@ -10,7 +10,7 @@ import {
   DEFAULT_ROBOTS,
   SITE_NAME,
 } from './siteSeoDefaults';
-import type { PageSeoConfig } from './pageSeoConfig';
+import { HOME_PAGE_SEO, type PageSeoConfig } from './pageSeoConfig';
 
 export type PageSeoProps = PageSeoConfig & {
   ogType?: 'website' | 'article';
@@ -80,11 +80,7 @@ export function PageSeo({
 
 export function DefaultSiteHead() {
   return (
-    <PageSeo
-      title={`${SITE_NAME} | Fullstack Design Engineer`}
-      description="Fullstack design engineer portfolio, AI workflow systems, document intelligence, legal-tech products, and interactive case studies."
-      canonicalPath="/"
-    />
+    <PageSeo {...HOME_PAGE_SEO} />
   );
 }
 
