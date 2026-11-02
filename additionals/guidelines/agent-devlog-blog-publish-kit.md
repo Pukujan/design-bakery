@@ -103,7 +103,7 @@ Documented so agents do not regress behavior.
 | `onApplyVisual` right after generate + separate `setEditPost` | SEO field lost (stale React state) | Single `setEditPost` with `seo` + `coverImageUrl` |
 | Client → **`http://localhost:5001`** directly | CORS preflight failures from Vite origin | **Vite proxy** + `connectFunctionsEmulator(host, vitePort)` |
 | `VITE_FUNCTIONS_EMULATOR_HOST` / port **5001** on client | Cross-origin to dev server | Proxy path `/{projectId}/…` on Vite port (see `vite.config.ts`) |
-| Hero prompt **v0.1** (photo/cinematic, “not cartoon”) | Felt generic / stock | **v0.2** — vector cartoon + line art ([`imagePrompt.history.md`](../functions/src/publishKit/imagePrompt.history.md)) |
+| Hero prompt **v0.1** (photo/cinematic, “not cartoon”) | Felt generic / stock | **v0.2** — vector cartoon + line art ([`imagePrompt.history.md`](../../backend/services/src/blog/publishKit/imagePrompt.history.md)) |
 
 ## Hybrid visuals (default)
 
@@ -161,11 +161,11 @@ Dimensions: OG **1200×630**, cover **1200×800**.
 
 - Callable: `functions/src/publishKit/tags.ts` — OpenRouter JSON `{ tags: string[] }`, 3–5 tags, deduped, max **5**
 - Admin: **Generate tags** / **Meta + tags** — applies directly to post (replaces tag list)
-- Manual tags: comma-separated in [`parseBlogTags.ts`](../src/app/lib/parseBlogTags.ts); `mergeTags` respects max **5**
+- Manual tags: comma-separated in [`parseBlogTags.ts`](../../frontend/src/app/modules/blog/lib/parseBlogTags.ts); `mergeTags` respects max **5**
 
 ## Public cover + social
 
-- **Detail:** [`BlogCoverImage.tsx`](../src/app/components/BlogCoverImage.tsx) — `resolveBlogCoverUrl`; shimmer + lazy load (`useInView`) like Mermaid
+- **Detail:** `BlogCoverImage.tsx` — `resolveBlogCoverUrl`; shimmer + lazy load (`useInView`) like Mermaid
 - **List:** `variant="card"` uses `resolveBlogThumbnailUrl` (640×360 `thumbnailImageUrl`, else cover)
 - **Social meta:** [`blogSocialMeta.ts`](../../frontend/src/og/blogSocialMeta.ts) — OG + Twitter for Facebook, LinkedIn, Slack, **Discord**, **Telegram**, WhatsApp, X, Mastodon, iMessage, etc. Crawlers are matched by [`linkPreviewCrawlers.ts`](../../backend/src/og/linkPreviewCrawlers.ts) and served by the [`ogPreview` router](../../backend/src/api/ogPreview.ts) in the `api` container behind Caddy (it replaced the Vercel Edge `middleware.ts`; see [`agent-devlog-og-previews.md`](agent-devlog-og-previews.md)). **`seo.socialOgImageUrl`** — JPEG ~58KB from `commit_visual` / [`backfill-social-og-jpeg.mjs`](../../backend/services/scripts/backfill-social-og-jpeg.mjs) (large PNGs break Slack). [`resolveSocialPreviewImage.ts`](../../backend/src/og/resolveSocialPreviewImage.ts) picks social JPEG first.
 - **Admin social preview:** `resolveBlogOgPreviewUrl` → `seo.ogImageThumbUrl` when set (800×420 from `commit_visual`)
