@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import '../lab/lab.css';
 import './copilot.css';
 import { CopilotChat } from './CopilotChat';
+import VoiceOrb from './VoiceOrb';
 import { copilot, useCopilot } from './store';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
@@ -37,6 +38,7 @@ export default function CopilotDock() {
 
   return (
     <div className="cp-dock">
+      <VoiceOrb />
       <AnimatePresence>
         {showPill && (
           <motion.button

@@ -2,8 +2,10 @@ import { useSyncExternalStore } from 'react';
 import { copilot, requestVoiceGrant } from './store';
 import type { LocalAudioTrack, Room } from 'livekit-client';
 
-type VoiceState = { status: 'idle' | 'connecting' | 'connected'; error: string; audioBlocked: boolean };
-let state: VoiceState = { status: 'idle', error: '', audioBlocked: false };
+/** Who is talking right now, so the orb can show it. */
+export type Speaking = 'none' | 'user' | 'agent';
+type VoiceState = { status: 'idle' | 'connecting' | 'connected'; error: string; audioBlocked: boolean; speaking: Speaking };
+let state: VoiceState = { status: 'idle', error: '', audioBlocked: false, speaking: 'none' };
 let room: Room | null = null;
 let microphone: LocalAudioTrack | null = null;
 let generation = 0;
@@ -35,7 +37,7 @@ function close(error = '') {
   if (current) void current.disconnect();
   for (const audio of audioElements) audio.remove();
   audioElements.clear();
-  set({ status: 'idle', error, audioBlocked: false });
+  set({ status: 'idle', error, audioBlocked: false, speaking: 'none' });
 }
 
 export const voice = {
@@ -101,6 +103,12 @@ export const voice = {
         if (generation !== run) return;
         if ([...call.remoteParticipants.values()].some((p) => p.isAgent)) set({ status: 'connected' });
         else close('The voice agent disconnected. You can continue typing.');
+      });
+      call.on(lk.RoomEvent.ActiveSpeakersChanged, (speakers) => {
+        if (generation !== run) return;
+        const agent = speakers.some((speaker) => speaker.isAgent && !speaker.isLocal);
+        const user = speakers.some((speaker) => speaker.isLocal);
+        set({ speaking: agent ? 'agent' : user ? 'user' : 'none' });
       });
       call.on(lk.RoomEvent.AudioPlaybackStatusChanged, () => {
         if (generation === run) set({ audioBlocked: !call.canPlaybackAudio });

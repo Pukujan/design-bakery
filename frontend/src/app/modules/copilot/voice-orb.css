@@ -1,0 +1,102 @@
+/* The voice orb: a Siri-style glow docked to the bottom edge during a call (Siri look, TASK-DB-0101). */
+.vo {
+  position: fixed;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px 10px 10px;
+  border-radius: 999px;
+  background: rgb(10 12 14 / 0.78);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  backdrop-filter: blur(14px) saturate(140%);
+  color: #f2f5f2;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vo-orb {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex: none;
+}
+
+.vo-core,
+.vo-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+/* A bright core with a multicolour glow, the Siri palette in the site's lime and blue. */
+.vo-core {
+  inset: 12px;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #c6f35a 35%, #3aa7ff 70%, #5b3cff 100%);
+  box-shadow: 0 0 22px rgb(198 243 90 / 0.55), 0 0 40px rgb(58 167 255 / 0.35);
+  animation: vo-breathe 2.4s ease-in-out infinite;
+}
+
+.vo-ring {
+  border: 1.5px solid rgb(198 243 90 / 0.55);
+  opacity: 0;
+  animation: vo-wave 2.6s ease-out infinite;
+}
+
+.vo-ring-2 { animation-delay: 0.85s; border-color: rgb(58 167 255 / 0.55); }
+.vo-ring-3 { animation-delay: 1.7s; border-color: rgb(91 60 255 / 0.5); }
+
+.vo-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 96px;
+  gap: 2px;
+}
+
+.vo-label { font-weight: 600; }
+.vo-error { color: #ffb4a8; text-transform: none; letter-spacing: 0; font-size: 11px; }
+
+.vo-end {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(255 92 80 / 0.9);
+  color: #fff;
+  cursor: pointer;
+  flex: none;
+}
+
+/* Connecting: slow, calm pulse. */
+.vo-connecting .vo-core { animation-duration: 3.6s; opacity: 0.7; }
+.vo-connecting .vo-ring { animation-duration: 3.6s; }
+
+/* Listening: the rings reach further. */
+.vo-listening .vo-ring { animation-duration: 2.2s; }
+
+/* Speaking: a quicker, larger swell. */
+.vo-speaking .vo-core { animation-duration: 0.9s; transform-origin: center; }
+.vo-speaking .vo-ring { animation-duration: 1.4s; border-width: 2px; }
+
+@keyframes vo-breathe {
+  0%, 100% { transform: scale(0.94); }
+  50% { transform: scale(1.06); }
+}
+
+@keyframes vo-wave {
+  0% { transform: scale(0.7); opacity: 0.8; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vo-core,
+  .vo-ring { animation: none; }
+  .vo-ring { opacity: 0.35; }
+}
