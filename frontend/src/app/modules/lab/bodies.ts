@@ -34,6 +34,8 @@ export type Body = {
   anchor: (halfW: number, halfH: number, sx: number, sy: number) => THREE.Vector3;
   /** Animates the body. `look` is the eased pointer, from -1 to 1 on each axis. */
   update: (elapsed: number, delta: number, look: Look) => void;
+  /** Draws only the first share of the body's particles (0 to 1). The full set is built once; a lighter stage just draws less. */
+  density?: (fraction: number) => void;
 };
 
 /** The eased pointer, as the backdrop reads it, and how vivid the screen is (brighter on desktop). */
@@ -49,6 +51,11 @@ export function seeded(seed: number): () => number {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+/** Draws only the first share of a geometry's items: `perItem` vertices each, so line pairs stay whole. */
+function share(geometry: THREE.BufferGeometry, total: number, fraction: number, perItem = 1) {
+  geometry.setDrawRange(0, Math.max(1, Math.round(total * fraction)) * perItem);
 }
 
 /** A soft round sprite for stars, glows and the disk. */
@@ -146,6 +153,7 @@ export function buildHole(rng: () => number): Body {
     update: (_elapsed, delta) => {
       disk.rotation.y += delta * 0.32;
     },
+    density: (fraction) => share(diskGeometry, diskCount, fraction),
   };
 }
 
@@ -260,6 +268,7 @@ export function buildPulsar(): Body {
       lineMaterial.opacity = Math.min(1, (0.85 + 0.1 * breath) * look.vivid);
       coreGlow.material.opacity = Math.min(1, (0.9 + 0.1 * breath) * look.vivid);
     },
+    density: (fraction) => share(lineGeometry, LINES, fraction, 2 * SEGMENTS),
   };
 }
 
@@ -403,6 +412,11 @@ export function buildSystem(): Body {
       dust.rotation.y = elapsed * 0.05;
       sparkles.rotation.y = elapsed * 0.05;
       coreGlow.material.opacity = Math.min(1, (0.55 + Math.sin(elapsed * 0.9) * 0.08) * look.vivid);
+    },
+    density: (fraction) => {
+      share(starGeometry, count, fraction);
+      share(dustGeometry, dustCount, fraction);
+      share(sparkleGeometry, sparkleCount, fraction);
     },
   };
 }
