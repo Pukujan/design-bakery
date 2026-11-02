@@ -244,6 +244,6 @@ Both can stay on the same branch (e.g. `main`); only **Root Directory** and **en
 
 ## Related docs
 
-- API routes and local run: [`backend/README.md`](../backend/README.md)
+- API routes and local run: `backend/README.md`
 - Publish kit behavior: [`guidelines/agent-devlog-blog-publish-kit.md`](../guidelines/agent-devlog-blog-publish-kit.md)
-- Env: [env.md](./env.md), [`frontend/.env.example`](../frontend/.env.example), [`backend/.env.example`](../backend/.env.example)
+- Env: [env.md](./env.md), `frontend/.env.example`, [`backend/.env.example`](../../backend/.env.example)
