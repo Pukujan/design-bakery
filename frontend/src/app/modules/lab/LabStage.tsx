@@ -19,6 +19,11 @@ function isReadingPage(pathname: string): boolean {
   return /^\/(research\/(papers|sources)|blogs)\/[^/]+/.test(pathname);
 }
 
+/** The writing and research lists keep their flowing text, round a smaller body. */
+function isListPage(pathname: string): boolean {
+  return /^\/(blogs|research)\/?$/.test(pathname);
+}
+
 const EASE = [0.2, 0.7, 0.1, 1] as const;
 
 /**
@@ -29,6 +34,7 @@ export function LabStage() {
   const location = useLocation();
   const variant = backdropFor(location.pathname);
   const reading = isReadingPage(location.pathname);
+  const list = isListPage(location.pathname);
   const outlet = useOutlet();
   const reduceMotion = useReducedMotion();
 
@@ -43,7 +49,7 @@ export function LabStage() {
   return (
     <PortfolioProvider portfolioId="endtoend-engineer">
     <div className="lab-stage">
-      <LabBackdrop variant={variant} corner={reading} />
+      <LabBackdrop variant={variant} corner={reading} compact={list} />
       <LabBar />
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
