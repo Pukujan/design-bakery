@@ -1,4 +1,4 @@
-/* The consultation page (/contact): editorial type, numbered rows and hairlines. No cards, no pills. */
+/* The contact page (/contact): a short guided flow, one question at a time. */
 .consult {
   min-height: 100vh;
 }
@@ -7,12 +7,6 @@
   max-width: 62rem;
   margin: 0 auto;
   padding: clamp(7.5rem, 18vh, 10rem) clamp(1.25rem, 5vw, 3rem) 4rem;
-}
-
-/* On phones the heading starts below the bright pulsar, so it needs no dark scrim behind it. */
-.consult-head {
-  position: relative;
-  isolation: isolate;
 }
 
 .consult-intro {
@@ -40,105 +34,163 @@
   color: var(--lab-accent);
 }
 
-.consult-section {
-  margin-top: clamp(3rem, 8vh, 5rem);
+/* The flow: a quiet bordered surface, no dark fill, so the sky shows through. */
+.consult-flow {
+  max-width: 40rem;
+  margin-top: clamp(2.5rem, 7vh, 4rem);
+  padding: 1.4rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 22px;
+  background: rgb(255 255 255 / 0.03);
 }
 
-.consult-label {
-  margin: 0 0 1rem;
-  font-family: var(--lab-mono);
-  font-size: 0.78rem;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  color: var(--lab-muted);
-}
-
-.consult-areas {
-  margin: 0;
+.consult-steps {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0 0 1.4rem;
   padding: 0;
   list-style: none;
-  border-top: 1px solid rgb(255 255 255 / 0.1);
 }
 
-.consult-area {
-  display: grid;
-  grid-template-columns: 3.5rem 1fr auto;
-  align-items: baseline;
+.consult-steps li {
+  flex: 1;
+  height: 3px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.14);
+  transition: background 0.3s;
+}
+
+.consult-steps li.is-reached {
+  background: var(--lab-accent);
+}
+
+.consult-recap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 1rem;
-  width: 100%;
-  padding: clamp(0.9rem, 2vh, 1.3rem) 0;
-  border: 0;
-  border-bottom: 1px solid rgb(255 255 255 / 0.1);
-  background: none;
-  color: var(--lab-paper);
-  text-align: left;
-  cursor: pointer;
-  transition: color 0.2s, padding-left 0.3s;
+  margin-bottom: 1rem;
 }
 
-.consult-area:hover {
-  padding-left: 0.6rem;
+.consult-chip {
+  padding: 0.25rem 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--lab-accent) 60%, transparent);
+  border-radius: 999px;
+  font-family: var(--lab-mono);
+  font-size: 0.75rem;
   color: var(--lab-accent);
 }
 
-.consult-area:focus-visible {
-  outline: 2px solid var(--lab-accent);
-  outline-offset: 4px;
-}
-
-.consult-index {
+.consult-back {
+  padding: 0;
+  border: 0;
+  background: none;
   font-family: var(--lab-mono);
   font-size: 0.8rem;
   color: var(--lab-muted);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
 }
 
-.consult-area-name {
-  font-family: var(--lab-display);
-  font-weight: 700;
-  font-stretch: 85%;
-  font-size: clamp(1.6rem, 4vw, 2.7rem);
+.consult-back:hover {
+  color: var(--lab-accent);
+}
+
+.consult-question {
+  margin: 0 0 1.2rem;
+  font-weight: 800;
+  font-stretch: 75%;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
   line-height: 1.05;
   letter-spacing: -0.02em;
+  outline: none;
 }
 
-.consult-area-mark {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 999px;
-  border: 1px solid var(--lab-muted);
+.consult-tiles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.consult-area[aria-checked='true'] {
-  color: var(--lab-accent);
+.consult-tiles--grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
 
-.consult-area[aria-checked='true'] .consult-area-mark {
+.consult-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--lab-paper);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+}
+
+.consult-tile:hover:not(:disabled) {
+  border-color: var(--lab-accent);
+  transform: translateY(-2px);
+}
+
+.consult-tile:focus-visible {
+  outline: 2px solid var(--lab-accent);
+  outline-offset: 3px;
+}
+
+.consult-tile:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.consult-tile-name {
+  font-family: var(--lab-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.consult-tile-hint {
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--lab-muted);
+}
+
+/* The main action is lime with dark text, in every state. */
+.consult-tile--primary,
+.consult-tile--primary:hover {
   background: var(--lab-accent);
   border-color: var(--lab-accent);
+  color: var(--lab-ink);
 }
 
-.consult-area[aria-checked='true'] .consult-index {
-  color: var(--lab-accent);
+.consult-tile--primary .consult-tile-hint {
+  color: rgb(11 11 10 / 0.72);
 }
 
-.consult-fieldset {
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
+.consult-tile--primary:hover {
+  background: var(--lab-paper);
+  border-color: var(--lab-paper);
 }
 
-.consult-fieldset {
-  margin-top: clamp(3rem, 8vh, 5rem);
-}
-
-.consult-field {
-  margin-top: 1.6rem;
+.consult-note {
+  margin: 1rem 0 0;
+  font-family: var(--lab-mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--lab-muted);
 }
 
 .consult-field-label {
   display: block;
-  margin-bottom: 0.4rem;
+  margin: 1.1rem 0 0.4rem;
   font-family: var(--lab-mono);
   font-size: 0.78rem;
   color: var(--lab-muted);
@@ -146,15 +198,18 @@
 
 .consult-input {
   width: 100%;
-  min-height: 3rem;
-  padding: 0.5rem 0;
-  border: 0;
-  border-bottom: 1px solid rgb(255 255 255 / 0.18);
-  border-radius: 0;
-  background: transparent;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.04);
   color: var(--lab-paper);
-  font: 400 clamp(1.2rem, 2.4vw, 1.6rem)/1.35 var(--lab-display);
+  font: 400 1.05rem/1.4 var(--lab-display);
   outline: none;
+}
+
+.consult-input--area {
+  min-height: 7rem;
+  resize: vertical;
 }
 
 .consult-input::placeholder {
@@ -162,20 +217,11 @@
 }
 
 .consult-input:focus {
-  border-bottom-color: var(--lab-accent);
+  border-color: var(--lab-accent);
 }
 
-.consult-input:disabled,
-.consult-topic:disabled {
+.consult-input:disabled {
   opacity: 0.55;
-}
-
-.consult-note {
-  margin: 1.4rem 0 0;
-  font-family: var(--lab-mono);
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: var(--lab-muted);
 }
 
 .consult-problem {
@@ -185,58 +231,41 @@
   color: #ff9b8a;
 }
 
-.consult-submit {
-  display: inline-block;
-  margin-top: 1.6rem;
-  padding: 0 0 0.1rem;
+.consult-send {
+  margin-top: 1.4rem;
+  padding: 0.85rem 1.8rem;
   border: 0;
-  border-bottom: 3px solid var(--lab-accent);
-  background: none;
-  color: var(--lab-paper);
-  font-family: var(--lab-display);
-  font-weight: 800;
-  font-stretch: 75%;
-  font-size: clamp(1.8rem, 5vw, 3.2rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  border-radius: 999px;
+  background: var(--lab-accent);
+  color: var(--lab-ink);
+  font: 700 1.05rem var(--lab-display);
   cursor: pointer;
-  transition: color 0.2s;
+  transition: background 0.2s;
 }
 
-.consult-submit:hover:not(:disabled) {
-  color: var(--lab-accent);
+.consult-send:hover:not(:disabled) {
+  background: var(--lab-paper);
 }
 
-.consult-submit:focus-visible {
-  outline: 2px solid var(--lab-accent);
-  outline-offset: 4px;
+.consult-send:focus-visible {
+  outline: 2px solid var(--lab-paper);
+  outline-offset: 3px;
 }
 
-.consult-submit:disabled {
+.consult-send:disabled {
   opacity: 0.6;
   cursor: progress;
 }
 
 .consult-result {
-  margin-top: 1.4rem;
   padding: 1rem 1.1rem;
   border-left: 3px solid var(--lab-accent);
-  font-family: var(--lab-display);
   font-size: 1.05rem;
   line-height: 1.45;
-  background: rgb(11 11 10 / 0.6);
 }
 
 .consult-result p {
   margin: 0;
-}
-
-.consult-result p + p {
-  margin-top: 0.5rem;
-}
-
-.consult-result--error {
-  border-left-color: #ff9b8a;
 }
 
 .consult-again {
@@ -256,74 +285,11 @@
   color: var(--lab-accent);
 }
 
-.consult-topic {
-  width: 100%;
-  min-height: 3.5rem;
-  padding: 0.6rem 0;
-  border: 0;
-  border-bottom: 1px solid rgb(255 255 255 / 0.18);
-  border-radius: 0;
-  background: transparent;
-  color: var(--lab-paper);
-  font: 400 clamp(1.2rem, 2.4vw, 1.6rem)/1.35 var(--lab-display);
-  resize: none;
-  outline: none;
-}
-
-.consult-topic::placeholder {
-  color: var(--lab-muted);
-}
-
-.consult-topic:focus {
-  border-bottom-color: var(--lab-accent);
-}
-
-.consult-book-section {
-  padding-top: 0.5rem;
-}
-
-.consult-book {
-  display: inline-block;
-  font-family: var(--lab-display);
-  font-weight: 800;
-  font-stretch: 75%;
-  font-size: clamp(2.2rem, 6vw, 4.4rem);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: var(--lab-paper);
-  text-decoration: none;
-  border-bottom: 3px solid var(--lab-accent);
-  padding-bottom: 0.1rem;
-  transition: color 0.2s;
-}
-
-.consult-book:hover {
-  color: var(--lab-accent);
-}
-
-.consult-chat {
-  display: block;
-  margin-top: 1rem;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-family: var(--lab-mono);
-  font-size: 0.82rem;
-  color: var(--lab-muted);
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.consult-chat:hover {
-  color: var(--lab-accent);
-}
-
 .consult-links {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem 2rem;
-  margin-top: clamp(4rem, 12vh, 7rem);
+  margin-top: clamp(3rem, 8vh, 5rem);
   font-family: var(--lab-display);
   font-size: 1.1rem;
 }
@@ -346,16 +312,22 @@
     padding-top: 17rem;
   }
 
-  .consult-head {
-    padding: 1.75rem 0.5rem 1.5rem;
+  .consult-flow {
+    padding: 1.1rem;
   }
 
-  .consult-intro {
-    margin-top: 0.5rem;
-    color: var(--lab-paper);
+  .consult-tiles--grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consult-tile,
+  .consult-steps li {
+    transition: none;
   }
 
-  .consult-title {
-    margin-top: 1rem;
+  .consult-tile:hover:not(:disabled) {
+    transform: none;
   }
 }
