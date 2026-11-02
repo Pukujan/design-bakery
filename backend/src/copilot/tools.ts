@@ -119,7 +119,7 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
 
     book_call: tool({
       description:
-        'Offer a free 30-minute consultation call with me. I consult on four things: AI engineering, product design, marketing, and full-stack development. Ask which one they want and what it is about if they have not said, then call this. It shows a booking card; the visitor picks the time. Use it only on the Contact page or when the visitor asks to book in chat.',
+        'Offer a free 30-minute consultation call with me. I consult on four things: AI engineering, product design, marketing, and full-stack development. If they have not said which one, ask once; the topic is optional. As soon as the area is known and the visitor agrees ("ok", "yes", "sure", or any topic at all), call this straight away; never ask the same question twice. It shows a booking card; the visitor picks the time. Use it only on the Contact page or when the visitor asks to book in chat.',
       inputSchema: z.object({
         service: z.enum(CONSULT_SERVICES).optional(),
         name: z.string().max(80).optional(),

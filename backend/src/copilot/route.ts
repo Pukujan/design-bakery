@@ -53,7 +53,7 @@ How to answer:
 - Only state facts from the site brief or your tools; they hold only content already published on this site. If the site does not say, say so and suggest what it does cover. Never invent employers, dates, numbers or links.
 - Research papers marked pending are working drafts awaiting my approval; say so when you cite one.
 - Moving the visitor: never open a page on your own. When a page would help, offer it in words and ask, for example "Want me to open the Work page?", then wait. Call navigate only after the visitor says yes to that question. Even if they ask to see a page directly, ask first. On a tour, offer one page at a time.
-- Contact and consultations: when a visitor asks how to contact me, wants to hire me, or wants a free consultation, offer the Contact page with "Want me to open the Contact page?". Say that on that page they can choose an area and a time. Do not list every link, and never claim a time is booked. If the visitor is already on /contact and asks to book in this chat, call book_call.
+- Contact and consultations: when a visitor asks how to contact me, wants to hire me, or wants a free consultation, offer the Contact page with "Want me to open the Contact page?". Say that on that page they can choose an area and a time. Do not list every link, and never claim a time is booked. If the visitor is already on /contact and asks to book in this chat, or says yes to a call you offered, call book_call as soon as you know the area. Do not ask for a topic before booking; a short yes or a vague topic ("anything about AI") is enough.
 - Use tools silently: do not announce that you are reading, searching or about to answer. Do not repeat a page title already shown on a link.
 - Use show_projects for "which projects" questions, and share_link for LinkedIn, GitHub, Behance, email, or a project link from the brief.
 - Plain text only, no markdown headings or tables. Short lists are fine.`;
@@ -165,7 +165,11 @@ copilotRouter.post('/chat', async (req, res) => {
   // answered from the site's own data with no model call, so they cost nothing to serve
   // and keep working when the database holding the rate budget is down. A follow-up
   // carries context, so only a near-exact match counts after the first turn.
-  const cached = await cachedAnswer(question, messages.length === 1);
+  // A reply to a question the copilot just asked belongs to that thread, however much it
+  // looks like an opener ("ok", "hello??"), so it always goes to the model.
+  const before = messages.at(-2);
+  const answeringUs = before?.role === 'assistant' && /\?\s*$/.test(before.content.trim());
+  const cached = answeringUs ? null : await cachedAnswer(question, messages.length === 1);
   if (cached) {
     turn.model = `cache:${cached.intent}`;
     turn.output = cached.text;
@@ -224,11 +228,12 @@ copilotRouter.post('/chat', async (req, res) => {
     const history: ModelMessage[] = messages.map((m, index) =>
       index === messages.length - 1 && m.role === 'user' ? { role: 'user', content: `${m.content}${where}` } : { role: m.role, content: m.content },
     );
+    let acted = false;
     const result = streamText({
       model,
       system: `${SYSTEM}\n\n# Site brief\n${brief}`,
       messages: history,
-      tools: makeTools((action) => send({ type: 'action', action }), { canNavigate: visitorSaidYes(messages) }),
+      tools: makeTools((action) => { acted = true; send({ type: 'action', action }); }, { canNavigate: visitorSaidYes(messages) }),
       stopWhen: stepCountIs(6),
       maxOutputTokens: 240,
       abortSignal: abort.signal,
@@ -261,8 +266,16 @@ copilotRouter.post('/chat', async (req, res) => {
       }
     }
     turn.output = filter.flush();
+    // A turn that ends with nothing to show left the visitor looking at a blank bubble.
+    // Say so, and mark the trace as failed so it shows up.
+    const empty = !turn.output && !acted;
+    if (empty) {
+      console.warn('[copilot] empty turn from', turn.model);
+      turn.output = 'Sorry, I lost my answer there. Could you say that again?';
+      send({ type: 'text', text: turn.output });
+    }
     send({ type: 'done', model: turn.model });
-    turn.finish('done');
+    turn.finish(empty ? 'error' : 'done');
   } catch (error) {
     if (!abort.signal.aborted) {
       console.warn('[copilot] turn failed:', error instanceof Error ? error.message.slice(0, 200) : 'unknown');

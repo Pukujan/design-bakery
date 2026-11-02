@@ -73,7 +73,7 @@ for (const [question, expected] of firstTurn) {
 
 // A follow-up depends on the conversation, so only a near-exact match may be answered
 // from the cache; these all have to reach the model.
-const followUps = ['open', 'summarize that', 'the third one', 'what about the second', 'why?', 'more'];
+const followUps = ['open', 'summarize that', 'the third one', 'what about the second', 'why?', 'more', 'hello??', 'hi'];
 for (const followUp of followUps) {
   assert.equal(await cachedAnswer(followUp, false), null, `"${followUp}" must reach the model, not the cache`);
 }

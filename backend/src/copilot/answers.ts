@@ -250,6 +250,9 @@ function compose(
 export async function cachedAnswer(question: string, firstTurn: boolean): Promise<CachedAnswer | null> {
   const intent = smallTalkIntent(question) ?? bestIntent(question, firstTurn ? 0.5 : 0.8);
   if (!intent) return null;
+  // Mid-conversation, "hello??" means "are you there", not a new visitor: the canned
+  // introduction would drop the thread.
+  if (!firstTurn && intent.id === 'greeting') return null;
   const [projects, papers, blogs, experience] = await Promise.all([loadProjects(), loadPapers(), loadBlogs(), loadExperience()]);
   const answer = compose(intent, {
     projects,
