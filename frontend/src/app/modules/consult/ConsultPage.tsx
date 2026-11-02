@@ -1,6 +1,5 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { copilot } from '../copilot/store';
-import { FlowText } from '../lab/FlowText';
 import '../lab/lab.css';
 import './consult.css';
 
@@ -9,14 +8,20 @@ const BOOKING_URL = 'https://calendar.app.google/3G3hHBwtsxisSaoz9';
 
 /**
  * PLACEHOLDER: the server endpoint that will send the message through Gmail. It is not built yet.
- * While this is null, the form says it is not connected and sends nothing. Replace it with the
- * route URL once the server-side Gmail integration exists.
+ * While this is null, "Leave a message" is shown as not open yet and nothing can be sent. Replace it
+ * with the route URL once the server-side Gmail integration exists.
  */
 const MESSAGE_ENDPOINT: string | null = null;
 
-const AREAS = ['AI engineering', 'Product design', 'Marketing', 'Full-stack development'] as const;
-type Area = (typeof AREAS)[number];
-type Status = 'idle' | 'sending' | 'sent' | 'unavailable' | 'failed';
+const AREAS = [
+  { name: 'AI engineering', hint: 'RAG, agents, evals, document workflows' },
+  { name: 'Product design', hint: 'Interfaces and flows people can follow' },
+  { name: 'Marketing', hint: 'Positioning, launch pages, content' },
+  { name: 'Full-stack development', hint: 'APIs, apps and the plumbing between' },
+] as const;
+type Area = (typeof AREAS)[number]['name'];
+type Step = 'need' | 'way' | 'message';
+type Status = 'idle' | 'sending' | 'sent' | 'failed';
 
 const LINKS = [
   { label: 'LinkedIn', url: 'https://www.linkedin.com/in/pujan3645' },
@@ -24,32 +29,57 @@ const LINKS = [
 ];
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const STEP_ORDER: Step[] = ['need', 'way', 'message'];
 
-/** The contact page: choose a service, leave an email and a message, or book a call directly. */
+/**
+ * The contact page as a guided flow, one question at a time: what you need, how you want to talk, and
+ * (once sending is connected) a short message. Booking and the chat work today; nothing here pretends
+ * a message was delivered.
+ */
 export function ConsultPage() {
+  const [step, setStep] = useState<Step>('need');
   const [area, setArea] = useState<Area | null>(null);
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [problem, setProblem] = useState('');
+  const [booked, setBooked] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const moved = useRef(false);
+
+  // Each step change moves focus to its question, so keyboard and screen-reader users follow the flow.
+  useEffect(() => {
+    if (!moved.current) return;
+    headingRef.current?.focus({ preventScroll: true });
+  }, [step]);
+
+  const go = (next: Step) => {
+    moved.current = true;
+    setProblem('');
+    setStep(next);
+  };
+
+  const choose = (name: Area) => {
+    setArea(name);
+    go('way');
+  };
+
+  const askTheChat = () => {
+    const about = area ? area.toLowerCase() : 'your work';
+    copilot.setOpen(true);
+    void copilot.send(`How can you help with ${about}?`, { path: window.location.pathname, title: document.title });
+  };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (status === 'sending') return;
-    const missing = !area
-      ? 'Choose the service you need.'
-      : !EMAIL_PATTERN.test(email.trim())
-        ? 'Enter an email address I can reply to.'
-        : !message.trim()
-          ? 'Write a short message first.'
-          : '';
+    if (status === 'sending' || !MESSAGE_ENDPOINT) return;
+    const missing = !EMAIL_PATTERN.test(email.trim())
+      ? 'Enter an email address I can reply to.'
+      : !message.trim()
+        ? 'Write a short message first.'
+        : '';
     setProblem(missing);
     if (missing) return;
-
-    if (!MESSAGE_ENDPOINT) {
-      setStatus('unavailable');
-      return;
-    }
 
     setStatus('sending');
     try {
@@ -66,20 +96,8 @@ export function ConsultPage() {
     }
   };
 
-  const startAgain = () => {
-    setStatus('idle');
-    setProblem('');
-  };
-
-  // Booking from the chat: the copilot gets the service and the message, then shows the booking card.
-  const bookFromChat = () => {
-    const detail = message.trim() ? ` ${message.trim()}` : '';
-    const question = `Please book me a free consultation${area ? ` about ${area.toLowerCase()}` : ''}.${detail}`;
-    copilot.setOpen(true);
-    void copilot.send(question, { path: window.location.pathname, title: document.title });
-  };
-
   const sending = status === 'sending';
+  const position = STEP_ORDER.indexOf(step);
 
   return (
     <div className="lab-root consult">
@@ -87,132 +105,151 @@ export function ConsultPage() {
         <header className="consult-head">
           <p className="consult-intro">Free 30-minute video consultations</p>
           <h1 className="consult-title">
-            <FlowText as="span" text="Talk to me.">
-              Talk to <em>me.</em>
-            </FlowText>
+            Talk to <em>me.</em>
           </h1>
         </header>
 
-        <form className="consult-form" onSubmit={submit} noValidate aria-describedby="consult-connection">
-          <fieldset className="consult-section consult-fieldset" disabled={sending}>
-            <legend className="consult-label">
-              What is it about
-            </legend>
-            <div className="consult-areas" role="radiogroup" aria-label="Service">
-              {AREAS.map((item, index) => (
-                <button
-                  key={item}
-                  type="button"
-                  role="radio"
-                  aria-checked={area === item}
-                  className="consult-area"
-                  onClick={() => setArea(item)}
+        <section className="consult-flow" aria-label="Get in touch">
+          <ol className="consult-steps" aria-label="Progress">
+            {STEP_ORDER.map((name, index) => (
+              <li
+                key={name}
+                className={index <= position ? 'is-reached' : undefined}
+                aria-current={index === position ? 'step' : undefined}
+              >
+                <span className="sr-only">{`Step ${index + 1} of ${STEP_ORDER.length}`}</span>
+              </li>
+            ))}
+          </ol>
+
+          {step !== 'need' && (
+            <div className="consult-recap">
+              {area && <span className="consult-chip">{area}</span>}
+              <button type="button" className="consult-back" onClick={() => go(step === 'message' ? 'way' : 'need')}>
+                ← Back
+              </button>
+            </div>
+          )}
+
+          {step === 'need' && (
+            <div className="consult-step">
+              <h2 ref={headingRef} tabIndex={-1} className="consult-question">
+                What do you need help with?
+              </h2>
+              <div className="consult-tiles consult-tiles--grid">
+                {AREAS.map((item) => (
+                  <button key={item.name} type="button" className="consult-tile" onClick={() => choose(item.name)}>
+                    <span className="consult-tile-name">{item.name}</span>
+                    <span className="consult-tile-hint">{item.hint}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {step === 'way' && (
+            <div className="consult-step">
+              <h2 ref={headingRef} tabIndex={-1} className="consult-question">
+                How would you like to talk?
+              </h2>
+              <div className="consult-tiles">
+                <a
+                  className="consult-tile consult-tile--primary"
+                  href={BOOKING_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setBooked(true)}
                 >
-                  <span className="consult-index">0{index + 1}</span>
-                  <span className="consult-area-name">{item}</span>
-                  <span className="consult-area-mark" aria-hidden="true" />
+                  <span className="consult-tile-name">Book a free 30-minute call</span>
+                  <span className="consult-tile-hint">Pick a time that suits you. Opens my calendar.</span>
+                </a>
+                <button type="button" className="consult-tile" onClick={askTheChat}>
+                  <span className="consult-tile-name">Ask the AI right now</span>
+                  <span className="consult-tile-hint">Instant answers about this, no waiting.</span>
                 </button>
-              ))}
-            </div>
-          </fieldset>
-
-          <section className="consult-section" aria-labelledby="consult-message-label">
-            <h2 id="consult-message-label" className="consult-label">
-              Send a message to Pujan
-            </h2>
-
-            <div className="consult-field">
-              <label htmlFor="consult-email" className="consult-field-label">
-                Your email
-              </label>
-              <input
-                id="consult-email"
-                className="consult-input"
-                type="email"
-                autoComplete="email"
-                inputMode="email"
-                value={email}
-                disabled={sending}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="you@company.com"
-              />
-            </div>
-
-            <div className="consult-field">
-              <label htmlFor="consult-message" className="consult-field-label">
-                Message
-              </label>
-              <textarea
-                id="consult-message"
-                className="consult-topic"
-                rows={4}
-                maxLength={1000}
-                value={message}
-                disabled={sending}
-                onChange={(event) => setMessage(event.target.value)}
-                placeholder="What are you building, and what is stuck?"
-              />
-            </div>
-
-            <p id="consult-connection" className="consult-note">
-              Sending is not connected yet. Messages are not delivered until Gmail is set up.
-            </p>
-
-            {problem && (
-              <p className="consult-problem" role="alert">
-                {problem}
-              </p>
-            )}
-
-            {status === 'sent' ? (
-              <div className="consult-result consult-result--ok" role="status">
-                <p>Message sent. I&apos;ll reply to your email.</p>
-                <button type="button" className="consult-again" onClick={startAgain}>
-                  Send another message
+                <button
+                  type="button"
+                  className="consult-tile"
+                  disabled={!MESSAGE_ENDPOINT}
+                  onClick={() => go('message')}
+                >
+                  <span className="consult-tile-name">Leave a message</span>
+                  <span className="consult-tile-hint">
+                    {MESSAGE_ENDPOINT ? 'I will reply by email.' : 'Not open yet. Use a call or the chat for now.'}
+                  </span>
                 </button>
               </div>
-            ) : (
-              <>
-                <button type="submit" className="consult-submit" disabled={sending}>
-                  {sending ? 'Sending…' : 'Send message to Pujan'}
-                </button>
-                {status === 'unavailable' && (
-                  <div className="consult-result consult-result--error" role="alert">
-                    <p>Message not sent. Sending is not connected yet, so nothing was delivered.</p>
-                    <p>Book a call below instead, or try again once sending is live.</p>
-                  </div>
-                )}
-                {status === 'failed' && (
-                  <div className="consult-result consult-result--error" role="alert">
-                    <p>Message not sent. Something went wrong on the way. Your message is still here, so you can try again.</p>
-                  </div>
-                )}
-              </>
-            )}
-          </section>
-        </form>
+              {booked && (
+                <p className="consult-note" role="status">
+                  My calendar opened in a new tab. Pick any slot and you are done.
+                </p>
+              )}
+            </div>
+          )}
 
-        <section className="consult-section consult-book-section" aria-labelledby="consult-book-label">
-          <h2 id="consult-book-label" className="consult-label">
-            Or pick a time
-          </h2>
-          <a className="consult-book" href={BOOKING_URL} target="_blank" rel="noopener noreferrer">
-            Book a free 30-minute call
-            <span aria-hidden="true"> →</span>
-          </a>
-          <button type="button" className="consult-chat" onClick={bookFromChat}>
-            or book through the chat
-          </button>
+          {step === 'message' && (
+            <form className="consult-step" onSubmit={submit} noValidate>
+              <h2 ref={headingRef} tabIndex={-1} className="consult-question">
+                Where should I reply?
+              </h2>
+
+              {status === 'sent' ? (
+                <div className="consult-result" role="status">
+                  <p>Message sent. I&apos;ll reply to your email.</p>
+                  <button type="button" className="consult-again" onClick={() => setStatus('idle')}>
+                    Send another message
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <label htmlFor="consult-email" className="consult-field-label">
+                    Your email
+                  </label>
+                  <input
+                    id="consult-email"
+                    className="consult-input"
+                    type="email"
+                    autoComplete="email"
+                    inputMode="email"
+                    value={email}
+                    disabled={sending}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="you@company.com"
+                  />
+                  <label htmlFor="consult-message" className="consult-field-label">
+                    What are you building, and what is stuck?
+                  </label>
+                  <textarea
+                    id="consult-message"
+                    className="consult-input consult-input--area"
+                    rows={4}
+                    maxLength={1000}
+                    value={message}
+                    disabled={sending}
+                    onChange={(event) => setMessage(event.target.value)}
+                  />
+                  {problem && (
+                    <p className="consult-problem" role="alert">
+                      {problem}
+                    </p>
+                  )}
+                  {status === 'failed' && (
+                    <p className="consult-problem" role="alert">
+                      Something went wrong and nothing was sent. Your message is still here, so you can try again.
+                    </p>
+                  )}
+                  <button type="submit" className="consult-send" disabled={sending}>
+                    {sending ? 'Sending…' : 'Send'}
+                  </button>
+                </>
+              )}
+            </form>
+          )}
         </section>
 
         <nav className="consult-links" aria-label="Elsewhere">
           {LINKS.map((link) => (
-            <a
-              key={link.label}
-              href={link.url}
-              target={link.url.startsWith('mailto:') ? undefined : '_blank'}
-              rel={link.url.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
-            >
+            <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer">
               {link.label}
             </a>
           ))}
