@@ -276,6 +276,9 @@ export function buildPulsar(): Body {
  * The blog pages' backdrop: only the pulsar's blue field lines, with no bright star. The field moves toward the
  * viewer and back, so its lines stream past as we fall in, and at the far end we are behind the star.
  */
+/** Where the blog star sits on its depth range. Fixed: it used to swing between 0.2 and 1, moving the star in and out past the camera. */
+const GIANT_ZOOM = 0.3;
+
 export function buildGiant(): Body {
   const pulsar = buildPulsar();
   // Keep only the field: take the star's core, halo and haze out of the sized group, and leave the field's tilted group.
@@ -284,7 +287,7 @@ export function buildGiant(): Body {
     if (!(child instanceof THREE.Group)) sized.remove(child);
   }
   // How far in we are: 0 is pulled back, 1 is zoomed in.
-  let zoom = 0;
+  let zoom = GIANT_ZOOM;
   // The star's depth from the picture plane: from 3 units behind it, to 14 units beyond it, so at the far end we are behind the star.
   const depthOf = () => -3 + 17 * zoom;
   return {
@@ -297,7 +300,7 @@ export function buildGiant(): Body {
         : new THREE.Vector3(-halfW * 0.15 * k, -halfH * 0.05 * k, z);
     },
     update: (elapsed, delta, look) => {
-      zoom = 0.6 + 0.4 * Math.sin(elapsed * 0.35);
+      zoom = GIANT_ZOOM;
       pulsar.update(elapsed, delta, look);
     },
   };

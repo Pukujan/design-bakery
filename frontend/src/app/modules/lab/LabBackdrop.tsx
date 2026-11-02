@@ -57,6 +57,10 @@ const STALL_MS = 1000;
 const CORNER_X = 0.8;
 const CORNER_Y = 0.72;
 const CORNER_SCALE = 0.45;
+/** List pages: the body stays in place at this share of its size, so the flowing text is pushed around less. */
+const COMPACT_SCALE = 0.4;
+/** How strongly the blog sky keeps zooming in. It was 0.45, which made the star rush at the reader. */
+const AMBIENT_ZOOM = 0.08;
 /** The pace of a switch between bodies. */
 const FLIGHT_SPEED = 0.55;
 /** How far away the warp starts, in world units. */
@@ -159,12 +163,23 @@ function easeOut(t: number): number {
 
 
 /** `corner` tucks the body into the bottom-right corner, smaller, so a reading page has the whole width. */
-export function LabBackdrop({ variant = 'hole', corner = false }: { variant?: BackdropVariant; corner?: boolean }) {
+/** `compact` keeps the body where it is but smaller, and the text that flows round it gets a smaller obstacle. */
+export function LabBackdrop({
+  variant = 'hole',
+  corner = false,
+  compact = false,
+}: {
+  variant?: BackdropVariant;
+  corner?: boolean;
+  compact?: boolean;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const variantRef = useRef<BackdropVariant>(variant);
   variantRef.current = variant;
   const cornerRef = useRef(corner);
   cornerRef.current = corner;
+  const compactRef = useRef(compact);
+  compactRef.current = compact;
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -302,7 +317,7 @@ export function LabBackdrop({ variant = 'hole', corner = false }: { variant?: Ba
     observer.observe(container);
     resize();
 
-    let cornerK = cornerRef.current ? CORNER_SCALE : 1;
+    let cornerK = cornerRef.current ? CORNER_SCALE : compactRef.current ? COMPACT_SCALE : 1;
     let frame = 0;
     let last = performance.now();
     let visible = true;
@@ -409,8 +424,8 @@ export function LabBackdrop({ variant = 'hole', corner = false }: { variant?: Ba
       root.position.y = look.sy * 0.6;
       const distance = 10 - scroll.value * 3.2;
       turnProgress = Math.min(1, turnProgress + delta * FLIGHT_SPEED);
-      // On blog pages the sky keeps a slow zoom, as if we were falling in toward something, so its lines stream past.
-      const ambient = variantRef.current === 'giant' && !reduceMotion ? 0.45 + 0.2 * Math.sin(clock.elapsed * 0.35) : 0;
+      // On blog pages the sky keeps a faint slow zoom, so its lines drift past.
+      const ambient = variantRef.current === 'giant' && !reduceMotion ? AMBIENT_ZOOM + AMBIENT_ZOOM * 0.4 * Math.sin(clock.elapsed * 0.35) : 0;
       const warp = Math.max(warpPeak(turnProgress), ambient);
       // The flyby, like a ship going past: the camera slides beside the body it is leaving, banks as it
       // goes, and warps on into the next body.
@@ -445,7 +460,7 @@ export function LabBackdrop({ variant = 'hole', corner = false }: { variant?: Ba
       const current = body as Body | null;
       if (!current) return;
       // Ease toward the corner size, or jump there under reduced motion.
-      const cornerSize = cornerRef.current ? CORNER_SCALE : 1;
+      const cornerSize = cornerRef.current ? CORNER_SCALE : compactRef.current ? COMPACT_SCALE : 1;
       cornerK += (cornerSize - cornerK) * (reduceMotion ? 1 : 0.06);
       intro = reduceMotion ? 1 : Math.min(1, intro + delta * 1.4);
       current.group.scale.setScalar(Math.max(0.001, easeOut(intro)) * cornerK);
