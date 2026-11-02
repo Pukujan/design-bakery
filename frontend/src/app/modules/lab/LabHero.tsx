@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { LabCopilot } from './LabCopilot';
 import { FlowText } from './FlowText';
+import { BookConsultLink, LiveConsultButton } from '../consult/ConsultCta';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
 const TITLE = 'Design Baker';
@@ -73,6 +74,10 @@ export function LabHero() {
       </FlowText>
 
       <div className="lab-hero-body">
+        <div className="consult-cta-row">
+          <LiveConsultButton />
+          <BookConsultLink />
+        </div>
         <motion.div
           className="lab-hero-chat"
           initial={reduceMotion ? false : { opacity: 0, y: 40, scale: 0.98 }}
