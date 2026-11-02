@@ -102,7 +102,7 @@ const deploy = await read('./deploy/gravebuster/deploy.sh');
 assert.match(deploy, /check 200 \/version-2\b/, 'deploy.sh should smoke-check /version-2');
 assert.match(deploy, /body_has \/version-2 "\/version-2\/assets\/"/, 'deploy.sh should assert /version-2 is the journey');
 assert.match(deploy, /check 200 \/version-2\/plate-[a-z0-9-]+\.png/, 'deploy.sh should smoke-check a scene plate');
-assert.match(deploy, /body_has \/ "Fullstack Design Engineer"/, 'deploy.sh should assert / is the site shell');
+assert.match(deploy, /body_has \/ "AI\/ML, Product"/, 'deploy.sh should assert / is the site shell');
 assert.ok(!deploy.includes('/shell/index.html'), 'deploy.sh should not reference a /shell/index.html document');
 
 // 5. The app is its own eslint project (like frontend/ire-app), so the root lint does not

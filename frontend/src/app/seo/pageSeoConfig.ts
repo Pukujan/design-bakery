@@ -23,11 +23,10 @@ export type PageSeoConfig = {
 
 export const HOME_PAGE_SEO: PageSeoConfig = {
   title: DEFAULT_SITE_TITLE,
-  description:
-    'I build AI-assisted workflow systems for complex operational environments — combining document classification, RAG, OCR production work, and litigation workflow research with fullstack product ownership.',
+  description: DEFAULT_SITE_DESCRIPTION,
   canonicalPath: '/',
   ogImage: DEFAULT_OG_IMAGE_PATH,
-  imageAlt: `${SITE_NAME} — fullstack design engineer portfolio`,
+  imageAlt: `${SITE_NAME} — AI/ML, product and design engineer`,
 };
 
 export const ABOUT_PAGE_SEO: PageSeoConfig = {

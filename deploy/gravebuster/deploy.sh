@@ -264,9 +264,9 @@ smoke() {
 	check 200 "$HEALTH_PATH"
 	check 200 /
 	# Homepage identity (TASK-DB-0085): `/` must BE the site shell, and /version-2 the
-	# journey. The shell's title carries "Fullstack Design Engineer"; the journey's
+	# journey. The shell's title carries "AI/ML, Product"; the journey's
 	# document references its own base-prefixed assets, which the shell never does.
-	body_has / "Fullstack Design Engineer"
+	body_has / "AI/ML, Product"
 	check 200 /research/papers/db-r-2026-010
 	check 200 /robots.txt
 	# The /version-2 page: its shell, and a scene plate under the base path (the plate
