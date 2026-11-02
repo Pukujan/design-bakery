@@ -85,9 +85,7 @@ export function ConsultPage() {
     <div className="lab-root consult">
       <main className="consult-main">
         <header className="consult-head">
-          <FlowText className="consult-intro" text="Free 30-minute video consultations">
-            Free 30-minute video consultations
-          </FlowText>
+          <p className="consult-intro">Free 30-minute video consultations</p>
           <h1 className="consult-title">
             <FlowText as="span" text="Talk to me.">
               Talk to <em>me.</em>
@@ -98,9 +96,7 @@ export function ConsultPage() {
         <form className="consult-form" onSubmit={submit} noValidate aria-describedby="consult-connection">
           <fieldset className="consult-section consult-fieldset" disabled={sending}>
             <legend className="consult-label">
-              <FlowText as="span" text="What is it about">
-                What is it about
-              </FlowText>
+              What is it about
             </legend>
             <div className="consult-areas" role="radiogroup" aria-label="Service">
               {AREAS.map((item, index) => (
@@ -122,9 +118,7 @@ export function ConsultPage() {
 
           <section className="consult-section" aria-labelledby="consult-message-label">
             <h2 id="consult-message-label" className="consult-label">
-              <FlowText as="span" text="Send a message to Pujan">
-                Send a message to Pujan
-              </FlowText>
+              Send a message to Pujan
             </h2>
 
             <div className="consult-field">
@@ -200,14 +194,10 @@ export function ConsultPage() {
 
         <section className="consult-section consult-book-section" aria-labelledby="consult-book-label">
           <h2 id="consult-book-label" className="consult-label">
-            <FlowText as="span" text="Or pick a time">
-              Or pick a time
-            </FlowText>
+            Or pick a time
           </h2>
           <a className="consult-book" href={BOOKING_URL} target="_blank" rel="noopener noreferrer">
-            <FlowText as="span" text="Book a free 30-minute call">
-              Book a free 30-minute call
-            </FlowText>
+            Book a free 30-minute call
             <span aria-hidden="true"> →</span>
           </a>
           <button type="button" className="consult-chat" onClick={bookFromChat}>
