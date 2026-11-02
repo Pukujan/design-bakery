@@ -94,6 +94,90 @@ const subscribe = (fn: () => void) => {
 
 export const useCopilot = () => useSyncExternalStore(subscribe, () => state, () => state);
 
+/**
+ * Typed reveal. An answer that arrives whole (an instant answer, or the built-in index) would
+ * pop onto the screen, so every reply's text goes through a queue that shows it a few characters
+ * at a time, after a short "thinking" pause. A live model stream flows through the same queue and
+ * is barely slowed, because the speed rises with the backlog. Voice turns skip it.
+ */
+const THINK_MS = 650;
+const TICK_MS = 28;
+type Reveal = {
+  target: string;
+  shown: number;
+  instant: boolean;
+  startAt: number;
+  timer: ReturnType<typeof setTimeout> | null;
+  waiters: Array<() => void>;
+};
+const reveals = new Map<number, Reveal>();
+
+function revealFor(id: number, instant = false): Reveal {
+  let reveal = reveals.get(id);
+  if (!reveal) {
+    reveal = { target: '', shown: 0, instant, startAt: Date.now() + (instant ? 0 : THINK_MS), timer: null, waiters: [] };
+    reveals.set(id, reveal);
+  }
+  return reveal;
+}
+
+const typed = (reveal: Reveal) => reveal.shown >= reveal.target.length;
+
+function release(reveal: Reveal) {
+  for (const done of reveal.waiters.splice(0)) done();
+}
+
+function pump(id: number) {
+  const reveal = reveals.get(id);
+  if (!reveal || reveal.timer) return;
+  const step = () => {
+    reveal.timer = null;
+    const wait = reveal.startAt - Date.now();
+    if (wait > 0 && !reveal.instant) {
+      reveal.timer = setTimeout(step, wait);
+      return;
+    }
+    const backlog = reveal.target.length - reveal.shown;
+    if (backlog > 0) {
+      reveal.shown += reveal.instant ? backlog : Math.min(backlog, Math.max(2, Math.ceil(backlog / 30)));
+      patchMessage(id, () => ({ text: reveal.target.slice(0, reveal.shown) }));
+    }
+    if (typed(reveal)) release(reveal);
+    else reveal.timer = setTimeout(step, TICK_MS);
+  };
+  reveal.timer = setTimeout(step, 0);
+}
+
+function pushText(id: number, text: string, replace = false) {
+  const reveal = revealFor(id);
+  if (replace) {
+    reveal.target = text;
+    reveal.shown = 0;
+    patchMessage(id, () => ({ text: '' }));
+  } else {
+    reveal.target += text;
+  }
+  pump(id);
+}
+
+/** Resolves once everything queued for this reply is on screen. */
+function untilTyped(id: number): Promise<void> {
+  const reveal = reveals.get(id);
+  if (!reveal || typed(reveal)) return Promise.resolve();
+  return new Promise((resolve) => reveal.waiters.push(resolve));
+}
+
+/** Show everything queued at once (a stopped or interrupted reply) and drop the queue. */
+function flushText(id: number) {
+  const reveal = reveals.get(id);
+  if (!reveal) return;
+  if (reveal.timer) clearTimeout(reveal.timer);
+  reveal.timer = null;
+  reveal.shown = reveal.target.length;
+  patchMessage(id, () => ({ text: reveal.target }));
+  release(reveal);
+}
+
 export const copilot = {
   setNavigate(fn: ((path: string) => void) | null) {
     navigateFn = fn;
@@ -105,6 +189,8 @@ export const copilot = {
   },
   clear() {
     abort?.abort();
+    for (const id of [...reveals.keys()]) flushText(id);
+    reveals.clear();
     set({ messages: [], busy: false });
   },
   stop() {
@@ -135,7 +221,7 @@ export const copilot = {
       }
     }, 120);
   },
-  async send(text: string, page: { path: string; title: string }) {
+  async send(text: string, page: { path: string; title: string }, options: { typed?: boolean } = {}) {
     const question = text.trim().slice(0, 2000);
     if (!question || state.busy) return '';
     const history = state.messages
@@ -152,18 +238,23 @@ export const copilot = {
         { id: replyId, role: 'assistant', text: '', steps: [], actions: [], streaming: true },
       ],
     });
+    revealFor(replyId, options.typed === false);
     abort = new AbortController();
     try {
       await stream([...history, { role: 'user', content: question }], page, replyId, abort.signal);
     } catch (error) {
       if (abort.signal.aborted) {
+        flushText(replyId);
         patchMessage(replyId, (m) => ({ streaming: false, text: m.text || 'Stopped.' }));
       } else {
+        flushText(replyId);
         const partial = state.messages.find((m) => m.id === replyId)?.text;
         if (partial) patchMessage(replyId, (m) => ({ text: `${m.text}\n\nThe response was interrupted. Please try again.`, error: true }));
         else answerOffline(question, replyId, error instanceof ApiError ? error.status : 0);
       }
     } finally {
+      await untilTyped(replyId);
+      reveals.delete(replyId);
       patchMessage(replyId, () => ({ streaming: false, steps: [] }));
       set({ busy: false });
       abort = null;
@@ -263,13 +354,14 @@ function handle(event: Event, replyId: number) {
   if (event.type === 'text') {
     // `replace` arrives when the server retracts text it already streamed: a reasoning
     // block that leaked as answer text, or a "let me look that up" line before a tool call.
-    patchMessage(replyId, (m) => ({ text: event.replace ? event.text : m.text + event.text }));
+    pushText(replyId, event.text, event.replace);
   } else if (event.type === 'step') {
     patchMessage(replyId, (m) => ({
       steps: event.status === 'start' ? [...m.steps, event.name] : m.steps.filter((s) => s !== event.name),
     }));
   } else if (event.type === 'action') {
-    patchMessage(replyId, (m) => ({ actions: [...m.actions, event.action] }));
+    // Chips appear once the text has been typed.
+    void untilTyped(replyId).then(() => patchMessage(replyId, (m) => ({ actions: [...m.actions, event.action] })));
     // The server sets `go` only after the visitor said yes to an offer. On desktop the
     // panel stays open through the move; the draft lives in the store, so it survives.
     if (event.action.kind === 'navigate' && event.action.go) {
@@ -298,5 +390,7 @@ function answerOffline(question: string, replyId: number, status: number) {
   for (const action of reply.actions ?? []) {
     actions.push(action.kind === 'scroll' ? { kind: 'navigate', path: action.target.replace(/^#/, '/#'), label: action.label } : { kind: 'link', label: action.label, url: action.href });
   }
-  patchMessage(replyId, () => ({ text: reply.text, actions, offline: true }));
+  pushText(replyId, reply.text);
+  patchMessage(replyId, () => ({ offline: true }));
+  void untilTyped(replyId).then(() => patchMessage(replyId, () => ({ actions })));
 }
