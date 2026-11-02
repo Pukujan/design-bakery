@@ -22,13 +22,13 @@ See **[routes.md](./routes.md)** for the full route reference: every public URL,
 
 | Area | Files |
 |------|--------|
-| Routing | [`src/app/App.tsx`](../src/app/App.tsx) |
-| Portfolio context | [`PortfolioContext.tsx`](../src/app/portfolios/PortfolioContext.tsx), [`PortfolioPublicLayout.tsx`](../src/app/portfolios/PortfolioPublicLayout.tsx) |
-| Nav | [`Navigation.tsx`](../src/app/components/Navigation.tsx) |
-| Engineering page | [`EngineeringHome.tsx`](../src/app/modules/engineering/EngineeringHome/EngineeringHome.tsx) |
-| Data API | [`adminContentService.ts`](../src/app/lib/adminContentService.ts), [`contentHooks.ts`](../src/app/lib/contentHooks.ts) |
-| Admin shell | [`AdminLayoutShell.tsx`](../src/app/modules/admin/AdminLayoutShell.tsx), [`AdminLayout.tsx`](../src/app/modules/admin/AdminLayout.tsx) |
-| Admin routes | [`adminRoutes.tsx`](../src/app/modules/admin/adminRoutes.tsx) |
+| Routing | [`src/app/App.tsx`](../../frontend/src/app/App.tsx) |
+| Portfolio context | [`PortfolioContext.tsx`](../../frontend/src/app/portfolios/PortfolioContext.tsx), `PortfolioPublicLayout.tsx` |
+| Nav | `Navigation.tsx` |
+| Engineering page | `EngineeringHome.tsx` |
+| Data API | [`adminContentService.ts`](../../frontend/src/app/lib/adminContentService.ts), [`contentHooks.ts`](../../frontend/src/app/lib/contentHooks.ts) |
+| Admin shell | [`AdminLayoutShell.tsx`](../../frontend/src/app/modules/admin/AdminLayoutShell.tsx), [`AdminLayout.tsx`](../../frontend/src/app/modules/admin/AdminLayout.tsx) |
+| Admin routes | [`adminRoutes.tsx`](../../frontend/src/app/modules/admin/adminRoutes.tsx) |
 
 ## Environment
 

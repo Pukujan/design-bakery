@@ -4,7 +4,7 @@
 
 - **[agent-devlog-index.md](agent-devlog-index.md)** — start here
 - **[agent-devlog-contract.md](agent-devlog-contract.md)** — how to write and maintain agent docs
-- **[../AGENTS.md](../AGENTS.md)** — root pointer for Cursor
+- **../AGENTS.md** — root pointer for Cursor
 
 ## Topic devlogs
 

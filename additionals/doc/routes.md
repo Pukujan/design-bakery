@@ -1,8 +1,8 @@
 # Routes reference
 
-Complete list of URLs for the Design Bakery app. All paths are client-side routes (SPA); [`vercel.json`](../vercel.json) rewrites unknown paths to `index.html`.
+Complete list of URLs for the Design Bakery app. All paths are client-side routes (SPA); [`vercel.json`](../../vercel.json) rewrites unknown paths to `index.html`.
 
-Defined in [`src/app/App.tsx`](../src/app/App.tsx) and [`src/app/modules/admin/adminRoutes.tsx`](../src/app/modules/admin/adminRoutes.tsx).
+Defined in `src/app/App.tsx` and [`src/app/modules/admin/adminRoutes.tsx`](../../frontend/src/app/modules/admin/adminRoutes.tsx).
 
 ---
 
@@ -27,7 +27,7 @@ flowchart LR
 
 ### Public site
 
-Base path: **none** (`portfolioId: endtoend-engineer`). Includes top [`Navigation`](../src/app/components/Navigation.tsx).
+Base path: **none** (`portfolioId: endtoend-engineer`). Includes top `Navigation`.
 
 | URL | Component | Description |
 |-----|-----------|-------------|
@@ -113,15 +113,15 @@ These files exist but are **not** mounted on a path:
 
 | File | Notes |
 |------|--------|
-| [`src/app/components/BlogPage.tsx`](../src/app/components/BlogPage.tsx) | Legacy/alternate blog UI; superseded by `BlogListPage` |
-| [`src/app/components/BlogPostPage.tsx`](../src/app/components/BlogPostPage.tsx) | Unused standalone post layout |
+| `src/app/components/BlogPage.tsx` | Legacy/alternate blog UI; superseded by `BlogListPage` |
+| `src/app/components/BlogPostPage.tsx` | Unused standalone post layout |
 
 ---
 
 ## Adding a new portfolio (route checklist)
 
 1. Public: add `/your-slug` plus any blog routes you need under `PortfolioPublicLayout` in `App.tsx`.
-2. Register `your-slug` in [`registry.ts`](../src/app/portfolios/registry.ts).
+2. Register `your-slug` in [`registry.ts`](../../frontend/src/app/portfolios/registry.ts).
 3. Admin: add `<Route path="/admin/your-slug" element={<AdminLayoutShell />}>` with `buildAdminChildRoutes('your-slug')`.
 4. Update `getPortfolioFromPathname` and `getPortfolioIdFromAdminPath`.
 5. Document new URLs in this file.

@@ -2,7 +2,7 @@
 
 Personal portfolio site (single `endtoend-engineer` home profile), blog + CMS, case studies and research pages.
 
-**Copyright** — Proprietary; © Pukujan (Design Baker). See [`../LICENSE`](../LICENSE). Third-party notices: [`../frontend/src/app/Attributions.md`](../frontend/src/app/Attributions.md).
+**Copyright** — Proprietary; © Pukujan (Design Baker). See [`../LICENSE`](../../LICENSE). Third-party notices: [`../frontend/src/app/Attributions.md`](../../frontend/src/app/Attributions.md).
 
 ## Quick start
 
