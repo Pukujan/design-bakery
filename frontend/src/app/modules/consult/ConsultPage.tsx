@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { copilot } from '../copilot/store';
+import { FlowText } from '../lab/FlowText';
 import '../lab/lab.css';
 import './consult.css';
 
@@ -24,17 +25,23 @@ export function ConsultPage() {
     void copilot.send(question, { path: window.location.pathname, title: document.title });
   };
 
+  const bookLabel = area ? `Book ${area.toLowerCase()}` : 'Book a time';
+
   return (
     <div className="lab-root consult">
       <main className="consult-main">
-        <p className="consult-intro">Free 30-minute video consultations</p>
+        <FlowText className="consult-intro" text="Free 30-minute video consultations">Free 30-minute video consultations</FlowText>
         <h1 className="consult-title">
-          Talk to <em>me.</em>
+          <FlowText as="span" text="Talk to me.">
+            Talk to <em>me.</em>
+          </FlowText>
         </h1>
 
         <section className="consult-section" aria-labelledby="consult-area">
           <h2 id="consult-area" className="consult-label">
-            What is it about
+            <FlowText as="span" text="What is it about">
+              What is it about
+            </FlowText>
           </h2>
           <ul className="consult-areas">
             {AREAS.map((item, index) => (
@@ -46,7 +53,9 @@ export function ConsultPage() {
                   onClick={() => setArea(item)}
                 >
                   <span className="consult-index">0{index + 1}</span>
-                  <span className="consult-area-name">{item}</span>
+                  <FlowText as="span" className="consult-area-name" text={item}>
+                    {item}
+                  </FlowText>
                   <span className="consult-area-mark" aria-hidden="true" />
                 </button>
               </li>
@@ -56,7 +65,9 @@ export function ConsultPage() {
 
         <section className="consult-section" aria-labelledby="consult-topic-label">
           <h2 id="consult-topic-label" className="consult-label">
-            Tell me more
+            <FlowText as="span" text="Tell me more">
+              Tell me more
+            </FlowText>
           </h2>
           <label htmlFor="consult-topic" className="sr-only">
             What you are working on
@@ -74,10 +85,14 @@ export function ConsultPage() {
 
         <section className="consult-section consult-book-section" aria-labelledby="consult-book-label">
           <h2 id="consult-book-label" className="consult-label">
-            Pick a time
+            <FlowText as="span" text="Pick a time">
+              Pick a time
+            </FlowText>
           </h2>
           <a className="consult-book" href={BOOKING_URL} target="_blank" rel="noopener noreferrer">
-            {area ? `Book ${area.toLowerCase()}` : 'Book a time'}
+            <FlowText as="span" text={bookLabel}>
+              {bookLabel}
+            </FlowText>
             <span aria-hidden="true"> →</span>
           </a>
           <button type="button" className="consult-chat" onClick={bookFromChat}>

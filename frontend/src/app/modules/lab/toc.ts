@@ -10,7 +10,7 @@ export function slugify(text: string): string {
     .replace(/\s+/g, '-');
 }
 
-/** The headings of a markdown article, skipping anything inside a code block. */
+/** The main headings of a markdown article (level two only), skipping anything inside a code block. */
 export function tocFrom(source: string): TocEntry[] {
   const entries: TocEntry[] = [];
   let inFence = false;
@@ -20,10 +20,10 @@ export function tocFrom(source: string): TocEntry[] {
       continue;
     }
     if (inFence) continue;
-    const match = /^(#{2,3})\s+(.+?)\s*#*\s*$/.exec(line);
+    const match = /^##\s+(.+?)\s*#*\s*$/.exec(line);
     if (match) {
-      const text = match[2].replace(/[*_`]/g, '').trim();
-      entries.push({ id: slugify(text), text, level: match[1].length as 2 | 3 });
+      const text = match[1].replace(/[*_`]/g, '').trim();
+      entries.push({ id: slugify(text), text, level: 2 });
     }
   }
   return entries;

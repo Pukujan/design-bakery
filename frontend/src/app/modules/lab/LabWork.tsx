@@ -2,6 +2,7 @@ import { useRef, type PointerEvent } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { useProjectRecords, type ProjectRecord } from '../../lib/portfolioDocs';
 import { orderProjectsForShowcase, PROJECT_CATEGORY_LABEL, isProjectCategory } from '../../lib/projectOrder';
+import { FlowText } from './FlowText';
 
 type Project = ProjectRecord;
 
@@ -97,7 +98,7 @@ function WorkTile({ project, index }: { project: Project; index: number }) {
 
       <div className="lab-tile-caption">
         <div>
-          <h3 className="lab-tile-title">{project.title}</h3>
+          <h3 className="lab-tile-title"><FlowText as="span" text={project.title}>{project.title}</FlowText></h3>
           <p className="lab-tile-tags lab-mono">{tagLine(project)}</p>
         </div>
         <span className="lab-tile-index lab-mono">{String(index + 1).padStart(2, '0')}</span>

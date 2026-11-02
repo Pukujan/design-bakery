@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useReducedMotion } from 'motion/react';
 import { createLensPass, lensGeometry } from './lensing';
+import { flowField, type FlowObstacle } from './flow';
 import {
   HORIZON_RADIUS,
   PAPER,
@@ -18,7 +19,8 @@ import {
  * The lab backdrop (TASK-DB-0098): a constellation with one body in it. The black hole on /lab
  * (lensed, from the ACS constellation), a pulsar on /contact, a nebula on /blogs and a star system
  * on /research. The canvas stays mounted across pages; a route change swaps the body and fades it in.
- * The pointer tilts the sky, scroll and swipe move the camera and spin it. It pauses when off
+ * The pointer moves the camera, so the sky shifts with parallax, and each body answers it in its own way.
+ * Scroll and swipe move the camera and spin the sky. It pauses when off
  * screen or in a background tab, and holds one still frame under prefers-reduced-motion.
  */
 
@@ -28,11 +30,23 @@ const STAR_COUNT = 220;
 const LINK_DISTANCE = 2.1;
 const MAX_PIXEL_RATIO = 1.75;
 const FOV = 50;
-/** How far a body flies in or out of frame on a switch, and the pace of the switch. */
-const FLY = 26;
+/** The pace of a switch between bodies. */
 const FLIGHT_SPEED = 0.55;
 /** How far away the warp starts, in world units. */
 const WARP_DEPTH = 30;
+/** Desktop screens get brighter bodies and a stronger lens fringe; phones keep the plain look. */
+const DESKTOP_VIVID = 1.5;
+const VIVID_QUERY = '(min-width: 1024px)';
+
+/** The warp peaks as the old body passes the camera, then settles: rising to the peak, then falling away. */
+function warpPeak(p: number): number {
+  return p < 0.55 ? Math.sin((Math.PI / 2) * (p / 0.55)) : Math.cos((Math.PI / 2) * ((p - 0.55) / 0.45));
+}
+
+function smoothStep(t: number): number {
+  const x = Math.min(1, Math.max(0, t));
+  return x * x * (3 - 2 * x);
+}
 
 /** The constellation: stars joined by faint lines, the same on every page. */
 function buildSky(rng: () => number) {
@@ -152,9 +166,9 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
     const swapBody = (next: BackdropVariant) => {
       const { halfW, halfH } = viewHalf();
       const previous = body;
-      const from = previous ? previous.anchor(halfW, halfH, pointer.sx, pointer.sy) : null;
+      const from = previous ? previous.anchor(halfW, halfH, look.sx, look.sy) : null;
       body = buildBody(next);
-      const to = body.anchor(halfW, halfH, pointer.sx, pointer.sy);
+      const to = body.anchor(halfW, halfH, look.sx, look.sy);
       // The new body comes in from the side away from the old one, which leaves the other way.
       flightSide = from && to.x !== from.x ? Math.sign(to.x - from.x) : 1;
       if (previous && from) leaving.push({ body: previous, from, side: flightSide });
@@ -170,7 +184,11 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
     const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
     const scroll = { target: 0, value: 0 };
     const spin = { velocity: 0, angle: 0 };
-    let lastTouchY: number | null = null;
+    // A swipe kicks the look in its direction, and it settles back once the finger stops.
+    const swipe = { x: 0, y: 0 };
+    // What the sky and the bodies answer to: the eased pointer plus the swipe kick.
+    const look = { sx: 0, sy: 0, vivid: 1 };
+    let lastTouch: { x: number; y: number } | null = null;
 
     const onPointer = (event: PointerEvent) => {
       pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -183,16 +201,21 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
       spin.velocity += event.deltaY * 0.00035;
     };
     const onTouchStart = (event: TouchEvent) => {
-      lastTouchY = event.touches[0]?.clientY ?? null;
+      const touch = event.touches[0];
+      lastTouch = touch ? { x: touch.clientX, y: touch.clientY } : null;
     };
     const onTouchMove = (event: TouchEvent) => {
-      const y = event.touches[0]?.clientY;
-      if (y === undefined || lastTouchY === null) return;
-      spin.velocity += (lastTouchY - y) * 0.00045;
-      lastTouchY = y;
+      const touch = event.touches[0];
+      if (!touch || !lastTouch) return;
+      const dx = touch.clientX - lastTouch.x;
+      const dy = touch.clientY - lastTouch.y;
+      lastTouch = { x: touch.clientX, y: touch.clientY };
+      swipe.x = THREE.MathUtils.clamp(swipe.x + (dx / window.innerWidth) * 3, -1, 1);
+      swipe.y = THREE.MathUtils.clamp(swipe.y + (dy / window.innerHeight) * 3, -1, 1);
+      spin.velocity -= dy * 0.00045;
     };
     const onTouchEnd = () => {
-      lastTouchY = null;
+      lastTouch = null;
     };
 
     const resize = () => {
@@ -229,6 +252,34 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
       lens.uniforms.uShadow.value = lensed.shadow;
       lens.uniforms.uOuter.value = lensed.outer;
       lens.uniforms.uStrength.value = lensed.strength;
+      // The fringe is stronger on desktop, where the bodies are seen larger and brighter.
+      lens.uniforms.uChroma.value = (1 + (look.vivid - 1) * 2) * (current.lensChroma ?? 1);
+      lens.uniforms.uRingGlow.value = current.lensRing ?? 1;
+    };
+
+    const vividScreen = window.matchMedia(VIVID_QUERY);
+
+    // What page text flows round, in viewport pixels: the body's disc, and any blades of light it has.
+    const publishFlow = (current: Body) => {
+      current.group.updateMatrixWorld(true);
+      camera.updateMatrixWorld();
+      const box = container.getBoundingClientRect();
+      const toViewport = (point: THREE.Vector3) => {
+        const ndc = point.clone().project(camera);
+        return { x: box.left + (ndc.x * 0.5 + 0.5) * box.width, y: box.top + (0.5 - ndc.y * 0.5) * box.height };
+      };
+      const obstacles: FlowObstacle[] = [];
+      if (current.flowRadius) {
+        const centre = current.group.getWorldPosition(new THREE.Vector3());
+        const edge = centre.clone().add(new THREE.Vector3(current.flowRadius * current.group.scale.x * (current.flowScale?.() ?? 1), 0, 0));
+        const c = toViewport(centre);
+        const e = toViewport(edge);
+        obstacles.push({ kind: 'disc', x: c.x, y: c.y, r: Math.abs(e.x - c.x) });
+      }
+      for (const points of current.flowShapes?.() ?? []) {
+        obstacles.push({ kind: 'shape', points: points.map(toViewport) });
+      }
+      flowField.obstacles = obstacles;
     };
 
     const render = (now: number) => {
@@ -241,18 +292,28 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
       pointer.sx += (pointer.x - pointer.sx) * 0.05;
       pointer.sy += (pointer.y - pointer.sy) * 0.05;
       scroll.value += (scroll.target - scroll.value) * 0.08;
+      swipe.x *= 0.93;
+      swipe.y *= 0.93;
+      look.sx = pointer.sx + swipe.x;
+      look.sy = pointer.sy + swipe.y;
+      look.vivid = vividScreen.matches ? DESKTOP_VIVID : 1;
       spin.velocity *= 0.94;
       spin.angle += spin.velocity * delta * 60;
 
-      root.rotation.y = pointer.sx * 0.3 + spin.angle * 0.2 + clock.elapsed * 0.02;
-      root.rotation.x = pointer.sy * 0.18 + scroll.value * 0.2;
+      root.rotation.y = spin.angle * 0.2 + clock.elapsed * 0.02;
+      root.rotation.x = scroll.value * 0.2;
+      // The sky slides against the bodies as the look moves, the way a background does when the viewer moves.
+      root.position.x = -look.sx * 1.0;
+      root.position.y = look.sy * 0.6;
       const distance = 10 - scroll.value * 3.2;
       turnProgress = Math.min(1, turnProgress + delta * FLIGHT_SPEED);
-      const warp = Math.sin(Math.PI * turnProgress);
+      // On blog pages the sky keeps a slow zoom, as if we were falling in toward something, so its lines stream past.
+      const ambient = variantRef.current === 'giant' && !reduceMotion ? 0.45 + 0.2 * Math.sin(clock.elapsed * 0.35) : 0;
+      const warp = Math.max(warpPeak(turnProgress), ambient);
       // The flyby, like a ship going past: the camera slides beside the body it is leaving, banks as it
       // goes, and warps on into the next body.
       const sideX = (leaving[0]?.from.x ?? 0) * 0.6 * warp;
-      camera.position.set(sideX, -pointer.sy * 0.4, distance);
+      camera.position.set(sideX, -look.sy * 0.4, distance);
       camera.lookAt(sideX, 0, 0);
       camera.rotateZ(-flightSide * 0.16 * warp);
       // The space warp: the view stretches, the stars rush past the camera and grow streaked, then it settles.
@@ -264,12 +325,12 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
       const halfH = Math.tan((FOV * Math.PI) / 360) * 10;
       const halfW = halfH * camera.aspect;
 
-      const e = easeOut(turnProgress);
+      // The old body leaves as the warp peaks: it accelerates at the camera, grows, and goes past it.
+      const passing = smoothStep((turnProgress - 0.05) / 0.6);
       for (const old of leaving) {
-        old.body.update(clock.elapsed, delta);
-        // The old body is passed: it rushes at the camera, grows, and goes past it.
-        old.body.group.position.set(old.from.x, old.from.y, old.from.z + WARP_DEPTH * 1.6 * e);
-        old.body.group.scale.setScalar(1 + e * 0.8);
+        old.body.update(clock.elapsed, delta, look);
+        old.body.group.position.set(old.from.x, old.from.y, old.from.z + 16 * passing);
+        old.body.group.scale.setScalar(1 + passing * 1.2);
       }
       if (turnProgress >= 1) {
         for (const old of leaving) {
@@ -283,21 +344,24 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
       if (!current) return;
       intro = reduceMotion ? 1 : Math.min(1, intro + delta * 1.4);
       current.group.scale.setScalar(Math.max(0.001, easeOut(intro)));
-      current.update(clock.elapsed, delta);
+      current.update(clock.elapsed, delta, look);
 
-      const spot = current.anchor(halfW, halfH, pointer.sx, pointer.sy);
+      const spot = current.anchor(halfW, halfH, look.sx, look.sy);
       if (!placed) {
         current.group.position.copy(spot);
         placed = true;
       }
       if (turnProgress < 1) {
-        // Warping in: the new body comes out of deep space and settles into its place.
+        // Warping in as the old body leaves: the new one comes out of the tunnel and settles into its place.
+        const arrive = easeOut(Math.min(1, Math.max(0, (turnProgress - 0.3) / 0.7)));
         const start = new THREE.Vector3(spot.x, spot.y, -WARP_DEPTH);
-        current.group.position.lerpVectors(start, spot, e);
+        current.group.position.lerpVectors(start, spot, arrive);
+        current.group.scale.setScalar(0.25 + 0.75 * arrive);
       } else {
         current.group.position.lerp(spot, reduceMotion ? 1 : 0.06);
       }
 
+      publishFlow(current);
       if (current.lensed) {
         renderer.setRenderTarget(target);
         renderer.clear();
@@ -350,6 +414,7 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
     }
 
     function teardown() {
+      flowField.obstacles = [];
       disposeTree(scene);
       target.dispose();
       lens.dispose();

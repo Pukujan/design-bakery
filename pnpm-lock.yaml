@@ -118,6 +118,9 @@ importers:
 
   frontend:
     dependencies:
+      '@chenglou/pretext':
+        specifier: 1.0.0
+        version: 1.0.0
       '@design-bakery/cover-studio-kit':
         specifier: workspace:*
         version: link:../packages/cover-studio-kit
@@ -470,6 +473,9 @@ packages:
 
   '@cacheable/utils@2.5.0':
     resolution: {integrity: sha512-buipgOVDkkPXNR5+xBpDw7Zk2n1EvU7qBJCNUcL7rhQ//kfpOXPAvQ511Os0vpLYJ1pZnvudNytkQt2hst3wqA==}
+
+  '@chenglou/pretext@1.0.0':
+    resolution: {integrity: sha512-BxKiDMxWJhyzL8asvcgg3T9YnUU7OUFsKO8oRaR2SYAPX4Sh2wM9gqTBjrBaZ4fnl84cEQ8czC0Q1M83z3chsA==}
 
   '@chevrotain/cst-dts-gen@12.0.0':
     resolution: {integrity: sha512-fSL4KXjTl7cDgf0B5Rip9Q05BOrYvkJV/RrBTE/bKDN096E4hN/ySpcBK5B24T76dlQ2i32Zc3PAE27jFnFrKg==}
@@ -4435,6 +4441,8 @@ snapshots:
     dependencies:
       hashery: 1.5.1
       keyv: 5.6.0
+
+  '@chenglou/pretext@1.0.0': {}
 
   '@chevrotain/cst-dts-gen@12.0.0':
     dependencies:

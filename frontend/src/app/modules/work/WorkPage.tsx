@@ -6,6 +6,7 @@ import { orderProjectsForShowcase, PROJECT_CATEGORY_LABEL, isProjectCategory } f
 import { NotFoundPage } from '../../components/NotFoundPage';
 import { PageSeo } from '@/seo/PageSeo';
 import { copilot } from '../copilot/store';
+import { FlowText } from '../lab/FlowText';
 import '../lab/lab.css';
 import './work.css';
 
@@ -68,7 +69,7 @@ export function WorkPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: EASE }}
             >
-              {project.title}
+              <FlowText as="span" text={project.title}>{project.title}</FlowText>
             </motion.h1>
             <motion.p
               className="work-tagline"
@@ -76,7 +77,7 @@ export function WorkPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
             >
-              {project.tagline}
+              <FlowText as="span" text={project.tagline}>{project.tagline}</FlowText>
             </motion.p>
           </div>
           <div className="work-art" aria-hidden="true">
@@ -100,7 +101,7 @@ export function WorkPage() {
             transition={{ duration: 0.9, ease: EASE }}
           >
             <h2 className="lab-mono">What it is</h2>
-            <p className="work-lede">{project.description}</p>
+            <FlowText className="work-lede" text={project.description}>{project.description}</FlowText>
             <button type="button" className="lab-chip lab-chip--solid work-ask" onClick={ask} data-cursor="Ask">
               Ask the copilot about {project.title} →
             </button>

@@ -40,6 +40,8 @@ const FRAGMENT = /* glsl */ `
   uniform float uActive;
   uniform vec3 uRing;
   uniform float uBlack;
+  uniform float uChroma;
+  uniform float uRingGlow;
   varying vec2 vUv;
 
   void main(){
@@ -73,7 +75,7 @@ const FRAGMENT = /* glsl */ `
     offset.x /= uAspect;
 
     // Refraction splits by wavelength: red bends least, blue most.
-    vec2 ca = dir * bend * 0.3;
+    vec2 ca = dir * bend * 0.3 * uChroma;
     ca.x /= uAspect;
 
     vec2 uv = vUv - offset;
@@ -93,7 +95,7 @@ const FRAGMENT = /* glsl */ `
     // Light that orbited the hole, held in a hairline at the edge of the shadow.
     float ringR = (r - uShadow * 1.07) / max(uShadow * 0.13, 1e-4);
     float photon = exp(-ringR * ringR);
-    col.rgb += uRing * photon * 0.22 * uActive;
+    col.rgb += uRing * photon * 0.22 * uActive * uRingGlow;
 
     gl_FragColor = col;
   }
@@ -111,6 +113,8 @@ export function createLensPass(source: THREE.Texture) {
     uActive: { value: 1 },
     uRing: { value: LENS_RING.clone() },
     uBlack: { value: 1 },
+    uChroma: { value: 1 },
+    uRingGlow: { value: 1 },
   };
   const material = new THREE.ShaderMaterial({
     uniforms,

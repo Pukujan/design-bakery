@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { LabCopilot } from './LabCopilot';
+import { FlowText } from './FlowText';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
 const TITLE = 'Design Baker';
@@ -67,7 +68,9 @@ export function LabHero() {
         </span>
       </motion.h1>
 
-      <p className="lab-hero-roles lab-mono">AI/ML engineer · Product engineer · Design engineer</p>
+      <FlowText className="lab-hero-roles lab-mono" text="AI/ML engineer · Product engineer · Design engineer">
+        AI/ML engineer · Product engineer · Design engineer
+      </FlowText>
 
       <div className="lab-hero-body">
         <motion.div

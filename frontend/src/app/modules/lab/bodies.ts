@@ -20,10 +20,24 @@ export type Body = {
   lensRadius?: number;
   /** Whether the centre goes black (only the black hole). */
   lensBlack?: boolean;
+  /** The radius, in world units, of the disc that page text flows round. Without one, text runs over the body. */
+  flowRadius?: number;
+  /** How much bigger than its group the body is drawn at the moment, so its flow disc can grow with it. Defaults to 1. */
+  flowScale?: () => number;
+  /** How strong the lens colour fringe is on this body. Defaults to 1; 0 leaves the colours as they are. */
+  lensChroma?: number;
+  /** How strong the lime ring at the body's edge is. Defaults to 1; 0 removes it. */
+  lensRing?: number;
+  /** Outlines, in world units, that page text flows round as well: for moving blades of light. */
+  flowShapes?: () => THREE.Vector3[][];
   /** Where the body sits, from the viewport's half-size and the eased pointer. */
   anchor: (halfW: number, halfH: number, sx: number, sy: number) => THREE.Vector3;
-  update: (elapsed: number, delta: number) => void;
+  /** Animates the body. `look` is the eased pointer, from -1 to 1 on each axis. */
+  update: (elapsed: number, delta: number, look: Look) => void;
 };
+
+/** The eased pointer, as the backdrop reads it, and how vivid the screen is (brighter on desktop). */
+export type Look = { sx: number; sy: number; vivid: number };
 
 /** A small seeded random, so each body looks the same on every visit. */
 export function seeded(seed: number): () => number {
@@ -126,294 +140,156 @@ export function buildHole(rng: () => number): Body {
     lensed: true,
     lensRadius: HORIZON_RADIUS,
     lensBlack: true,
+    flowRadius: HORIZON_RADIUS * 1.3,
     anchor: (halfW, halfH, sx, sy) =>
-      new THREE.Vector3(THREE.MathUtils.clamp(halfW * 0.5, 0.9, 3.8) + sx * Math.min(halfW * 0.16, 1.2), halfH * 0.22 - sy * halfH * 0.14, 0),
+      new THREE.Vector3(THREE.MathUtils.clamp(halfW * 0.5, 0.9, 3.8) + sx * Math.min(halfW * 0.22, 1.8), halfH * 0.22 - sy * halfH * 0.14, 0),
     update: (_elapsed, delta) => {
       disk.rotation.y += delta * 0.32;
     },
   };
 }
 
-/** A textured surface for the pulsar: bright ridges over a dark plate, in the lab palette. */
-function ridgeTexture(seed: number, low: number[], high: number[]): THREE.CanvasTexture {
-  const size = 256;
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return new THREE.CanvasTexture(canvas);
-  const image = ctx.createImageData(size, size);
-  const hash = (x: number, y: number) => {
-    const n = Math.sin(x * 127.1 + y * 311.7 + seed * 74.7) * 43758.5453;
-    return n - Math.floor(n);
-  };
-  const noise = (x: number, y: number) => {
-    const xi = Math.floor(x);
-    const yi = Math.floor(y);
-    const xf = x - xi;
-    const yf = y - yi;
-    const u = xf * xf * (3 - 2 * xf);
-    const v = yf * yf * (3 - 2 * yf);
-    const a = hash(xi, yi);
-    const b = hash(xi + 1, yi);
-    const c = hash(xi, yi + 1);
-    const d = hash(xi + 1, yi + 1);
-    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
-  };
-  for (let py = 0; py < size; py++) {
-    for (let px = 0; px < size; px++) {
-      let value = 0;
-      let amp = 0.5;
-      let freq = 1;
-      for (let o = 0; o < 4; o++) {
-        value += noise((px / size) * 6 * freq, (py / size) * 6 * freq) * amp;
-        amp *= 0.5;
-        freq *= 2.1;
-      }
-      const ridge = Math.pow(Math.max(0, 1 - Math.abs(2 * value - 1) * 3.2), 3);
-      const i = (py * size + px) * 4;
-      for (let c = 0; c < 3; c++) image.data[i + c] = low[c] + (high[c] - low[c]) * ridge;
-      image.data[i + 3] = 255;
-    }
-  }
-  ctx.putImageData(image, 0, 0);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  return texture;
-}
+/** The pulsar's colours: electric blue and violet field lines, a few pink ones, a white-hot core and a blue halo. */
+const PULSAR_BLUE = new THREE.Color('#5f8bff');
+const PULSAR_VIOLET = new THREE.Color('#8f78ff');
+const PULSAR_PINK = new THREE.Color('#ff7a8a');
+const PULSAR_HALO = new THREE.Color('#1f6fff');
 
-/** A pulsar: a textured neutron star with three pairs of beams at different tilts and spin speeds, sweeping across the screen. */
+/** How far behind the picture plane the star sits, so its field can spread across the screen. */
+const STAR_DEPTH = 3;
+/** The camera sits 10 units from the picture plane, so a point at the star's depth is drawn this much smaller. */
+const DEPTH_SCALE = (10 + STAR_DEPTH) / 10;
+
+/**
+ * A pulsar as a magnetosphere: a white-hot core, with field lines looping from one pole to the other,
+ * the way a magnetar's field does. The whole field turns slowly, tilted off its axis.
+ */
 export function buildPulsar(): Body {
   const group = new THREE.Group();
+  const tilt = new THREE.Group();
+  tilt.rotation.z = 1.1;
   const spin = new THREE.Group();
-  group.add(spin);
+  tilt.add(spin);
+  // Everything the star is made of sits in one sized group, so the whole star grows together.
+  const sized = new THREE.Group();
+  sized.add(tilt);
+  group.add(sized);
+  const rng = seeded(41);
+  // How big the star is drawn: much bigger on desktop, where it should fill more of the screen.
+  let size = 1;
 
-  const surface = new THREE.Mesh(
-    new THREE.SphereGeometry(0.42, 48, 36),
-    new THREE.MeshBasicMaterial({ color: 0xffffff, map: ridgeTexture(9, [40, 44, 40], [198, 244, 50]) }),
+  // The core: a white-hot point, a bright glow round it and a blue halo beyond.
+  const core = new THREE.Mesh(new THREE.SphereGeometry(0.35, 32, 24), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+  const coreGlow = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: glowTexture(), color: 0xe6f0ff, transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending }),
   );
-  spin.add(surface);
-
-  const glow = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: glowTexture(), color: ACCENT, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending }),
-  );
-  glow.scale.set(2.4, 2.4, 1);
+  coreGlow.scale.set(2.6, 2.6, 1);
   const halo = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: glowTexture(), color: PAPER, transparent: true, opacity: 0.25, depthWrite: false, blending: THREE.AdditiveBlending }),
+    new THREE.SpriteMaterial({ map: glowTexture(), color: PULSAR_HALO, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }),
   );
-  halo.scale.set(6, 6, 1);
-  group.add(glow, halo);
+  halo.scale.set(7, 7, 1);
+  // The haze: a broad violet glow that fills the space round the core, as in the reference.
+  const haze = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: glowTexture(), color: PULSAR_VIOLET, transparent: true, opacity: 0.4, depthWrite: false, blending: THREE.AdditiveBlending }),
+  );
+  haze.scale.set(14, 14, 1);
+  sized.add(haze, halo, coreGlow, core);
 
-  // The beam: a bright cone that fades along its length.
-  const beamTexture = (() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 4;
-    canvas.height = 256;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      const gradient = ctx.createLinearGradient(0, 0, 0, 256);
-      gradient.addColorStop(0, 'rgba(255,255,255,0)');
-      gradient.addColorStop(0.5, 'rgba(255,255,255,0.7)');
-      gradient.addColorStop(1, 'rgba(255,255,255,1)');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 4, 256);
+  // The field lines are dipole lines, r = L sin²θ: each runs out from one pole, round the star at distance L, and back to the other.
+  // Each line lies in its own plane, so together they fill a bundle, most of them close to the core.
+  const SEGMENTS = 56;
+  const LINES = 420;
+  const positions: number[] = [];
+  const colors: number[] = [];
+  const colour = new THREE.Color();
+  for (let i = 0; i < LINES; i++) {
+    const L = 1.25 + Math.pow(rng(), 1.6) * 3.4;
+    const azimuth = rng() * Math.PI * 2;
+    const pick = rng();
+    const base = pick < 0.55 ? PULSAR_BLUE : pick < 0.8 ? PULSAR_VIOLET : PULSAR_PINK;
+    colour.copy(base).multiplyScalar(0.45 + rng() * 0.55);
+    // Keep each line outside the core, so the lines start and end on its surface.
+    const thetaMin = Math.asin(Math.min(1, Math.sqrt(0.36 / L)));
+    let previous: THREE.Vector3 | null = null;
+    for (let k = 0; k <= SEGMENTS; k++) {
+      const theta = thetaMin + ((Math.PI - 2 * thetaMin) * k) / SEGMENTS;
+      const r = L * Math.sin(theta) ** 2;
+      const point = new THREE.Vector3(
+        r * Math.sin(theta) * Math.cos(azimuth),
+        r * Math.cos(theta),
+        r * Math.sin(theta) * Math.sin(azimuth),
+      );
+      if (previous) {
+        positions.push(previous.x, previous.y, previous.z, point.x, point.y, point.z);
+        colors.push(colour.r, colour.g, colour.b, colour.r, colour.g, colour.b);
+      }
+      previous = point;
     }
-    return new THREE.CanvasTexture(canvas);
-  })();
-  const beamMaterial = new THREE.MeshBasicMaterial({
-    color: ACCENT,
-    map: beamTexture,
+  }
+  const lineGeometry = new THREE.BufferGeometry();
+  lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  lineGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  const lineMaterial = new THREE.LineBasicMaterial({
+    vertexColors: true,
     transparent: true,
-    opacity: 0.55,
+    opacity: 0.9,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
-    side: THREE.DoubleSide,
   });
-  const beamGeometry = new THREE.ConeGeometry(1.1, 26, 28, 1, true);
-
-  // Three magnetic axes, each with a beam at both poles, turning at their own speeds.
-  const axes = [
-    { tiltX: 0.3, tiltZ: 0.5, speed: 2.4 },
-    { tiltX: -0.6, tiltZ: 1.1, speed: -1.6 },
-    { tiltX: 1.2, tiltZ: 0.2, speed: 3.1 },
-  ];
-  const turning: { group: THREE.Group; speed: number }[] = [];
-  for (const axis of axes) {
-    const turner = new THREE.Group();
-    const magnetic = new THREE.Group();
-    magnetic.rotation.set(axis.tiltX, 0, axis.tiltZ);
-    turner.add(magnetic);
-    const down = new THREE.Mesh(beamGeometry, beamMaterial);
-    down.position.y = -13;
-    const flip = new THREE.Group();
-    flip.rotation.z = Math.PI;
-    const up = new THREE.Mesh(beamGeometry, beamMaterial);
-    up.position.y = -13;
-    flip.add(up);
-    magnetic.add(down, flip);
-    spin.add(turner);
-    turning.push({ group: turner, speed: axis.speed });
-  }
-
-  // Solar-style flare arcs off the surface, as on the giant.
-  const flares = new THREE.Group();
-  spin.add(flares);
-  const flareRng = seeded(31);
-  const flareTubes: THREE.Mesh[] = [];
-  for (let i = 0; i < 5; i++) {
-    const dir = new THREE.Vector3(flareRng() * 2 - 1, flareRng() * 2 - 1, 0.4 + flareRng()).normalize();
-    const side = new THREE.Vector3(-dir.y, dir.x, 0).normalize().multiplyScalar(0.3 + flareRng() * 0.3);
-    const start = dir.clone().multiplyScalar(0.44);
-    const end = dir.clone().multiplyScalar(0.44).add(side.clone().multiplyScalar(0.2));
-    const control = dir.clone().multiplyScalar(0.44 + 0.5 + flareRng() * 0.3).add(side);
-    const curve = new THREE.QuadraticBezierCurve3(start, control, end);
-    const tube = new THREE.Mesh(
-      new THREE.TubeGeometry(curve, 32, 0.035 + flareRng() * 0.02, 8, false),
-      new THREE.MeshBasicMaterial({ color: PAPER, transparent: true, opacity: 0.6, depthWrite: false, blending: THREE.AdditiveBlending }),
-    );
-    flares.add(tube);
-    flareTubes.push(tube);
-  }
+  spin.add(new THREE.LineSegments(lineGeometry, lineMaterial));
 
   return {
     group,
     lensed: true,
     lensRadius: 1.2,
     lensBlack: false,
-    anchor: (halfW, halfH, sx, sy) =>
-      new THREE.Vector3(-halfW * 0.6 + sx * Math.min(halfW * 0.1, 0.8), halfH * 0.58 - sy * halfH * 0.1, 0),
-    update: (elapsed) => {
-      surface.rotation.y = elapsed * 0.6;
-      spin.rotation.y = elapsed * 0.3;
-      for (const turner of turning) turner.group.rotation.y = elapsed * turner.speed;
-      beamMaterial.opacity = 0.45 + Math.sin(elapsed * 9) * 0.15;
-      glow.material.opacity = 0.7 + Math.sin(elapsed * 5) * 0.2;
-      flares.rotation.y = elapsed * 0.2;
-      flareTubes.forEach((tube, i) => {
-        (tube.material as THREE.MeshBasicMaterial).opacity = 0.2 + Math.max(0, Math.sin(elapsed * 1.3 + i * 1.9)) * 0.6;
-      });
+    // Text flows round the field's dense inner loops, not just the core.
+    flowRadius: 2.8,
+    flowScale: () => size,
+    anchor: (halfW, halfH) => new THREE.Vector3(-halfW * 0.6 * DEPTH_SCALE, halfH * 0.58 * DEPTH_SCALE, -STAR_DEPTH),
+    update: (elapsed, _delta, look) => {
+      // The star leans toward the cursor, and its field turns slowly about its axis.
+      group.rotation.set(look.sy * 0.5, look.sx * 0.7, 0);
+      // On desktop the star is drawn much larger, so its field fills more of the screen.
+      size = look.vivid > 1 ? 1.8 : 1;
+      sized.scale.setScalar(size);
+      spin.rotation.y = elapsed * 0.35;
+      // A slow tumble on the other axis, so the field rolls over as it turns.
+      spin.rotation.x = Math.sin(elapsed * 0.7) * 0.15;
+      const breath = Math.sin(elapsed * 2.2);
+      lineMaterial.opacity = Math.min(1, (0.85 + 0.1 * breath) * look.vivid);
+      coreGlow.material.opacity = Math.min(1, (0.9 + 0.1 * breath) * look.vivid);
     },
   };
 }
 
-/** A lava surface: dark red plates with bright molten cracks, so the star looks like it is burning. */
-function lavaTexture(seed: number): THREE.CanvasTexture {
-  const size = 384;
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return new THREE.CanvasTexture(canvas);
-  const image = ctx.createImageData(size, size);
-  const hash = (x: number, y: number) => {
-    const n = Math.sin(x * 127.1 + y * 311.7 + seed * 74.7) * 43758.5453;
-    return n - Math.floor(n);
-  };
-  const noise = (x: number, y: number) => {
-    const xi = Math.floor(x);
-    const yi = Math.floor(y);
-    const xf = x - xi;
-    const yf = y - yi;
-    const u = xf * xf * (3 - 2 * xf);
-    const v = yf * yf * (3 - 2 * yf);
-    const a = hash(xi, yi);
-    const b = hash(xi + 1, yi);
-    const c = hash(xi, yi + 1);
-    const d = hash(xi + 1, yi + 1);
-    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
-  };
-  for (let py = 0; py < size; py++) {
-    for (let px = 0; px < size; px++) {
-      let value = 0;
-      let amp = 0.5;
-      let freq = 1;
-      for (let o = 0; o < 4; o++) {
-        value += noise((px / size) * 7 * freq, (py / size) * 7 * freq) * amp;
-        amp *= 0.5;
-        freq *= 2.1;
-      }
-      // Ridges where the noise crosses the middle: the bright molten cracks.
-      const ridge = Math.pow(Math.max(0, 1 - Math.abs(2 * value - 1) * 3.2), 3);
-      const i = (py * size + px) * 4;
-      image.data[i] = 90 + ridge * 165;
-      image.data[i + 1] = 20 + ridge * 130 + value * 20;
-      image.data[i + 2] = 14 + ridge * 50;
-      image.data[i + 3] = 255;
-    }
-  }
-  ctx.putImageData(image, 0, 0);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  return texture;
-}
-
-/** A red supergiant: a burning lava surface, glowing corona and solar flare arcs that pulse off its edge. */
+/**
+ * The blog pages' backdrop: only the pulsar's blue field lines, with no bright star. The field moves toward the
+ * viewer and back, so its lines stream past as we fall in, and at the far end we are behind the star.
+ */
 export function buildGiant(): Body {
-  const group = new THREE.Group();
-  const lava = lavaTexture(5);
-  const surface = new THREE.Mesh(
-    new THREE.SphereGeometry(4.2, 64, 48),
-    new THREE.MeshBasicMaterial({ color: 0xffffff, map: lava }),
-  );
-  group.add(surface);
-
-  const corona = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: glowTexture(), color: new THREE.Color('#e0563a'), transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }),
-  );
-  corona.scale.set(8.4, 8.4, 1);
-  const outer = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: glowTexture(), color: new THREE.Color('#b8321e'), transparent: true, opacity: 0.25, depthWrite: false, blending: THREE.AdditiveBlending }),
-  );
-  outer.scale.set(12, 12, 1);
-  group.add(corona, outer);
-
-  // Solar flares: arcs of hot gas that leave the surface on the side facing the camera and fall back.
-  const flares = new THREE.Group();
-  group.add(flares);
-  const flareRng = seeded(23);
-  const flareTubes: THREE.Mesh[] = [];
-  for (let i = 0; i < 7; i++) {
-    const dir = new THREE.Vector3(flareRng() * 2 - 1, flareRng() * 2 - 1, 0.4 + flareRng()).normalize();
-    const side = new THREE.Vector3(-dir.y, dir.x, 0).normalize().multiplyScalar(0.8 + flareRng() * 0.8);
-    const start = dir.clone().multiplyScalar(4.2 * 1.01);
-    const end = dir.clone().multiplyScalar(4.2 * 1.01).add(side.clone().multiplyScalar(0.3));
-    const control = dir.clone().multiplyScalar(4.2 + 1.4 + flareRng() * 0.8).add(side);
-    const curve = new THREE.QuadraticBezierCurve3(start, control, end);
-    const tube = new THREE.Mesh(
-      new THREE.TubeGeometry(curve, 40, 0.07 + flareRng() * 0.05, 8, false),
-      new THREE.MeshBasicMaterial({ color: new THREE.Color('#ff9a4a'), transparent: true, opacity: 0.6, depthWrite: false, blending: THREE.AdditiveBlending }),
-    );
-    flares.add(tube);
-    flareTubes.push(tube);
+  const pulsar = buildPulsar();
+  // Keep only the field: take the star's core, halo and haze out of the sized group, and leave the field's tilted group.
+  const sized = pulsar.group.children[0] as THREE.Group;
+  for (const child of [...sized.children]) {
+    if (!(child instanceof THREE.Group)) sized.remove(child);
   }
-  // Bright flare knots where the arcs leave the surface.
-  for (let i = 0; i < 4; i++) {
-    const knot = new THREE.Sprite(
-      new THREE.SpriteMaterial({ map: glowTexture(), color: new THREE.Color('#ffb36b'), transparent: true, opacity: 0.6, depthWrite: false, blending: THREE.AdditiveBlending }),
-    );
-    const dir = new THREE.Vector3(flareRng() * 2 - 1, flareRng() * 2 - 1, 0.5 + flareRng() * 0.5).normalize();
-    knot.position.copy(dir.multiplyScalar(4.2 * 1.02));
-    knot.scale.set(1.4, 1.4, 1);
-    flares.add(knot);
-  }
-
+  // How far in we are: 0 is pulled back, 1 is zoomed in.
+  let zoom = 0;
+  // The star's depth from the picture plane: from 3 units behind it, to 14 units beyond it, so at the far end we are behind the star.
+  const depthOf = () => -3 + 17 * zoom;
   return {
-    group,
-    lensed: true,
-    lensRadius: 4.2,
-    lensBlack: false,
-    anchor: (halfW, halfH) => new THREE.Vector3(-halfW * 0.62, -halfH * 0.2, -2),
-    update: (elapsed) => {
-      // The lava churns across the surface and the star breathes.
-      lava.offset.set(elapsed * 0.012, elapsed * 0.004);
-      surface.scale.setScalar(1 + Math.sin(elapsed * 0.8) * 0.03);
-      corona.material.opacity = 0.5 + Math.sin(elapsed * 0.8) * 0.08;
-      flares.rotation.y = elapsed * 0.05;
-      flareTubes.forEach((tube, i) => {
-        (tube.material as THREE.MeshBasicMaterial).opacity = 0.25 + Math.max(0, Math.sin(elapsed * 1.1 + i * 1.7)) * 0.6;
-      });
+    ...pulsar,
+    anchor: (halfW, halfH) => {
+      const z = depthOf();
+      const k = (10 - z) / 10;
+      return halfW < halfH
+        ? new THREE.Vector3(0, -halfH * 0.5 * k, z)
+        : new THREE.Vector3(-halfW * 0.15 * k, -halfH * 0.05 * k, z);
+    },
+    update: (elapsed, delta, look) => {
+      zoom = 0.6 + 0.4 * Math.sin(elapsed * 0.35);
+      pulsar.update(elapsed, delta, look);
     },
   };
 }
@@ -424,6 +300,7 @@ export function buildSystem(): Body {
   const rng = seeded(19);
   const galaxy = new THREE.Group();
   galaxy.rotation.x = 0.85;
+  galaxy.scale.setScalar(0.8);
   group.add(galaxy);
   const colour = new THREE.Color();
   const INK = new THREE.Color('#0b0b0a');
@@ -517,13 +394,15 @@ export function buildSystem(): Body {
     lensed: true,
     lensRadius: 1.2,
     lensBlack: false,
-    anchor: (halfW, halfH) => new THREE.Vector3(halfW * 0.22, -halfH * 0.05, 0),
-    update: (elapsed) => {
+    flowRadius: 1.8,
+    // The core sits in the reading column, so the page text wraps round its disc.
+    anchor: (halfW, halfH) => new THREE.Vector3(halfW * 0.3, -halfH * 0.05, 0),
+    update: (elapsed, _delta, look) => {
       // The whole belt turns slowly, its stars and dust together.
       stars.rotation.y = elapsed * 0.05;
       dust.rotation.y = elapsed * 0.05;
       sparkles.rotation.y = elapsed * 0.05;
-      coreGlow.material.opacity = 0.55 + Math.sin(elapsed * 0.9) * 0.08;
+      coreGlow.material.opacity = Math.min(1, (0.55 + Math.sin(elapsed * 0.9) * 0.08) * look.vivid);
     },
   };
 }

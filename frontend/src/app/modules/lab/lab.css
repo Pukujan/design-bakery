@@ -63,6 +63,16 @@
 }
 
 /* ---- Top bar ---- */
+/* A dark fade behind the bar, so the nav stays readable over bright text. It sits behind the nav and reaches below it. */
+.lab-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 -48px 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(11 11 10 / 0.96) 0%, rgb(11 11 10 / 0.9) 55%, rgb(11 11 10 / 0) 100%);
+}
+
 .lab-bar {
   position: fixed;
   inset: 0 0 auto 0;
@@ -71,7 +81,6 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem clamp(1rem, 3vw, 2.5rem);
-  mix-blend-mode: difference;
   color: #fff;
 }
 
@@ -1054,17 +1063,13 @@ button.lab-chip--solid:hover {
   color: var(--lab-muted) !important;
 }
 
-/* A dark shade in the middle of the page, so the text reads over the big red giant. */
-.lab-shade {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.8s ease;
-  background: radial-gradient(ellipse 52% 60% at 50% 50%, rgb(11 11 10 / 0.92) 0%, rgb(11 11 10 / 0.8) 45%, rgb(11 11 10 / 0) 100%);
+/* Body copy sits over the bodies in the sky, so it gets a soft dark halo and a brighter grey to stay readable. */
+.lab-stage .writing-excerpt {
+  color: #b7b3aa;
 }
 
-.lab-shade.is-on {
-  opacity: 1;
+.lab-stage .writing-excerpt,
+.lab-stage .post-body p,
+.lab-stage .post-lede {
+  text-shadow: 0 0 12px rgb(11 11 10 / 0.9), 0 0 3px rgb(11 11 10 / 0.8);
 }

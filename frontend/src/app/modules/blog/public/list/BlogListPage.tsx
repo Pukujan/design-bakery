@@ -9,6 +9,7 @@ import {
 } from '@/modules/blog/lib/blogCategoryNav';
 import { usePortfolio } from '@/portfolios/PortfolioContext';
 import { BlogListHead } from '@/seo/BlogListHead';
+import { FlowText } from '@/modules/lab/FlowText';
 import '@/modules/lab/lab.css';
 import './writing.css';
 
@@ -42,7 +43,9 @@ export function BlogListPage() {
       <header className="writing-head">
         <p className="writing-kicker lab-mono">Writing · {blogs.length} posts</p>
         <h1 className="writing-title">
-          Notes from <em>building</em> it.
+          <FlowText as="span" text="Notes from building it.">
+            Notes from <em>building</em> it.
+          </FlowText>
         </h1>
       </header>
 
@@ -86,8 +89,8 @@ export function BlogListPage() {
                 <Link to={pathTo(`/blogs/${id}`)} className="writing-row">
                   <span className="writing-index lab-mono">{String(index + 1).padStart(2, '0')}</span>
                   <span className="writing-date lab-mono">{blog.date}</span>
-                  <span className="writing-name">{blog.title}</span>
-                  {blog.excerpt ? <span className="writing-excerpt">{blog.excerpt}</span> : null}
+                  <FlowText as="span" className="writing-name" text={blog.title}>{blog.title}</FlowText>
+                  {blog.excerpt ? <FlowText as="span" className="writing-excerpt" text={blog.excerpt}>{blog.excerpt}</FlowText> : null}
                 </Link>
               </li>
             );

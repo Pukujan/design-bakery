@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@chenglou/pretext": "1.0.0",
     "@design-bakery/cover-studio-kit": "workspace:*",
     "@fontsource-variable/bricolage-grotesque": "5.3.0",
     "@fontsource-variable/jetbrains-mono": "5.3.0",

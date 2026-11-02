@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RESEARCH_PAPERS, type ResearchStatus } from '../data/researchPapers';
 import { SupportingSources } from './SupportingSources';
+import { FlowText } from '@/modules/lab/FlowText';
 import '@/modules/lab/lab.css';
 import '@/modules/blog/public/list/writing.css';
 
@@ -39,7 +40,9 @@ export function ResearchListPage() {
       <header className="writing-head">
         <p className="writing-kicker lab-mono">Research · {RESEARCH_PAPERS.length} papers</p>
         <h1 className="writing-title">
-          Working <em>papers</em>.
+          <FlowText as="span" text="Working papers.">
+            Working <em>papers</em>.
+          </FlowText>
         </h1>
       </header>
 
@@ -79,8 +82,8 @@ export function ResearchListPage() {
               <Link to={`/research/papers/${paper.id}`} className="writing-row">
                 <span className="writing-index lab-mono">{String(index + 1).padStart(2, '0')}</span>
                 <span className="writing-date lab-mono">{paper.submitted}</span>
-                <span className="writing-name">{paper.title}</span>
-                <span className="writing-excerpt">{paper.abstract}</span>
+                <FlowText as="span" className="writing-name" text={paper.title}>{paper.title}</FlowText>
+                <FlowText as="span" className="writing-excerpt" text={paper.abstract}>{paper.abstract}</FlowText>
               </Link>
             </li>
           ))}

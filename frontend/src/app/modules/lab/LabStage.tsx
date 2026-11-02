@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useLocation, useOutlet } from 'react-router-dom';
 import { LabBackdrop, type BackdropVariant } from './LabBackdrop';
-import { LabAstronaut } from './LabAstronaut';
 import { LabBar } from './LabHeader';
 import { PortfolioProvider } from '../../portfolios/PortfolioContext';
 import './lab.css';
@@ -39,9 +38,7 @@ export function LabStage() {
     <PortfolioProvider portfolioId="endtoend-engineer">
     <div className="lab-stage">
       <LabBackdrop variant={variant} />
-      <div className={`lab-shade${variant === 'giant' ? ' is-on' : ''}`} aria-hidden="true" />
       <LabBar />
-      <LabAstronaut />
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={location.pathname}

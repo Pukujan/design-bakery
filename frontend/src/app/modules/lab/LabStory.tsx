@@ -1,4 +1,5 @@
 import { useEngineeringAboutSection, useRelevantExperienceContent } from '../../lib/contentHooks';
+import { FlowText } from './FlowText';
 import './lab.css';
 import './story.css';
 
@@ -22,13 +23,13 @@ export function LabAbout() {
   return (
     <section className="story" id="about" aria-labelledby="story-about">
       <p className="story-kicker lab-mono">{about.headingLeft} {about.headingRight}</p>
-      <h2 id="story-about" className="story-headline">{about.roleTitle}</h2>
+      <h2 id="story-about" className="story-headline"><FlowText as="span" text={about.roleTitle ?? ''}>{about.roleTitle}</FlowText></h2>
       <div className="story-about-body">
         <div className="story-paragraphs">
           {about.paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
+            <FlowText key={paragraph} text={paragraph}>{paragraph}</FlowText>
           ))}
-          {about.callout ? <p className="story-callout">{about.callout}</p> : null}
+          {about.callout ? <FlowText className="story-callout" text={about.callout}>{about.callout}</FlowText> : null}
         </div>
         <ul className="story-focus" role="list">
           {highlights.map((item) => (
@@ -49,20 +50,20 @@ export function LabExperience() {
   return (
     <section className="story" id="experience" aria-labelledby="story-experience">
       <p className="story-kicker lab-mono">{content.headingLeft} {content.headingRight}</p>
-      <h2 id="story-experience" className="story-headline">Roles</h2>
-      {content.subtitle ? <p className="story-lede">{content.subtitle}</p> : null}
+      <h2 id="story-experience" className="story-headline"><FlowText as="span" text="Roles">Roles</FlowText></h2>
+      {content.subtitle ? <FlowText className="story-lede" text={content.subtitle}>{content.subtitle}</FlowText> : null}
       <ol className="story-roles">
         {roles.map((role, index) => (
           <li key={role.id} className="story-role">
             <span className="story-index lab-mono">{String(index + 1).padStart(2, '0')}</span>
             <div className="story-role-main">
               <p className="story-role-period lab-mono">{role.period}</p>
-              <h3 className="story-role-title">{role.role}</h3>
+              <h3 className="story-role-title"><FlowText as="span" text={role.role}>{role.role}</FlowText></h3>
               <p className="story-role-company">
                 {role.company}
                 {role.location ? ` · ${role.location}` : ''}
               </p>
-              {role.collapsedSummary ? <p className="story-role-summary">{role.collapsedSummary}</p> : null}
+              {role.collapsedSummary ? <FlowText className="story-role-summary" text={role.collapsedSummary}>{role.collapsedSummary}</FlowText> : null}
               {role.highlights?.length ? (
                 <details className="story-more">
                   <summary>Details</summary>

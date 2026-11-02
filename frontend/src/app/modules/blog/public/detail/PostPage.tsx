@@ -42,7 +42,7 @@ export function BlogPostPage() {
       {blog.excerpt ? <p className="post-lede">{blog.excerpt}</p> : null}
       <ArticleToc source={blog.content ?? ''} />
       <div className="post-body">
-        <Article source={blog.content ?? ''} />
+        <Article source={blog.content ?? ''} flow={false} />
       </div>
       {blog.tags.length ? <p className="post-tags lab-mono">{blog.tags.join(' · ')}</p> : null}
       {next ? (
