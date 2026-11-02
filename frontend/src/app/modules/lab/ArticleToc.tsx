@@ -1,3 +1,4 @@
+import { scrollStageToElement } from './stageScroll';
 import { useEffect, useMemo, useState } from 'react';
 import { tocFrom } from './toc';
 
@@ -42,7 +43,7 @@ export function ArticleToc({ source }: { source: string }) {
               href={`#${entry.id}`}
               onClick={(event) => {
                 event.preventDefault();
-                document.getElementById(entry.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                scrollStageToElement(document.getElementById(entry.id));
               }}
             >
               {entry.text}
