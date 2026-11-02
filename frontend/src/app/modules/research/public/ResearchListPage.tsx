@@ -82,8 +82,8 @@ export function ResearchListPage() {
               <Link to={`/research/papers/${paper.id}`} className="writing-row">
                 <span className="writing-index lab-mono">{String(index + 1).padStart(2, '0')}</span>
                 <span className="writing-date lab-mono">{paper.submitted}</span>
-                <FlowText as="span" className="writing-name" text={paper.title}>{paper.title}</FlowText>
-                <FlowText as="span" className="writing-excerpt" text={paper.abstract}>{paper.abstract}</FlowText>
+                <span className="writing-name">{paper.title}</span>
+                <span className="writing-excerpt">{paper.abstract}</span>
               </Link>
             </li>
           ))}
