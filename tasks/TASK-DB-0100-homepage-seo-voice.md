@@ -1,11 +1,15 @@
 # TASK-DB-0100 — Homepage Seo Voice
 
-<!-- continuity:task {"acceptance":["Current homepage metadata, social image, favicon and sitemap are served in production","Homepage text reflows around the black hole without overlapping or overflowing on resize","The public-content chatbot and voice calls answer and recover from errors","Production deployment is verified"],"depends_on":["external:https://github.com/Pukujan/design-bakery/issues/143"],"goal":"Make the homepage SEO, flowing text and public-content assistant work for visitors","id":"DB-0100","issue_url":"https://github.com/Pukujan/design-bakery/issues/145","next_action":"Verify changes locally, publish the review branch, and verify the site and voice in production","owner":"codex","priority":"normal","protocol_version":"0.1.0-draft","schema":"project-continuity.task.v1","status":"active","why":"Visitors need readable content, current previews and reliable ways to ask about published work"} -->
+<!-- continuity:task {"acceptance":["Current homepage metadata, social image, favicon and sitemap are served in production","Homepage text reflows around the black hole without overlapping or overflowing on resize","The public-content chatbot and voice calls answer and recover from errors","Production deployment is verified"],"depends_on":["external:https://github.com/Pukujan/design-bakery/issues/143"],"goal":"Make the homepage SEO, flowing text and public-content assistant work for visitors","id":"DB-0100","issue_url":"https://github.com/Pukujan/design-bakery/issues/145","next_action":"Wait for renewed owner direction; implementation deferred and rejected UI rolled back under DB-0102.","owner":"codex","priority":"normal","protocol_version":"0.1.0-draft","schema":"project-continuity.task.v1","status":"queued","why":"Visitors need readable content, current previews and reliable ways to ask about published work"} -->
 
-- Status: active
+- Status: queued — owner deferred further work
 - Owner: codex
 - Priority: normal
 - Depends on: [image-tag handoff #143](https://github.com/Pukujan/design-bakery/issues/143)
+
+## Owner disposition
+
+The owner stopped feature work and requested rollback to `154350f`. Treat the implementation checkpoints below as historical evidence, not current acceptance. Preserve requests in [the prompt archive](requests/owner-requests-2026-11-02.md); resume only with renewed direction. Rollback: [#150](https://github.com/Pukujan/design-bakery/issues/150).
 
 ## Goal
 
@@ -46,9 +50,19 @@ Starting revision, material inputs/configuration, runtime, exact command or prom
 
 ## Related records
 
-- Leaf: [#145](https://github.com/Pukujan/design-bakery/issues/145); parent: none; dependency: [#143](https://github.com/Pukujan/design-bakery/issues/143).
-- Primary writer: Codex; branch: `codex/homepage-seo-voice`; issue #145 as of 2026-11-02 is open.
+- Parent: [#145](https://github.com/Pukujan/design-bakery/issues/145); parent of [DB-0101 / #147](https://github.com/Pukujan/design-bakery/issues/147); dependency: [#143](https://github.com/Pukujan/design-bakery/issues/143).
+- Primary writer: Codex; historical implementation branch: `codex/homepage-seo-voice`; issue #145 was open as of 2026-11-02.
 - Pull request, exact checks and delivery receipt pending.
+
+### 2026-11-02 — virtual Pujan and mobile copilot scope
+
+The owner requested that the remaining voice and chat experience be tracked as a child
+task before implementation. GitHub issue [#147](https://github.com/Pukujan/design-bakery/issues/147)
+is now a child of this parent issue. It records the virtual-Pujan persona, call
+connection feedback, audio-reactive planet, confirmation-first navigation, project-card
+destination, and mobile chat/keyboard/minimized states. Three visual directions were
+generated for review. Implementation is explicitly waiting for the owner to select a
+visual direction.
 
 ## Checkpoint log
 
