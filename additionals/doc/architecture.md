@@ -10,8 +10,8 @@ The repo is a **monorepo**: Vite/React frontend, Express API, and shared Firebas
 | `backend/` | HTTP API + shared server logic |
 | `backend/services/` | Domain services (publish kit, CMS, OpenRouter) — Express on Railway |
 | `archive/firebase/` | Legacy Firebase CLI + Admin SDK (migration only) |
-| `supabase/` | Postgres migrations — [supabase/README.md](../supabase/README.md) |
-| `scripts/` | Dev orchestration — [scripts/README.md](../scripts/README.md) |
+| `supabase/` | Postgres migrations — supabase/README.md |
+| `scripts/` | Dev orchestration — scripts/README.md |
 | `archive/` | Historical exports (not indexed by CodeGraph) |
 
 ## Backend (Express) — MVC-style layers
