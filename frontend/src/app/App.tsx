@@ -20,6 +20,9 @@ import { IrePageRedirect } from './modules/ire/IrePageRedirect';
 const EngineeringHomePage = lazyPage(
   async () => (await import('./modules/engineering/EngineeringHome/EngineeringHome')).EngineeringHome,
 );
+const LabHomePage = lazyPage(
+  async () => (await import('./modules/lab/LabHome')).LabHome,
+);
 const BlogListPage = lazyPage(
   async () => (await import('./modules/blog/public/list/BlogListPage')).BlogListPage,
 );
@@ -105,6 +108,8 @@ function publicRoutes(): ReactElement[] {
     <Route key="public-shell" path="/" element={<PortfolioPublicLayout />}>
       <Route index element={<EngineeringHomePage />} />
     </Route>,
+    // Homepage redesign prototype (TASK-DB-0098): own dark shell, no site nav, noindex.
+    <Route key="lab" path="/lab" element={<LabHomePage />} />,
     <Route key="blog-shell" path="/blogs" element={<PortfolioPublicLayout />}>
       <Route index element={<BlogListPage />} />
       <Route path=":blogId" element={<BlogDetailPage />} />
