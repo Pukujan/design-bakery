@@ -1,0 +1,138 @@
+/* Sticky copilot dock (TASK-DB-0098). The chat itself uses the lab-* classes from
+   lab.css; this file only adds the pill, the side panel and the dock's own tokens. */
+.cp-dock {
+  --lab-ink: #0b0b0a;
+  --lab-paper: #f2efe8;
+  --lab-muted: #8f8b82;
+  --lab-line: #2a2925;
+  --lab-accent: #c6f432;
+  --lab-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
+  --lab-serif: 'Instrument Serif', Georgia, serif;
+  --lab-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-family: var(--lab-display);
+  color: var(--lab-paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+.cp-pill {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 2147482000;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 1.1rem 0.85rem 1rem;
+  border: 1px solid var(--lab-line);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--lab-ink) 88%, transparent);
+  backdrop-filter: blur(14px);
+  color: var(--lab-paper);
+  font: 600 0.95rem/1 var(--lab-display);
+  cursor: pointer;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.35);
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.cp-pill:hover {
+  border-color: var(--lab-accent);
+  transform: translateY(-2px);
+}
+
+.cp-pill:focus-visible,
+.cp-close:focus-visible,
+.cp-link:focus-visible {
+  outline: 2px solid var(--lab-accent);
+  outline-offset: 3px;
+}
+
+.cp-kbd {
+  font: 500 0.65rem var(--lab-mono);
+  color: var(--lab-muted);
+  border: 1px solid var(--lab-line);
+  border-radius: 6px;
+  padding: 0.2rem 0.4rem;
+}
+
+.cp-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2147482000;
+  width: min(440px, 100vw);
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.25rem max(1.25rem, env(safe-area-inset-bottom));
+  background: var(--lab-ink);
+  border-left: 1px solid var(--lab-line);
+  box-shadow: -20px 0 60px rgb(0 0 0 / 0.4);
+}
+
+.cp-close {
+  align-self: flex-end;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 0.25rem;
+  border: 1px solid var(--lab-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--lab-paper);
+  cursor: pointer;
+}
+
+.cp-chat--dock {
+  flex: 1;
+  min-height: 0;
+}
+
+.cp-chat--dock .cp-thread {
+  flex: 1;
+  max-height: none;
+  min-height: 0;
+}
+
+.cp-chat--dock .lab-suggestions {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.cp-link {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--lab-muted);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.lab-msg-step,
+.lab-msg-note {
+  margin: 0 0 0.3rem;
+  color: var(--lab-muted);
+}
+
+.lab-msg-note {
+  margin: 0.4rem 0 0;
+  font-size: 0.62rem;
+}
+
+@media (max-width: 640px) {
+  .cp-panel {
+    top: auto;
+    height: min(78svh, 640px);
+    width: 100vw;
+    border-left: 0;
+    border-top: 1px solid var(--lab-line);
+    border-radius: 20px 20px 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-pill {
+    transition: none;
+  }
+}

@@ -7,6 +7,8 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
 
+export const CONSULT_SERVICES = ['AI engineering', 'Product design', 'Marketing', 'Full-stack development'] as const;
+
 export type CopilotAction =
   | { kind: 'navigate'; path: string; label: string }
   | { kind: 'projects'; slugs: string[] }
@@ -110,15 +112,21 @@ export function makeTools(emit: (action: CopilotAction) => void) {
 
     book_call: tool({
       description:
-        'Offer a video call with Pujan. Ask for their name, email and what they want to discuss first if they have not said; then call this. It shows a booking card; the visitor picks the time.',
-      inputSchema: z.object({ name: z.string().max(80).optional(), email: z.string().email().optional(), topic: z.string().max(300).optional() }),
+        'Offer a free 30-minute consultation call with Pujan. He consults on four things: AI engineering, product design, marketing, and full-stack development. Ask which one they want and what it is about if they have not said, then call this. It shows a booking card; the visitor picks the time.',
+      inputSchema: z.object({
+        service: z.enum(CONSULT_SERVICES).optional(),
+        name: z.string().max(80).optional(),
+        email: z.string().email().optional(),
+        topic: z.string().max(300).optional(),
+      }),
       execute: async (who) => {
         const base = process.env.COPILOT_BOOKING_URL?.trim();
         if (!base) {
           emit({ kind: 'link', label: 'Email Pujan', url: 'mailto:pujan3645@gmail.com' });
           return { ok: false, note: 'Booking is not set up yet; an email link was shown instead.' };
         }
-        emit({ kind: 'book', url: bookingUrl(base, who), ...who });
+        const topic = [who.service, who.topic].filter(Boolean).join(': ') || undefined;
+        emit({ kind: 'book', url: bookingUrl(base, { ...who, topic }), name: who.name, email: who.email, topic });
         return { ok: true };
       },
     }),

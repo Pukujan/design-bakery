@@ -4,6 +4,7 @@ import { DefaultSiteHead } from './seo/PageSeo';
 import { AdminAuthProvider } from './lib/adminAuth';
 import { lazyPage } from './lib/lazyPage';
 import { PortfolioPublicLayout } from './portfolios/PortfolioPublicLayout';
+import { CopilotRoot } from './modules/copilot/CopilotRoot';
 import { AdminLayoutShell } from './modules/admin/AdminLayoutShell';
 import { buildAdminChildRoutes } from './modules/admin/adminRoutes';
 import { NotFoundPage } from './components/NotFoundPage';
@@ -20,6 +21,7 @@ import { IrePageRedirect } from './modules/ire/IrePageRedirect';
 const EngineeringHomePage = lazyPage(
   async () => (await import('./modules/engineering/EngineeringHome/EngineeringHome')).EngineeringHome,
 );
+const WorkPage = lazyPage(async () => (await import('./modules/work/WorkPage')).WorkPage);
 const LabHomePage = lazyPage(
   async () => (await import('./modules/lab/LabHome')).LabHome,
 );
@@ -106,6 +108,7 @@ function publicRoutes(): ReactElement[] {
     </Route>,
     // Homepage redesign prototype (TASK-DB-0098): own dark shell, no site nav, noindex.
     <Route key="lab" path="/lab" element={<LabHomePage />} />,
+    <Route key="work" path="/work/:slug" element={<WorkPage />} />,
     <Route key="blog-shell" path="/blogs" element={<PortfolioPublicLayout />}>
       <Route index element={<BlogListPage />} />
       <Route path=":blogId" element={<BlogDetailPage />} />
@@ -165,6 +168,7 @@ export default function App() {
     <AdminAuthProvider>
       <Router>
         <DefaultSiteHead />
+        <CopilotRoot />
         <Routes>
           {adminRoutes()}
           {publicRoutes()}

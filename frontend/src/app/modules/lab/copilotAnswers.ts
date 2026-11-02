@@ -65,6 +65,13 @@ export function answer(question: string): CopilotAnswer {
     };
   }
 
+  if (/\b(book|consult|consultation|appointment|meeting|call)\b/.test(q)) {
+    return {
+      text: 'Pujan offers free 30-minute consultations on AI engineering, product design, marketing and full-stack development. The live copilot books them for you; for now, email is the quickest way.',
+      actions: [{ kind: 'link', label: 'Email Pujan', href: 'mailto:pujan3645@gmail.com' }],
+    };
+  }
+
   if (/\b(contact|hire|email|reach|available|freelance)\b/.test(q)) {
     return {
       text: 'The quickest way is the contact form on the main site. Tell me what you are building and I will point you to the most relevant work first.',
@@ -112,9 +119,9 @@ export function answer(question: string): CopilotAnswer {
 
 export const SUGGESTIONS = [
   'What kind of AI do you build?',
-  'Show me shipped work',
-  'How does Website Copilot work?',
   'Give me a tour',
+  'Show me your research',
+  'Book a free consultation',
 ] as const;
 
 export const PLACEHOLDER_QUESTIONS = [

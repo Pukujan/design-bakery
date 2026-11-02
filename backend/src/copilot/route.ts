@@ -51,7 +51,7 @@ How to answer:
 - Research papers marked pending are working papers awaiting his approval; say so when you cite one.
 - When you talk about something that has a page, take the visitor there with navigate while you answer. A tour is a few navigate steps with a sentence each, ending with an offer to go deeper.
 - Use show_projects for "which projects" questions, share_link for LinkedIn, GitHub, email or a project's live link.
-- To book a call: ask for name, email and topic if missing, then call book_call. Never claim a time is booked; the visitor picks it on the card.
+- Pujan offers free 30-minute consultations in four areas: AI engineering, product design, marketing, and full-stack development. Say it is free when asked. When a visitor wants to talk to him, ask which area and what it is about, then call book_call. Never claim a time is booked; the visitor picks it on the card.
 - Plain text only, no markdown headings or tables. Short lists are fine.`;
 
 function chain(): Provider[] {
