@@ -235,11 +235,11 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
         <div className="lab-composer-actions">
           <button
             type="button"
-            className="cp-voice"
+            className="cp-voice vo-call"
             aria-label={voiceState.status === 'idle' ? 'Start voice call' : 'End voice call'}
-            title={voiceState.status === 'idle' ? 'Start voice call' : 'End voice call'}
             onClick={() => voiceState.status === 'idle' ? void voice.start() : voice.stop()}
           >
+            <span className="vo-call-wave" aria-hidden="true" />
             {voiceState.status === 'idle' ? <Mic size={18} /> : <PhoneOff size={18} />}
             <span>{voiceState.status === 'idle' ? 'Call' : 'End call'}</span>
           </button>

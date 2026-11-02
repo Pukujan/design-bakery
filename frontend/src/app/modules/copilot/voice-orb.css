@@ -100,3 +100,26 @@
   .vo-ring { animation: none; }
   .vo-ring { opacity: 0.35; }
 }
+
+/* The Call control in the composer: a small glowing orb with a wave passing through it. */
+.cp-voice.vo-call {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #c6f35a 35%, #3aa7ff 80%);
+  color: #0b0d0c;
+  box-shadow: 0 0 18px rgb(198 243 90 / 0.45);
+}
+
+.vo-call-wave {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid rgb(255 255 255 / 0.7);
+  opacity: 0;
+  animation: vo-wave 2.2s ease-out infinite;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vo-call-wave { animation: none; }
+}
