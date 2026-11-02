@@ -8,9 +8,7 @@ import {
   AUTHORITY_RANKS,
   BLOGS_INDEX_PATH,
   CASE_OS_PRESENTATION_DEMO_PATH,
-  LEGAL_WORKFLOW_GITHUB,
   LEGAL_WORKFLOW_INTERACTIVE_DEMO_PATH,
-  LEGAL_WORKFLOW_TECHNICAL_DEMO_URL,
   RESEARCH_REPOS,
   SOURCES_FOOTER,
   STUDY_BLOG_TRAIL,
@@ -186,24 +184,6 @@ export function LegalWorkflowCaseStudyApp() {
                   Try Workflow Demo
                 </StaticDemoLink>
               </div>
-            </div>
-            <div className="lwr-btn-row lwr-demo-secondary">
-              <a
-                className="lwr-btn"
-                href={LEGAL_WORKFLOW_TECHNICAL_DEMO_URL}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Go to Technical Demo
-              </a>
-              <a
-                className="lwr-btn"
-                href={LEGAL_WORKFLOW_GITHUB}
-                target="_blank"
-                rel="noreferrer"
-              >
-                View GitHub
-              </a>
             </div>
           </div>
         </section>
@@ -590,14 +570,6 @@ export function LegalWorkflowCaseStudyApp() {
                 confidence gates, human review, procedural memory, and agent-safe architecture.
               </p>
               <div className="lwr-btn-row" style={{ marginTop: 20 }}>
-                <a
-                  className="lwr-btn lwr-btn-primary"
-                  href={LEGAL_WORKFLOW_GITHUB}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  View Main GitHub Repo
-                </a>
                 <Link className="lwr-btn" to={confidenceBlogHref}>
                   Read the Confidence Blog
                 </Link>
