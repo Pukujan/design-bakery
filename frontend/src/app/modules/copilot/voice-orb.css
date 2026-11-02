@@ -60,22 +60,22 @@
 .vo-core {
   inset: 15px;
   transform: scale(calc(0.92 + var(--lvl, 0) * 0.55));
-  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #c6f35a 35%, #3aa7ff 70%, #5b3cff 100%);
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, var(--lab-accent) 35%, var(--lab-cool) 70%, var(--lab-violet) 100%);
   box-shadow:
-    0 0 calc(14px + var(--lvl, 0) * 30px) rgb(198 243 90 / 0.55),
-    0 0 calc(24px + var(--lvl, 0) * 50px) rgb(58 167 255 / 0.35);
+    0 0 calc(14px + var(--lvl, 0) * 30px) rgb(var(--lab-accent-rgb) / 0.55),
+    0 0 calc(24px + var(--lvl, 0) * 50px) rgb(var(--lab-cool-rgb) / 0.35);
   animation: vo-form 0.9s cubic-bezier(0.2, 0.7, 0.1, 1) both;
 }
 
 /* Rings expand with the level: small when quiet, reaching further when the voice is loud. */
 .vo-ring {
-  border: 1.5px solid rgb(198 243 90 / 0.6);
+  border: 1.5px solid rgb(var(--lab-accent-rgb) / 0.6);
   opacity: 0;
   animation: vo-wave 2.4s ease-out infinite;
 }
 
-.vo-ring-2 { animation-delay: 0.8s; border-color: rgb(58 167 255 / 0.6); }
-.vo-ring-3 { animation-delay: 1.6s; border-color: rgb(91 60 255 / 0.55); }
+.vo-ring-2 { animation-delay: 0.8s; border-color: rgb(var(--lab-cool-rgb) / 0.6); }
+.vo-ring-3 { animation-delay: 1.6s; border-color: color-mix(in oklab, var(--lab-violet) 55%, transparent); }
 
 .vo-meta {
   display: flex;
@@ -134,12 +134,12 @@
 }
 
 .vo-btn:focus-visible {
-  outline: 2px solid #c6f35a;
+  outline: 2px solid var(--lab-accent);
   outline-offset: 2px;
 }
 
 .vo-end {
-  background: rgb(255 92 80 / 0.9);
+  background: rgb(var(--lab-hot-rgb) / 0.9);
   border-color: transparent;
   color: #fff;
 }

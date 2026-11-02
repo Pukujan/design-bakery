@@ -1,3 +1,4 @@
+import { themeColor } from '../../theme/spaceTheme';
 import * as THREE from 'three';
 
 /**
@@ -7,7 +8,7 @@ import * as THREE from 'three';
  * gains a chromatic fringe. The shadow stays opaque black. The photon ring takes the site accent.
  */
 
-const LENS_RING = new THREE.Color('#c6f432');
+const LENS_RING = new THREE.Color(themeColor('--lab-accent', '#c6f432'));
 
 /** The hole's on-screen size and reach, from its world radius and the camera. Ported as-is. */
 export function lensGeometry(worldRadius: number, distance: number, fovDegrees: number, aspect: number) {
