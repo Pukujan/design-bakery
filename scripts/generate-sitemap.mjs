@@ -121,7 +121,6 @@ async function main() {
   const staticPaths = [
     '/',
     '/blogs',
-    '/endtoend-engineer',
     '/case-studies/ekagajpatra',
     '/case-studies/invest-ai',
     '/case-studies/ai-agents/v3',

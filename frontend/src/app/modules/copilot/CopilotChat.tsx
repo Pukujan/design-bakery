@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { ArrowUp, Mic, PhoneOff, Square } from 'lucide-react';
+import { ArrowUp, Mic, PhoneOff, Rocket, Square } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useProjectRecords } from '../../lib/portfolioDocs';
 import { PLACEHOLDER_QUESTIONS, SUGGESTIONS } from '../lab/copilotAnswers';
 import { copilot, useCopilot, type CopilotAction, type CopilotMessage } from './store';
 import { useVoice, voice } from './voice';
+import './chat-core.css';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
 
@@ -59,7 +60,8 @@ function ActionView({ action }: { action: CopilotAction }) {
   if (action.kind === 'navigate') {
     return (
       <button type="button" className="lab-chip lab-chip--solid" onClick={() => copilot.go(action.path)}>
-        {action.label} →
+        <Rocket className="cp-rocket" size={14} aria-hidden="true" focusable="false" />
+        {action.label}
       </button>
     );
   }
@@ -77,7 +79,7 @@ function ActionView({ action }: { action: CopilotAction }) {
               style={{ '--chip-dot': project.accentColor } as React.CSSProperties}
               onClick={() => copilot.go(`/work/${slug}`)}
             >
-              <i className="lab-chip-dot" aria-hidden="true" />
+              <Rocket className="cp-rocket" size={14} aria-hidden="true" focusable="false" />
               {project.title}
             </button>
           );
@@ -132,14 +134,10 @@ function AssistantMessage({ message }: { message: CopilotMessage }) {
           ))}
         </div>
       )}
-      {message.offline && (
-        <p className="lab-mono lab-msg-note">Answered from the site index; a live response was unavailable.</p>
-      )}
+      {message.offline && <p className="lab-mono lab-msg-note">Instant answer · from the site index, live model unavailable</p>}
       {!message.offline && !message.error && message.model && (
         <p className="lab-mono lab-msg-note">
-          {message.model.startsWith('cache')
-            ? 'Instant answer · no model call'
-            : `Live AI · ${message.model}`}
+          {message.model.startsWith('cache') ? 'Instant answer · no model call' : 'Live model answer'}
         </p>
       )}
     </div>
@@ -186,7 +184,7 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
       {variant === 'dock' && (
         <div className="lab-copilot-status lab-mono">
           <span className="lab-live-dot" aria-hidden="true" />
-          Copilot · knows my work, writing and research
+          Virtual Pujan · not live, answers from this site
           {messages.length > 0 && (
             <button type="button" className="cp-link" onClick={() => copilot.clear()}>
               New chat
@@ -215,6 +213,33 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
         </div>
       )}
 
+      {messages.length === 0 && (
+        <div className="cp-empty">
+          <div className="cp-intro">
+            <p className="lab-mono cp-intro-label">Virtual Pujan · not live</p>
+            <p className="cp-intro-text">
+              Hi, I'm Pujan's virtual presence on Design Bakery. I'm not Pujan live, but I answer from what is published on this
+              site, and I'll only open a page once you say yes.
+            </p>
+          </div>
+          <div className="lab-suggestions">
+            {SUGGESTIONS.map((suggestion, index) => (
+              <motion.button
+                key={suggestion}
+                type="button"
+                className="lab-chip"
+                onClick={() => ask(suggestion)}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 + index * 0.08, ease: EASE }}
+              >
+                {suggestion}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <form className="lab-composer" onSubmit={submit} onClick={() => inputRef.current?.focus()}>
         <label htmlFor={id} className="sr-only">
           Ask about my work
@@ -235,11 +260,11 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
         <div className="lab-composer-actions">
           <button
             type="button"
-            className="cp-voice"
+            className="cp-voice vo-call"
             aria-label={voiceState.status === 'idle' ? 'Start voice call' : 'End voice call'}
-            title={voiceState.status === 'idle' ? 'Start voice call' : 'End voice call'}
             onClick={() => voiceState.status === 'idle' ? void voice.start() : voice.stop()}
           >
+            <span className="vo-call-wave" aria-hidden="true" />
             {voiceState.status === 'idle' ? <Mic size={18} /> : <PhoneOff size={18} />}
             <span>{voiceState.status === 'idle' ? 'Call' : 'End call'}</span>
           </button>
@@ -263,24 +288,6 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
         <button type="button" className="lab-chip" onClick={() => void voice.enableAudio()}>
           Enable call audio
         </button>
-      )}
-
-      {messages.length === 0 && (
-        <div className="lab-suggestions">
-          {SUGGESTIONS.map((suggestion, index) => (
-            <motion.button
-              key={suggestion}
-              type="button"
-              className="lab-chip"
-              onClick={() => ask(suggestion)}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 + index * 0.08, ease: EASE }}
-            >
-              {suggestion}
-            </motion.button>
-          ))}
-        </div>
       )}
     </div>
   );

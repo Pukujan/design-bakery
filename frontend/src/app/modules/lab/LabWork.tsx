@@ -1,4 +1,5 @@
 import { useRef, type PointerEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { useProjectRecords, type ProjectRecord } from '../../lib/portfolioDocs';
 import { orderProjectsForShowcase, PROJECT_CATEGORY_LABEL, isProjectCategory } from '../../lib/projectOrder';
@@ -32,12 +33,8 @@ const PROJECT_MEDIA: Record<number, string> = {
 
 const mediaSrc = (slug: string) => `/lab/projects/${slug}.webp`;
 
-function primaryLink(project: Project): { url: string; external: boolean } | null {
-  const links = (project.links ?? []).filter((link) => link.url && link.url !== '#');
-  const link = links.find((item) => item.label === 'Case Study') ?? links[0];
-  if (!link) return null;
-  return { url: link.url, external: /^https?:\/\//.test(link.url) };
-}
+/** A card opens the project's description page; the live-platform links live on that page. */
+const MotionLink = motion(Link);
 
 function tagLine(project: Project): string {
   const category =
@@ -50,7 +47,6 @@ function WorkTile({ project, index }: { project: Project; index: number }) {
   const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const parallaxY = useTransform(scrollYProgress, [0, 1], ['-8%', '8%']);
-  const link = primaryLink(project);
   const media = PROJECT_MEDIA[project.id];
   const posterWord = project.title.split(' ')[0];
 
@@ -61,13 +57,11 @@ function WorkTile({ project, index }: { project: Project; index: number }) {
   };
 
   return (
-    <motion.a
+    <MotionLink
       ref={ref}
       className="lab-tile"
-      href={link?.url ?? '#'}
-      target={link?.external ? '_blank' : undefined}
-      rel={link?.external ? 'noopener noreferrer' : undefined}
-      data-cursor={link?.external ? 'Open' : 'View'}
+      to={`/work/${project.slug}`}
+      data-cursor="View"
       initial={reduceMotion ? false : { opacity: 0, y: 60 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-10% 0px' }}
@@ -103,7 +97,7 @@ function WorkTile({ project, index }: { project: Project; index: number }) {
         </div>
         <span className="lab-tile-index lab-mono">{String(index + 1).padStart(2, '0')}</span>
       </div>
-    </motion.a>
+    </MotionLink>
   );
 }
 

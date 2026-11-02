@@ -30,6 +30,29 @@ const STAR_COUNT = 220;
 const LINK_DISTANCE = 2.1;
 const MAX_PIXEL_RATIO = 1.75;
 const FOV = 50;
+/**
+ * The build-up (adaptive visuals): the page starts at stage 0, a modest starfield with a lighter body, and
+ * steps up while frames stay steady. The last stage is the full look the owner decided.
+ */
+const STAGES = [
+  { stars: 90, body: 0.3 },
+  { stars: 130, body: 0.45 },
+  { stars: 170, body: 0.6 },
+  { stars: 200, body: 0.8 },
+  { stars: STAR_COUNT, body: 1 },
+];
+/** A window of steady frames whose median is above this means the device cannot keep up at this stage. */
+const SLOW_FRAME_MS = 24;
+/** How long the frames are sampled at one stage before it is judged. */
+const SAMPLE_WINDOW_MS = 2000;
+/** Frames ignored after mount, after a resize or keyboard opening, and after a route change. */
+const WARMUP_MS = 1200;
+const RESIZE_QUIET_MS = 1200;
+const SWAP_QUIET_MS = 800;
+/** The pause after a stage goes up, before it is judged, so the new particles are counted. */
+const STAGE_COOLDOWN_MS = 600;
+/** A gap this long between rendered frames is a stall (a freeze), not a frame. Slow frames below it still count. */
+const STALL_MS = 1000;
 /** The pace of a switch between bodies. */
 const FLIGHT_SPEED = 0.55;
 /** How far away the warp starts, in world units. */
@@ -61,9 +84,12 @@ function buildSky(rng: () => number) {
     positions[i * 3 + 2] = radius * s * Math.sin(theta);
   }
 
+  // Links are written in order of their later star, so the links among the first k stars are a prefix.
+  // linkEnd[k] is how many line vertices to draw when only the first k stars show.
   const links: number[] = [];
-  for (let i = 0; i < STAR_COUNT; i++) {
-    for (let j = i + 1; j < STAR_COUNT; j++) {
+  const linkEnd = new Uint32Array(STAR_COUNT + 1);
+  for (let j = 0; j < STAR_COUNT; j++) {
+    for (let i = 0; i < j; i++) {
       const dx = positions[i * 3] - positions[j * 3];
       const dy = positions[i * 3 + 1] - positions[j * 3 + 1];
       const dz = positions[i * 3 + 2] - positions[j * 3 + 2];
@@ -72,6 +98,7 @@ function buildSky(rng: () => number) {
         links.push(positions[j * 3], positions[j * 3 + 1], positions[j * 3 + 2]);
       }
     }
+    linkEnd[j + 1] = links.length / 3;
   }
 
   const starGeometry = new THREE.BufferGeometry();
@@ -87,7 +114,13 @@ function buildSky(rng: () => number) {
       lineGeometry,
       new THREE.LineBasicMaterial({ color: PAPER, transparent: true, opacity: 0.06, depthWrite: false }),
     ),
+    linkEnd,
   };
+}
+
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)] ?? 0;
 }
 
 function buildBody(variant: BackdropVariant): Body {
@@ -146,6 +179,29 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
     root.add(sky.stars, sky.lines);
     scene.add(root);
 
+    // The build-up. Stage 0 is drawn at once; the stage moves up while frames stay steady, and once a
+    // slow window is seen it steps back one stage and holds there. Reduced motion has no animation, so it gets the full look.
+    const build = {
+      stage: reduceMotion ? STAGES.length - 1 : 0,
+      settled: reduceMotion,
+      quietUntil: performance.now() + WARMUP_MS,
+      windowStart: -1,
+      samples: [] as number[],
+      median: 0,
+    };
+    const applyStage = (next: number) => {
+      build.stage = next;
+      sky.stars.geometry.setDrawRange(0, STAGES[next].stars);
+      sky.lines.geometry.setDrawRange(0, sky.linkEnd[STAGES[next].stars]);
+      body?.density?.(STAGES[next].body);
+    };
+    // Frames in these spans are not judged: the page is loading, resizing, swapping bodies or cooling after a step up.
+    const quiet = (ms: number) => {
+      build.quietUntil = Math.max(build.quietUntil, performance.now() + ms);
+      build.windowStart = -1;
+      build.samples = [];
+    };
+
     const target = new THREE.WebGLRenderTarget(1, 1, { samples: 4 });
     const lens = createLensPass(target.texture);
 
@@ -168,6 +224,8 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
       const previous = body;
       const from = previous ? previous.anchor(halfW, halfH, look.sx, look.sy) : null;
       body = buildBody(next);
+      body.density?.(STAGES[build.stage].body);
+      quiet(SWAP_QUIET_MS);
       const to = body.anchor(halfW, halfH, look.sx, look.sy);
       // The new body comes in from the side away from the old one, which leaves the other way.
       flightSide = from && to.x !== from.x ? Math.sign(to.x - from.x) : 1;
@@ -231,6 +289,7 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
     // With reduced motion there is no loop, so a resize redraws the single still frame.
     const observer = new ResizeObserver(() => {
       resize();
+      quiet(RESIZE_QUIET_MS);
       if (reduceMotion) render(performance.now());
     });
     observer.observe(container);
@@ -240,6 +299,41 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
     let last = performance.now();
     let visible = true;
     const clock = { elapsed: 0 };
+    // When the last judged frame started; null after a pause, so the first frame back is not a gap.
+    let lastFrameAt: number | null = null;
+
+    // A frame's interval feeds the build-up: a steady window moves the stage up, a slow one steps it back and holds.
+    const judge = (now: number) => {
+      const dt = lastFrameAt === null ? 0 : now - lastFrameAt;
+      lastFrameAt = now;
+      if (build.settled) return;
+      if (now < build.quietUntil || dt <= 0 || dt > STALL_MS) {
+        build.windowStart = -1;
+        build.samples = [];
+        return;
+      }
+      if (build.windowStart < 0) build.windowStart = now;
+      build.samples.push(dt);
+      if (now - build.windowStart < SAMPLE_WINDOW_MS) return;
+
+      build.median = median(build.samples);
+      build.samples = [];
+      build.windowStart = -1;
+      if (build.median > SLOW_FRAME_MS) {
+        // The last stage that held is one below this one; stop there.
+        if (build.stage > 0) applyStage(build.stage - 1);
+        build.settled = true;
+      } else if (build.stage < STAGES.length - 1) {
+        applyStage(build.stage + 1);
+        quiet(STAGE_COOLDOWN_MS);
+      } else {
+        build.settled = true;
+      }
+    };
+    const onVisibility = () => {
+      if (!document.hidden) quiet(RESIZE_QUIET_MS);
+    };
+    const onViewportResize = () => quiet(RESIZE_QUIET_MS);
 
     // The lens pass needs the body's place on screen and its size, both from this frame's camera.
     const updateLens = (current: Body) => {
@@ -378,9 +472,32 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
 
     const loop = (now: number) => {
       frame = requestAnimationFrame(loop);
-      if (!visible || document.hidden) return;
+      if (!visible || document.hidden) {
+        lastFrameAt = null;
+        return;
+      }
+      judge(now);
       render(now);
     };
+
+    applyStage(build.stage);
+    // The debug value is for development checks only; production builds never set it.
+    if (import.meta.env.DEV) {
+      (window as unknown as { __lab?: unknown }).__lab = {
+        get stage() {
+          return build.stage;
+        },
+        get stars() {
+          return STAGES[build.stage].stars;
+        },
+        get settled() {
+          return build.settled;
+        },
+        get medianFrameMs() {
+          return build.median;
+        },
+      };
+    }
 
     if (reduceMotion) {
       render(performance.now());
@@ -391,6 +508,9 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
       window.addEventListener('touchstart', onTouchStart, { passive: true });
       window.addEventListener('touchmove', onTouchMove, { passive: true });
       window.addEventListener('touchend', onTouchEnd, { passive: true });
+      window.addEventListener('resize', onViewportResize, { passive: true });
+      document.addEventListener('visibilitychange', onVisibility);
+      window.visualViewport?.addEventListener('resize', onViewportResize);
       const io = new IntersectionObserver(([entry]) => {
         visible = entry.isIntersecting;
       });
@@ -408,7 +528,11 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
         window.removeEventListener('touchstart', onTouchStart);
         window.removeEventListener('touchmove', onTouchMove);
         window.removeEventListener('touchend', onTouchEnd);
+        window.removeEventListener('resize', onViewportResize);
+        document.removeEventListener('visibilitychange', onVisibility);
+        window.visualViewport?.removeEventListener('resize', onViewportResize);
         observer.disconnect();
+        if (import.meta.env.DEV) delete (window as unknown as { __lab?: unknown }).__lab;
         teardown();
       };
     }
