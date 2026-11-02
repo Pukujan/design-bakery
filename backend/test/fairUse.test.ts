@@ -77,7 +77,7 @@ test('100 in 10 hours blocks the 101st while the 2-hour window still has room', 
 });
 
 test('a configured window of its own keeps the single-window behaviour', () => {
-  let t = 0;
+  const t = 0;
   const limiter = createLimiter({ windowMax: 2, windowMs: MIN, burstMax: 100, burstMs: 20_000 }, () => t);
   assert.equal(limiter.take('k').ok, true);
   assert.equal(limiter.take('k').ok, true);
