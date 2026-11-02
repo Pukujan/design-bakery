@@ -1,0 +1,199 @@
+/* About and Experience on the lab page: editorial type, hairlines, and the lab palette only. */
+.story {
+  position: relative;
+  z-index: 1;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: clamp(5rem, 14vh, 8rem) clamp(1.25rem, 5vw, 3rem) 0;
+  color: var(--lab-paper);
+}
+
+.story-kicker {
+  margin: 0;
+  color: var(--lab-muted);
+}
+
+.story-headline {
+  margin: 0.8rem 0 0;
+  font-family: var(--lab-display);
+  font-weight: 800;
+  font-stretch: 75%;
+  font-size: clamp(2.4rem, 6vw, 4.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.story-lede {
+  margin: 1rem 0 0;
+  max-width: 52ch;
+  color: var(--lab-muted);
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.story-about-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  margin-top: clamp(2.5rem, 6vh, 4rem);
+}
+
+.story-paragraphs p {
+  margin: 0 0 1.1rem;
+  max-width: 48ch;
+  font-size: clamp(1.1rem, 1.6vw, 1.3rem);
+  line-height: 1.5;
+}
+
+.story-callout {
+  margin-top: 1.8rem !important;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgb(255 255 255 / 0.12);
+  font-family: var(--lab-serif);
+  font-style: italic;
+  font-size: clamp(1.4rem, 2.6vw, 2rem) !important;
+  line-height: 1.2 !important;
+  color: var(--lab-accent);
+}
+
+.story-focus {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.story-focus li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.story-focus-title {
+  font-family: var(--lab-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+
+.story-focus-desc {
+  color: var(--lab-muted);
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.story-roles {
+  margin: clamp(2.5rem, 6vh, 4rem) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.story-role {
+  display: grid;
+  grid-template-columns: 3rem 1fr;
+  gap: 0 1.5rem;
+  padding: 2rem 0;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.story-index {
+  padding-top: 0.5rem;
+  color: var(--lab-muted);
+}
+
+.story-role-period {
+  margin: 0;
+  color: var(--lab-muted);
+}
+
+.story-role-title {
+  margin: 0.4rem 0 0;
+  font-family: var(--lab-display);
+  font-weight: 700;
+  font-stretch: 85%;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.story-role-company {
+  margin: 0.4rem 0 0;
+  color: var(--lab-accent);
+  font-size: 1rem;
+}
+
+.story-role-summary {
+  margin: 0.8rem 0 0;
+  max-width: 62ch;
+  color: var(--lab-muted);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+.story-role-tags {
+  margin: 0.9rem 0 0;
+  color: var(--lab-muted);
+  font-size: 0.72rem;
+}
+
+.story-more {
+  margin-top: 0.9rem;
+}
+
+.story-more summary {
+  cursor: pointer;
+  color: var(--lab-paper);
+  font-family: var(--lab-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  list-style: none;
+}
+
+.story-more summary:hover {
+  color: var(--lab-accent);
+}
+
+.story-more[open] summary {
+  color: var(--lab-accent);
+}
+
+.story-more p {
+  max-width: 62ch;
+  color: var(--lab-muted);
+  line-height: 1.55;
+}
+
+.story-more ul {
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.story-more li {
+  max-width: 62ch;
+  margin-bottom: 0.6rem;
+  padding-left: 1rem;
+  position: relative;
+  color: var(--lab-muted);
+  line-height: 1.5;
+}
+
+.story-more li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 0.35rem;
+  height: 1px;
+  background: var(--lab-accent);
+}
+
+@media (max-width: 820px) {
+  .story-about-body {
+    grid-template-columns: 1fr;
+  }
+}

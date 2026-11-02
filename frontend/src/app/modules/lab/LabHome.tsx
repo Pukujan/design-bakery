@@ -7,6 +7,7 @@ import { LabHero } from './LabHero';
 import { LabWork } from './LabWork';
 import { LabMarquee } from './LabMarquee';
 import { LabCursor } from './LabCursor';
+import { LabAbout, LabExperience } from './LabStory';
 import './lab.css';
 
 /** Smooth wheel scrolling; skipped when the visitor asks for reduced motion. */
@@ -41,7 +42,9 @@ export function LabHome() {
         <LabMarquee>
           Software you can <em>trust</em> — built end to end —
         </LabMarquee>
+        <LabAbout />
         <LabWork />
+        <LabExperience />
       </main>
 
       <footer className="lab-footer lab-mono">
