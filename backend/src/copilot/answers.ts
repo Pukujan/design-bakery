@@ -39,7 +39,7 @@ type Intent = { id: string; phrases: string[]; keywords: string[] };
 const INTENTS: Intent[] = [
   { id: 'greeting', phrases: ['hi', 'hello', 'hey', 'yo', 'good morning', 'good afternoon', 'howdy'], keywords: ['hi', 'hello', 'hey', 'howdy'] },
   { id: 'thanks', phrases: ['thanks', 'thank you', 'cheers', 'nice one', 'got it'], keywords: ['thanks', 'thank', 'cheers'] },
-  { id: 'identity', phrases: ['what kind of ai do you build', 'what do you do', 'who is pujan', 'tell me about pujan', 'what is this site', 'what does he work on'], keywords: [] },
+  { id: 'identity', phrases: ['what kind of ai do you build', 'what do you do', 'who is pujan', 'tell me about pujan', 'what is this site', 'what does he work on', 'who are you'], keywords: [] },
   { id: 'contact', phrases: ['contact', 'how do i reach him', 'email', 'get in touch', 'hire him', 'is he available for work'], keywords: ['contact', 'email', 'reach', 'hire', 'touch'] },
   { id: 'tour', phrases: ['give me a tour', 'show me around', 'walk me through', 'where do i start', 'show me your work'], keywords: ['tour', 'around'] },
   { id: 'blog', phrases: ['blog', 'writing', 'posts', 'articles'], keywords: ['blog', 'post', 'writing', 'article'] },
@@ -56,7 +56,7 @@ const INTENTS: Intent[] = [
  */
 const SMALL_TALK: Array<{ intent: Intent; pattern: RegExp }> = [
   { intent: { id: 'howareyou', phrases: [], keywords: [] }, pattern: /\b(how are you|how're you|how's it going|how are things|what's up|whats up)\b/ },
-  { intent: { id: 'realai', phrases: [], keywords: [] }, pattern: /\b(are you (a |an )?(real|human|bot|ai|robot|person)|am i (talking|speaking) to|is this (really )?pujan)\b/ },
+  { intent: { id: 'realai', phrases: [], keywords: [] }, pattern: /\b(are you (a |an )?(real|human|bot|ai|robot|person)|am i (talking|speaking) to|is this (really )?pujan|real or fake|are you (the )?same (person|as)|are you two|you and pujan|are you fake)\b/ },
   { intent: { id: 'capabilities', phrases: [], keywords: [] }, pattern: /\b(what can you (do|help)|how does this work)\b/ },
   { intent: { id: 'bye', phrases: [], keywords: [] }, pattern: /^\s*(bye|goodbye|see you|see ya|cya|later)\b/ },
 ];
@@ -143,27 +143,27 @@ function compose(
   // at most one. The rest of the journey is offered as chips the visitor chooses from.
   const book = booking
     ? [{ kind: 'book' as const, url: booking }]
-    : [{ kind: 'link' as const, label: 'Email Pujan', url: email }];
+    : [{ kind: 'link' as const, label: 'Email me', url: email }];
 
   switch (intent.id) {
     case 'greeting':
       return {
         intent: intent.id,
-        text: `Hey. I can take you through Pujan's work, research or writing, or point you at whatever is closest to what you are building.`,
+        text: `Hey, it's AI Pujan. I can take you through my work, my research or my writing, or point you at whatever is closest to what you're building.`,
         actions: [navigate('/#work', 'See the work')],
       };
 
     case 'howareyou':
-      return { intent: intent.id, text: "Doing well, thanks. I'm Pujan's AI presence on this site, so I mostly think about his work. What would you like to see?", actions: [] };
+      return { intent: intent.id, text: "Doing well, thanks. I'm AI Pujan, so I mostly think about my own work. What would you like to see?", actions: [] };
 
     case 'realai':
-      return { intent: intent.id, text: "I'm Pujan's virtual presence on this site: an AI, not Pujan live. I answer from what is published here.", actions: [] };
+      return { intent: intent.id, text: "He and I are one. I'm AI Pujan: his work and his voice, running as an AI. I'm not him live, but everything I say comes from what's published here.", actions: [] };
 
     case 'capabilities':
       return { intent: intent.id, text: 'I can walk you through the projects, the research papers and the writing, tell you about the work history, or help you book a free consultation.', actions: [] };
 
     case 'bye':
-      return { intent: intent.id, text: 'Thanks for stopping by. Come back any time, or email Pujan if you want to talk.', actions: [] };
+      return { intent: intent.id, text: 'Thanks for stopping by. Come back any time, or email me if you want to talk.', actions: [] };
 
     case 'thanks':
       return { intent: intent.id, text: 'Anytime. Ask about a project, a paper, or the work history whenever you want.', actions: [] };
@@ -171,16 +171,16 @@ function compose(
     case 'identity':
       return {
         intent: intent.id,
-        text: `Pujan builds AI/ML systems for document-heavy workflows: RAG, OCR, eval engineering and human-in-the-loop validation, mostly in legal. ${projects.length} projects on the site, ${shipped.length} of them shipped.`,
-        actions: [{ kind: 'projects', slugs: (shipped.length ? shipped : projects).slice(0, 3).map((project) => project.slug) }, navigate('/#about', 'More about him')],
+        text: `I'm AI Pujan. I build AI/ML systems for document-heavy workflows: RAG, OCR, eval engineering and human-in-the-loop validation, mostly in legal. ${projects.length} projects on the site, ${shipped.length} of them shipped.`,
+        actions: [{ kind: 'projects', slugs: (shipped.length ? shipped : projects).slice(0, 3).map((project) => project.slug) }, navigate('/#about', 'More about me')],
       };
 
     case 'contact':
       return {
         intent: intent.id,
         text: booking
-          ? `Email is pujan3645@gmail.com, or pick a time for a free 30-minute consultation.`
-          : `Email is fastest: pujan3645@gmail.com. He also takes free 30-minute consultations.`,
+          ? `Email me at pujan3645@gmail.com, or pick a time for a free 30-minute consultation.`
+          : `Email is fastest: pujan3645@gmail.com. I also take free 30-minute consultations.`,
         actions: [...book, navigate('/contact', 'Contact page')],
       };
 
@@ -195,7 +195,7 @@ function compose(
       const newest = latestBlog(blogs);
       return {
         intent: intent.id,
-        text: newest ? `${blogs.length} posts, most recently "${newest.title}". The writing is where the day-to-day thinking lives.` : 'The blog is where the day-to-day thinking lives.',
+        text: newest ? `${blogs.length} posts, most recently "${newest.title}". The writing is where my day-to-day thinking lives.` : 'The blog is where my day-to-day thinking lives.',
         actions: [navigate('/blogs', 'Open the blog')],
       };
     }
@@ -205,8 +205,8 @@ function compose(
       return {
         intent: intent.id,
         text: newest
-          ? `${papers.length} working papers. The newest is "${newest.title}" (${newest.status}). Most are awaiting his approval, so cite them as drafts.`
-          : 'The research section holds his working papers.',
+          ? `${papers.length} working papers. The newest is "${newest.title}" (${newest.status}). Most are awaiting my approval, so cite them as drafts.`
+          : 'The research section holds my working papers.',
         actions: [navigate('/research', 'Open research')],
       };
     }
@@ -218,7 +218,7 @@ function compose(
       return {
         intent: intent.id,
         text: recent
-          ? `Most recently ${recent.role} at ${recent.company} (${recent.period.split('·')[0].trim()}). The full history, with what he shipped at each, is on the page.`
+          ? `Most recently I was ${recent.role} at ${recent.company} (${recent.period.split('·')[0].trim()}). The full history, with what I shipped at each, is on the page.`
           : 'The work history is on the page.',
         actions: [navigate('/#experience', 'Work history')],
       };
@@ -234,8 +234,8 @@ function compose(
     case 'book':
       return {
         intent: intent.id,
-        text: `He offers free 30-minute consultations in AI engineering, product design, marketing and full-stack development. Pick a time, and say what it is about.`,
-        actions: booking ? [{ kind: 'book', url: booking }] : [{ kind: 'link', label: 'Email Pujan', url: email }],
+        text: `I offer free 30-minute consultations in AI engineering, product design, marketing and full-stack development. Pick a time, and say what it is about.`,
+        actions: booking ? [{ kind: 'book', url: booking }] : [{ kind: 'link', label: 'Email me', url: email }],
       };
 
     default:
