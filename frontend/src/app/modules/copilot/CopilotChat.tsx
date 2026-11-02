@@ -134,22 +134,20 @@ function AssistantMessage({ message }: { message: CopilotMessage }) {
           ))}
         </div>
       )}
-      {message.offline && <p className="lab-mono lab-msg-note">Instant answer · from the site index, live model unavailable</p>}
-      {!message.offline && !message.error && message.model && (
-        <p className="lab-mono lab-msg-note">
-          {message.model.startsWith('cache') ? 'Instant answer · no model call' : 'Live model answer'}
-        </p>
-      )}
     </div>
   );
 }
 
 /** One conversation, shared by the hero and the dock through the copilot store. */
 export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
-  const { messages, busy, draft } = useCopilot();
+  const { messages, busy, draft, heroVisible } = useCopilot();
   const voiceState = useVoice();
   const location = useLocation();
   const [focused, setFocused] = useState(false);
+  // The hero's thread is open only while the visitor is working in it. It folds away on a click elsewhere or when
+  // the hero scrolls off screen, and the conversation stays in the store, so the side panel still has all of it.
+  const [engaged, setEngaged] = useState(false);
+  const showThread = messages.length > 0 && (variant === 'dock' || ((engaged || busy) && heroVisible));
   const threadRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const placeholder = useTypedPlaceholder(!focused && draft === '' && messages.length === 0);
@@ -157,7 +155,7 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
   useEffect(() => {
     const thread = threadRef.current;
     if (thread) thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, showThread]);
 
   const ask = (question: string) => {
     if (!question.trim() || busy) return;
@@ -196,21 +194,38 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
   const id = `cp-ask-${variant}`;
 
   return (
-    <div className={`lab-copilot cp-chat cp-chat--${variant}${busy ? ' is-thinking' : ''}`}>
-      {variant === 'dock' && (
+    <div
+      className={`lab-copilot cp-chat cp-chat--${variant}${busy ? ' is-thinking' : ''}`}
+      onFocus={variant === 'hero' ? () => setEngaged(true) : undefined}
+      onBlur={
+        variant === 'hero'
+          ? (event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setEngaged(false);
+            }
+          : undefined
+      }
+    >
+      {variant === 'dock' && messages.length > 0 && (
         <div className="lab-copilot-status lab-mono">
-          <span className="lab-live-dot" aria-hidden="true" />
-          Virtual Pujan · not live, answers from this site
-          {messages.length > 0 && (
-            <button type="button" className="cp-link" onClick={() => copilot.clear()}>
-              New chat
-            </button>
-          )}
+          <button type="button" className="cp-link" onClick={() => copilot.clear()}>
+            New chat
+          </button>
         </div>
       )}
 
-      {messages.length > 0 && (
-        <div ref={threadRef} className="lab-thread cp-thread" data-lenis-prevent aria-live="polite">
+      <AnimatePresence initial={false}>
+        {showThread && (
+        <motion.div
+          key="thread"
+          ref={threadRef}
+          className="lab-thread cp-thread"
+          data-lenis-prevent
+          aria-live="polite"
+          initial={variant === 'hero' ? { height: 0, opacity: 0 } : false}
+          animate={variant === 'hero' ? { height: 'auto', opacity: 1 } : undefined}
+          exit={variant === 'hero' ? { height: 0, opacity: 0 } : undefined}
+          transition={{ duration: 0.3, ease: EASE }}
+        >
           {messages.map((message) =>
             message.role === 'user' ? (
               <motion.p
@@ -226,8 +241,9 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
               <AssistantMessage key={message.id} message={message} />
             ),
           )}
-        </div>
-      )}
+        </motion.div>
+        )}
+      </AnimatePresence>
 
       <form className="lab-composer" onSubmit={submit} onClick={() => inputRef.current?.focus()}>
         <label htmlFor={id} className="sr-only">
