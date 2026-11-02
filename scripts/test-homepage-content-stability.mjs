@@ -48,10 +48,6 @@ const communitySource = await readFile(
   new URL('./frontend/src/app/lib/adminContentService.ts', root),
   'utf8',
 );
-const insightsSource = await readFile(
-  new URL('./frontend/src/app/modules/engineering/EngineeringInsights/EngineeringInsights.tsx', root),
-  'utf8',
-);
 
 assert.equal(
   about.roleTitle,
@@ -114,18 +110,6 @@ const tie = sortProjectsByStartedAtDesc([
 ]);
 assert.deepEqual(tie.map((p) => p.title), ['a', 'b'], 'ties must keep data order');
 assert.ok(projects.some((p) => p.title === 'Study OS'), 'Study OS should stay in the showcase');
-const projectsCarouselSource = await readFile(
-  new URL('./frontend/src/app/modules/engineering/EngineeringProjects/EngineeringProjects.tsx', root),
-  'utf8',
-);
-assert.ok(
-  projectsCarouselSource.includes('orderProjectsForShowcase(rawProjects, category)'),
-  'the projects carousel should render the curated showcase order',
-);
-assert.ok(
-  projectsCarouselSource.includes('useState<ShowcaseFilter>(\'all\')'),
-  'the project filter should default to All',
-);
 // Project cards: unique ids, exactly 3 stats (the card grid and icon assume it), and a
 // known status value. Case-study links to static pages must point at a real file.
 assert.equal(new Set(projects.map((p) => p.id)).size, projects.length, 'project ids must be unique');
@@ -255,18 +239,6 @@ assert.equal(skillMeta.headingRight, 'SYSTEMS');
 assert.ok(
   communitySource.includes('AI workflow mentorship'),
   'community content should stay aligned with the current AI/ML portfolio',
-);
-assert.ok(
-  insightsSource.includes('useBlogData'),
-  'homepage blog section should read from the live blog store',
-);
-assert.ok(
-  insightsSource.includes('useBlogCategories'),
-  'homepage blog section should read live blog categories',
-);
-assert.ok(
-  !insightsSource.includes('blogData, categories'),
-  'homepage blog section should not import the static blog JSON directly',
 );
 
 console.log('Homepage content stability checks passed.');

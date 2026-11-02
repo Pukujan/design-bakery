@@ -104,6 +104,8 @@ const ALLOW = [
   /^frontend\/src\/app\/modules\/photo-gallery\//,
   // Shared blog motion helpers that the same unrouted photo gallery still imports. Keep with the gallery.
   /^frontend\/src\/app\/modules\/blog\/shared\/BlogPageMotion\.tsx$/,
+  // Motion and icon pieces the kept gallery and blog motion files import. They were reachable only through the old homepage.
+  /^frontend\/src\/app\/components\/(BakeryItems|FlowerCharacter|GraphicElements|SocialBrandIcons)\.tsx$/,
   // Reference examples shipped with cover-studio-kit; not imported by design.
   /^packages\/cover-studio-kit\/examples\//,
 ];

@@ -3,6 +3,7 @@ import { useReducedMotion } from 'motion/react';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { PageSeo } from '@/seo/PageSeo';
+import { HOME_PAGE_SEO } from '@/seo/pageSeoConfig';
 import { LabHero } from './LabHero';
 import { LabWork } from './LabWork';
 import { LabMarquee } from './LabMarquee';
@@ -20,7 +21,7 @@ function useLenis() {
   }, [reduceMotion]);
 }
 
-/** Redesign prototype for the homepage (TASK-DB-0098). Not linked, not indexed. */
+/** The homepage (TASK-DB-0098), served at / and /lab. */
 export function LabHome() {
   useLenis();
   const [cursorActive, setCursorActive] = useState(false);
@@ -28,12 +29,7 @@ export function LabHome() {
 
   return (
     <div className={`lab-root${cursorActive ? ' lab-has-cursor' : ''}`}>
-      <PageSeo
-        title="Lab | Design Baker"
-        description="Homepage redesign prototype."
-        canonicalPath="/lab"
-        robots="noindex, nofollow"
-      />
+      <PageSeo {...HOME_PAGE_SEO} />
       <LabCursor onActiveChange={handleCursorActive} />
 
 
@@ -49,9 +45,6 @@ export function LabHome() {
 
       <footer className="lab-footer lab-mono">
         <span>Design Baker · {new Date().getFullYear()}</span>
-        <a href="/" data-cursor="Back">
-          Current homepage →
-        </a>
       </footer>
     </div>
   );
