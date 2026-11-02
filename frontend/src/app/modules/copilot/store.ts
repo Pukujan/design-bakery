@@ -116,7 +116,8 @@ export const copilot = {
       scroll();
       return;
     }
-    navigateFn ? navigateFn(path) : window.location.assign(path);
+    if (navigateFn) navigateFn(path);
+    else window.location.assign(path);
     // The new page needs a moment to mount before its section exists.
     let tries = 0;
     const wait = window.setInterval(() => {
