@@ -215,25 +215,19 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
 
       {messages.length === 0 && (
         <div className="cp-empty">
-          <div className="cp-intro">
-            <p className="lab-mono cp-intro-label">Virtual Pujan · not live</p>
-            <p className="cp-intro-text">
-              Hi, I'm Pujan's virtual presence on Design Bakery. I'm not Pujan live, but I answer from what is published on this
-              site, and I'll only open a page once you say yes.
-            </p>
-          </div>
-          <div className="lab-suggestions">
+          <p className="cp-intro-text">Hey, it's AI Pujan. You can talk to me here, or even start a voice call.</p>
+          <div className="lab-suggestions cp-rail">
             {SUGGESTIONS.map((suggestion, index) => (
               <motion.button
-                key={suggestion}
+                key={suggestion.label}
                 type="button"
                 className="lab-chip"
-                onClick={() => ask(suggestion)}
+                onClick={() => ask(suggestion.question)}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 + index * 0.08, ease: EASE }}
+                transition={{ duration: 0.5, delay: 0.4 + index * 0.06, ease: EASE }}
               >
-                {suggestion}
+                {suggestion.label}
               </motion.button>
             ))}
           </div>
@@ -260,13 +254,12 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
         <div className="lab-composer-actions">
           <button
             type="button"
-            className="cp-voice vo-call"
+            className="cp-voice"
             aria-label={voiceState.status === 'idle' ? 'Start voice call' : 'End voice call'}
             onClick={() => voiceState.status === 'idle' ? void voice.start() : voice.stop()}
           >
-            <span className="vo-call-wave" aria-hidden="true" />
-            {voiceState.status === 'idle' ? <Mic size={18} /> : <PhoneOff size={18} />}
-            <span>{voiceState.status === 'idle' ? 'Call' : 'End call'}</span>
+            {voiceState.status === 'idle' ? <Mic size={16} /> : <PhoneOff size={16} />}
+            <span>{voiceState.status === 'idle' ? 'Voice call' : 'End call'}</span>
           </button>
           {busy ? (
             <button type="button" className="lab-send" aria-label="Stop" onClick={() => copilot.stop()}>

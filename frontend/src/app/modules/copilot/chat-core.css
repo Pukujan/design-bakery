@@ -9,24 +9,24 @@
   min-height: 0;
 }
 
-.cp-intro {
-  display: grid;
-  gap: 0.35rem;
-  max-width: 34rem;
-}
-
-.cp-intro-label {
-  margin: 0;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.75;
-}
-
 .cp-intro-text {
   margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  max-width: 30rem;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+/* Hero prompts: one horizontal rail with a bounded end. The right edge fades out, and the
+   padding keeps the last chip clear of the fade once the rail is scrolled all the way. */
+.cp-chat--hero .cp-rail {
+  scroll-snap-type: x proximity;
+  padding-right: 2.5rem;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+}
+
+.cp-chat--hero .cp-rail > * {
+  scroll-snap-align: start;
 }
 
 /* Static icon only: no rotation, pulse or motion on navigation actions. */
