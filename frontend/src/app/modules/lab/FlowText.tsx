@@ -144,7 +144,8 @@ export function FlowText({
     const element = source?.parentElement;
     if (!source || !lines || !element) return;
 
-    const content = sourceOf(source);
+    // The source map follows the rendered children: markup can change without the text changing.
+    let content = sourceOf(source);
 
     let prepared: PreparedTextWithSegments | null = null;
     let fontKey = '';
@@ -171,6 +172,16 @@ export function FlowText({
     // A later font load can change glyph widths without changing the CSS font string.
     const refreshFont = () => { fontKey = ''; };
     document.fonts.addEventListener('loadingdone', refreshFont);
+    // A resize can change the font size (fluid type) and the column; re-prepare and rebuild the lines.
+    const refreshOnResize = () => { fontKey = ''; key = ''; };
+    window.addEventListener('resize', refreshOnResize);
+    // Children that change without a text change (emphasis, links) need a fresh source map and lines.
+    const sourceObserver = new MutationObserver(() => {
+      content = sourceOf(source);
+      fontKey = '';
+      key = '';
+    });
+    sourceObserver.observe(source, { childList: true, subtree: true, characterData: true });
 
     const observer = new IntersectionObserver(([entry]) => {
       onScreen = entry.isIntersecting;
@@ -196,7 +207,12 @@ export function FlowText({
         const bottom = px(style.paddingBottom);
         const borderLeft = px(style.borderLeftWidth);
         const borderTop = px(style.borderTopWidth);
-        const width = element.clientWidth - left - right;
+        // The content box: the element's width less its padding and border. clientWidth includes the
+        // padding and is rounded to whole pixels, so it is only the fallback for an inline element.
+        const boxWidth = parseFloat(style.width);
+        const width = Number.isFinite(boxWidth)
+          ? boxWidth - (style.boxSizing === 'border-box' ? left + right + borderLeft + px(style.borderRightWidth) : 0)
+          : element.clientWidth - left - right;
         if (width <= 0) return null;
         const box = element.getBoundingClientRect();
         const extraHeight = style.boxSizing === 'border-box'
@@ -236,8 +252,10 @@ export function FlowText({
     return () => {
       disposed = true;
       observer.disconnect();
+      sourceObserver.disconnect();
       narrowScreen.removeEventListener('change', syncNarrow);
       document.fonts.removeEventListener('loadingdone', refreshFont);
+      window.removeEventListener('resize', refreshOnResize);
       unsubscribe?.();
       source.style.visibility = '';
       lines.replaceChildren();
