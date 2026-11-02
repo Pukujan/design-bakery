@@ -126,11 +126,15 @@ export function answer(question: string): CopilotAnswer {
   };
 }
 
+/** Sample questions shown inside the composer; each one is matched by the answer engine. */
 export const SUGGESTIONS = [
-  'What kind of AI do you build?',
+  'Who are you?',
+  'What experience do you have?',
+  'Can I book a consultation?',
+  'What do you build?',
   'Give me a tour',
-  'Show me your research',
-  'Book a free consultation',
+  'Which project used OCR?',
+  'What is Cortex?',
 ] as const;
 
 export const PLACEHOLDER_QUESTIONS = [
