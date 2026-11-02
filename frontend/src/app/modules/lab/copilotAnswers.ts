@@ -63,17 +63,17 @@ export function answer(question: string): CopilotAnswer {
   // fixed and claims nothing the site does not say; the live service has the same replies.
   if (/^\s*(hi|hello|hey|yo|howdy|hiya|good (morning|afternoon|evening))\b[\s!.,?]*(there)?[\s!.,?]*$/.test(q)) {
     return {
-      text: "Hey. I can take you through Pujan's work, research or writing, or point you at whatever is closest to what you are building.",
+      text: "Hey, it's AI Pujan. I can take you through my work, my research or my writing, or point you at whatever is closest to what you're building.",
     };
   }
   if (/\b(how are you|how's it going|how are things|what's up|whats up)\b/.test(q)) {
     return {
-      text: "Doing well, thanks. I'm Pujan's AI presence on this site, so I mostly think about his work. What would you like to see?",
+      text: "Doing well, thanks. I'm AI Pujan, so I mostly think about my own work. What would you like to see?",
     };
   }
-  if (/\b(are you (a |an )?(real|human|bot|ai|robot|person|pujan)|am i (talking|speaking) to)\b/.test(q)) {
+  if (/\b(are you (a |an )?(real|human|bot|ai|robot|person|pujan)|am i (talking|speaking) to|real or fake|are you (the )?same (person|as)|are you two|you and pujan)\b/.test(q)) {
     return {
-      text: "I'm Pujan's virtual presence on this site: an AI, not Pujan live. I answer from what is published here.",
+      text: "He and I are one. I'm AI Pujan: his work and his voice, running as an AI. I'm not him live, but everything I say comes from what's published here.",
     };
   }
   if (/\b(what can you (do|help)|how does this work|help me)\b/.test(q)) {
@@ -85,7 +85,7 @@ export function answer(question: string): CopilotAnswer {
     return { text: 'Anytime. Ask about a project, a paper, or the work history whenever you want.' };
   }
   if (/^\s*(bye|goodbye|see you|see ya|cya|later)\b/.test(q)) {
-    return { text: 'Thanks for stopping by. Come back any time, or email Pujan if you want to talk.' };
+    return { text: 'Thanks for stopping by. Come back any time, or email me if you want to talk.' };
   }
 
   if (/\b(tour|show me around|walk me|where (do|should) i start)\b/.test(q)) {
@@ -97,8 +97,8 @@ export function answer(question: string): CopilotAnswer {
 
   if (/\b(book|consult|consultation|appointment|meeting|call)\b/.test(q)) {
     return {
-      text: 'Pujan offers free 30-minute consultations on AI engineering, product design, marketing and full-stack development. The live copilot books them for you; for now, email is the quickest way.',
-      actions: [{ kind: 'link', label: 'Email Pujan', href: 'mailto:pujan3645@gmail.com' }],
+      text: 'I offer free 30-minute consultations on AI engineering, product design, marketing and full-stack development. Book a time on the Contact page, or email me.',
+      actions: [{ kind: 'link', label: 'Email me', href: 'mailto:pujan3645@gmail.com' }],
     };
   }
 
@@ -112,7 +112,7 @@ export function answer(question: string): CopilotAnswer {
   if (/\b(experience|experiences|work history|career|employment|jobs|roles)\b/.test(q)) {
     const roles = experience.experiences.map((item) => `${item.role} at ${item.company} (${item.period})`);
     return {
-      text: `The site lists Pujan's experience as ${roles.join('; ')}.`,
+      text: `My experience, as listed on the site: ${roles.join('; ')}.`,
       actions: [{ kind: 'scroll', label: 'See work history', target: '#experience' }],
     };
   }
@@ -120,7 +120,7 @@ export function answer(question: string): CopilotAnswer {
   if (/\b(who|about you|background|what do you (do|build)|kind of ai|ai engineer|skills?|stack)\b/.test(q)) {
     const shipped = projects.filter((p) => p.category === 'shipped').slice(0, 3);
     return {
-      text: `${hero.titleLine1} ${hero.description}`,
+      text: `I'm AI Pujan. ${hero.titleLine1} ${hero.description}`,
       projects: shipped,
     };
   }
