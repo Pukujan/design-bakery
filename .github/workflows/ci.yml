@@ -66,6 +66,12 @@ jobs:
       - name: Check homepage content stability
         run: pnpm test:homepage-content
 
+      - name: Check the copilot's instant answers
+        run: pnpm test:copilot-answers
+
+      - name: Check the copilot's streaming text filter
+        run: pnpm test:copilot-stream
+
       - name: Check content icon coverage
         run: pnpm test:icon-coverage
 

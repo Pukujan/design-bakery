@@ -52,7 +52,82 @@ Starting revision, material inputs/configuration, runtime, exact command or prom
 
 ## Checkpoint log
 
-No checkpoints yet.
+### 2026-11-02 — copilot cost, answer length, durable limits, workspace id redaction
+
+Picked up the checkpoint at `a09c0cd` (`codex/homepage-seo-voice`) after the Codex
+session hit its usage limit, merged it into `main`, and finished the assistant work.
+
+**What the traces said.** `GET /api/workspaces/<id>/otel/read/spans` (Octo → Phoenix,
+39 spans, 11 turns) showed the shape of the problem: about **180k prompt tokens against
+4k completion**, so roughly 45:1 in favour of input. A bare "Hello" cost 8,130 prompt
+tokens; the tour cost 48,885 across six tool steps. Output was small in tokens but long
+in characters because one turn leaked its reasoning.
+
+Two defects were visible in the text itself:
+
+- The "give me a tour" turn arrived as ~1,400 characters of thinking, then `</think>`,
+  then the real answer, then a repeat of its own last paragraph — 1,525 characters shown
+  where 150 was meant.
+- Several turns opened with narration before a tool call ("Let me pull up the blog page
+  for you."), which reads as filler next to the answer.
+
+**Changes**
+
+- `backend/src/copilot/answers.ts` — an instant tier ahead of the model. Nine intents
+  (greeting, identity, contact, tour, blog, research, experience, projects, booking) are
+  answered from the site's own data with no model call. Keyword-first matching, because
+  fuzzy scoring alone could not separate "how do i contact pujan" from `tell me about
+  pujan`. It fires on the first turn, or on a near-exact match later, so a follow-up
+  ("open", "summarise that") still reaches the model with its context.
+- `backend/src/copilot/textFilter.ts` — the streaming hygiene, extracted so it is
+  testable. Short answers are held to the end of the turn so a late `</think>` can be cut
+  unseen; longer answers stream and get a `replace` event if a think block turns up;
+  narration before a tool call is dropped; text after a tool starts a new paragraph.
+- `backend/src/copilot/route.ts` — the instant tier runs **before** the durable limiter,
+  so cached answers cost nothing and still work when the rate-budget database is down.
+  The visitor's page moved out of the system prompt into the last user message: the
+  prompt is now byte-identical across a conversation, which is what lets a provider's
+  prefix cache hit instead of re-billing the brief on every step of a tool loop.
+- `backend/src/copilot/knowledge.ts` — the brief trimmed (paper abstracts 420 → 150
+  chars, blog excerpts 160 → 80, project copy clipped at 220, two highlights per role).
+- `backend/src/copilot/durableLimit.ts` — `durableLimitConfigured()`. A limiter that was
+  never configured is a deploy gap and falls back to the in-memory window; a configured
+  limiter that fails still fails closed.
+- `frontend/.../store.ts` — handles the `replace` event; the answer badge distinguishes
+  an instant answer from a live model.
+- `eslint.config.mjs` — ignores `.claude/**`, so a leftover agent worktree no longer
+  makes ESLint see two tsconfig roots and fail every file.
+
+**Security (owner request).** The octo workspace identifier was committed in ten places
+across `AGENTS.md`, `PROJECT.json`, `docs/`, `additionals/` and three task files. It is
+now gone from every tracked file and the docs point at `OCTO_WORKSPACE_ID` in
+`backend/.env` / `deploy/gravebuster/.env.api` instead. No key was ever committed — the
+only matches for the key patterns are placeholders in the `.example` files. **The
+identifier remains in git history**; purging it needs a `git filter-repo` rewrite and a
+force-push of `main`, which is owner-gated (the same call as the tracked video in #78).
+
+**Deployment state**
+
+- `supabase/migrations/011_copilot_rate_limit.sql` was **not applied**, and no
+  `COPILOT_*` variable was set on the host — so the deployed `/chat` would have answered
+  `503 LIMIT_UNAVAILABLE` to every visitor. The migration is now applied to the workspace
+  (verified: `copilot_take_rate_slot` exists and admits a slot), and
+  `COPILOT_RATE_SECRET` / `COPILOT_PASS_SECRET` are set in `deploy/gravebuster/.env.api`
+  (mode 600, previous file backed up beside it).
+- The voice service is live: `POST https://copilot.design-bakery.com/api/voice/token`
+  answers `200` with `{"url":"wss://copilot.design-bakery.com", token, room, stack}`,
+  which is exactly what `POST /api/copilot/voice` validates before issuing a grant.
+
+**Checks run:** `pnpm lint`, `pnpm --dir frontend run typecheck`,
+`pnpm --dir backend run build`, `pnpm test:copilot-answers` (13 intents, 6 follow-ups
+routed to the model), `pnpm test:copilot-stream` (6 cases, including the real leaked
+tour text), `pnpm test:homepage-content`, `pnpm test:icon-coverage`. A local API run
+returned `cache:greeting`, `cache:contact`, `cache:tour` and `cache:experience` as
+expected, one navigation per answer.
+
+**Still open:** the production deploy and a live verification; a real microphone call;
+and whether a semantic cache is worth a table — with 11 turns in the sample, the
+deterministic tier is where the money is, and the bigger lever is the 8k prompt.
 
 ## Handoff
 

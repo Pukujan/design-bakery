@@ -14,7 +14,8 @@ ordinary Postgres client:
 
 - MCP: `provision_database`  |  HTTP: `POST /api/workspaces/<id>/database`
 - The connection string is returned exactly once; store it as a secret.
-- Already provisioned for this workspace: `octo_ws_design_bakery_c192afbc`.
+- Already provisioned for this workspace. The id is not committed: it is
+  `OCTO_WORKSPACE_ID` in `backend/.env` (and `deploy/gravebuster/.env.api` on the host).
   Prefer `POST /api/workspaces/<id>/query` (Octo API key, no connection string).
 
 Only depart from this if you can demonstrate a concrete incompatibility, and

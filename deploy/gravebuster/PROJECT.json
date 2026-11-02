@@ -18,7 +18,7 @@
   },
   "data": {
     "primary": "octo",
-    "workspace": "octo_ws_design_bakery_c192afbc",
+    "workspace": "provisioned; the id is OCTO_WORKSPACE_ID in .env.api, not committed",
     "notes": "Durable content lives in the owner's octo workspace; the backend reaches it over POST /api/workspaces/:id/query. No self-hosted database."
   },
   "compose": {

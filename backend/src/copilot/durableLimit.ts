@@ -20,6 +20,17 @@ export class DurableLimitUnavailable extends Error {
 type Row = { allowed: unknown; retry_at: unknown };
 type Query = (sql: string, params: unknown[]) => Promise<Row | null>;
 
+/**
+ * Whether this process has what the limiter needs to run at all. When it does not — a
+ * fresh deploy that has not had COPILOT_RATE_SECRET set yet — the caller keeps its
+ * in-memory window instead of answering 503 to every visitor. A limiter that IS
+ * configured and then fails stays fail-closed: that is a fault, not a setup gap.
+ */
+export function durableLimitConfigured(): boolean {
+  const secret = process.env.COPILOT_RATE_SECRET ?? process.env.COPILOT_PASS_SECRET ?? '';
+  return Buffer.byteLength(secret, 'utf8') >= 32;
+}
+
 /** A fixed secret shared across replicas; changing it resets active allowances. */
 function identifier(secret: string, domain: 'ip' | 'visitor', value: string): string {
   return createHmac('sha256', secret).update(`${domain}\0${value}`, 'utf8').digest('hex');

@@ -112,6 +112,8 @@ const json = async <T>(name: string): Promise<T> => {
 
 export const loadProjects = () => json<Project[]>('projects.json');
 
+export const loadExperience = () => json<{ experiences: Experience[] }>('relevant-experience.json');
+
 /** Paper metadata from researchPapers.ts, read as text: id, title, status, date and abstract. */
 export async function loadPapers(): Promise<Paper[]> {
   return cached(path.join(RESEARCH, 'data/researchPapers.ts'), (text) => {
@@ -178,8 +180,10 @@ export const projectPath = (project: Project) => `/work/${project.slug}`;
 const clip = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
 
 /**
- * The whole site as a compact brief for the system prompt. It is small (about 6k
- * tokens), so the model sees all of it on every turn instead of searching for it.
+ * The whole site as a compact brief for the system prompt. Kept near 2k tokens: the
+ * traces showed the first version sending about 8k on every turn, of which most was
+ * abstracts and excerpts the model rarely needed. What is cut here is still reachable
+ * through search_site and the read_* tools, which is where depth belongs.
  */
 export async function siteBrief(): Promise<string> {
   const [hero, about, experience, skills, projects, papers, blogs] = await Promise.all([
@@ -197,22 +201,22 @@ export async function siteBrief(): Promise<string> {
   lines.push('', '## About', about.roleTitle ?? '', ...(about.paragraphs ?? []));
   lines.push('', '## Work history');
   for (const job of experience.experiences) {
-    lines.push(`- ${job.role}, ${job.company} (${job.period}${job.location ? `, ${job.location}` : ''}): ${job.expandedSummary ?? job.collapsedSummary ?? ''}`);
-    for (const point of (job.highlights ?? []).slice(0, 4)) lines.push(`  - ${point}`);
+    lines.push(`- ${job.role}, ${job.company} (${job.period}${job.location ? `, ${job.location}` : ''}): ${clip(job.expandedSummary ?? job.collapsedSummary ?? '', 220)}`);
+    for (const point of (job.highlights ?? []).slice(0, 2)) lines.push(`  - ${clip(point, 140)}`);
   }
   lines.push('', '## Skills', ...skills.map((group) => `- ${group.title}: ${group.skills.join(', ')}`));
   lines.push('', '## Projects (slug | title | category | status)');
   for (const p of projects) {
     lines.push(`- ${p.slug} | ${p.title} | ${p.category ?? ''} | ${p.status ?? ''}`);
-    lines.push(`  ${p.tagline}. ${p.description}`);
+    lines.push(`  ${clip(`${p.tagline}. ${p.description}`, 220)}`);
     lines.push(`  Tech: ${p.tech.join(', ')}`);
     const links = (p.links ?? []).filter((link) => link.url && link.url !== '#');
     if (links.length) lines.push(`  Links: ${links.map((link) => `${link.label} ${link.url}`).join('; ')}`);
   }
   lines.push('', '## Research papers (id | title | status | submitted). All are working papers unless status is approved.');
-  for (const paper of papers) lines.push(`- ${paper.id} | ${paper.title} | ${paper.status} | ${paper.submitted}`, `  ${clip(paper.abstract, 420)}`);
+  for (const paper of papers) lines.push(`- ${paper.id} | ${paper.title} | ${paper.status} | ${paper.submitted}`, `  ${clip(paper.abstract, 150)}`);
   lines.push('', '## Blog posts (id | date | title)');
-  for (const post of blogs) lines.push(`- ${post.id} | ${post.date} | ${post.title}: ${clip(post.excerpt, 160)}`);
+  for (const post of blogs) lines.push(`- ${post.id} | ${post.date} | ${post.title}: ${clip(post.excerpt, 80)}`);
   lines.push('', '## Links', ...SOCIAL_LINKS.map((link) => `- ${link.label}: ${link.url}`));
   lines.push('', '## Site pages', ...SITE_PAGES.map((page) => `- ${page.path} (${page.label})`), '- /work/<slug> (one presentation page per project)', '- /blogs/<id>', '- /research/papers/<id>');
   return lines.join('\n');

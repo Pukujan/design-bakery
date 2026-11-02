@@ -43,7 +43,7 @@ export type CopilotState = {
 };
 
 type Event =
-  | { type: 'text'; text: string }
+  | { type: 'text'; text: string; replace?: boolean }
   | { type: 'action'; action: CopilotAction }
   | { type: 'step'; name: string; status: 'start' | 'done' | 'error' }
   | { type: 'done'; model: string }
@@ -260,7 +260,9 @@ async function stream(
 
 function handle(event: Event, replyId: number) {
   if (event.type === 'text') {
-    patchMessage(replyId, (m) => ({ text: m.text + event.text }));
+    // `replace` arrives when the server retracts text it already streamed: a reasoning
+    // block that leaked as answer text, or a "let me look that up" line before a tool call.
+    patchMessage(replyId, (m) => ({ text: event.replace ? event.text : m.text + event.text }));
   } else if (event.type === 'step') {
     patchMessage(replyId, (m) => ({
       steps: event.status === 'start' ? [...m.steps, event.name] : m.steps.filter((s) => s !== event.name),

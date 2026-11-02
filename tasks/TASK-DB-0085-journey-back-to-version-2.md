@@ -117,5 +117,5 @@ not this task's work:
   [TASK-DB-0086](TASK-DB-0086-mac-autodeploy.md) — the hand run this task needed is now the
   exception rather than the rule.
 - Still open, not this task's work: the Mac's octo has no design-bakery workspace (the 136
-  content rows remain only in gravebuster's `octo_ws_design_bakery_c192afbc`; the site serves
+  content rows remain only in gravebuster's the design-bakery workspace; the site serves
   the committed 7-post snapshot).

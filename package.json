@@ -22,6 +22,8 @@
     "export:deploy-env": "node scripts/export-deploy-env.mjs",
     "test:railway-build": "node scripts/test-railway-build.mjs",
     "test:homepage-content": "node scripts/test-homepage-content-stability.mjs",
+    "test:copilot-answers": "node scripts/test-copilot-answers.mjs",
+    "test:copilot-stream": "node scripts/test-copilot-stream.mjs",
     "test:icon-coverage": "node scripts/test-icon-coverage.mjs",
     "test:og-routing": "node scripts/test-og-routing.mjs",
     "test:og-contract": "node scripts/test-og-contract.mjs",

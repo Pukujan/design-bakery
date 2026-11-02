@@ -11,14 +11,16 @@ Phase: homepage, SEO and assistant delivery.
 ## Completed
 
 - continuity protocol initialized.
+- [DB-0100 / #145](https://github.com/Pukujan/design-bakery/issues/145) assistant work: instant answers ahead of the model, leaked-reasoning filter, trimmed brief, stable prompt prefix, durable rate-limit migration applied and its secrets set, workspace identifier redacted from every tracked file. See the task's checkpoint log for the trace evidence and the exact checks.
 
 ## Active
 
-- [DB-0100 / #145](https://github.com/Pukujan/design-bakery/issues/145): prepare the homepage SEO, text flow, and public-content assistant for release. Parent: none; dependency: [#143](https://github.com/Pukujan/design-bakery/issues/143).
+- [DB-0100 / #145](https://github.com/Pukujan/design-bakery/issues/145): publish the branch and verify the homepage, SEO, text flow, assistant and voice in production. Parent: none; dependency: [#143](https://github.com/Pukujan/design-bakery/issues/143).
 
 ## Queued
 
-- Verify the site and voice integration after deployment.
+- Verify the site and voice integration after deployment (real microphone, not just the token grant).
+- Decide on purging the octo workspace identifier from git history (`git filter-repo` + force-push of `main`, owner-gated — the same call as the tracked video in #78).
 
 ## Blockers
 
@@ -26,4 +28,4 @@ None known.
 
 ## Next atomic action
 
-Finish validation, commit the scoped changes, and publish the checkpoint and review branch.
+Push `main`, let the deploy run, then verify `/api/copilot/chat` answers from the instant tier in production and that a live model turn still streams.
