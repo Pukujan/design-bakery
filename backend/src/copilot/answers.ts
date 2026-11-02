@@ -49,6 +49,24 @@ const INTENTS: Intent[] = [
   { id: 'book', phrases: ['book a call', 'consultation', 'consult', 'schedule a call', 'talk to him'], keywords: ['book', 'consultation', 'consult', 'schedule', 'appointment'] },
 ];
 
+/**
+ * Small talk is matched on the raw sentence, before the word scoring: "how are you pujan"
+ * is all stop words plus a name, and scored as words it lands on `who is pujan`. Short
+ * sentences only, so a real question that happens to contain "help me" still goes on.
+ */
+const SMALL_TALK: Array<{ intent: Intent; pattern: RegExp }> = [
+  { intent: { id: 'howareyou', phrases: [], keywords: [] }, pattern: /\b(how are you|how're you|how's it going|how are things|what's up|whats up)\b/ },
+  { intent: { id: 'realai', phrases: [], keywords: [] }, pattern: /\b(are you (a |an )?(real|human|bot|ai|robot|person)|am i (talking|speaking) to|is this (really )?pujan)\b/ },
+  { intent: { id: 'capabilities', phrases: [], keywords: [] }, pattern: /\b(what can you (do|help)|how does this work)\b/ },
+  { intent: { id: 'bye', phrases: [], keywords: [] }, pattern: /^\s*(bye|goodbye|see you|see ya|cya|later)\b/ },
+];
+
+function smallTalkIntent(question: string): Intent | null {
+  const text = question.toLowerCase();
+  if (text.trim().split(/\s+/).length > 10) return null;
+  return SMALL_TALK.find((entry) => entry.pattern.test(text))?.intent ?? null;
+}
+
 const STOP = new Set(
   'the a an and or of to in on for with about your you me my i his he him do does did is are was what which how can could would tell show give any some have has it this that please just'.split(' '),
 );
@@ -135,6 +153,18 @@ function compose(
         actions: [navigate('/#work', 'See the work')],
       };
 
+    case 'howareyou':
+      return { intent: intent.id, text: "Doing well, thanks. I'm Pujan's AI presence on this site, so I mostly think about his work. What would you like to see?", actions: [] };
+
+    case 'realai':
+      return { intent: intent.id, text: "I'm Pujan's virtual presence on this site: an AI, not Pujan live. I answer from what is published here.", actions: [] };
+
+    case 'capabilities':
+      return { intent: intent.id, text: 'I can walk you through the projects, the research papers and the writing, tell you about the work history, or help you book a free consultation.', actions: [] };
+
+    case 'bye':
+      return { intent: intent.id, text: 'Thanks for stopping by. Come back any time, or email Pujan if you want to talk.', actions: [] };
+
     case 'thanks':
       return { intent: intent.id, text: 'Anytime. Ask about a project, a paper, or the work history whenever you want.', actions: [] };
 
@@ -218,7 +248,7 @@ function compose(
  * `firstTurn` lowers the bar, because a first message carries no context to lose.
  */
 export async function cachedAnswer(question: string, firstTurn: boolean): Promise<CachedAnswer | null> {
-  const intent = bestIntent(question, firstTurn ? 0.5 : 0.8);
+  const intent = smallTalkIntent(question) ?? bestIntent(question, firstTurn ? 0.5 : 0.8);
   if (!intent) return null;
   const [projects, papers, blogs, experience] = await Promise.all([loadProjects(), loadPapers(), loadBlogs(), loadExperience()]);
   const answer = compose(intent, {
