@@ -271,7 +271,7 @@ What `deploy.sh` does, in order:
    not a routing one).
 9. On success: write `deploy/gravebuster/.deploy-state` (`SHA`, `CURRENT_IMAGE`,
    `PREVIOUS_IMAGE`, `CURRENT_API_IMAGE`, `PREVIOUS_API_IMAGE`, `DEPLOYED_AT`) and log
-   to `deploy/gravebuster/deploy.log`.
+   to `deploy/gravebuster/deploy.log`. It also writes DESIGN_BAKERY_IMAGE (and DESIGN_BAKERY_API_IMAGE when there is an API image) to deploy/gravebuster/.env after each swap, keeping the file's other settings, so a Komodo compose up uses the live tags.
 10. On failure: swap the previous web image (and API image, when enabled) back
     automatically, health-check it, exit 1 (`--no-rollback` to skip).
 
