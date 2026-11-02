@@ -31,7 +31,8 @@ Base path: **none** (`portfolioId: endtoend-engineer`). Includes top `Navigation
 
 | URL | Component | Description |
 |-----|-----------|-------------|
-| `/` | `EngineeringHome` | End-to-end engineering homepage (hero, projects, community, about, skills, insights, experience, contact, footer) |
+| `/` | `LabHomePage` | Lab homepage: hero, selected work, about, experience. No site nav. |
+| `/lab` | `LabHomePage` | Alias of `/` |
 | `/blogs` | `BlogListPage` | Shared blog index |
 | `/blogs/:blogId` | `BlogDetailPage` | Shared blog detail page |
 
@@ -92,7 +93,7 @@ Blog editors edit the **same** shared `blog_posts` / `blog_categories` data.
 
 ## Public navbar vs routes
 
-Shown on the homepage only (`PortfolioPublicLayout`):
+The old portfolio shell and its nav were removed with the old homepage, so the lab homepage has no nav.
 
 | Nav control | Target |
 |-------------|--------|
