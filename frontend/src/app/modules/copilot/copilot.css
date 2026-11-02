@@ -101,6 +101,7 @@
 
 .cp-link {
   margin-left: auto;
+  white-space: nowrap;
   border: 0;
   background: none;
   color: var(--lab-muted);
