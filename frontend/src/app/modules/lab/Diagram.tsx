@@ -1,3 +1,4 @@
+import { themeColor } from '../../theme/spaceTheme';
 import { useEffect, useId, useRef, useState } from 'react';
 
 type MermaidApi = (typeof import('mermaid'))['default'];
@@ -15,9 +16,9 @@ function loadMermaid(): Promise<MermaidApi> {
       themeVariables: {
         background: '#11110f',
         primaryColor: '#1a1a18',
-        primaryTextColor: '#f2efe8',
-        primaryBorderColor: '#c6f432',
-        lineColor: '#8f8b82',
+        primaryTextColor: themeColor('--lab-paper', '#f2efe8'),
+        primaryBorderColor: themeColor('--lab-accent', '#c6f432'),
+        lineColor: themeColor('--lab-muted', '#8f8b82'),
         secondaryColor: '#1a1a18',
         tertiaryColor: '#11110f',
         textColor: '#f2efe8',

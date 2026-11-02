@@ -1,0 +1,136 @@
+/*
+ * The space theme: the one place for the site's colours, type and glows.
+ *
+ * Everything on the dark site (the home, work, writing, research, contact, the chat dock and the voice
+ * orb) reads these tokens, so changing a value here changes the whole site at once. Vite reloads it as
+ * you save.
+ *
+ * Switch themes without editing: add ?theme=red-giant to any address (it is remembered), or run
+ * setTheme('blue-star') in the browser console. setTheme() with no name goes back to the default.
+ * Add a theme by copying a block below and giving it a new name; list it in THEMES in
+ * src/app/theme/spaceTheme.ts so the URL switch accepts it.
+ *
+ * Tokens
+ *   --lab-ink          page background          --lab-accent       the main colour: buttons, links, glows
+ *   --lab-paper        main text                --lab-accent-ink   text ON the accent. Always dark enough to read.
+ *   --lab-muted        quiet text               --lab-accent-rgb   the accent as "r g b", for glows and fades
+ *   --lab-line         hairlines and borders    --lab-hot          warm signal colour (End call, errors) and its -rgb
+ *   --lab-glass        a faint raised surface   --lab-cool         cool signal colour in the orb and its -rgb
+ *   --lab-glass-edge   its border               --lab-violet       third orb colour
+ *
+ * Rule: anything filled with the accent uses --lab-accent-ink for its text, never --lab-ink or white.
+ * The list of those surfaces is the .on-accent rule at the bottom of this file.
+ */
+
+:root {
+  /* Type */
+  --lab-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
+  --lab-serif: 'Instrument Serif', Georgia, serif;
+  --lab-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+
+  /* Black Hole: near-black with a lime accent, the original look. */
+  --lab-ink: #0b0b0a;
+  --lab-paper: #f2efe8;
+  --lab-muted: #8f8b82;
+  --lab-line: #2a2925;
+  --lab-accent: #c6f432;
+  --lab-accent-rgb: 198 244 50;
+  --lab-accent-ink: #0b0b0a;
+  --lab-hot: #ff5c50;
+  --lab-hot-rgb: 255 92 80;
+  --lab-cool: #3aa7ff;
+  --lab-cool-rgb: 58 167 255;
+  --lab-violet: #5b3cff;
+  --lab-glass: rgb(255 255 255 / 0.03);
+  --lab-glass-edge: rgb(255 255 255 / 0.12);
+}
+
+/* Red Giant: fiery red and ember orange. */
+:root[data-theme='red-giant'] {
+  --lab-ink: #0d0605;
+  --lab-paper: #f7ece7;
+  --lab-muted: #a08780;
+  --lab-line: #33201c;
+  --lab-accent: #ff4d2e;
+  --lab-accent-rgb: 255 77 46;
+  --lab-accent-ink: #1a0502;
+  --lab-hot: #ffb02e;
+  --lab-hot-rgb: 255 176 46;
+  --lab-cool: #ff7a45;
+  --lab-cool-rgb: 255 122 69;
+  --lab-violet: #b3261e;
+}
+
+/* Blue Star: a hot blue-white star, icy and sharp. */
+:root[data-theme='blue-star'] {
+  --lab-ink: #060a12;
+  --lab-paper: #eaf1fb;
+  --lab-muted: #8794ab;
+  --lab-line: #1c2638;
+  --lab-accent: #4da3ff;
+  --lab-accent-rgb: 77 163 255;
+  --lab-accent-ink: #04101f;
+  --lab-hot: #ff6b8a;
+  --lab-hot-rgb: 255 107 138;
+  --lab-cool: #6ae0ff;
+  --lab-cool-rgb: 106 224 255;
+  --lab-violet: #7a6cff;
+}
+
+/* Green Nebula: emerald gas and deep teal. */
+:root[data-theme='green-nebula'] {
+  --lab-ink: #060d0a;
+  --lab-paper: #e9f5ef;
+  --lab-muted: #86a193;
+  --lab-line: #1b2b24;
+  --lab-accent: #34e39b;
+  --lab-accent-rgb: 52 227 155;
+  --lab-accent-ink: #03180f;
+  --lab-hot: #ff7a59;
+  --lab-hot-rgb: 255 122 89;
+  --lab-cool: #3ad6e0;
+  --lab-cool-rgb: 58 214 224;
+  --lab-violet: #1f8f6a;
+}
+
+/* Pulsar: violet and magenta, a spinning neutron star. */
+:root[data-theme='pulsar'] {
+  --lab-ink: #09060f;
+  --lab-paper: #f1eaf9;
+  --lab-muted: #9a8bb0;
+  --lab-line: #261b36;
+  --lab-accent: #c77dff;
+  --lab-accent-rgb: 199 125 255;
+  --lab-accent-ink: #14051f;
+  --lab-hot: #ff5fa2;
+  --lab-hot-rgb: 255 95 162;
+  --lab-cool: #7aa2ff;
+  --lab-cool-rgb: 122 162 255;
+  --lab-violet: #8a3dff;
+}
+
+/* Supernova: gold and white heat. */
+:root[data-theme='supernova'] {
+  --lab-ink: #0c0a05;
+  --lab-paper: #f8f1e0;
+  --lab-muted: #a39878;
+  --lab-line: #332c18;
+  --lab-accent: #ffd23f;
+  --lab-accent-rgb: 255 210 63;
+  --lab-accent-ink: #1a1200;
+  --lab-hot: #ff6a3d;
+  --lab-hot-rgb: 255 106 61;
+  --lab-cool: #ffe9a8;
+  --lab-cool-rgb: 255 233 168;
+  --lab-violet: #d9902b;
+}
+
+/*
+ * Accent surfaces. Everything filled with --lab-accent carries the accent's ink, children included, and
+ * no generic link or button rule can override it. A new accent-filled control either gets the .on-accent
+ * class or is added to this list.
+ */
+:is(.on-accent, .lab-chip--solid, .lab-send, .cp-mini-send),
+:is(.on-accent, .lab-chip--solid, .lab-send, .cp-mini-send) * {
+  color: var(--lab-accent-ink) !important;
+}

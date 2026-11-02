@@ -161,7 +161,7 @@
 
 .article aside.rp-callout-key,
 .article aside.rp-callout-summary {
-  --callout: #c6f432;
+  --callout: var(--lab-accent);
 }
 
 .article hr {

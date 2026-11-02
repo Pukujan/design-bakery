@@ -1,3 +1,4 @@
+import { themeColor } from '../../theme/spaceTheme';
 import { useEffect, useRef, useState, type PointerEvent, type RefObject } from 'react';
 import { useReducedMotion } from 'motion/react';
 import { Mic, MicOff, PhoneOff } from 'lucide-react';
@@ -21,7 +22,7 @@ const WARM_UP_LINES = [
 const RETURN_AFTER_MS = 4000;
 const EDGE_MARGIN = 8;
 const STAR_COUNT = 90;
-const STAR_COLORS = ['#c6f35a', '#3aa7ff', '#ffffff', '#8f7bff'];
+const starColors = () => [themeColor('--lab-accent', '#c6f432'), themeColor('--lab-cool', '#3aa7ff'), '#ffffff', themeColor('--lab-violet', '#8f7bff')];
 const GATHER_MS = 2600;
 
 /**
@@ -137,6 +138,7 @@ function GatherStars({ anchor, onDone }: { anchor: RefObject<HTMLElement | null>
     const nx = -(ty - sy) / distance;
     const ny = (tx - sx) / distance;
 
+    const palette = starColors();
     const stars = Array.from({ length: STAR_COUNT }, () => {
       const bow = (Math.random() - 0.5) * distance * 0.6;
       return {
@@ -145,7 +147,7 @@ function GatherStars({ anchor, onDone }: { anchor: RefObject<HTMLElement | null>
         cx: mx + nx * bow,
         cy: my + ny * bow,
         radius: 0.8 + Math.random() * 1.8,
-        color: STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)],
+        color: palette[Math.floor(Math.random() * palette.length)],
       };
     });
 

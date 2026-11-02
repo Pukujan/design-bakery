@@ -4,18 +4,6 @@
 @import '@fontsource/instrument-serif/latin-400-italic.css';
 @import '@fontsource-variable/jetbrains-mono/index.css';
 
-.lab-root,
-.lab-chrome {
-  --lab-ink: #0b0b0a;
-  --lab-paper: #f2efe8;
-  --lab-muted: #8f8b82;
-  --lab-line: #2a2925;
-  --lab-accent: #c6f432;
-  --lab-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
-  --lab-serif: 'Instrument Serif', Georgia, serif;
-  --lab-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
-}
-
 /* The header on pages that are not the lab: tokens and type only, no page background. */
 .lab-chrome {
   font-family: var(--lab-display);
@@ -119,14 +107,6 @@
 }
 
 .lab-stage {
-  --lab-ink: #0b0b0a;
-  --lab-paper: #f2efe8;
-  --lab-muted: #8f8b82;
-  --lab-line: #2a2925;
-  --lab-accent: #c6f432;
-  --lab-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
-  --lab-serif: 'Instrument Serif', Georgia, serif;
-  --lab-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
   position: relative;
   min-height: 100vh;
   background: var(--lab-ink);
@@ -980,11 +960,7 @@ button.lab-chip--solid:hover {
   color: var(--lab-accent);
 }
 
-/* Lime-filled controls always carry dark text, in every state. Add a new lime control's class here. */
-:is(.lab-chip--solid, .lab-send, .cp-mini-send),
-:is(.lab-chip--solid, .lab-send, .cp-mini-send):is(:hover, :focus-visible, :active, :disabled) {
-  color: var(--lab-ink) !important;
-}
+/* Text on accent-filled controls: see the .on-accent rule in styles/space-theme.css. */
 
 /* The blog's cards and controls drop the heavy outlines and offset shadows inside the lab stage. */
 .lab-stage [class*="shadow-["] {
@@ -1054,7 +1030,7 @@ button.lab-chip--solid:hover {
 .lab-stage [class*="bg-yellow-"],
 .lab-stage [class*="bg-blue-"] {
   background-color: var(--lab-accent) !important;
-  color: var(--lab-ink) !important;
+  color: var(--lab-accent-ink) !important;
   border-color: var(--lab-accent) !important;
 }
 

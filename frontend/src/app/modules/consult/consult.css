@@ -1,4 +1,5 @@
-/* The contact page (/contact): a short guided flow, one question at a time. */
+/* The contact page (/contact): the home's editorial language, as a short guided flow. Flat, big condensed
+   type, numbered rows and hairlines. No cards, no fills, no glows; the accent is only a rule and a dot. */
 .consult {
   min-height: 100vh;
 }
@@ -34,50 +35,42 @@
   color: var(--lab-accent);
 }
 
-/* The flow: a quiet bordered surface, no dark fill, so the sky shows through. */
 .consult-flow {
-  max-width: 40rem;
+  max-width: 44rem;
   margin-top: clamp(2.5rem, 7vh, 4rem);
-  padding: 1.4rem;
-  border: 1px solid rgb(255 255 255 / 0.12);
-  border-radius: 22px;
-  background: rgb(255 255 255 / 0.03);
 }
 
+/* Progress: three hairlines, filled as the visitor moves on. */
 .consult-steps {
   display: flex;
-  gap: 0.4rem;
-  margin: 0 0 1.4rem;
+  gap: 0.5rem;
+  margin: 0 0 1.6rem;
   padding: 0;
   list-style: none;
 }
 
 .consult-steps li {
   flex: 1;
-  height: 3px;
-  border-radius: 999px;
-  background: rgb(255 255 255 / 0.14);
+  height: 1px;
+  background: rgb(255 255 255 / 0.18);
   transition: background 0.3s;
 }
 
 .consult-steps li.is-reached {
-  background: var(--lab-accent);
+  background: var(--lab-paper);
 }
 
 .consult-recap {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.9rem;
+  font-family: var(--lab-mono);
+  font-size: 0.78rem;
 }
 
 .consult-chip {
-  padding: 0.25rem 0.7rem;
-  border: 1px solid color-mix(in oklab, var(--lab-accent) 60%, transparent);
-  border-radius: 999px;
-  font-family: var(--lab-mono);
-  font-size: 0.75rem;
   color: var(--lab-accent);
 }
 
@@ -85,8 +78,7 @@
   padding: 0;
   border: 0;
   background: none;
-  font-family: var(--lab-mono);
-  font-size: 0.8rem;
+  font: inherit;
   color: var(--lab-muted);
   text-decoration: underline;
   text-underline-offset: 4px;
@@ -98,90 +90,99 @@
 }
 
 .consult-question {
-  margin: 0 0 1.2rem;
-  font-weight: 800;
-  font-stretch: 75%;
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  margin: 0 0 1.4rem;
+  font-family: var(--lab-mono);
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--lab-muted);
   outline: none;
 }
 
+/* The choices are numbered rows with hairlines, like the home's lists. */
 .consult-tiles {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-.consult-tiles--grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  counter-reset: tile;
+  border-top: 1px solid rgb(255 255 255 / 0.12);
 }
 
 .consult-tile {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 1rem 1.1rem;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 16px;
-  background: transparent;
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.2rem 1fr;
+  column-gap: 0.5rem;
+  align-items: baseline;
+  width: 100%;
+  padding: clamp(0.9rem, 2vh, 1.25rem) 0;
+  border: 0;
+  border-bottom: 1px solid rgb(255 255 255 / 0.12);
+  background: none;
   color: var(--lab-paper);
   font: inherit;
   text-align: left;
   text-decoration: none;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  counter-increment: tile;
+  transition: padding-left 0.3s, color 0.2s;
+}
+
+.consult-tile::before {
+  content: '0' counter(tile);
+  grid-row: 1 / span 2;
+  font-family: var(--lab-mono);
+  font-size: 0.8rem;
+  color: var(--lab-muted);
 }
 
 .consult-tile:hover:not(:disabled) {
-  border-color: var(--lab-accent);
-  transform: translateY(-2px);
+  padding-left: 0.6rem;
+}
+
+.consult-tile:hover:not(:disabled) .consult-tile-name,
+.consult-tile:focus-visible .consult-tile-name {
+  color: var(--lab-accent);
 }
 
 .consult-tile:focus-visible {
   outline: 2px solid var(--lab-accent);
-  outline-offset: 3px;
+  outline-offset: 4px;
 }
 
 .consult-tile:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .consult-tile-name {
+  grid-column: 2;
   font-family: var(--lab-display);
   font-weight: 700;
-  font-size: 1.25rem;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  font-stretch: 85%;
+  font-size: clamp(1.6rem, 4vw, 2.7rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--lab-paper);
+  transition: color 0.2s;
 }
 
 .consult-tile-hint {
-  font-size: 0.9rem;
+  grid-column: 2;
+  margin-top: 0.3rem;
+  font-size: 0.95rem;
   line-height: 1.35;
   color: var(--lab-muted);
 }
 
-/* The main action is lime with dark text, in every state. */
-.consult-tile--primary,
-.consult-tile--primary:hover {
-  background: var(--lab-accent);
-  border-color: var(--lab-accent);
-  color: var(--lab-ink);
-}
-
-.consult-tile--primary .consult-tile-hint {
-  color: rgb(11 11 10 / 0.72);
-}
-
-.consult-tile--primary:hover {
-  background: var(--lab-paper);
-  border-color: var(--lab-paper);
+/* The main action is the same row with the accent rule under it, the way the home underlines its main link. */
+.consult-tile--primary .consult-tile-name {
+  justify-self: start;
+  padding-bottom: 0.1rem;
+  border-bottom: 3px solid var(--lab-accent);
 }
 
 .consult-note {
-  margin: 1rem 0 0;
+  margin: 1.2rem 0 0;
   font-family: var(--lab-mono);
   font-size: 0.8rem;
   line-height: 1.5;
@@ -190,7 +191,7 @@
 
 .consult-field-label {
   display: block;
-  margin: 1.1rem 0 0.4rem;
+  margin: 1.6rem 0 0.4rem;
   font-family: var(--lab-mono);
   font-size: 0.78rem;
   color: var(--lab-muted);
@@ -198,18 +199,20 @@
 
 .consult-input {
   width: 100%;
-  padding: 0.8rem 1rem;
-  border: 1px solid rgb(255 255 255 / 0.18);
-  border-radius: 12px;
-  background: rgb(255 255 255 / 0.04);
+  min-height: 3rem;
+  padding: 0.5rem 0;
+  border: 0;
+  border-bottom: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 0;
+  background: transparent;
   color: var(--lab-paper);
-  font: 400 1.05rem/1.4 var(--lab-display);
+  font: 400 clamp(1.2rem, 2.4vw, 1.6rem)/1.35 var(--lab-display);
   outline: none;
 }
 
 .consult-input--area {
-  min-height: 7rem;
-  resize: vertical;
+  min-height: 5.5rem;
+  resize: none;
 }
 
 .consult-input::placeholder {
@@ -217,7 +220,7 @@
 }
 
 .consult-input:focus {
-  border-color: var(--lab-accent);
+  border-bottom-color: var(--lab-accent);
 }
 
 .consult-input:disabled {
@@ -228,28 +231,34 @@
   margin: 1rem 0 0;
   font-family: var(--lab-mono);
   font-size: 0.85rem;
-  color: #ff9b8a;
+  color: var(--lab-hot);
 }
 
 .consult-send {
-  margin-top: 1.4rem;
-  padding: 0.85rem 1.8rem;
+  display: inline-block;
+  margin-top: 1.6rem;
+  padding: 0 0 0.1rem;
   border: 0;
-  border-radius: 999px;
-  background: var(--lab-accent);
-  color: var(--lab-ink);
-  font: 700 1.05rem var(--lab-display);
+  border-bottom: 3px solid var(--lab-accent);
+  background: none;
+  color: var(--lab-paper);
+  font-family: var(--lab-display);
+  font-weight: 800;
+  font-stretch: 75%;
+  font-size: clamp(1.8rem, 5vw, 3.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: color 0.2s;
 }
 
 .consult-send:hover:not(:disabled) {
-  background: var(--lab-paper);
+  color: var(--lab-accent);
 }
 
 .consult-send:focus-visible {
-  outline: 2px solid var(--lab-paper);
-  outline-offset: 3px;
+  outline: 2px solid var(--lab-accent);
+  outline-offset: 4px;
 }
 
 .consult-send:disabled {
@@ -258,7 +267,7 @@
 }
 
 .consult-result {
-  padding: 1rem 1.1rem;
+  padding: 1rem 0 1rem 1.1rem;
   border-left: 3px solid var(--lab-accent);
   font-size: 1.05rem;
   line-height: 1.45;
@@ -311,23 +320,11 @@
   .consult-main {
     padding-top: 17rem;
   }
-
-  .consult-flow {
-    padding: 1.1rem;
-  }
-
-  .consult-tiles--grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .consult-tile,
   .consult-steps li {
     transition: none;
-  }
-
-  .consult-tile:hover:not(:disabled) {
-    transform: none;
   }
 }

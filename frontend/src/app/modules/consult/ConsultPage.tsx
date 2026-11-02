@@ -136,7 +136,7 @@ export function ConsultPage() {
               <h2 ref={headingRef} tabIndex={-1} className="consult-question">
                 What do you need help with?
               </h2>
-              <div className="consult-tiles consult-tiles--grid">
+              <div className="consult-tiles">
                 {AREAS.map((item) => (
                   <button key={item.name} type="button" className="consult-tile" onClick={() => choose(item.name)}>
                     <span className="consult-tile-name">{item.name}</span>

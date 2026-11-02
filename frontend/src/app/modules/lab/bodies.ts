@@ -1,3 +1,4 @@
+import { themeColor } from '../../theme/spaceTheme';
 import * as THREE from 'three';
 
 /**
@@ -7,9 +8,10 @@ import * as THREE from 'three';
  * lensed. The palette is the lab's: paper, one muted grey and the lime accent.
  */
 
-export const PAPER = new THREE.Color('#f2efe8');
-export const ACCENT = new THREE.Color('#c6f432');
-export const MUTED = new THREE.Color('#8f8b82');
+// The palette comes from the active space theme (styles/space-theme.css), read once as the sky is built.
+export const PAPER = new THREE.Color(themeColor('--lab-paper', '#f2efe8'));
+export const ACCENT = new THREE.Color(themeColor('--lab-accent', '#c6f432'));
+export const MUTED = new THREE.Color(themeColor('--lab-muted', '#8f8b82'));
 export const HORIZON_RADIUS = 1.05;
 
 export type Body = {
