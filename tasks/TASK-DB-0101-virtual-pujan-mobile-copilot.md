@@ -93,3 +93,26 @@ Implement the owner-authorized direction using the generated concepts and existi
 **Blocked/uncertain:** Gmail OAuth delivery configuration and adapter remain pending owner setup. Physical older-phone and real browser microphone checks are not claimed. CI, merge and production receipt pending.
 
 **Next:** Pass required CI, merge through GitHub auto-merge and verify Komodo production deployment.
+
+### 2026-11-02 15:59:32 UTC — codex
+
+<!-- continuity:checkpoint {"agent":"codex","blocked":["Gmail delivery adapter and credentials pending owner setup; physical-device and browser microphone verification unclaimed."],"changed":["none"],"completed":["Implemented the virtual Pujan interface and responsive reading/contact flows for visitors."],"decisions":["Owner approved full implementation including adaptive particles; Gmail API will be configured later."],"evidence":["Local lint, typechecks, builds, copilot and SEO checks passed; mobile mock verified consent then minimized navigation; Gmail remains intentionally disabled."],"next_action":"Pass required GitHub checks and auto-merge, then verify Komodo production deployment.","protocol_version":"0.1.0-draft","schema":"project-continuity.checkpoint.v1","task_id":"DB-0101","timestamp":"2026-11-02T15:59:32Z"} -->
+<!-- continuity:checkpoint-operation {"payload_sha256":"70255da45ee6854204952c6593dee16fd2c7bacec6d2a5625af99f71d3168d69","request_id":"db0101-20261102-virtual-pujan","schema":"project-continuity.checkpoint-operation.v1","task_id":"DB-0101"} -->
+
+Completed:
+- Implemented the virtual Pujan interface and responsive reading/contact flows for visitors.
+
+Evidence:
+- Local lint, typechecks, builds, copilot and SEO checks passed; mobile mock verified consent then minimized navigation; Gmail remains intentionally disabled.
+
+Decisions:
+- Owner approved full implementation including adaptive particles; Gmail API will be configured later.
+
+Changed:
+- none
+
+Blocked/uncertain:
+- Gmail delivery adapter and credentials pending owner setup; physical-device and browser microphone verification unclaimed.
+
+Next:
+- Pass required GitHub checks and auto-merge, then verify Komodo production deployment.
