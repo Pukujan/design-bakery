@@ -1,6 +1,8 @@
 import { useSyncExternalStore } from 'react';
 import { copilot, requestVoiceGrant } from './store';
 import type { LocalAudioTrack, Room } from 'livekit-client';
+import { noteActivity, preloadHold, startHold, startNudges, stopHold, stopNudges } from './holdAudio';
+import { pickOrigin, type SkyOrigin } from './skyOrigin';
 
 /** Who is talking right now, so the orb can show it. */
 export type Speaking = 'none' | 'user' | 'agent';
@@ -10,8 +12,12 @@ type VoiceState = {
   audioBlocked: boolean;
   speaking: Speaking;
   muted: boolean;
+  /** The pre-recorded line being spoken while the call connects, or ''. */
+  hold: string;
+  /** Where this call seems to come from, picked when it starts. */
+  origin: SkyOrigin | null;
 };
-let state: VoiceState = { status: 'idle', error: '', audioBlocked: false, speaking: 'none', muted: false };
+let state: VoiceState = { status: 'idle', error: '', audioBlocked: false, speaking: 'none', muted: false, hold: '', origin: null };
 
 /** A level meter on one audio stream: the visitor's mic or the agent's voice. */
 type Meter = { source: MediaStreamAudioSourceNode; analyser: AnalyserNode; samples: Float32Array<ArrayBuffer> };
@@ -26,6 +32,17 @@ let agentTimer: ReturnType<typeof setTimeout> | undefined;
 const audioElements = new Set<HTMLMediaElement>();
 const listeners = new Set<() => void>();
 const set = (patch: Partial<VoiceState>) => {
+  // Once the call is up, failed or over, the hold lines stop; they only belong to connecting.
+  if (patch.status && patch.status !== 'connecting') {
+    stopHold();
+    patch = { ...patch, hold: '' };
+  }
+  // A connected call that goes quiet is nudged with saved lines; they stop when the call ends or fails.
+  if (patch.status === 'connected' && state.status !== 'connected') {
+    startNudges((hold) => set({ hold }), () => state.muted);
+  } else if (patch.status === 'idle') {
+    stopNudges();
+  }
   state = { ...state, ...patch };
   listeners.forEach((listener) => listener());
 };
@@ -98,11 +115,13 @@ function close(error = '') {
   for (const audio of audioElements) audio.remove();
   audioElements.clear();
   detachMeters();
-  set({ status: 'idle', error, audioBlocked: false, speaking: 'none', muted: false });
+  set({ status: 'idle', error, audioBlocked: false, speaking: 'none', muted: false, origin: null });
 }
 
 export const voice = {
   stop: () => close(),
+  /** Fetch the hold lines ahead of the click so the first one starts at once. */
+  preload: () => preloadHold(),
   /** Mutes or unmutes the visitor's microphone on the call. */
   async toggleMute() {
     const track = microphone;
@@ -130,22 +149,33 @@ export const voice = {
     const controller = new AbortController();
     pending = controller;
     openContext();
-    set({ status: 'connecting', error: '', muted: false });
+    set({ status: 'connecting', error: '', muted: false, origin: pickOrigin() });
+    // Inside the click: the first hold line plays now, while the call connects behind it.
+    startHold((hold) => set({ hold }));
     try {
-      // Request permission only after the visitor explicitly starts a call.
+      // The grant is requested at once, in parallel with the microphone prompt, so neither waits for the other.
+      // Microphone permission is still only asked after the visitor explicitly starts a call.
+      const grantRequest = requestVoiceGrant(controller.signal);
+      void grantRequest.catch(() => undefined);
       const lk = await import('livekit-client');
-      const track = await lk.createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true, autoGainControl: true });
-      if (generation !== run) { track.stop(); return; }
+      const [mic, grantResult] = await Promise.allSettled([
+        lk.createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true, autoGainControl: true }),
+        grantRequest,
+      ]);
+      if (mic.status === 'fulfilled' && (generation !== run || grantResult.status === 'rejected')) mic.value.stop();
+      if (generation !== run) return;
+      if (mic.status === 'rejected') throw mic.reason;
+      if (grantResult.status === 'rejected') throw grantResult.reason;
+      const track = mic.value;
+      const grant = grantResult.value;
       microphone = track;
       attachMeter('user', track.mediaStreamTrack);
-      const grant = await requestVoiceGrant(controller.signal);
-      if (generation !== run) return;
       const call = new lk.Room({ adaptiveStream: false, dynacast: false });
       room = call;
       const isAgent = (identity: string) => call.remoteParticipants.get(identity)?.isAgent === true;
       call.registerRpcMethod('copilot.greet', async (data) => {
         if (!isAgent(data.callerIdentity)) throw new Error('Unrecognized voice participant');
-        return JSON.stringify({ say: "Hi, I'm the Design Baker assistant. Ask me about Pujan's work, writing, or research." });
+        return JSON.stringify({ say: "Hi, I'm AI Pujan. Ask me about my work, my writing, or my research." });
       });
       call.registerRpcMethod('copilot.turn', async (data) => {
         if (!isAgent(data.callerIdentity)) throw new Error('Unrecognized voice participant');
@@ -183,6 +213,7 @@ export const voice = {
       });
       call.on(lk.RoomEvent.ActiveSpeakersChanged, (speakers) => {
         if (generation !== run) return;
+        if (speakers.length) noteActivity();
         const agent = speakers.some((speaker) => speaker.isAgent && !speaker.isLocal);
         const user = speakers.some((speaker) => speaker.isLocal);
         set({ speaking: agent ? 'agent' : user ? 'user' : 'none' });

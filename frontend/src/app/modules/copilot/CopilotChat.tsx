@@ -250,11 +250,13 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
           <button
             type="button"
             className="cp-voice"
-            aria-label={voiceState.status === 'idle' ? 'Start voice call' : 'End voice call'}
+            aria-label={voiceState.status === 'idle' ? 'Talk to AI Pujan by voice' : 'End voice call'}
+            onPointerEnter={() => voice.preload()}
+            onFocus={() => voice.preload()}
             onClick={() => voiceState.status === 'idle' ? void voice.start() : voice.stop()}
           >
             {voiceState.status === 'idle' ? <Mic size={16} /> : <PhoneOff size={16} />}
-            <span>{voiceState.status === 'idle' ? 'Voice call' : 'End call'}</span>
+            <span>{voiceState.status === 'idle' ? 'AI Pujan' : 'End call'}</span>
           </button>
           {busy ? (
             <button type="button" className="lab-send" aria-label="Stop" onClick={() => copilot.stop()}>
