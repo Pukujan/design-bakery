@@ -1,7 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { copilot } from '../copilot/store';
 import { getAuthApiBaseUrl } from '../../lib/adminToken';
-import { FlowText } from '../lab/FlowText';
 import '../lab/lab.css';
 import './consult.css';
 
@@ -67,18 +66,18 @@ export function ConsultPage() {
   return (
     <div className="lab-root consult">
       <main className="consult-main">
-        <FlowText className="consult-intro" text="Free 30-minute video consultations">Free 30-minute video consultations</FlowText>
+        <span className="consult-intro">Free 30-minute video consultations</span>
         <h1 className="consult-title">
           <button type="button" className="consult-title-cta" onClick={() => document.getElementById('consult-area')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-            <FlowText as="span" text="Talk to me.">Talk to <em>me.</em></FlowText>
+            <span>Talk to <em>me.</em></span>
           </button>
         </h1>
 
         <section className="consult-section" aria-labelledby="consult-area">
           <h2 id="consult-area" className="consult-label">
-            <FlowText as="span" text="What is it about">
+            <span>
               What is it about
-            </FlowText>
+            </span>
           </h2>
           <ul className="consult-areas">
             {AREAS.map((item, index) => (
@@ -93,9 +92,9 @@ export function ConsultPage() {
                   }}
                 >
                   <span className="consult-index">0{index + 1}</span>
-                  <FlowText as="span" className="consult-area-name" text={item}>
+                  <span className="consult-area-name">
                     {item}
-                  </FlowText>
+                  </span>
                   <span className="consult-area-mark" aria-hidden="true" />
                 </button>
               </li>
@@ -135,14 +134,14 @@ export function ConsultPage() {
 
         <section className="consult-section consult-book-section" aria-labelledby="consult-book-label">
           <h2 id="consult-book-label" className="consult-label">
-            <FlowText as="span" text="Pick a time">
+            <span>
               Pick a time
-            </FlowText>
+            </span>
           </h2>
           <a className="consult-book" href={BOOKING_URL} target="_blank" rel="noopener noreferrer">
-            <FlowText as="span" text={bookLabel}>
+            <span>
               {bookLabel}
-            </FlowText>
+            </span>
             <span aria-hidden="true"> →</span>
           </a>
           <button type="button" className="consult-chat" onClick={bookFromChat}>
