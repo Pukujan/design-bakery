@@ -59,6 +59,8 @@ const CORNER_Y = 0.72;
 const CORNER_SCALE = 0.45;
 /** List pages: the body stays in place at this share of its size, so the flowing text is pushed around less. */
 const COMPACT_SCALE = 0.4;
+/** On the list pages the flowing text keeps only this share of the body's flow radius: just the middle of the star. */
+const COMPACT_FLOW = 0.45;
 /** How strongly the blog sky keeps zooming in. It was 0.45, which made the star rush at the reader. */
 const AMBIENT_ZOOM = 0.08;
 /** The pace of a switch between bodies. */
@@ -388,7 +390,9 @@ export function LabBackdrop({
       const obstacles: FlowObstacle[] = [];
       if (current.flowRadius) {
         const centre = current.group.getWorldPosition(new THREE.Vector3());
-        const edge = centre.clone().add(new THREE.Vector3(current.flowRadius * current.group.scale.x * (current.flowScale?.() ?? 1), 0, 0));
+        // On the list pages the text only bends right at the centre of the body, not around its whole reach.
+        const reach = compactRef.current ? COMPACT_FLOW : 1;
+        const edge = centre.clone().add(new THREE.Vector3(current.flowRadius * reach * current.group.scale.x * (current.flowScale?.() ?? 1), 0, 0));
         const c = toViewport(centre);
         const e = toViewport(edge);
         obstacles.push({ kind: 'disc', x: c.x, y: c.y, r: Math.abs(e.x - c.x) });
