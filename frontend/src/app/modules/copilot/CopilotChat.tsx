@@ -134,12 +134,6 @@ function AssistantMessage({ message }: { message: CopilotMessage }) {
           ))}
         </div>
       )}
-      {message.offline && <p className="lab-mono lab-msg-note">Instant answer · from the site index, live model unavailable</p>}
-      {!message.offline && !message.error && message.model && (
-        <p className="lab-mono lab-msg-note">
-          {message.model.startsWith('cache') ? 'Instant answer · no model call' : 'Live model answer'}
-        </p>
-      )}
     </div>
   );
 }
