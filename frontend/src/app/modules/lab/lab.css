@@ -49,8 +49,8 @@
 }
 
 @media (pointer: fine) {
-  .lab-root.lab-has-cursor,
-  .lab-root.lab-has-cursor a {
+  .lab-stage.lab-has-cursor,
+  .lab-stage.lab-has-cursor a {
     cursor: none;
   }
 }

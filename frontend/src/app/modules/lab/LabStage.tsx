@@ -1,7 +1,10 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useLocation, useOutlet } from 'react-router-dom';
+import Lenis from 'lenis';
+import 'lenis/dist/lenis.css';
 import { LabBackdrop, type BackdropVariant } from './LabBackdrop';
+import { LabCursor } from './LabCursor';
 import { LabBar } from './LabHeader';
 import { PortfolioProvider } from '../../portfolios/PortfolioContext';
 import './lab.css';
@@ -26,6 +29,16 @@ function isListPage(pathname: string): boolean {
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
 
+/** Smooth wheel scrolling on every page of the stage, not only the homepage; skipped for reduced motion. */
+function useLenis() {
+  const reduceMotion = useReducedMotion();
+  useEffect(() => {
+    if (reduceMotion) return;
+    const lenis = new Lenis({ autoRaf: true, anchors: true });
+    return () => lenis.destroy();
+  }, [reduceMotion]);
+}
+
 /**
  * The shared frame for the lab pages (/lab, /work/:slug, /contact). The black-hole backdrop and
  * the header stay mounted while the page changes, so moving between them only fades the content.
@@ -37,6 +50,9 @@ export function LabStage() {
   const list = isListPage(location.pathname);
   const outlet = useOutlet();
   const reduceMotion = useReducedMotion();
+  useLenis();
+  const [cursorActive, setCursorActive] = useState(false);
+  const handleCursorActive = useCallback((active: boolean) => setCursorActive(active), []);
 
   // The stage is always dark, so the dark variants of the paper figures and styles apply here.
   useEffect(() => {
@@ -48,7 +64,8 @@ export function LabStage() {
 
   return (
     <PortfolioProvider portfolioId="endtoend-engineer">
-    <div className="lab-stage">
+    <div className={`lab-stage${cursorActive ? ' lab-has-cursor' : ''}`}>
+      <LabCursor onActiveChange={handleCursorActive} />
       <LabBackdrop variant={variant} corner={reading} compact={list} />
       <LabBar />
       <AnimatePresence mode="wait" initial={false}>
