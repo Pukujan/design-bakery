@@ -53,6 +53,10 @@ const SWAP_QUIET_MS = 800;
 const STAGE_COOLDOWN_MS = 600;
 /** A gap this long between rendered frames is a stall (a freeze), not a frame. Slow frames below it still count. */
 const STALL_MS = 1000;
+/** Reading pages: where the body sits (fractions of the half view) and how large it is. */
+const CORNER_X = 0.8;
+const CORNER_Y = 0.72;
+const CORNER_SCALE = 0.45;
 /** The pace of a switch between bodies. */
 const FLIGHT_SPEED = 0.55;
 /** How far away the warp starts, in world units. */
@@ -154,10 +158,13 @@ function easeOut(t: number): number {
 }
 
 
-export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant }) {
+/** `corner` tucks the body into the bottom-right corner, smaller, so a reading page has the whole width. */
+export function LabBackdrop({ variant = 'hole', corner = false }: { variant?: BackdropVariant; corner?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const variantRef = useRef<BackdropVariant>(variant);
   variantRef.current = variant;
+  const cornerRef = useRef(corner);
+  cornerRef.current = corner;
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -295,6 +302,7 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
     observer.observe(container);
     resize();
 
+    let cornerK = cornerRef.current ? CORNER_SCALE : 1;
     let frame = 0;
     let last = performance.now();
     let visible = true;
@@ -436,11 +444,15 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
 
       const current = body as Body | null;
       if (!current) return;
+      // Ease toward the corner size, or jump there under reduced motion.
+      const cornerSize = cornerRef.current ? CORNER_SCALE : 1;
+      cornerK += (cornerSize - cornerK) * (reduceMotion ? 1 : 0.06);
       intro = reduceMotion ? 1 : Math.min(1, intro + delta * 1.4);
-      current.group.scale.setScalar(Math.max(0.001, easeOut(intro)));
+      current.group.scale.setScalar(Math.max(0.001, easeOut(intro)) * cornerK);
       current.update(clock.elapsed, delta, look);
 
       const spot = current.anchor(halfW, halfH, look.sx, look.sy);
+      if (cornerRef.current) spot.set(halfW * CORNER_X, -halfH * CORNER_Y, spot.z);
       if (!placed) {
         current.group.position.copy(spot);
         placed = true;
@@ -450,7 +462,7 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
         const arrive = easeOut(Math.min(1, Math.max(0, (turnProgress - 0.3) / 0.7)));
         const start = new THREE.Vector3(spot.x, spot.y, -WARP_DEPTH);
         current.group.position.lerpVectors(start, spot, arrive);
-        current.group.scale.setScalar(0.25 + 0.75 * arrive);
+        current.group.scale.setScalar((0.25 + 0.75 * arrive) * cornerK);
       } else {
         current.group.position.lerp(spot, reduceMotion ? 1 : 0.06);
       }
