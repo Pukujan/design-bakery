@@ -58,9 +58,7 @@ const CORNER_X = 0.8;
 const CORNER_Y = 0.72;
 const CORNER_SCALE = 0.45;
 /** List pages: the body stays in place at this share of its size, so the flowing text is pushed around less. */
-const COMPACT_SCALE = 0.5;
-/** TEMP local preview: ?star=0.35 overrides the list size. */
-const previewScale = () => Number(new URLSearchParams(window.location.search).get('star')) || COMPACT_SCALE;
+const COMPACT_SCALE = 0.4;
 /** How strongly the blog sky keeps zooming in. It was 0.45, which made the star rush at the reader. */
 const AMBIENT_ZOOM = 0.08;
 /** The pace of a switch between bodies. */
@@ -319,7 +317,7 @@ export function LabBackdrop({
     observer.observe(container);
     resize();
 
-    let cornerK = cornerRef.current ? CORNER_SCALE : compactRef.current ? previewScale() : 1;
+    let cornerK = cornerRef.current ? CORNER_SCALE : compactRef.current ? COMPACT_SCALE : 1;
     let frame = 0;
     let last = performance.now();
     let visible = true;
@@ -462,7 +460,7 @@ export function LabBackdrop({
       const current = body as Body | null;
       if (!current) return;
       // Ease toward the corner size, or jump there under reduced motion.
-      const cornerSize = cornerRef.current ? CORNER_SCALE : compactRef.current ? previewScale() : 1;
+      const cornerSize = cornerRef.current ? CORNER_SCALE : compactRef.current ? COMPACT_SCALE : 1;
       cornerK += (cornerSize - cornerK) * (reduceMotion ? 1 : 0.06);
       intro = reduceMotion ? 1 : Math.min(1, intro + delta * 1.4);
       current.group.scale.setScalar(Math.max(0.001, easeOut(intro)) * cornerK);

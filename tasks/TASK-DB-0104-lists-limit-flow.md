@@ -12,12 +12,14 @@ The owner found the writing (blog) list unusable: every title and excerpt flowed
 
 ## Done
 
-- Row titles and excerpts on `/blogs` and `/research` keep Pretext. The sky body on those two pages is drawn at 50% size (`compact` on `LabBackdrop`, `COMPACT_SCALE`), and the flow obstacle shrinks with it, so only the rows next to it move.
+- Row titles and excerpts on `/blogs` and `/research` keep Pretext. The sky body on those two pages is drawn at 40% size (`compact` on `LabBackdrop`, `COMPACT_SCALE`), and the flow obstacle shrinks with it, so only the rows next to it move.
 - First attempt (plain rows) was rejected by the owner and replaced.
 
 ## Checks
 
 - tsc passes. Local dev server: `/blogs` rows far from the body sit straight; the ones beside it flow round the smaller body.
+
+- The blog star no longer swings in and out: its depth is fixed (`GIANT_ZOOM`) and the constant sky zoom is cut to `AMBIENT_ZOOM = 0.08`.
 
 ## Tune
 
