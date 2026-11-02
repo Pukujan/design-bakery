@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { ArrowUp, ChevronDown, Mic, PhoneOff, Rocket, Square } from 'lucide-react';
+import { ArrowUp, Mic, PhoneOff, Square } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useProjectRecords } from '../../lib/portfolioDocs';
 import { PLACEHOLDER_QUESTIONS, SUGGESTIONS } from '../lab/copilotAnswers';
@@ -58,8 +58,8 @@ function ActionView({ action }: { action: CopilotAction }) {
   const projectBySlug = new Map(records.map((p) => [p.slug, p]));
   if (action.kind === 'navigate') {
     return (
-      <button type="button" className="lab-chip lab-chip--solid" onClick={() => copilot.confirmNavigation(action)}>
-        <Rocket size={14} aria-hidden="true" /> {action.label}
+      <button type="button" className="lab-chip lab-chip--solid" onClick={() => copilot.go(action.path)}>
+        {action.label} →
       </button>
     );
   }
@@ -107,50 +107,8 @@ function ActionView({ action }: { action: CopilotAction }) {
 
 function AssistantMessage({ message }: { message: CopilotMessage }) {
   const waiting = message.streaming && !message.text && message.steps.length === 0;
-  const reduceMotion = useReducedMotion();
-  const [visibleText, setVisibleText] = useState(message.streaming ? '' : message.text);
-  const visibleRef = useRef(message.streaming ? '' : message.text);
-  const messageRef = useRef<HTMLDivElement>(null);
-  const targetRef = useRef(message.text);
-  const timerRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    targetRef.current = message.text;
-    if (reduceMotion) {
-      visibleRef.current = message.text;
-      setVisibleText(message.text);
-      return;
-    }
-    if (!message.text.startsWith(visibleRef.current)) {
-      visibleRef.current = '';
-      setVisibleText('');
-    }
-    if (timerRef.current !== null || !message.text) return;
-    timerRef.current = window.setInterval(() => {
-      const target = targetRef.current;
-      const current = visibleRef.current;
-      if (current.length >= target.length) {
-        if (timerRef.current !== null) window.clearInterval(timerRef.current);
-        timerRef.current = null;
-        return;
-      }
-      const next = target.slice(0, Math.min(target.length, current.length + 3));
-      visibleRef.current = next;
-      setVisibleText(next);
-    }, 24);
-  }, [message.text, reduceMotion]);
-
-  useEffect(() => {
-    const thread = messageRef.current?.closest<HTMLElement>('.cp-thread');
-    if (thread && thread.scrollHeight - thread.scrollTop - thread.clientHeight < 120) thread.scrollTop = thread.scrollHeight;
-  }, [visibleText]);
-
-  useEffect(() => () => {
-    if (timerRef.current !== null) window.clearInterval(timerRef.current);
-  }, []);
-
   return (
-    <div ref={messageRef} className="lab-msg lab-msg--copilot">
+    <div className="lab-msg lab-msg--copilot">
       {waiting && (
         <div className="lab-typing" aria-label="Copilot is thinking">
           <span />
@@ -162,9 +120,8 @@ function AssistantMessage({ message }: { message: CopilotMessage }) {
         <p className="lab-mono lab-msg-step">{STEP_LABEL[message.steps.at(-1)!] ?? 'Working'}…</p>
       )}
       {message.text && (
-      <p className="lab-msg-text" style={{ whiteSpace: 'pre-wrap' }}>
-          <span className="cp-avatar-portal" aria-hidden="true"><span>DB</span></span>
-          {visibleText}
+        <p className="lab-msg-text" style={{ whiteSpace: 'pre-wrap' }}>
+          {message.text}
           {message.streaming && <span className="lab-caret" aria-hidden="true" />}
         </p>
       )}
@@ -190,7 +147,7 @@ function AssistantMessage({ message }: { message: CopilotMessage }) {
 }
 
 /** One conversation, shared by the hero and the dock through the copilot store. */
-export function CopilotChat({ variant }: { variant: 'hero' | 'dock' | 'mini' }) {
+export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
   const { messages, busy, draft } = useCopilot();
   const voiceState = useVoice();
   const location = useLocation();
@@ -201,12 +158,8 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' | 'mini' }) 
 
   useEffect(() => {
     const thread = threadRef.current;
-    if (thread) requestAnimationFrame(() => thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' }));
+    if (thread) thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
   }, [messages]);
-
-  useEffect(() => {
-    if (messages.length === 0) copilot.introduce();
-  }, []);
 
   const ask = (question: string) => {
     if (!question.trim() || busy) return;
@@ -233,7 +186,7 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' | 'mini' }) 
       {variant === 'dock' && (
         <div className="lab-copilot-status lab-mono">
           <span className="lab-live-dot" aria-hidden="true" />
-          Pujan · virtual studio
+          Copilot · knows my work, writing and research
           {messages.length > 0 && (
             <button type="button" className="cp-link" onClick={() => copilot.clear()}>
               New chat
@@ -262,25 +215,7 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' | 'mini' }) 
         </div>
       )}
 
-      {messages.length <= 1 && messages[0]?.role === 'assistant' && (
-        <div className="lab-suggestions cp-suggestions" aria-label="Suggested questions">
-          {SUGGESTIONS.map((suggestion, index) => (
-            <motion.button
-              key={suggestion}
-              type="button"
-              className="lab-chip"
-              onClick={() => ask(suggestion)}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.04, ease: EASE }}
-            >
-              {suggestion}
-            </motion.button>
-          ))}
-        </div>
-      )}
-
-      <form className="lab-composer cp-composer" onSubmit={submit}>
+      <form className="lab-composer" onSubmit={submit} onClick={() => inputRef.current?.focus()}>
         <label htmlFor={id} className="sr-only">
           Ask about my work
         </label>
@@ -302,19 +237,12 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' | 'mini' }) 
             type="button"
             className="cp-voice"
             aria-label={voiceState.status === 'idle' ? 'Start voice call' : 'End voice call'}
+            title={voiceState.status === 'idle' ? 'Start voice call' : 'End voice call'}
             onClick={() => voiceState.status === 'idle' ? void voice.start() : voice.stop()}
           >
-            <span className={`cp-call-orb${voiceState.status !== 'idle' ? ' is-active' : ''}`} aria-hidden="true">
-              {voiceState.status === 'idle' ? <Mic size={18} /> : <PhoneOff size={18} />}
-              <i /><i /><i />
-            </span>
+            {voiceState.status === 'idle' ? <Mic size={18} /> : <PhoneOff size={18} />}
             <span>{voiceState.status === 'idle' ? 'Call' : 'End call'}</span>
           </button>
-          {variant !== 'hero' && focused && (
-            <button type="button" className="cp-keyboard-dismiss" aria-label="Hide keyboard" onClick={() => inputRef.current?.blur()}>
-              <ChevronDown size={18} />
-            </button>
-          )}
           {busy ? (
             <button type="button" className="lab-send" aria-label="Stop" onClick={() => copilot.stop()}>
               <Square size={16} fill="currentColor" />
@@ -337,6 +265,23 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' | 'mini' }) 
         </button>
       )}
 
+      {messages.length === 0 && (
+        <div className="lab-suggestions">
+          {SUGGESTIONS.map((suggestion, index) => (
+            <motion.button
+              key={suggestion}
+              type="button"
+              className="lab-chip"
+              onClick={() => ask(suggestion)}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 + index * 0.08, ease: EASE }}
+            >
+              {suggestion}
+            </motion.button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { copilot } from './store';
 
 const CopilotDock = lazy(() => import('./CopilotDock'));
-const VoicePlanet = lazy(() => import('./VoicePlanet'));
 
 /**
  * Mounted once inside the router. It gives the store the router's navigate, so the
@@ -31,7 +30,6 @@ export function CopilotRoot() {
   return (
     <Suspense fallback={null}>
       <CopilotDock />
-      <VoicePlanet />
     </Suspense>
   );
 }

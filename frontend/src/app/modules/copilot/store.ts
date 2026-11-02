@@ -36,8 +36,6 @@ export type CopilotState = {
   busy: boolean;
   /** The dock's sidebar is open. */
   open: boolean;
-  minimized: boolean;
-  pendingNavigation: Extract<CopilotAction, { kind: 'navigate' }> | null;
   /** The hero chat is on screen, so the dock's pill stays hidden. */
   heroVisible: boolean;
   /** One draft shared by the homepage composer and the dock. */
@@ -65,7 +63,7 @@ function load(): CopilotMessage[] {
   }
 }
 
-let state: CopilotState = { messages: load(), busy: false, open: false, minimized: false, pendingNavigation: null, heroVisible: false, draft: '' };
+let state: CopilotState = { messages: load(), busy: false, open: false, heroVisible: false, draft: '' };
 let nextId = state.messages.reduce((max, m) => Math.max(max, m.id), 0) + 1;
 const listeners = new Set<() => void>();
 let abort: AbortController | null = null;
@@ -99,46 +97,20 @@ export const copilot = {
   setNavigate(fn: ((path: string) => void) | null) {
     navigateFn = fn;
   },
-  setOpen: (open: boolean) => set({ open, minimized: false }),
-  setMinimized: (minimized: boolean) => set({ minimized, open: false }),
-  introduce() {
-    if (state.messages.length) return;
-    const id = nextId++;
-    const text = "Hey, I’m virtual Pujan. Ask me about my work, research, or what you’re building.";
-    set({ messages: [{ id, role: 'assistant', text: '', steps: [], actions: [], streaming: true }] });
-    let length = 0;
-    const timer = window.setInterval(() => {
-      length = Math.min(text.length, length + 3);
-      patchMessage(id, () => ({ text: text.slice(0, length), streaming: length < text.length }));
-      if (length === text.length || state.busy || !state.messages.some(m => m.id === id)) {
-        window.clearInterval(timer);
-        patchMessage(id, () => ({ text, streaming: false }));
-      }
-    }, 30);
-  },
-  confirmNavigation(action = state.pendingNavigation) {
-    if (!action) return;
-    set({ pendingNavigation: null });
-    copilot.go(action.path);
-  },
-  declineNavigation() { set({ pendingNavigation: null }); },
+  setOpen: (open: boolean) => set({ open }),
   setDraft: (draft: string) => set({ draft }),
   setHeroVisible: (heroVisible: boolean) => {
     if (state.heroVisible !== heroVisible) set({ heroVisible });
   },
   clear() {
     abort?.abort();
-    set({ messages: [], busy: false, pendingNavigation: null });
-    this.introduce();
+    set({ messages: [], busy: false });
   },
   stop() {
     abort?.abort();
   },
   /** Scroll to a section, or change page with the app's router and then scroll. */
   go(path: string) {
-    (document.activeElement as HTMLElement | null)?.blur?.();
-    if (window.matchMedia('(max-width: 640px)').matches) set({ open: false, minimized: true });
-    else set({ open: true });
     const [pathname, hash] = path.split('#');
     const scroll = () => {
       if (!hash) return window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -165,19 +137,6 @@ export const copilot = {
   async send(text: string, page: { path: string; title: string }) {
     const question = text.trim().slice(0, 2000);
     if (!question || state.busy) return '';
-    const pending = state.pendingNavigation;
-    const consent = question.toLowerCase().replace(/[.!?]+$/g, '').trim();
-    if (pending && /^(yes|yeah|yep|sure|ok|okay|go ahead|please do|open it|do it|no|nope|not now|cancel|stay here)$/.test(consent)) {
-      const accepted = !/^(no|nope|not now|cancel|stay here)$/.test(consent);
-      const response = accepted ? `Opening ${pending.label.replace(/^open\s+/i, '')}.` : 'Of course. We can keep talking here.';
-      set({ pendingNavigation: null, messages: [...state.messages,
-        { id: nextId++, role: 'user', text: question, steps: [], actions: [], streaming: false },
-        { id: nextId++, role: 'assistant', text: response, steps: [], actions: [], streaming: false, model: 'cache:confirmation' },
-      ] });
-      if (accepted) copilot.go(pending.path);
-      return response;
-    }
-    if (pending) set({ pendingNavigation: null });
     const history = state.messages
       .filter((m) => !m.error && m.text)
       .slice(-MAX_HISTORY)
@@ -310,8 +269,11 @@ function handle(event: Event, replyId: number) {
     }));
   } else if (event.type === 'action') {
     patchMessage(replyId, (m) => ({ actions: [...m.actions, event.action] }));
-    // Tool actions suggest destinations; a click or spoken confirmation authorizes moving.
-    if (event.action.kind === 'navigate') set({ pendingNavigation: event.action });
+    // Moving the page is the point of a tour: do it as the model says it.
+    if (event.action.kind === 'navigate') {
+      if (window.matchMedia('(min-width: 821px)').matches) copilot.setOpen(true);
+      copilot.go(event.action.path);
+    }
   } else if (event.type === 'error') {
     patchMessage(replyId, (m) => ({ text: m.text || event.message, error: !m.text }));
   } else if (event.type === 'done') {
@@ -334,7 +296,5 @@ function answerOffline(question: string, replyId: number, status: number) {
   for (const action of reply.actions ?? []) {
     actions.push(action.kind === 'scroll' ? { kind: 'navigate', path: action.target.replace(/^#/, '/#'), label: action.label } : { kind: 'link', label: action.label, url: action.href });
   }
-  const destination = actions.find((action) => action.kind === 'navigate');
-  if (destination?.kind === 'navigate') set({ pendingNavigation: destination });
   patchMessage(replyId, () => ({ text: reply.text, actions, offline: true }));
 }
