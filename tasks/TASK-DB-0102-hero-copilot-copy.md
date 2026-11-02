@@ -24,9 +24,10 @@ The owner's review of the live hero: the intro was too long, the Call button loo
 - `pnpm run test:copilot-answers`: passes.
 - Local dev server, desktop and 375px: the intro, the rail and the Voice call pill render; "Consultation" returns the consultation answer.
 
+- Removed the hero consultation row (the "live consultation with my AI" typing button and the "Book a free consultation" link). Its components (`ConsultCta.tsx`, `consult-cta.css`) had no other users, so they are deleted; they are in git history.
+
 ## Not changed
 
-- The "live consultation with my AI" typing button and "Book a free consultation" button above the intro (`ConsultCta`).
 - The `not live` honesty label. It is gone from the intro; the copy now says "AI Pujan". Check this against the owner's #147 requirement that the site make clear it is virtual.
 
 ## Next step
