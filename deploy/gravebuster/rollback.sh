@@ -31,6 +31,7 @@ REPO_DIR=${DEPLOY_REPO_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}
 COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
 EDGE_OVERLAY="$SCRIPT_DIR/docker-compose.edge.yml"
 API_ENV_FILE="$SCRIPT_DIR/.env.api"
+ENV_FILE="$SCRIPT_DIR/.env"
 STATE_FILE=${DEPLOY_STATE_FILE:-$SCRIPT_DIR/.deploy-state}
 LOG_FILE=${DEPLOY_LOG_FILE:-$SCRIPT_DIR/deploy.log}
 # The lock is a DIRECTORY (see acquire_lock below) — macOS has no flock(1).
@@ -151,6 +152,19 @@ state_get() {
 	sed -n "s/^$1=//p" "$STATE_FILE" | tail -1
 }
 
+# Komodo's compose up (stack design-bakery-vps) reads the image tags from .env in this
+# folder, not from this script's variables, so record the live tags there after every swap.
+# An empty API tag keeps the one already recorded.
+write_tags() { # <web image> [api image]
+	local api=${2:-$(sed -n 's/^DESIGN_BAKERY_API_IMAGE=//p' "$ENV_FILE" 2>/dev/null | tail -1)}
+	local tmp="$ENV_FILE.tmp"
+	{
+		grep -v -E '^DESIGN_BAKERY_(API_)?IMAGE=' "$ENV_FILE" 2>/dev/null || true
+		echo "DESIGN_BAKERY_IMAGE=$1"
+		if [ -n "$api" ]; then echo "DESIGN_BAKERY_API_IMAGE=$api"; fi
+	} >"$tmp" && mv "$tmp" "$ENV_FILE"
+}
+
 state_write() {
 	local tmp="$STATE_FILE.tmp"
 	{
@@ -220,6 +234,7 @@ while [ "$SECONDS" -lt "$deadline" ]; do
 		else
 			state_write "$(state_get SHA)" "$TARGET_IMAGE" "$CURRENT_IMAGE" "$(state_get CURRENT_API_IMAGE)" "$(state_get PREVIOUS_API_IMAGE)"
 		fi
+		write_tags "$TARGET_IMAGE" "$([ "$WITH_API" = "1" ] && echo "$TARGET_API_IMAGE")"
 		log "rollback OK: now serving $TARGET_IMAGE"
 		log "re-deploy the newer build with: deploy/gravebuster/deploy.sh --no-pull --ref $(state_get SHA)"
 		exit 0
