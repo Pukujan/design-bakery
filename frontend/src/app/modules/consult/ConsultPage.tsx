@@ -85,9 +85,7 @@ export function ConsultPage() {
     <div className="lab-root consult">
       <main className="consult-main">
         <header className="consult-head">
-          <FlowText className="consult-intro" text="Free 30-minute video consultations">
-            Free 30-minute video consultations
-          </FlowText>
+          <p className="consult-intro">Free 30-minute video consultations</p>
           <h1 className="consult-title">
             <FlowText as="span" text="Talk to me.">
               Talk to <em>me.</em>
