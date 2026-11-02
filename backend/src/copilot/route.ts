@@ -22,6 +22,7 @@ import { siteBrief } from './knowledge.js';
 import { devProvider, pickProfile, routeFor, smartProviders, type Provider } from './providers.js';
 import { makeTools, type CopilotAction } from './tools.js';
 import { TurnTrace } from './tracing.js';
+import { takeDurableCopilotLimit } from './durableLimit.js';
 
 export type CopilotEvent =
   | { type: 'text'; text: string }
@@ -46,12 +47,13 @@ const SYSTEM = `You are the copilot on design-bakery.com, the portfolio of Pujan
 Visitors are often new: recruiters, founders, engineers. Help them understand who Pujan is, his work history, projects, research and writing, and move around the site.
 
 How to answer:
-- Speak about Pujan in the third person. Be warm, direct and specific. Two to five short sentences unless asked for depth.
+- Speak about Pujan in the third person. Be warm, direct and specific. Default to one or two short sentences, ideally under 50 words. For a summary give the main point and at most two supporting points, in under 70 words. Give more detail only when requested.
 - Only state facts from the site brief or your tools. If the site does not say, say so and suggest what it does cover. Never invent employers, dates, numbers or links.
 - Research papers marked pending are working papers awaiting his approval; say so when you cite one.
-- When you talk about something that has a page, take the visitor there with navigate while you answer. A tour is a few navigate steps with a sentence each, ending with an offer to go deeper.
+- Navigate when the visitor asks to open or see a page, or asks for a tour. For a tour use at most two navigation steps, with a short sentence for each, then offer to go deeper. Do not navigate just because you mention a page.
+- Use tools silently: don't announce that you are reading, searching, or about to answer. Avoid repeating a page title already shown on a link.
 - Use show_projects for "which projects" questions, share_link for LinkedIn, GitHub, email or a project's live link.
-- Pujan offers free 30-minute consultations in four areas: AI engineering, product design, marketing, and full-stack development. Say it is free when asked. When a visitor wants to talk to him, ask which area and what it is about, then call book_call. Never claim a time is booked; the visitor picks it on the card.
+- Pujan offers free 30-minute consultations. When a visitor asks how to contact him or wants a consultation, navigate to /contact and briefly say they can choose an area and a time there. Do not repeat the booking offer or list every link. If the visitor is already on /contact and specifically asks to book through chat, call book_call. Never claim a time is booked; the visitor picks it.
 - Plain text only, no markdown headings or tables. Short lists are fine.`;
 
 function chain(): Provider[] {
@@ -81,16 +83,39 @@ copilotRouter.post('/pass', async (req, res) => {
     return;
   }
   const token = typeof req.body?.token === 'string' ? req.body.token : '';
-  const issued = await issuePass(token, ip);
+  const proof = typeof req.body?.visitor === 'string' ? req.body.visitor.slice(0, 2048) : undefined;
+  const issued = await issuePass(token, ip, proof);
   if (!issued) {
     res.status(403).json({ ok: false, code: 'CHALLENGE_FAILED' });
     return;
   }
-  res.set('cache-control', 'no-store').json({ ok: true, pass: issued.pass });
+  res.set('cache-control', 'no-store').json({ ok: true, pass: issued.pass, visitor: issued.visitor });
 });
 
 copilotRouter.get('/health', (_req, res) => {
   res.set('cache-control', 'no-store').json({ ok: true, profile: pickProfile(), smart: healthReport(), dev: Boolean(devProvider()) });
+});
+
+// The voice service creates a room; the visitor's spoken turns are answered by
+// /chat, so it has the same published site knowledge and visitor limits.
+copilotRouter.post('/voice', async (req, res) => {
+  const session = await checkPass(req.get('x-copilot-pass'));
+  if (!session) { res.status(401).json({ ok: false, code: 'NO_PASS' }); return; }
+  if (!limiter.take(`voice:${session}`).ok || !limiter.take(`voice-ip:${ipOf(req)}`).ok) {
+    res.status(429).json({ ok: false, code: 'RATE_LIMITED' }); return;
+  }
+  try {
+    const response = await fetch('https://copilot.design-bakery.com/api/voice/token', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}',
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) throw new Error('voice service unavailable');
+    const grant = await response.json() as { url?: unknown; token?: unknown };
+    if (grant.url !== 'wss://copilot.design-bakery.com' || typeof grant.token !== 'string') throw new Error('invalid voice grant');
+    res.set('cache-control', 'no-store').json({ url: grant.url, token: grant.token });
+  } catch {
+    res.status(503).json({ ok: false, code: 'VOICE_UNAVAILABLE' });
+  }
 });
 
 copilotRouter.post('/chat', async (req, res) => {
@@ -110,6 +135,16 @@ copilotRouter.post('/chat', async (req, res) => {
   const bySession = byIp.ok ? limiter.take(`session:${session}`) : byIp;
   if (!bySession.ok) {
     res.status(429).set('retry-after', String(Math.ceil((bySession.retryAt - Date.now()) / 1000))).json({ ok: false, code: 'RATE_LIMITED' });
+    return;
+  }
+  try {
+    const limit = await takeDurableCopilotLimit(ip, session);
+    if (!limit.ok) {
+      res.status(429).set('retry-after', String(Math.max(1, Math.ceil((limit.retryAt - Date.now()) / 1000)))).json({ ok: false, code: 'RATE_LIMITED' });
+      return;
+    }
+  } catch {
+    res.status(503).json({ ok: false, code: 'LIMIT_UNAVAILABLE' });
     return;
   }
   const providers = chain();
@@ -150,17 +185,23 @@ copilotRouter.post('/chat', async (req, res) => {
       messages: history,
       tools: makeTools((action) => send({ type: 'action', action })),
       stopWhen: stepCountIs(6),
-      maxOutputTokens: 700,
+      maxOutputTokens: 320,
       abortSignal: abort.signal,
     });
+    let afterTool = false;
     for await (const part of result.fullStream) {
       if (part.type === 'text-delta') {
-        turn.output += part.text;
-        send({ type: 'text', text: part.text });
+        if (!part.text) continue;
+        const separator = afterTool && turn.output && !/\s$/.test(turn.output) && !/^\s/.test(part.text) ? '\n\n' : '';
+        const text = separator + part.text;
+        afterTool = false;
+        turn.output += text;
+        send({ type: 'text', text });
       } else if (part.type === 'tool-call') {
         turn.stepStart(part.toolCallId, part.toolName, part.input);
         send({ type: 'step', name: part.toolName, status: 'start' });
       } else if (part.type === 'tool-result') {
+        afterTool = true;
         turn.stepEnd(part.toolCallId, true, part.output);
         send({ type: 'step', name: part.toolName, status: 'done' });
       } else if (part.type === 'tool-error') {

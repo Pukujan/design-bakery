@@ -25,6 +25,8 @@ export type CopilotMessage = {
   streaming: boolean;
   /** Set when the answer came from the built-in index, not a model. */
   offline?: boolean;
+  /** The provider/model used for a completed live answer. */
+  model?: string;
   /** Set for an error line, so it is not sent back to the model as history. */
   error?: boolean;
 };
@@ -36,6 +38,8 @@ export type CopilotState = {
   open: boolean;
   /** The hero chat is on screen, so the dock's pill stays hidden. */
   heroVisible: boolean;
+  /** One draft shared by the homepage composer and the dock. */
+  draft: string;
 };
 
 type Event =
@@ -46,6 +50,7 @@ type Event =
   | { type: 'error'; message: string };
 
 const STORAGE_KEY = 'db-copilot-v1';
+const VISITOR_KEY = 'db-copilot-visitor-v1';
 const MAX_HISTORY = 20;
 
 function load(): CopilotMessage[] {
@@ -58,7 +63,7 @@ function load(): CopilotMessage[] {
   }
 }
 
-let state: CopilotState = { messages: load(), busy: false, open: false, heroVisible: false };
+let state: CopilotState = { messages: load(), busy: false, open: false, heroVisible: false, draft: '' };
 let nextId = state.messages.reduce((max, m) => Math.max(max, m.id), 0) + 1;
 const listeners = new Set<() => void>();
 let abort: AbortController | null = null;
@@ -93,6 +98,7 @@ export const copilot = {
     navigateFn = fn;
   },
   setOpen: (open: boolean) => set({ open }),
+  setDraft: (draft: string) => set({ draft }),
   setHeroVisible: (heroVisible: boolean) => {
     if (state.heroVisible !== heroVisible) set({ heroVisible });
   },
@@ -130,7 +136,7 @@ export const copilot = {
   },
   async send(text: string, page: { path: string; title: string }) {
     const question = text.trim().slice(0, 2000);
-    if (!question || state.busy) return;
+    if (!question || state.busy) return '';
     const history = state.messages
       .filter((m) => !m.error && m.text)
       .slice(-MAX_HISTORY)
@@ -152,13 +158,17 @@ export const copilot = {
       if (abort.signal.aborted) {
         patchMessage(replyId, (m) => ({ streaming: false, text: m.text || 'Stopped.' }));
       } else {
-        answerOffline(question, replyId, error instanceof ApiError ? error.status : 0);
+        const partial = state.messages.find((m) => m.id === replyId)?.text;
+        if (partial) patchMessage(replyId, (m) => ({ text: `${m.text}\n\nThe response was interrupted. Please try again.`, error: true }));
+        else answerOffline(question, replyId, error instanceof ApiError ? error.status : 0);
       }
     } finally {
       patchMessage(replyId, () => ({ streaming: false, steps: [] }));
       set({ busy: false });
       abort = null;
     }
+    const answer = state.messages.find((message) => message.id === replyId);
+    return answer?.error ? 'Sorry, the response was interrupted. Please try again.' : answer?.text ?? '';
   },
 };
 
@@ -170,18 +180,40 @@ class ApiError extends Error {
 
 const base = () => getAuthApiBaseUrl() ?? '';
 
-async function getPass(force = false): Promise<string> {
+async function getPass(force = false, signal?: AbortSignal): Promise<string> {
   if (!force && pass && Date.now() - pass.at < 100 * 60_000) return pass.value;
-  const config = (await (await fetch(`${base()}/api/copilot/config`)).json()) as { turnstileSiteKey: string | null };
-  const token = config.turnstileSiteKey ? await getTurnstileToken(config.turnstileSiteKey) : '';
+  const config = (await (await fetch(`${base()}/api/copilot/config`, { signal })).json()) as { turnstileSiteKey: string | null };
+  const token = config.turnstileSiteKey ? await getTurnstileToken(config.turnstileSiteKey, signal) : '';
+  let visitor: string | null = null;
+  try { visitor = localStorage.getItem(VISITOR_KEY); } catch { /* IP limits still apply when storage is blocked. */ }
   const res = await fetch(`${base()}/api/copilot/pass`, {
     method: 'POST',
+    signal,
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ token }),
+    body: JSON.stringify({ token, visitor }),
   });
   if (!res.ok) throw new ApiError(res.status);
-  pass = { value: ((await res.json()) as { pass: string }).pass, at: Date.now() };
+  const issued = (await res.json()) as { pass: string; visitor?: string };
+  if (issued.visitor) {
+    try { localStorage.setItem(VISITOR_KEY, issued.visitor); } catch { /* storage is optional */ }
+  }
+  pass = { value: issued.pass, at: Date.now() };
   return pass.value;
+}
+
+/** Obtain a short-lived room grant using the same visitor pass as text chat. */
+export async function requestVoiceGrant(signal?: AbortSignal): Promise<{ url: string; token: string }> {
+  const request = async () => fetch(`${base()}/api/copilot/voice`, {
+    method: 'POST', headers: { 'x-copilot-pass': await getPass(false, signal) },
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15_000)]) : AbortSignal.timeout(15_000),
+  });
+  let response = await request();
+  if (response.status === 401) {
+    pass = null;
+    response = await request();
+  }
+  if (!response.ok) throw new ApiError(response.status);
+  return response.json() as Promise<{ url: string; token: string }>;
 }
 
 async function stream(
@@ -194,7 +226,7 @@ async function stream(
   const res = await fetch(`${base()}/api/copilot/chat`, {
     method: 'POST',
     signal,
-    headers: { 'content-type': 'application/json', 'x-copilot-pass': await getPass() },
+    headers: { 'content-type': 'application/json', 'x-copilot-pass': await getPass(false, signal) },
     body: JSON.stringify({ messages, page }),
   });
   if (res.status === 401 && !retried) {
@@ -206,6 +238,7 @@ async function stream(
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
+  let completed = false;
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -214,9 +247,15 @@ async function stream(
     while ((newline = buffer.indexOf('\n')) >= 0) {
       const line = buffer.slice(0, newline).trim();
       buffer = buffer.slice(newline + 1);
-      if (line) handle(JSON.parse(line) as Event, replyId);
+      if (line) {
+        const event = JSON.parse(line) as Event;
+        if (event.type === 'error') throw new Error(event.message);
+        handle(event, replyId);
+        if (event.type === 'done') completed = true;
+      }
     }
   }
+  if (!completed) throw new Error('incomplete copilot stream');
 }
 
 function handle(event: Event, replyId: number) {
@@ -229,9 +268,14 @@ function handle(event: Event, replyId: number) {
   } else if (event.type === 'action') {
     patchMessage(replyId, (m) => ({ actions: [...m.actions, event.action] }));
     // Moving the page is the point of a tour: do it as the model says it.
-    if (event.action.kind === 'navigate') copilot.go(event.action.path);
+    if (event.action.kind === 'navigate') {
+      if (window.matchMedia('(min-width: 821px)').matches) copilot.setOpen(true);
+      copilot.go(event.action.path);
+    }
   } else if (event.type === 'error') {
     patchMessage(replyId, (m) => ({ text: m.text || event.message, error: !m.text }));
+  } else if (event.type === 'done') {
+    patchMessage(replyId, () => ({ model: event.model || 'live model' }));
   }
 }
 

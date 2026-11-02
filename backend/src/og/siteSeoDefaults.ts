@@ -11,4 +11,4 @@
 export const SITE_NAME = 'Design Baker';
 
 /** Default social preview image (1200×630-ish PNG in /public). */
-export const DEFAULT_OG_IMAGE_PATH = '/images/site-og.png';
+export const DEFAULT_OG_IMAGE_PATH = '/images/design-baker-social.png';

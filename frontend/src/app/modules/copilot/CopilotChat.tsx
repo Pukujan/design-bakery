@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { ArrowUp, Square } from 'lucide-react';
+import { ArrowUp, Mic, PhoneOff, Square } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useProjectRecords } from '../../lib/portfolioDocs';
 import { PLACEHOLDER_QUESTIONS, SUGGESTIONS } from '../lab/copilotAnswers';
 import { copilot, useCopilot, type CopilotAction, type CopilotMessage } from './store';
+import { useVoice, voice } from './voice';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
 
@@ -132,7 +133,10 @@ function AssistantMessage({ message }: { message: CopilotMessage }) {
         </div>
       )}
       {message.offline && (
-        <p className="lab-mono lab-msg-note">Answered from the site index; the live model is unavailable.</p>
+        <p className="lab-mono lab-msg-note">Answered from the site index; a live response was unavailable.</p>
+      )}
+      {!message.offline && !message.error && message.model && (
+        <p className="lab-mono lab-msg-note">Live AI · {message.model}</p>
       )}
     </div>
   );
@@ -140,9 +144,9 @@ function AssistantMessage({ message }: { message: CopilotMessage }) {
 
 /** One conversation, shared by the hero and the dock through the copilot store. */
 export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
-  const { messages, busy } = useCopilot();
+  const { messages, busy, draft } = useCopilot();
+  const voiceState = useVoice();
   const location = useLocation();
-  const [draft, setDraft] = useState('');
   const [focused, setFocused] = useState(false);
   const threadRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -155,7 +159,7 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
 
   const ask = (question: string) => {
     if (!question.trim() || busy) return;
-    setDraft('');
+    copilot.setDraft('');
     void copilot.send(question, { path: location.pathname, title: document.title });
   };
 
@@ -218,13 +222,23 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
           value={draft}
           maxLength={2000}
           placeholder={messages.length ? 'Ask a follow-up…' : placeholder}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => copilot.setDraft(event.target.value)}
           onKeyDown={onKeyDown}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           autoComplete="off"
         />
         <div className="lab-composer-actions">
+          <button
+            type="button"
+            className="cp-voice"
+            aria-label={voiceState.status === 'idle' ? 'Start voice call' : 'End voice call'}
+            title={voiceState.status === 'idle' ? 'Start voice call' : 'End voice call'}
+            onClick={() => voiceState.status === 'idle' ? void voice.start() : voice.stop()}
+          >
+            {voiceState.status === 'idle' ? <Mic size={18} /> : <PhoneOff size={18} />}
+            <span>{voiceState.status === 'idle' ? 'Call' : 'End call'}</span>
+          </button>
           {busy ? (
             <button type="button" className="lab-send" aria-label="Stop" onClick={() => copilot.stop()}>
               <Square size={16} fill="currentColor" />
@@ -236,6 +250,16 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
           )}
         </div>
       </form>
+      {(voiceState.status !== 'idle' || voiceState.error) && (
+        <p className="lab-mono lab-msg-note" role="status">
+          {voiceState.error || (voiceState.status === 'connecting' ? 'Connecting voice…' : 'Voice call connected')}
+        </p>
+      )}
+      {voiceState.audioBlocked && (
+        <button type="button" className="lab-chip" onClick={() => void voice.enableAudio()}>
+          Enable call audio
+        </button>
+      )}
 
       {messages.length === 0 && (
         <div className="lab-suggestions">

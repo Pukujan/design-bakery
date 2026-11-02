@@ -120,11 +120,7 @@ async function main() {
   const today = new Date().toISOString().slice(0, 10);
   const staticPaths = [
     '/',
-    '/#about',
-    '/#projects',
-    '/#contact',
     '/blogs',
-    '/endtoend-engineer/blogs',
     '/endtoend-engineer',
     '/case-studies/ekagajpatra',
     '/case-studies/invest-ai',
@@ -153,13 +149,12 @@ async function main() {
   const entries = [];
 
   for (const pathname of staticPaths) {
-    entries.push(urlEntry(`${SITE_ORIGIN}${pathname}`, today));
+    entries.push(urlEntry(`${SITE_ORIGIN}${pathname}`));
   }
 
   for (const id of blogIds) {
     const row = blogRows.find((item) => resolveNumericId(item) === id);
     const lastmod = row ? blogLastmod(row) : undefined;
-    entries.push(urlEntry(`${SITE_ORIGIN}/endtoend-engineer/blogs/${id}`, lastmod ?? today));
     entries.push(urlEntry(`${SITE_ORIGIN}/blogs/${id}`, lastmod ?? today));
   }
 

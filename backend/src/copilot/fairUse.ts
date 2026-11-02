@@ -17,8 +17,10 @@ const num = (value: string | undefined, fallback: number) => {
 };
 
 export const limitConfigFromEnv = (env = process.env): LimitConfig => ({
-  windowMax: num(env.COPILOT_RATE_MAX, 30),
-  windowMs: num(env.COPILOT_RATE_WINDOW_MIN, 60) * 60_000,
+  // The durable limiter enforces the rolling multi-day limits; this guard also
+  // caps memory growth and retains the short burst protection.
+  windowMax: num(env.COPILOT_RATE_MAX, 200),
+  windowMs: num(env.COPILOT_RATE_WINDOW_MIN, 4 * 24 * 60) * 60_000,
   burstMax: num(env.COPILOT_BURST_MAX, 4),
   burstMs: 20_000,
 });

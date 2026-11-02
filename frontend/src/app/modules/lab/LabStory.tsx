@@ -34,8 +34,8 @@ export function LabAbout() {
         <ul className="story-focus" role="list">
           {highlights.map((item) => (
             <li key={item.title}>
-              <span className="story-focus-title">{item.title}</span>
-              <span className="story-focus-desc">{item.desc}</span>
+              <FlowText as="span" className="story-focus-title" text={item.title}>{item.title}</FlowText>
+              <FlowText as="span" className="story-focus-desc" text={item.desc}>{item.desc}</FlowText>
             </li>
           ))}
         </ul>

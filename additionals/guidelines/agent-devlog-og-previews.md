@@ -4,7 +4,7 @@
 |-------|-------|
 | **Document date** | 2026-10-07 |
 | **Created** | 2026-10-07 |
-| **Last updated** | 2026-10-07 |
+| **Last updated** | 2026-11-02 |
 
 **For Cursor agents.** Read before touching the link-preview router, the Caddyfile's
 `@ogPreview` / `handle_errors` blocks, the `ogPreviewRouter` mount in `server.ts`, or
@@ -14,6 +14,7 @@ either copy of `blogSocialMeta.ts`.
 
 | Date | Notes |
 |------|--------|
+| 2026-11-02 | Default social image moved to `/images/design-baker-social.png` to give the current branding a fresh preview URL; retain the old asset for existing links. |
 | 2026-10-07 | Created. Replaces the Vercel Edge middleware (`middleware.ts`, deleted) with a router in the `api` container behind Caddy (TASK-DB-0077, issue #80 Step E). |
 
 ---

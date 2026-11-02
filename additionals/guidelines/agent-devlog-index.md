@@ -38,6 +38,7 @@ Filenames are ISO dates (`dev-log-YYYY-MM-DD.md`). Each file has a **Created** /
 
 | Date | Log |
 |------|-----|
+| 2026-11-02 | [dev-log-2026-11-02.md](dev-log-2026-11-02.md) — local SEO, favicon and chat contrast fixes; Komodo cutover investigation |
 | 2026-10-13 | [dev-log-2026-10-13.md](dev-log-2026-10-13.md) - TASK-DB-0088: the `/version-2` intro blooms once on load (2.5 s cross-fade of two real-alpha bloom plates, then ambient sway) and the Work section is a layered photographic parallax with per-card glass-card emphasis; the procedural `SakuraTree.tsx` is deleted; all four runs through ABA's runner in iterate mode, merged ([#123](https://github.com/Pukujan/design-bakery/pull/123), `b9e9b60`), auto-deployed on the Mac, 18/18 live checks |
 | 2026-10-12 | [dev-log-2026-10-12.md](dev-log-2026-10-12.md) - the TASK-DB-0084 homepage promotion (cinematic journey to `/`, shell to `/shell/index.html`) is reverted by TASK-DB-0085: `/` is the site shell again and the journey is back at `/version-2` as an additive page, keeping all of #113's design work; the Mac gains a launchd auto-deploy agent (TASK-DB-0086) so a merge to `main` deploys itself within ~5 minutes |
 | 2026-10-11 | [dev-log-2026-10-11.md](dev-log-2026-10-11.md) - design-bakery.com hosted on the MacBook Pro while gravebuster is offline (TASK-DB-0082); the deploy kit made macOS-portable (no `flock(1)`, Docker off the non-interactive SSH PATH) |

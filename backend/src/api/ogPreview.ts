@@ -29,6 +29,7 @@ import {
 import {
   buildBlogListShareHtml,
   buildBlogShareHtml,
+  canonicalBlogUrl,
   fetchSpaIndexHtml,
   injectSocialMetaIntoHtmlHead,
   resolveShareMeta,
@@ -39,6 +40,7 @@ import {
 } from '../og/blogShareHtml.js';
 import { resolveCaseStudyShareMeta } from '../og/caseStudyShareMeta.js';
 import { isLinkPreviewCrawler } from '../og/linkPreviewCrawlers.js';
+import { DEFAULT_OG_IMAGE_PATH } from '../og/siteSeoDefaults.js';
 
 const PORTFOLIO_PREFIX =
   '(?:endtoend-engineer|legal-workflow-engineer|ai-engineer|forward-deployed-engineer)';
@@ -169,13 +171,16 @@ function blogPathPrefix(pathname: string): string {
 async function handleBlogList(req: Request, res: Response): Promise<void> {
   const pathname = req.path;
   const site = siteOrigin();
-  const canonicalUrl = `${site}${pathname}`;
+  const canonicalUrl = canonicalBlogUrl(site);
+  const ogImage = `${site}${DEFAULT_OG_IMAGE_PATH}`;
 
   if (
     await serveShell(res, {
       pageTitle: `Engineering Blog | ${SITE_NAME}`,
       description: BLOG_LIST_DESCRIPTION,
       canonicalUrl,
+      ogImage,
+      imageAlt: `${SITE_NAME} engineering blog`,
       ogType: 'website',
       siteName: SITE_NAME,
     })
@@ -203,6 +208,7 @@ async function handleBlogList(req: Request, res: Response): Promise<void> {
     buildBlogListShareHtml({
       pageTitle: `Engineering Blog | ${SITE_NAME}`,
       canonicalUrl,
+      ogImage,
       description: BLOG_LIST_DESCRIPTION,
       posts: items,
     }),
@@ -215,9 +221,8 @@ async function handleBlogDetail(
   res: Response,
   numericId: number,
 ): Promise<void> {
-  const pathname = req.path;
   const site = siteOrigin();
-  const canonicalUrl = `${site}${pathname}`;
+  const canonicalUrl = canonicalBlogUrl(site, numericId);
   const blog = await loadPublishedBlog(numericId);
 
   if (blog) {

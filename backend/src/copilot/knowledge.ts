@@ -27,8 +27,8 @@ export const SITE_PAGES = [
   { path: '/', label: 'Home' },
   { path: '/#about', label: 'About' },
   { path: '/#experience', label: 'Work history' },
-  { path: '/#projects', label: 'Projects' },
-  { path: '/#contact', label: 'Contact' },
+  { path: '/#work', label: 'Projects' },
+  { path: '/contact', label: 'Contact' },
   { path: '/blogs', label: 'Blog' },
   { path: '/research', label: 'Research' },
 ] as const;
@@ -116,8 +116,12 @@ export const loadProjects = () => json<Project[]>('projects.json');
 export async function loadPapers(): Promise<Paper[]> {
   return cached(path.join(RESEARCH, 'data/researchPapers.ts'), (text) => {
     const papers: Paper[] = [];
-    const blocks = text.split(/\nconst PAPER_\d+: ResearchPaper = \{/).slice(1);
-    for (const block of blocks) {
+    const publicList = /export const RESEARCH_PAPERS:\s*ResearchPaper\[\]\s*=\s*\[([\s\S]*?)\];/.exec(text)?.[1] ?? '';
+    const publicNames = new Set(publicList.match(/\bPAPER_\d+\b/g) ?? []);
+    const blocks = text.split(/\nconst (PAPER_\d+): ResearchPaper = \{/).slice(1);
+    for (let i = 0; i < blocks.length; i += 2) {
+      if (!publicNames.has(blocks[i])) continue;
+      const block = blocks[i + 1];
       const str = (key: string) => {
         const m = new RegExp(`\\n  ${key}:\\s*'((?:[^'\\\\]|\\\\.)*)'`).exec(block);
         return m ? m[1].replace(/\\'/g, "'") : '';
@@ -132,6 +136,8 @@ export async function loadPapers(): Promise<Paper[]> {
 /** One paper's markdown body, by id (db-r-YYYY-NNN). */
 export async function readPaper(id: string): Promise<string | null> {
   if (!/^db-r-\d{4}-\d{3}$/.test(id)) return null;
+  // The directory can contain drafts that are not listed on the public site.
+  if (!(await loadPapers()).some((paper) => paper.id === id)) return null;
   const names = await readdir(path.join(RESEARCH, 'content'));
   if (!names.includes(`${id}.md`)) return null;
   return readFile(path.join(RESEARCH, 'content', `${id}.md`), 'utf8');
