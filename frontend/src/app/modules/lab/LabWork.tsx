@@ -18,7 +18,6 @@ const PROJECT_MEDIA: Record<number, string> = {
   6: 'fossil',
   2: 'oni-architecture',
   3: 'ekagajpatra',
-  4: 'saas-dashboards',
   5: 'legal-workflow-research',
   8: 'fluffy-v4',
   9: 'eval-lab',

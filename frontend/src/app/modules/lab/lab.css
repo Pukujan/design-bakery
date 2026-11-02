@@ -4,7 +4,8 @@
 @import '@fontsource/instrument-serif/latin-400-italic.css';
 @import '@fontsource-variable/jetbrains-mono/index.css';
 
-.lab-root {
+.lab-root,
+.lab-chrome {
   --lab-ink: #0b0b0a;
   --lab-paper: #f2efe8;
   --lab-muted: #8f8b82;
@@ -13,7 +14,16 @@
   --lab-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
   --lab-serif: 'Instrument Serif', Georgia, serif;
   --lab-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+}
 
+/* The header on pages that are not the lab: tokens and type only, no page background. */
+.lab-chrome {
+  font-family: var(--lab-display);
+  color: var(--lab-paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+.lab-root {
   min-height: 100vh;
   background: var(--lab-ink);
   color: var(--lab-paper);
@@ -27,7 +37,8 @@
   color: var(--lab-ink);
 }
 
-.lab-root a {
+.lab-root a,
+.lab-chrome a {
   color: inherit;
   text-decoration: none;
 }
@@ -92,10 +103,48 @@
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: clamp(1.5rem, 3vw, 2.5rem);
   padding: 6.5rem clamp(1rem, 3vw, 2.5rem) 2.5rem;
   isolation: isolate;
+}
+
+.lab-stage {
+  --lab-ink: #0b0b0a;
+  --lab-paper: #f2efe8;
+  --lab-muted: #8f8b82;
+  --lab-line: #2a2925;
+  --lab-accent: #c6f432;
+  position: relative;
+  min-height: 100vh;
+  background: var(--lab-ink);
+  color: var(--lab-paper);
+  font-family: var(--lab-display);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The black-hole backdrop: fixed behind the whole stage, so it survives route changes. */
+.lab-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.lab-stage-page {
+  position: relative;
+  z-index: 1;
+}
+
+/* Pages inside the stage draw on the stage's background, not their own. */
+.lab-stage .lab-root {
+  background: transparent;
+}
+
+.lab-backdrop canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .lab-hero-glow {
@@ -134,9 +183,9 @@
   margin: 0;
   font-weight: 800;
   font-stretch: 75%;
-  font-size: clamp(3rem, 21.4vw, 26rem);
-  line-height: 0.82;
-  letter-spacing: -0.05em;
+  font-size: clamp(2.4rem, 6.4vw, 5.6rem);
+  line-height: 0.95;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -168,17 +217,33 @@
 }
 
 .lab-hero-body {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  align-items: end;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
 }
 
-@media (min-width: 960px) {
-  .lab-hero-body {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-    gap: clamp(2rem, 5vw, 5rem);
-  }
+.lab-hero-body > *,
+.lab-hero-chat > * {
+  min-width: 0;
+}
+
+.lab-hero-headline {
+  margin: 0;
+  font-weight: 800;
+  font-stretch: 75%;
+  font-size: clamp(3rem, 8vw, 8rem);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+}
+
+.lab-hero-headline em {
+  font-family: var(--lab-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--lab-accent);
 }
 
 .lab-hero-kicker {
@@ -187,8 +252,8 @@
 }
 
 .lab-hero-lede {
-  margin: 0;
-  max-width: 30ch;
+  margin: 1rem 0 0;
+  max-width: 44ch;
   font-size: clamp(1.25rem, 2.1vw, 1.85rem);
   font-weight: 500;
   line-height: 1.18;
@@ -244,8 +309,10 @@
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
-  max-height: min(42vh, 420px);
+  max-height: clamp(14rem, 38vh, 26rem);
   overflow-y: auto;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
   padding: 0.25rem 0.25rem 0.5rem;
   scrollbar-width: thin;
 }
@@ -428,8 +495,21 @@
 
 .lab-suggestions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.5rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding-bottom: 0.25rem;
+}
+
+.lab-suggestions > * {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.lab-suggestions::-webkit-scrollbar {
+  display: none;
 }
 
 .lab-chip {
@@ -680,25 +760,73 @@ button.lab-chip--solid:hover {
   }
 }
 
+.lab-hero-chat {
+  width: 100%;
+  max-width: 60rem;
+}
+
+.lab-hero-roles {
+  margin: 0.9rem 0 0;
+  color: var(--lab-muted);
+}
+
+/* Lenis sets overscroll-behavior: contain on every data-lenis-prevent element, which stops a
+   scroll at the end of the chat. Let it pass on to the page here. */
+.lab-root .lab-copilot .lab-thread {
+  overscroll-behavior-y: auto;
+}
+
+.lab-scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(0.9rem, 3vh, 1.6rem);
+  transform: translateX(-50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  color: var(--lab-muted);
+  transition: color 0.2s;
+}
+
+.lab-scroll-hint:hover {
+  color: var(--lab-accent);
+}
+
+.lab-scroll-hint span {
+  display: inline-block;
+  animation: lab-nudge 1.6s ease-in-out infinite;
+}
+
+@keyframes lab-nudge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-scroll-hint span {
+    animation: none;
+  }
+}
+
 /* Desktop: the hero is exactly one screen. The title sits on top, the chat on
    the bottom, and a growing thread fills the gap instead of pushing the page. */
 @media (min-width: 960px) and (min-height: 640px) {
   .lab-hero {
     height: 100svh;
     min-height: 0;
-    justify-content: space-between;
+    justify-content: flex-start;
     overflow-anchor: none;
   }
   .lab-hero-title {
     margin-top: 0.5rem;
   }
   .lab-hero-body {
-    flex: 1 1 auto;
-    min-height: 0;
-    align-items: stretch;
+    align-items: center;
   }
   .lab-hero-intro {
-    align-self: end;
+    align-self: start;
   }
   .lab-hero-chat {
     display: flex;
@@ -711,7 +839,7 @@ button.lab-chip--solid:hover {
     max-height: 100%;
   }
   .lab-thread {
-    max-height: none;
+    max-height: clamp(14rem, 38vh, 26rem);
     flex: 0 1 auto;
     min-height: 0;
   }

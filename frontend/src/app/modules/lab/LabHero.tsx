@@ -1,6 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
-import hero from '../../portfolios/endtoend-engineer/engineering/hero.json';
 import { LabCopilot } from './LabCopilot';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
@@ -36,7 +35,6 @@ export function LabHero() {
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end start'] });
   const titleY = useTransform(scrollYProgress, [0, 1], ['0%', '-35%']);
-  const metaItems = hero.badge.split('·').map((item) => item.trim());
 
   return (
     <section ref={sectionRef} className="lab-hero" aria-labelledby="lab-hero-title">
@@ -69,24 +67,9 @@ export function LabHero() {
         </span>
       </motion.h1>
 
-      <div className="lab-hero-body">
-        <motion.div
-          className="lab-hero-intro"
-          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.7, ease: EASE }}
-        >
-          <p className="lab-hero-lede">
-            I build AI systems for <em>document-heavy</em> work: retrieval, evals, agents, and the
-            product around them. Don’t scroll. <em>Ask.</em>
-          </p>
-          <ul className="lab-hero-meta lab-mono" role="list">
-            {metaItems.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </motion.div>
+      <p className="lab-hero-roles lab-mono">AI/ML engineer · Product engineer · Design engineer</p>
 
+      <div className="lab-hero-body">
         <motion.div
           className="lab-hero-chat"
           initial={reduceMotion ? false : { opacity: 0, y: 40, scale: 0.98 }}
@@ -96,6 +79,10 @@ export function LabHero() {
           <LabCopilot />
         </motion.div>
       </div>
+
+      <a href="#work" className="lab-scroll-hint lab-mono" data-cursor="Work">
+        Scroll for selected work <span aria-hidden="true">↓</span>
+      </a>
     </section>
   );
 }

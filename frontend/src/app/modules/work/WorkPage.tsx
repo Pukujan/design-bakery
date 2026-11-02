@@ -52,15 +52,6 @@ export function WorkPage() {
         canonicalPath={`/work/${project.slug}`}
       />
 
-      <header className="lab-bar">
-        <Link to="/lab" className="lab-logo" aria-label="Design Baker, home">
-          D<span className="lab-logo-glyph">B</span>
-        </Link>
-        <nav className="lab-nav lab-mono" aria-label="Project">
-          <Link to="/lab#work">All work</Link>
-          <Link to="/blogs">Writing</Link>
-        </nav>
-      </header>
 
       <main>
         <section ref={heroRef} className="work-hero">

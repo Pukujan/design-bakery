@@ -91,7 +91,6 @@ assert.deepEqual(
     'Orbitgraph',
     'Fluffy V4',
     'Voidfeed',
-    'SaaS Dashboard Systems',
   ],
   'All should lead with Website Copilot, then the named leads, then shipped and systems',
 );
@@ -103,7 +102,6 @@ assert.deepEqual(
   orderProjectsForShowcase(projects, 'systems').map((project) => project.title),
   ['Agent Custom Setup', 'Cortex', 'Project Continuity Modules', 'ONI vs My Agent Ready Architecture'],
 );
-assert.equal(orderProjectsForShowcase(projects, 'client')[0].title, 'SaaS Dashboard Systems');
 assert.equal(orderProjectsForShowcase(projects, 'research')[0].title, 'Eval Lab');
 assert.deepEqual(
   orderProjectsForShowcase(projects, 'experiments').map((project) => project.title),

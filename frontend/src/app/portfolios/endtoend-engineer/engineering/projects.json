@@ -137,28 +137,6 @@
     ]
   },
   {
-    "id": 4,
-    "slug": "saas-dashboards",
-    "title": "SaaS Dashboard Systems",
-    "category": "client",
-    "tagline": "Client Operations Tools",
-    "description": "Built dashboards, analytics views, workflow prototypes, and client-specific tools for legal, financial, and business operations teams.",
-    "tech": ["Solutions Engineering", "React", "Node.js", "Dashboards", "SaaS", "APIs"],
-    "color": "#0D9488",
-    "accentColor": "#14B8A6",
-    "startedAt": "2016-06",
-    "startedAtSource": "Relevant experience entry: Kulchan Pvt. Ltd, Solutions Engineer, Jun 2016 - Dec 2018 (same SaaS/dashboard/client-tool scope; month precision)",
-    "stats": [
-      {"label": "Client Workflows", "icon": "Sparkles"},
-      {"label": "Custom Tools", "icon": "TrendingUp"},
-      {"label": "Operational Dashboards", "icon": "Award"}
-    ],
-    "links": [
-      {"label": "Project Notes", "url": "#"},
-      {"label": "System Design", "url": "#"}
-    ]
-  },
-  {
     "id": 5,
     "slug": "legal-workflow-research",
     "title": "Legal Workflow Research",

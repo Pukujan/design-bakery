@@ -21,6 +21,9 @@ import { IrePageRedirect } from './modules/ire/IrePageRedirect';
 const EngineeringHomePage = lazyPage(
   async () => (await import('./modules/engineering/EngineeringHome/EngineeringHome')).EngineeringHome,
 );
+const LabPageLayoutLazy = lazyPage(async () => (await import('./modules/lab/LabPageLayout')).LabPageLayout);
+const LabStageLazy = lazyPage(async () => (await import('./modules/lab/LabStage')).LabStage);
+const ConsultPageLazy = lazyPage(async () => (await import('./modules/consult/ConsultPage')).ConsultPage);
 const WorkPage = lazyPage(async () => (await import('./modules/work/WorkPage')).WorkPage);
 const LabHomePage = lazyPage(
   async () => (await import('./modules/lab/LabHome')).LabHome,
@@ -107,9 +110,12 @@ function publicRoutes(): ReactElement[] {
       <Route index element={<EngineeringHomePage />} />
     </Route>,
     // Homepage redesign prototype (TASK-DB-0098): own dark shell, no site nav, noindex.
-    <Route key="lab" path="/lab" element={<LabHomePage />} />,
-    <Route key="work" path="/work/:slug" element={<WorkPage />} />,
-    <Route key="blog-shell" path="/blogs" element={<PortfolioPublicLayout />}>
+    <Route key="lab-stage" element={<LabStageLazy />}>
+      <Route path="/lab" element={<LabHomePage />} />
+      <Route path="/work/:slug" element={<WorkPage />} />
+      <Route path="/contact" element={<ConsultPageLazy />} />
+    </Route>,
+    <Route key="blog-shell" path="/blogs" element={<LabPageLayoutLazy />}>
       <Route index element={<BlogListPage />} />
       <Route path=":blogId" element={<BlogDetailPage />} />
     </Route>,
@@ -154,7 +160,7 @@ function publicRoutes(): ReactElement[] {
     <Route path="/case-studies/fluffy-v4/gallery" element={<FluffyV4CaseStudyRedirect />} />,
     // IRE market page (IRE #77): static page with a live daily feed, same hand-off pattern.
     <Route path="/ire" element={<IrePageRedirect />} />,
-    <Route key="research-shell" path="/research" element={<PortfolioPublicLayout />}>
+    <Route key="research-shell" path="/research" element={<LabPageLayoutLazy />}>
       <Route index element={<ResearchListPage />} />
       <Route path="papers/:paperId" element={<ResearchPaperPage />} />
       <Route path="sources/:sourceId" element={<ResearchSourcePage />} />

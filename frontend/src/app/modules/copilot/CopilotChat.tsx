@@ -174,15 +174,17 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
 
   return (
     <div className={`lab-copilot cp-chat cp-chat--${variant}${busy ? ' is-thinking' : ''}`}>
-      <div className="lab-copilot-status lab-mono">
-        <span className="lab-live-dot" aria-hidden="true" />
-        Copilot · knows my work, writing and research
-        {messages.length > 0 && variant === 'dock' && (
-          <button type="button" className="cp-link" onClick={() => copilot.clear()}>
-            New chat
-          </button>
-        )}
-      </div>
+      {variant === 'dock' && (
+        <div className="lab-copilot-status lab-mono">
+          <span className="lab-live-dot" aria-hidden="true" />
+          Copilot · knows my work, writing and research
+          {messages.length > 0 && (
+            <button type="button" className="cp-link" onClick={() => copilot.clear()}>
+              New chat
+            </button>
+          )}
+        </div>
+      )}
 
       {messages.length > 0 && (
         <div ref={threadRef} className="lab-thread cp-thread" data-lenis-prevent aria-live="polite">
