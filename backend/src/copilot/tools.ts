@@ -10,7 +10,7 @@ import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, 
 export const CONSULT_SERVICES = ['AI engineering', 'Product design', 'Marketing', 'Full-stack development'] as const;
 
 export type CopilotAction =
-  | { kind: 'navigate'; path: string; label: string }
+  | { kind: 'navigate'; path: string; label: string; go?: boolean }
   | { kind: 'projects'; slugs: string[] }
   | { kind: 'link'; label: string; url: string }
   | { kind: 'book'; url: string; name?: string; email?: string; topic?: string };
@@ -36,7 +36,11 @@ export function bookingUrl(base: string, who: { name?: string; email?: string; t
   return url.toString();
 }
 
-export function makeTools(emit: (action: CopilotAction) => void) {
+/**
+ * `canNavigate` is true only when the visitor has just said yes to an offer to open a
+ * page (route.ts decides that). Without it, navigate refuses and the model must ask.
+ */
+export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean }) {
   return {
     search_site: tool({
       description: 'Search projects, research papers and blog posts by keywords. Use it when the brief is not enough.',
@@ -78,11 +82,14 @@ export function makeTools(emit: (action: CopilotAction) => void) {
 
     navigate: tool({
       description:
-        'Take the visitor to a page on this site while you keep talking: a section (/#about, /#experience, /#work), /contact, /work/<slug>, /blogs, /blogs/<id>, /research, /research/papers/<id>. Use it whenever the visitor asks to see something, and during a tour.',
+        'Open a page on this site for the visitor, while the conversation stays open: a section (/#about, /#experience, /#work), /contact, /work/<slug>, /blogs, /blogs/<id>, /research, /research/papers/<id>. Only call it after the visitor has said yes to your question "Want me to open the <page> page?". Never call it unasked, even for a tour or a direct request.',
       inputSchema: z.object({ path: z.string(), label: z.string().max(60) }),
       execute: async ({ path, label }) => {
+        if (!options.canNavigate) {
+          return { ok: false, error: 'The visitor has not said yes yet. Ask first, "Want me to open the <page> page?", and wait for a yes.' };
+        }
         if (!(await knownPath(path))) return { ok: false, error: 'not a page on this site' };
-        emit({ kind: 'navigate', path, label });
+        emit({ kind: 'navigate', path, label, go: true });
         return { ok: true };
       },
     }),
@@ -112,7 +119,7 @@ export function makeTools(emit: (action: CopilotAction) => void) {
 
     book_call: tool({
       description:
-        'Offer a free 30-minute consultation call with Pujan. He consults on four things: AI engineering, product design, marketing, and full-stack development. Ask which one they want and what it is about if they have not said, then call this. It shows a booking card; the visitor picks the time.',
+        'Offer a free 30-minute consultation call with Pujan. He consults on four things: AI engineering, product design, marketing, and full-stack development. Ask which one they want and what it is about if they have not said, then call this. It shows a booking card; the visitor picks the time. Use it only on the Contact page or when the visitor asks to book in chat.',
       inputSchema: z.object({
         service: z.enum(CONSULT_SERVICES).optional(),
         name: z.string().max(80).optional(),

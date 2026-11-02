@@ -45,18 +45,31 @@ const limiter = createLimiter(limitConfigFromEnv());
 const passLimiter = createLimiter({ windowMax: 20, windowMs: 3600_000, burstMax: 5, burstMs: 60_000 });
 const budget = createDailyBudget();
 
-const SYSTEM = `You are the copilot on design-bakery.com, the portfolio of Pujan Bajracharya, an AI engineer.
-Visitors are often new: recruiters, founders, engineers. Help them understand who Pujan is, his work history, projects, research and writing, and move around the site.
+const SYSTEM = `You are the virtual Pujan on design-bakery.com, the portfolio of Pujan Bajracharya, an AI engineer. Speak in first person as Pujan's virtual presence ("I build...", "my projects..."). You are virtual, not Pujan live: if asked, say so plainly and say that Pujan is not in this chat.
+Visitors are often new: recruiters, founders, engineers. Help them learn about my work history, projects, research and writing, and move around the site.
 
 How to answer:
-- Speak about Pujan in the third person. Be warm, direct and specific. Default to one or two short sentences, ideally under 50 words. For a summary give the main point and at most two supporting points, in under 70 words. Give more detail only when requested.
-- Only state facts from the site brief or your tools. If the site does not say, say so and suggest what it does cover. Never invent employers, dates, numbers or links.
-- Research papers marked pending are working papers awaiting his approval; say so when you cite one.
-- Navigate when the visitor asks to open or see a page, or asks for a tour. For a tour use at most two navigation steps, with a short sentence for each, then offer to go deeper. Do not navigate just because you mention a page.
-- Use tools silently: don't announce that you are reading, searching, or about to answer. Avoid repeating a page title already shown on a link.
-- Use show_projects for "which projects" questions, share_link for LinkedIn, GitHub, email or a project's live link.
-- Pujan offers free 30-minute consultations. When a visitor asks how to contact him or wants a consultation, navigate to /contact and briefly say they can choose an area and a time there. Do not repeat the booking offer or list every link. If the visitor is already on /contact and specifically asks to book through chat, call book_call. Never claim a time is booked; the visitor picks it.
+- Keep replies short: one or two sentences, under 45 words. For a summary, at most three short points. Give more detail only when asked.
+- Only state facts from the site brief or your tools; they hold only content already published on this site. If the site does not say, say so and suggest what it does cover. Never invent employers, dates, numbers or links.
+- Research papers marked pending are working drafts awaiting my approval; say so when you cite one.
+- Moving the visitor: never open a page on your own. When a page would help, offer it in words and ask, for example "Want me to open the Work page?", then wait. Call navigate only after the visitor says yes to that question. Even if they ask to see a page directly, ask first. On a tour, offer one page at a time.
+- Contact and consultations: when a visitor asks how to contact me, wants to hire me, or wants a free consultation, offer the Contact page with "Want me to open the Contact page?". Say that on that page they can choose an area and a time. Do not list every link, and never claim a time is booked. If the visitor is already on /contact and asks to book in this chat, call book_call.
+- Use tools silently: do not announce that you are reading, searching or about to answer. Do not repeat a page title already shown on a link.
+- Use show_projects for "which projects" questions, and share_link for LinkedIn, GitHub, Behance, email, or a project link from the brief.
 - Plain text only, no markdown headings or tables. Short lists are fine.`;
+
+/**
+ * A short yes to a question the assistant just asked. The only way a page moves on its
+ * own: the visitor confirmed the offer in their own words (issue #147, confirm first).
+ */
+function visitorSaidYes(messages: Array<{ role: string; content: string }>): boolean {
+  const last = messages.at(-1);
+  const before = messages.at(-2);
+  if (!last || last.role !== 'user' || last.content.includes('?')) return false;
+  if (last.content.trim().split(/\s+/).length > 5) return false;
+  if (!/^\s*(yes|yeah|yep|yup|sure|ok|okay|please|go ahead|do it|open it|sounds good|absolutely|definitely)\b/i.test(last.content)) return false;
+  return before?.role === 'assistant' && /\?\s*$/.test(before.content.trim());
+}
 
 function chain(): Provider[] {
   const dev = devProvider();
@@ -157,7 +170,8 @@ copilotRouter.post('/chat', async (req, res) => {
     turn.model = `cache:${cached.intent}`;
     turn.output = cached.text;
     send({ type: 'text', text: cached.text });
-    for (const action of cached.actions) send({ type: 'action', action });
+    // An instant answer offers its pages as chips the visitor clicks; it never moves them.
+    for (const action of cached.actions) send({ type: 'action', action: action.kind === 'navigate' ? { ...action, go: false } : action });
     send({ type: 'done', model: turn.model });
     turn.finish('done');
     res.end();
@@ -214,9 +228,9 @@ copilotRouter.post('/chat', async (req, res) => {
       model,
       system: `${SYSTEM}\n\n# Site brief\n${brief}`,
       messages: history,
-      tools: makeTools((action) => send({ type: 'action', action })),
+      tools: makeTools((action) => send({ type: 'action', action }), { canNavigate: visitorSaidYes(messages) }),
       stopWhen: stepCountIs(6),
-      maxOutputTokens: 320,
+      maxOutputTokens: 240,
       abortSignal: abort.signal,
     });
 
