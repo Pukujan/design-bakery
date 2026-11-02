@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { DefaultSiteHead } from './seo/PageSeo';
 import { AdminAuthProvider } from './lib/adminAuth';
 import { lazyPage } from './lib/lazyPage';
-import { PortfolioPublicLayout } from './portfolios/PortfolioPublicLayout';
 import { CopilotRoot } from './modules/copilot/CopilotRoot';
 import { AdminLayoutShell } from './modules/admin/AdminLayoutShell';
 import { buildAdminChildRoutes } from './modules/admin/adminRoutes';
@@ -18,9 +17,6 @@ import { IrePageRedirect } from './modules/ire/IrePageRedirect';
 // layouts, the redirect stubs and the 404 page stay eager: lazy-loading a
 // redirect only adds a chunk request before it navigates, and the 404 must
 // render even when a chunk fails to load.
-const EngineeringHomePage = lazyPage(
-  async () => (await import('./modules/engineering/EngineeringHome/EngineeringHome')).EngineeringHome,
-);
 const LabStageLazy = lazyPage(async () => (await import('./modules/lab/LabStage')).LabStage);
 const ConsultPageLazy = lazyPage(async () => (await import('./modules/consult/ConsultPage')).ConsultPage);
 const WorkPage = lazyPage(async () => (await import('./modules/work/WorkPage')).WorkPage);
@@ -105,11 +101,9 @@ function adminRoutes(): ReactElement[] {
 
 function publicRoutes(): ReactElement[] {
   return [
-    <Route key="public-shell" path="/" element={<PortfolioPublicLayout />}>
-      <Route index element={<EngineeringHomePage />} />
-    </Route>,
-    // Homepage redesign prototype (TASK-DB-0098): own dark shell, no site nav, noindex.
+    // The homepage (TASK-DB-0098): own dark shell, no site nav. /lab stays as an alias.
     <Route key="lab-stage" element={<LabStageLazy />}>
+      <Route index element={<LabHomePage />} />
       <Route path="/lab" element={<LabHomePage />} />
       <Route path="/work/:slug" element={<WorkPage />} />
       <Route path="/contact" element={<ConsultPageLazy />} />

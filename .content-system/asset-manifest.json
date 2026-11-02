@@ -5,9 +5,9 @@
     {
       "path": "frontend/public/images/site-og.png",
       "role": "og_card",
-      "title": "Design Bakery",
-      "subtitle": "Fullstack Design Engineer",
-      "notes": "Site social-preview card used for link unfurls; committed raster, not a generated narrative asset."
+      "title": "Design Baker",
+      "subtitle": "AI/ML, Product & Design Engineer",
+      "notes": "Site social-preview card used for link unfurls: a 1200x630 render of the homepage hero, committed as a raster."
     }
   ]
 }
