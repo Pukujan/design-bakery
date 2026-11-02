@@ -78,15 +78,90 @@
   font-size: 0.88em;
 }
 
+/* Quotes and long passages stay upright; italics are kept for short inline emphasis. */
 .article blockquote {
   margin: 2rem 0;
   padding: 0.2rem 0 0.2rem 1.4rem;
   border-left: 2px solid var(--lab-accent);
-  font-family: var(--lab-serif);
-  font-style: italic;
-  font-size: 1.35em;
-  line-height: 1.35;
+  font-family: var(--lab-display);
+  font-style: normal;
+  font-size: 1.1em;
+  font-weight: 500;
+  line-height: 1.5;
   color: var(--lab-paper);
+}
+
+.article p > em:only-child,
+.article p > span > em:only-child {
+  font-style: normal;
+}
+
+/* GitHub-style alerts (> [!IMPORTANT] ...): a solid panel with a labelled top rule, readable over the galaxy. */
+.article aside.rp-callout {
+  --callout: #3dd6bf;
+  position: relative;
+  margin: 2.2rem 0;
+  padding: 2.1rem 1.4rem 1.2rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-top: 3px solid var(--callout);
+  border-radius: 12px;
+  background: #121211;
+  color: var(--lab-paper);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.article aside.rp-callout::before {
+  content: attr(data-callout);
+  position: absolute;
+  top: 0.8rem;
+  left: 1.4rem;
+  font-family: var(--lab-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--callout);
+}
+
+.article aside.rp-callout > :first-child {
+  margin-top: 0;
+}
+
+.article aside.rp-callout > :last-child {
+  margin-bottom: 0;
+}
+
+.article aside.rp-callout p {
+  margin-bottom: 0.7rem;
+  max-width: none;
+}
+
+.article aside.rp-callout p strong:only-child {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--callout);
+}
+
+.article aside.rp-callout li {
+  margin: 0.4rem 0;
+}
+
+.article aside.rp-callout-note {
+  --callout: #7aa7e8;
+}
+
+.article aside.rp-callout-tip {
+  --callout: #7dd39c;
+}
+
+.article aside.rp-callout-warning,
+.article aside.rp-callout-caution {
+  --callout: #e6b25c;
+}
+
+.article aside.rp-callout-key,
+.article aside.rp-callout-summary {
+  --callout: #c6f432;
 }
 
 .article hr {
@@ -184,9 +259,7 @@
   padding: 1rem 1rem 1rem 1.1rem;
   border: 1px solid rgb(255 255 255 / 0.08);
   border-radius: 14px;
-  background: rgb(11 11 10 / 0.5);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  backdrop-filter: blur(14px) saturate(140%);
+  background: #0d0d0c;
   font-family: var(--lab-display);
 }
 
