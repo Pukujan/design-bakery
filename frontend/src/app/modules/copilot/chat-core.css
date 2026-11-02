@@ -1,32 +1,51 @@
-/* Chat core (virtual Pujan): the empty state, the intro and the navigation icons.
+/* Chat core (virtual Pujan): the composer's suggestion line and the navigation icons.
    The chat's own layout stays in lab.css and copilot.css. */
-.cp-empty {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  min-height: 0;
+
+/* The composer wraps so the suggestions sit on a second line inside the same box. */
+.cp-chat .lab-composer {
+  flex-wrap: wrap;
+  row-gap: 0;
 }
 
-.cp-intro-text {
+.cp-chat .lab-composer > textarea {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.cp-hints {
+  flex: 1 0 100%;
+  order: 3;
   margin: 0;
-  max-width: 30rem;
-  font-size: 1.05rem;
-  line-height: 1.45;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
 }
 
-/* Hero prompts: one horizontal rail with a bounded end. The right edge fades out, and the
-   padding keeps the last chip clear of the fade once the rail is scrolled all the way. */
-.cp-chat--hero .cp-rail {
-  scroll-snap-type: x proximity;
-  padding-right: 2.5rem;
-  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
-  mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+.cp-hints li {
+  border-top: 1px solid color-mix(in oklab, var(--lab-paper) 10%, transparent);
 }
 
-.cp-chat--hero .cp-rail > * {
-  scroll-snap-align: start;
+.cp-hints li:first-child {
+  margin-top: 0.6rem;
+}
+
+.cp-hints button {
+  display: block;
+  width: 100%;
+  padding: 0.55rem 0.15rem;
+  border: 0;
+  background: none;
+  color: var(--lab-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.cp-hints button:hover,
+.cp-hints button:focus-visible {
+  color: var(--lab-accent);
 }
 
 /* Static icon only: no rotation, pulse or motion on navigation actions. */

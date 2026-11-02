@@ -126,15 +126,15 @@ export function answer(question: string): CopilotAnswer {
   };
 }
 
-/** Chip labels stay short; each one sends the question the answer engine matches. */
+/** Sample questions shown inside the composer; each one is matched by the answer engine. */
 export const SUGGESTIONS = [
-  { label: 'Who are you?', question: 'Who are you?' },
-  { label: 'Experiences', question: 'What experience do you have?' },
-  { label: 'Consultation', question: 'Can I book a consultation?' },
-  { label: 'My AI builds', question: 'What do you build?' },
-  { label: 'Give me a tour', question: 'Give me a tour' },
-  { label: 'Which project used OCR?', question: 'Which project used OCR?' },
-  { label: 'What is Cortex?', question: 'What is Cortex?' },
+  'Who are you?',
+  'What experience do you have?',
+  'Can I book a consultation?',
+  'What do you build?',
+  'Give me a tour',
+  'Which project used OCR?',
+  'What is Cortex?',
 ] as const;
 
 export const PLACEHOLDER_QUESTIONS = [

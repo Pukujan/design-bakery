@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ArrowUp, Mic, PhoneOff, Rocket, Square } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useProjectRecords } from '../../lib/portfolioDocs';
@@ -165,12 +165,28 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
     void copilot.send(question, { path: location.pathname, title: document.title });
   };
 
+  // Before the first message, focusing the box opens a second line: sample questions while it
+  // is empty, then the closest matches to what is being typed.
+  const typed = draft.trim().toLowerCase();
+  const hints = messages.length === 0 && focused
+    ? (typed
+        ? [...SUGGESTIONS].filter((q) => typed.split(/\s+/).every((word) => q.toLowerCase().includes(word)) && q.toLowerCase() !== typed)
+            .sort((a, b) => Number(b.toLowerCase().startsWith(typed)) - Number(a.toLowerCase().startsWith(typed)))
+            .slice(0, 2)
+        : [...SUGGESTIONS].slice(0, 4))
+    : [];
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
     ask(draft);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Tab' && !event.shiftKey && typed && hints.length) {
+      event.preventDefault();
+      copilot.setDraft(hints[0]);
+      return;
+    }
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       ask(draft);
@@ -213,27 +229,6 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
         </div>
       )}
 
-      {messages.length === 0 && (
-        <div className="cp-empty">
-          <p className="cp-intro-text">Hey, it's AI Pujan. You can talk to me here, or even start a voice call.</p>
-          <div className="lab-suggestions cp-rail">
-            {SUGGESTIONS.map((suggestion, index) => (
-              <motion.button
-                key={suggestion.label}
-                type="button"
-                className="lab-chip"
-                onClick={() => ask(suggestion.question)}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 + index * 0.06, ease: EASE }}
-              >
-                {suggestion.label}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      )}
-
       <form className="lab-composer" onSubmit={submit} onClick={() => inputRef.current?.focus()}>
         <label htmlFor={id} className="sr-only">
           Ask about my work
@@ -271,6 +266,27 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
             </button>
           )}
         </div>
+        <AnimatePresence initial={false}>
+          {hints.length > 0 && (
+            <motion.ul
+              key="hints"
+              className="cp-hints"
+              aria-label="Suggested questions"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: EASE }}
+            >
+              {hints.map((hint) => (
+                <li key={hint}>
+                  <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => ask(hint)}>
+                    {hint}
+                  </button>
+                </li>
+              ))}
+            </motion.ul>
+          )}
+        </AnimatePresence>
       </form>
       {(voiceState.status !== 'idle' || voiceState.error) && (
         <p className="lab-mono lab-msg-note" role="status">
