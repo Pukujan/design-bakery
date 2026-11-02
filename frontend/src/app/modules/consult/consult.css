@@ -9,7 +9,7 @@
   padding: clamp(7.5rem, 18vh, 10rem) clamp(1.25rem, 5vw, 3rem) 4rem;
 }
 
-/* The heading block sits over the bright pulsar on phones. A dark scrim behind it keeps the text readable. */
+/* On phones the heading starts below the bright pulsar, so it needs no dark scrim behind it. */
 .consult-head {
   position: relative;
   isolation: isolate;
@@ -340,25 +340,14 @@
   border-bottom-color: var(--lab-accent);
 }
 
-/* Phones: more air above the consultation label and the heading, and a darker field behind both. */
+/* Phones: the heading sits below the pulsar. */
 @media (max-width: 640px) {
   .consult-main {
-    padding-top: 9rem;
+    padding-top: 17rem;
   }
 
   .consult-head {
     padding: 1.75rem 0.5rem 1.5rem;
-  }
-
-  .consult-head::before {
-    content: '';
-    position: absolute;
-    inset: -1.25rem -1.25rem -0.5rem;
-    z-index: -1;
-    border-radius: 1.25rem;
-    background: radial-gradient(ellipse at 50% 45%, rgb(8 8 7 / 0.92) 40%, rgb(8 8 7 / 0.7) 75%, rgb(8 8 7 / 0.35));
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
   }
 
   .consult-intro {

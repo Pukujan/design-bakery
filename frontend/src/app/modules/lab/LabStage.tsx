@@ -14,6 +14,11 @@ function backdropFor(pathname: string): BackdropVariant {
   return 'hole';
 }
 
+/** An article or paper: the text needs the whole width, so the body moves to the corner. */
+function isReadingPage(pathname: string): boolean {
+  return /^\/(research\/(papers|sources)|blogs)\/[^/]+/.test(pathname);
+}
+
 const EASE = [0.2, 0.7, 0.1, 1] as const;
 
 /**
@@ -23,6 +28,7 @@ const EASE = [0.2, 0.7, 0.1, 1] as const;
 export function LabStage() {
   const location = useLocation();
   const variant = backdropFor(location.pathname);
+  const reading = isReadingPage(location.pathname);
   const outlet = useOutlet();
   const reduceMotion = useReducedMotion();
 
@@ -37,7 +43,7 @@ export function LabStage() {
   return (
     <PortfolioProvider portfolioId="endtoend-engineer">
     <div className="lab-stage">
-      <LabBackdrop variant={variant} />
+      <LabBackdrop variant={variant} corner={reading} />
       <LabBar />
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
