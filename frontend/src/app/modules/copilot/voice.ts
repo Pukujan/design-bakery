@@ -2,8 +2,8 @@ import { useSyncExternalStore } from 'react';
 import { copilot, requestVoiceGrant } from './store';
 import type { LocalAudioTrack, Room } from 'livekit-client';
 
-type VoiceState = { status: 'idle' | 'connecting' | 'connected'; error: string; audioBlocked: boolean };
-let state: VoiceState = { status: 'idle', error: '', audioBlocked: false };
+type VoiceState = { status: 'idle' | 'connecting' | 'connected'; error: string; audioBlocked: boolean; muted: boolean; level: number; phase: 'listening' | 'speaking' };
+let state: VoiceState = { status: 'idle', error: '', audioBlocked: false, muted: false, level: 0, phase: 'listening' };
 let room: Room | null = null;
 let microphone: LocalAudioTrack | null = null;
 let generation = 0;
@@ -11,6 +11,13 @@ let pending: AbortController | null = null;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let agentTimer: ReturnType<typeof setTimeout> | undefined;
 const audioElements = new Set<HTMLMediaElement>();
+let audioContext: AudioContext | null = null;
+let meterTimer: ReturnType<typeof setTimeout> | undefined;
+let lastMeterUpdate = 0;
+const meters = new Map<AnalyserNode, 'listening' | 'speaking'>();
+const meterSamples = new Uint8Array(256);
+let meterEnabled = true;
+let visibilityListenerAttached = false;
 const listeners = new Set<() => void>();
 const set = (patch: Partial<VoiceState>) => {
   state = { ...state, ...patch };
@@ -28,6 +35,10 @@ function close(error = '') {
   pending = null;
   clearTimeout(timer);
   clearTimeout(agentTimer);
+  if (visibilityListenerAttached) {
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    visibilityListenerAttached = false;
+  }
   microphone?.stop();
   microphone = null;
   const current = room;
@@ -35,11 +46,65 @@ function close(error = '') {
   if (current) void current.disconnect();
   for (const audio of audioElements) audio.remove();
   audioElements.clear();
-  set({ status: 'idle', error, audioBlocked: false });
+  clearTimeout(meterTimer);
+  meterTimer = undefined;
+  meters.clear();
+  if (audioContext) void audioContext.close();
+  audioContext = null;
+  set({ status: 'idle', error, audioBlocked: false, muted: false, level: 0, phase: 'listening' });
+}
+
+function meter(track: MediaStreamTrack, phase: 'listening' | 'speaking') {
+  if (!audioContext || track.readyState !== 'live') return;
+  try {
+    const source = audioContext.createMediaStreamSource(new MediaStream([track]));
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    source.connect(analyser);
+    meters.set(analyser, phase);
+    if (meterEnabled && !meterTimer && !document.hidden) meterTimer = setTimeout(pollMeter, 100);
+  } catch { /* Audio visualization is optional; the call remains active. */ }
+}
+
+function pollMeter() {
+  meterTimer = undefined;
+  if (!audioContext || state.status === 'idle' || document.hidden || !meterEnabled) return;
+  let mic = 0;
+  let agent = 0;
+  for (const [node, kind] of meters) {
+    node.getByteTimeDomainData(meterSamples);
+    let sum = 0;
+    for (const sample of meterSamples) { const value = (sample - 128) / 128; sum += value * value; }
+    const rms = Math.sqrt(sum / meterSamples.length);
+    if (kind === 'speaking') agent = Math.max(agent, rms); else mic = Math.max(mic, rms);
+  }
+  if (Date.now() - lastMeterUpdate >= 100) {
+    lastMeterUpdate = Date.now();
+    set({ level: Math.min(1, Math.max(mic, agent) * 5), phase: agent > Math.max(0.018, mic * 1.15) ? 'speaking' : 'listening' });
+  }
+  meterTimer = setTimeout(pollMeter, 100);
 }
 
 export const voice = {
   stop: () => close(),
+  setVisualMeterEnabled(enabled: boolean) {
+    meterEnabled = enabled;
+    clearTimeout(meterTimer);
+    meterTimer = undefined;
+    if (!enabled) {
+      if (audioContext) void audioContext.suspend();
+      set({ level: 0, phase: 'listening' });
+    } else if (audioContext && state.status !== 'idle') {
+      void audioContext.resume().then(() => {
+        if (!document.hidden && meters.size) meterTimer = setTimeout(pollMeter, 100);
+      }).catch(() => { /* Meter remains optional. */ });
+    }
+  },
+  toggleMute() {
+    if (!microphone) return;
+    if (state.muted) void microphone.unmute(); else void microphone.mute();
+    set({ muted: !state.muted });
+  },
   async enableAudio() {
     try {
       await room?.startAudio();
@@ -60,6 +125,15 @@ export const voice = {
       const track = await lk.createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true, autoGainControl: true });
       if (generation !== run) { track.stop(); return; }
       microphone = track;
+      if (!visibilityListenerAttached) {
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        visibilityListenerAttached = true;
+      }
+      try {
+        audioContext = new AudioContext();
+        if (meterEnabled) await audioContext.resume();
+        meter(track.mediaStreamTrack, 'listening');
+      } catch { audioContext = null; }
       const grant = await requestVoiceGrant(controller.signal);
       if (generation !== run) return;
       const call = new lk.Room({ adaptiveStream: false, dynacast: false });
@@ -67,7 +141,7 @@ export const voice = {
       const isAgent = (identity: string) => call.remoteParticipants.get(identity)?.isAgent === true;
       call.registerRpcMethod('copilot.greet', async (data) => {
         if (!isAgent(data.callerIdentity)) throw new Error('Unrecognized voice participant');
-        return JSON.stringify({ say: "Hi, I'm the Design Baker assistant. Ask me about Pujan's work, writing, or research." });
+        return JSON.stringify({ say: "Hey, I'm Pujan's virtual presence at Design Bakery. Ask me about my work, writing, research, or what I build." });
       });
       call.registerRpcMethod('copilot.turn', async (data) => {
         if (!isAgent(data.callerIdentity)) throw new Error('Unrecognized voice participant');
@@ -83,6 +157,7 @@ export const voice = {
         audio.hidden = true;
         document.body.appendChild(audio);
         audioElements.add(audio);
+        if (track.mediaStreamTrack) meter(track.mediaStreamTrack, 'speaking');
       });
       call.on(lk.RoomEvent.ParticipantConnected, (participant) => {
         if (participant.isAgent && generation === run) { clearTimeout(timer); clearTimeout(agentTimer); set({ status: 'connected' }); }
@@ -127,3 +202,10 @@ export const voice = {
     }
   },
 };
+
+function onVisibilityChange() {
+  clearTimeout(meterTimer);
+  meterTimer = undefined;
+  if (document.hidden) set({ level: 0 });
+  else if (meterEnabled && audioContext && state.status !== 'idle' && meters.size) meterTimer = setTimeout(pollMeter, 100);
+}

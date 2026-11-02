@@ -32,13 +32,6 @@ const PROJECT_MEDIA: Record<number, string> = {
 
 const mediaSrc = (slug: string) => `/lab/projects/${slug}.webp`;
 
-function primaryLink(project: Project): { url: string; external: boolean } | null {
-  const links = (project.links ?? []).filter((link) => link.url && link.url !== '#');
-  const link = links.find((item) => item.label === 'Case Study') ?? links[0];
-  if (!link) return null;
-  return { url: link.url, external: /^https?:\/\//.test(link.url) };
-}
-
 function tagLine(project: Project): string {
   const category =
     project.category && isProjectCategory(project.category) ? PROJECT_CATEGORY_LABEL[project.category] : null;
@@ -50,7 +43,6 @@ function WorkTile({ project, index }: { project: Project; index: number }) {
   const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const parallaxY = useTransform(scrollYProgress, [0, 1], ['-8%', '8%']);
-  const link = primaryLink(project);
   const media = PROJECT_MEDIA[project.id];
   const posterWord = project.title.split(' ')[0];
 
@@ -64,10 +56,8 @@ function WorkTile({ project, index }: { project: Project; index: number }) {
     <motion.a
       ref={ref}
       className="lab-tile"
-      href={link?.url ?? '#'}
-      target={link?.external ? '_blank' : undefined}
-      rel={link?.external ? 'noopener noreferrer' : undefined}
-      data-cursor={link?.external ? 'Open' : 'View'}
+      href={`/work/${project.slug}`}
+      data-cursor="View"
       initial={reduceMotion ? false : { opacity: 0, y: 60 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-10% 0px' }}

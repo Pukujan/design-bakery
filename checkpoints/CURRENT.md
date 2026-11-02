@@ -1,12 +1,12 @@
 # Current Repository Checkpoint
 
-<!-- continuity:current {"active_task":"DB-0100","active_task_file":"tasks/TASK-DB-0100-homepage-seo-voice.md","protocol_version":"0.1.0-draft","schema":"project-continuity.current.v1"} -->
+<!-- continuity:current {"active_task":"DB-0101","active_task_file":"tasks/TASK-DB-0101-virtual-pujan-mobile-copilot.md","protocol_version":"0.1.0-draft","schema":"project-continuity.current.v1"} -->
 
 This is an as-of projection; live GitHub issues own progression. Link the owning leaf, parent ancestry and dependencies for active work.
 
 ## Program state
 
-Phase: homepage, SEO and assistant delivery.
+Phase: homepage, SEO and virtual copilot delivery.
 
 ## Completed
 
@@ -15,7 +15,8 @@ Phase: homepage, SEO and assistant delivery.
 
 ## Active
 
-- [DB-0100 / #145](https://github.com/Pukujan/design-bakery/issues/145): publish the branch and verify the homepage, SEO, text flow, assistant and voice in production. Parent: none; dependency: [#143](https://github.com/Pukujan/design-bakery/issues/143).
+- [DB-0100 / #145](https://github.com/Pukujan/design-bakery/issues/145): parent scope for homepage, SEO, published-content assistant, abuse limits and production verification. Parent: none; child: [DB-0101 / #147](https://github.com/Pukujan/design-bakery/issues/147); dependency: [#143](https://github.com/Pukujan/design-bakery/issues/143).
+- [DB-0101 / #147](https://github.com/Pukujan/design-bakery/issues/147): virtual Pujan voice and mobile copilot experience. Parent: [#145](https://github.com/Pukujan/design-bakery/issues/145); dependency: [#143](https://github.com/Pukujan/design-bakery/issues/143). Implementation completed locally; required CI and production verification pending.
 
 ## Queued
 
@@ -28,4 +29,4 @@ None known.
 
 ## Next atomic action
 
-Push `main`, let the deploy run, then verify `/api/copilot/chat` answers from the instant tier in production and that a live model turn still streams.
+Pass CI and publish DB-0101 through Komodo; keep Gmail delivery disabled until its server integration is configured.

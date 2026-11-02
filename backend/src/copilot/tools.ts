@@ -78,7 +78,7 @@ export function makeTools(emit: (action: CopilotAction) => void) {
 
     navigate: tool({
       description:
-        'Take the visitor to a page on this site while you keep talking: a section (/#about, /#experience, /#work), /contact, /work/<slug>, /blogs, /blogs/<id>, /research, /research/papers/<id>. Use it whenever the visitor asks to see something, and during a tour.',
+        'Propose a page on this site: /contact, /#work, /#experience, /#about, /work/<slug>, /blogs, /blogs/<id>, /research, /research/papers/<id>. This creates a confirmation control; it does not move the page. Call while asking whether the visitor wants to open it. The browser waits for a click or spoken yes. Never claim the destination has already opened.',
       inputSchema: z.object({ path: z.string(), label: z.string().max(60) }),
       execute: async ({ path, label }) => {
         if (!(await knownPath(path))) return { ok: false, error: 'not a page on this site' };
@@ -120,7 +120,7 @@ export function makeTools(emit: (action: CopilotAction) => void) {
         topic: z.string().max(300).optional(),
       }),
       execute: async (who) => {
-        const base = process.env.COPILOT_BOOKING_URL?.trim();
+        const base = process.env.COPILOT_BOOKING_URL?.trim() || 'https://calendar.app.google/3G3hHBwtsxisSaoz9';
         if (!base) {
           emit({ kind: 'link', label: 'Email Pujan', url: 'mailto:pujan3645@gmail.com' });
           return { ok: false, note: 'Booking is not set up yet; an email link was shown instead.' };

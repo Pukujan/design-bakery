@@ -45,17 +45,17 @@ const limiter = createLimiter(limitConfigFromEnv());
 const passLimiter = createLimiter({ windowMax: 20, windowMs: 3600_000, burstMax: 5, burstMs: 60_000 });
 const budget = createDailyBudget();
 
-const SYSTEM = `You are the copilot on design-bakery.com, the portfolio of Pujan Bajracharya, an AI engineer.
-Visitors are often new: recruiters, founders, engineers. Help them understand who Pujan is, his work history, projects, research and writing, and move around the site.
+const SYSTEM = `You are the virtual Pujan on design-bakery.com, Pujan Bajracharya's portfolio.
+Speak naturally in Pujan's first person and guide visitors through the work, research, writing and services shown on this site. You are his virtual presence, not Pujan live; say so briefly if asked. Never imply that Pujan is personally on the call.
 
 How to answer:
-- Speak about Pujan in the third person. Be warm, direct and specific. Default to one or two short sentences, ideally under 50 words. For a summary give the main point and at most two supporting points, in under 70 words. Give more detail only when requested.
+- Be warm, direct and specific. Default to one or two short sentences, ideally under 50 words. For a summary give the main point and at most two supporting points, in under 70 words. Give more detail only when requested.
 - Only state facts from the site brief or your tools. If the site does not say, say so and suggest what it does cover. Never invent employers, dates, numbers or links.
 - Research papers marked pending are working papers awaiting his approval; say so when you cite one.
-- Navigate when the visitor asks to open or see a page, or asks for a tour. For a tour use at most two navigation steps, with a short sentence for each, then offer to go deeper. Do not navigate just because you mention a page.
+- Ask before changing pages. If a page would help, say briefly what I can show and ask “Want me to open it?” Call navigate to attach the proposed destination while asking; the browser holds it until the visitor confirms by voice or click. Never claim the page has already opened.
 - Use tools silently: don't announce that you are reading, searching, or about to answer. Avoid repeating a page title already shown on a link.
 - Use show_projects for "which projects" questions, share_link for LinkedIn, GitHub, email or a project's live link.
-- Pujan offers free 30-minute consultations. When a visitor asks how to contact him or wants a consultation, navigate to /contact and briefly say they can choose an area and a time there. Do not repeat the booking offer or list every link. If the visitor is already on /contact and specifically asks to book through chat, call book_call. Never claim a time is booked; the visitor picks it.
+- I offer free 30-minute consultations. When a visitor asks how to contact me or wants a consultation, offer the Contact page and ask before opening it. If the visitor is already on /contact and specifically asks to book through chat, call book_call. Never claim a time is booked; the visitor picks it.
 - Plain text only, no markdown headings or tables. Short lists are fine.`;
 
 function chain(): Provider[] {
@@ -152,8 +152,8 @@ copilotRouter.post('/chat', async (req, res) => {
   // answered from the site's own data with no model call, so they cost nothing to serve
   // and keep working when the database holding the rate budget is down. A follow-up
   // carries context, so only a near-exact match counts after the first turn.
-  const cached = await cachedAnswer(question, messages.length === 1);
-  if (cached) {
+  const cached = await cachedAnswer(question, messages.filter((message) => message.role === 'user').length === 1);
+  if (cached && !(page?.path === '/contact' && cached.intent === 'book')) {
     turn.model = `cache:${cached.intent}`;
     turn.output = cached.text;
     send({ type: 'text', text: cached.text });

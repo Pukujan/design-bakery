@@ -46,9 +46,19 @@ Starting revision, material inputs/configuration, runtime, exact command or prom
 
 ## Related records
 
-- Leaf: [#145](https://github.com/Pukujan/design-bakery/issues/145); parent: none; dependency: [#143](https://github.com/Pukujan/design-bakery/issues/143).
-- Primary writer: Codex; branch: `codex/homepage-seo-voice`; issue #145 as of 2026-11-02 is open.
+- Parent: [#145](https://github.com/Pukujan/design-bakery/issues/145); parent of [DB-0101 / #147](https://github.com/Pukujan/design-bakery/issues/147); dependency: [#143](https://github.com/Pukujan/design-bakery/issues/143).
+- Primary writer: Codex; historical implementation branch: `codex/homepage-seo-voice`; issue #145 was open as of 2026-11-02.
 - Pull request, exact checks and delivery receipt pending.
+
+### 2026-11-02 — virtual Pujan and mobile copilot scope
+
+The owner requested that the remaining voice and chat experience be tracked as a child
+task before implementation. GitHub issue [#147](https://github.com/Pukujan/design-bakery/issues/147)
+is now a child of this parent issue. It records the virtual-Pujan persona, call
+connection feedback, audio-reactive planet, confirmation-first navigation, project-card
+destination, and mobile chat/keyboard/minimized states. Three visual directions were
+generated for review. Implementation is explicitly waiting for the owner to select a
+visual direction.
 
 ## Checkpoint log
 

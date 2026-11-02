@@ -1,6 +1,7 @@
 import { Children, isValidElement, useMemo, type ReactNode } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { remarkGithubAlerts } from '../research/render/remarkGithubAlerts';
 import rehypeRaw from 'rehype-raw';
 import { LabDiagram } from './Diagram';
 import { FlowText } from './FlowText';
@@ -126,7 +127,7 @@ export function Article({ source, flow = true }: { source: string; flow?: boolea
   const components = useMemo(() => componentsFor(flow), [flow]);
   return (
     <div className="article">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkGithubAlerts]} rehypePlugins={[rehypeRaw]} components={components}>
         {source}
       </ReactMarkdown>
     </div>
