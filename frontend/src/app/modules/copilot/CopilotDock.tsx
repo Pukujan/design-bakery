@@ -1,7 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { MessageCircle, X } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { X } from 'lucide-react';
 import '../lab/lab.css';
 import './copilot.css';
 import { CopilotChat } from './CopilotChat';
@@ -15,36 +14,8 @@ const EASE = [0.2, 0.7, 0.1, 1] as const;
  * Hidden while the hero chat is on screen.
  */
 export default function CopilotDock() {
-  const { open, minimized, heroVisible, messages } = useCopilot();
+  const { open, heroVisible, messages } = useCopilot();
   const reduceMotion = useReducedMotion();
-  const location = useLocation();
-  const previousPath = useRef(location.pathname);
-
-  useEffect(() => {
-    const pathChanged = previousPath.current !== location.pathname;
-    previousPath.current = location.pathname;
-    if (pathChanged && open && window.matchMedia('(max-width: 640px)').matches) {
-      (document.activeElement as HTMLElement | null)?.blur?.();
-      copilot.setMinimized(true);
-    }
-  }, [location.pathname, open]);
-
-  useEffect(() => {
-    const viewport = window.visualViewport;
-    const update = () => {
-      document.documentElement.style.setProperty('--cp-visual-height', `${viewport?.height ?? window.innerHeight}px`);
-      document.documentElement.style.setProperty('--cp-visual-bottom', `${viewport ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop) : 0}px`);
-    };
-    update();
-    viewport?.addEventListener('resize', update);
-    viewport?.addEventListener('scroll', update);
-    window.addEventListener('resize', update);
-    return () => {
-      viewport?.removeEventListener('resize', update);
-      viewport?.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-    };
-  }, []);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -59,15 +30,10 @@ export default function CopilotDock() {
   }, []);
 
   useEffect(() => {
-    if (!open) return;
-    if (window.matchMedia('(min-width: 641px)').matches) document.getElementById('cp-ask-dock')?.focus({ preventScroll: true });
-    requestAnimationFrame(() => {
-      const thread = document.querySelector<HTMLElement>('.cp-panel .cp-thread');
-      if (thread) thread.scrollTop = thread.scrollHeight;
-    });
+    if (open) document.getElementById('cp-ask-dock')?.focus({ preventScroll: true });
   }, [open]);
 
-  const showPill = !open && !minimized && !heroVisible;
+  const showPill = !open && !heroVisible;
 
   return (
     <div className="cp-dock">
@@ -88,20 +54,6 @@ export default function CopilotDock() {
             {messages.length ? 'Continue chat' : 'Ask me anything'}
             <kbd className="cp-kbd">⌘K</kbd>
           </motion.button>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {minimized && !heroVisible && (
-          <motion.div key="mini" className="cp-minimized" initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 18 }}>
-            <button type="button" className="cp-mini-expand" onClick={() => copilot.setOpen(true)}>
-              <MessageCircle size={16} aria-hidden="true" />
-              <span>Continue with Pujan</span>
-              <span className="cp-mini-preview">{messages.filter((message) => message.role === 'assistant').at(-1)?.text || 'Ask me anything…'}</span>
-            </button>
-            <button type="button" className="cp-mini-close" onClick={() => copilot.setMinimized(false)} aria-label="Hide chat"><X size={16} /></button>
-            <CopilotChat variant="mini" />
-          </motion.div>
         )}
       </AnimatePresence>
 

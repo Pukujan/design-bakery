@@ -1,13 +1,17 @@
 # TASK-DB-0101 — Virtual Pujan Mobile Copilot
 
-<!-- continuity:task {"acceptance":["Owner-approved virtual-Pujan visual direction is implemented","The virtual Pujan introduces itself and converses naturally in first person using published site content","Voice call connection and listening/speaking states have immediate visual feedback with an audio-reactive planet","Navigation waits for visitor confirmation and uses a static rocket action","Mobile chat order, auto-scroll, keyboard behavior and minimized route state work as requested","Homepage project cards open internal project description pages"],"depends_on":["DB-0100","external:https://github.com/Pukujan/design-bakery/issues/143"],"goal":"Design and deliver a lively, first-person virtual Pujan voice and mobile chat experience","id":"DB-0101","issue_url":"https://github.com/Pukujan/design-bakery/issues/147","next_action":"Implement the owner-authorized virtual Pujan direction with aesthetics and UX as top priority","owner":"codex","priority":"normal","protocol_version":"0.1.0-draft","schema":"project-continuity.task.v1","status":"active","why":"Visitors should feel guided by a virtual Design Baker presence and keep context while exploring the portfolio"} -->
+<!-- continuity:task {"acceptance":["Owner-approved virtual-Pujan visual direction is implemented","The virtual Pujan introduces itself and converses naturally in first person using published site content","Voice call connection and listening/speaking states have immediate visual feedback with an audio-reactive planet","Navigation waits for visitor confirmation and uses a static rocket action","Mobile chat order, auto-scroll, keyboard behavior and minimized route state work as requested","Homepage project cards open internal project description pages"],"depends_on":["DB-0100","external:https://github.com/Pukujan/design-bakery/issues/143"],"goal":"Design and deliver a lively, first-person virtual Pujan voice and mobile chat experience","id":"DB-0101","issue_url":"https://github.com/Pukujan/design-bakery/issues/147","next_action":"Wait for renewed owner direction; implementation deferred and rejected UI rolled back under DB-0102.","owner":"codex","priority":"normal","protocol_version":"0.1.0-draft","schema":"project-continuity.task.v1","status":"queued","why":"Visitors should feel guided by a virtual Design Baker presence and keep context while exploring the portfolio"} -->
 
-- Status: active — implementation authorized
+- Status: queued — owner deferred further work
 - Owner: codex
 - Priority: normal
 - Parent: [DB-0100 / #145](https://github.com/Pukujan/design-bakery/issues/145)
 - Depends on: [DB-0100 / #145](https://github.com/Pukujan/design-bakery/issues/145), [#143](https://github.com/Pukujan/design-bakery/issues/143)
 - Primary writer: Codex; branch: `codex/virtual-pujan-mobile-chat`
+
+## Owner disposition
+
+The owner stopped feature work and requested rollback to `154350f`. Treat the implementation checkpoints below as historical evidence, not current acceptance. Preserve requests in [the prompt archive](requests/owner-requests-2026-11-02.md); resume only with renewed direction. Rollback: [#150](https://github.com/Pukujan/design-bakery/issues/150).
 
 ## Goal
 

@@ -8,14 +8,15 @@
  * tour, blog, research, experience, projects, book). Those are answered here for free,
  * in one or two sentences, with the same events the model path sends.
  *
- * A cached answer never claims anything the brief would not: the wording is fixed and
- * facts are read from the site at request time. Navigation is offered for confirmation.
+ * A cached answer never claims anything the brief would not: the wording is fixed, the
+ * facts are read from the site at request time, and every answer that points somewhere
+ * emits a navigate action so the visitor still ends up on the page.
  *
  * Deliberately conservative about when it fires: the first turn of a conversation, or a
  * near-exact match later. A follow-up ("open", "summarise that") depends on the
  * conversation, so it goes to the model.
  */
-import { loadBlogs, loadExperience, loadPapers, loadProjects, type BlogSummary, type Paper, type Project } from './knowledge.js';
+import { loadBlogs, loadExperience, loadPapers, loadProjects, SOCIAL_LINKS, type BlogSummary, type Paper, type Project } from './knowledge.js';
 
 export type CachedAction =
   | { kind: 'navigate'; path: string; label: string }
@@ -119,14 +120,19 @@ function compose(
   const { projects, papers, blogs, experiences, booking } = data;
   const shipped = projects.filter((project) => project.category === 'shipped');
   const named = (shipped.length ? shipped : projects).slice(0, 2).map((project) => project.title);
-  // A navigation action is a proposal; the browser waits for visitor confirmation.
+  const email = SOCIAL_LINKS.find((link) => link.label === 'Email')?.url ?? 'mailto:pujan3645@gmail.com';
+  // A navigate action moves the page the moment it arrives, so an instant answer carries
+  // at most one. The rest of the journey is offered as chips the visitor chooses from.
+  const book = booking
+    ? [{ kind: 'book' as const, url: booking }]
+    : [{ kind: 'link' as const, label: 'Email Pujan', url: email }];
 
   switch (intent.id) {
     case 'greeting':
       return {
         intent: intent.id,
-        text: `Hey, I’m Pujan’s virtual presence on Design Bakery. I can walk you through my work, research, or writing. What are you curious about?`,
-        actions: [],
+        text: `Hey. I can take you through Pujan's work, research or writing, or point you at whatever is closest to what you are building.`,
+        actions: [navigate('/#work', 'See the work')],
       };
 
     case 'thanks':
@@ -135,32 +141,32 @@ function compose(
     case 'identity':
       return {
         intent: intent.id,
-        text: `I build AI/ML systems for document-heavy workflows: RAG, OCR, evaluation, and human review, mostly in legal. I’ve shared ${projects.length} projects here; ${shipped.length} have shipped. Want me to show you my work?`,
-        actions: [{ kind: 'projects', slugs: (shipped.length ? shipped : projects).slice(0, 3).map((project) => project.slug) }, navigate('/#work', 'Selected work')],
+        text: `Pujan builds AI/ML systems for document-heavy workflows: RAG, OCR, eval engineering and human-in-the-loop validation, mostly in legal. ${projects.length} projects on the site, ${shipped.length} of them shipped.`,
+        actions: [{ kind: 'projects', slugs: (shipped.length ? shipped : projects).slice(0, 3).map((project) => project.slug) }, navigate('/#about', 'More about him')],
       };
 
     case 'contact':
       return {
         intent: intent.id,
         text: booking
-          ? `You can email me at pujan3645@gmail.com or book a free 30-minute consultation. Want me to open Contact?`
-          : `Email me at pujan3645@gmail.com. I also offer free 30-minute consultations. Want me to open Contact?`,
-        actions: [navigate('/contact', 'Contact')],
+          ? `Email is pujan3645@gmail.com, or pick a time for a free 30-minute consultation.`
+          : `Email is fastest: pujan3645@gmail.com. He also takes free 30-minute consultations.`,
+        actions: [...book, navigate('/contact', 'Contact page')],
       };
 
     case 'tour':
       return {
         intent: intent.id,
-        text: `Let’s start with my selected work, then we can explore research or writing. Want me to open the work section?`,
-        actions: [navigate('/#work', 'Selected work')],
+        text: `Short version: the work first, then research and writing. Ask about any of them and I will go deeper.`,
+        actions: [navigate('/#work', 'Start with the work')],
       };
 
     case 'blog': {
       const newest = latestBlog(blogs);
       return {
         intent: intent.id,
-        text: newest ? `I’ve published ${blogs.length} posts. The latest is “${newest.title}.” Want me to open the writing page?` : 'My writing is collected on the blog. Want me to open it?',
-        actions: [navigate('/blogs', 'Writing')],
+        text: newest ? `${blogs.length} posts, most recently "${newest.title}". The writing is where the day-to-day thinking lives.` : 'The blog is where the day-to-day thinking lives.',
+        actions: [navigate('/blogs', 'Open the blog')],
       };
     }
 
@@ -169,9 +175,9 @@ function compose(
       return {
         intent: intent.id,
         text: newest
-          ? `I have ${papers.length} working papers. The latest is “${newest.title}” (${newest.status}). Want me to open Research?`
-          : 'My working papers are on the Research page. Want me to open it?',
-        actions: [navigate('/research', 'Research')],
+          ? `${papers.length} working papers. The newest is "${newest.title}" (${newest.status}). Most are awaiting his approval, so cite them as drafts.`
+          : 'The research section holds his working papers.',
+        actions: [navigate('/research', 'Open research')],
       };
     }
 
@@ -182,24 +188,24 @@ function compose(
       return {
         intent: intent.id,
         text: recent
-          ? `Most recently, I was ${recent.role} at ${recent.company} (${recent.period.split('·')[0].trim()}). Want me to show you my full experience?`
-          : 'I’ve shared my work history on this page. Want me to open it?',
-        actions: [navigate('/#experience', 'Experience')],
+          ? `Most recently ${recent.role} at ${recent.company} (${recent.period.split('·')[0].trim()}). The full history, with what he shipped at each, is on the page.`
+          : 'The work history is on the page.',
+        actions: [navigate('/#experience', 'Work history')],
       };
     }
 
     case 'projects':
       return {
         intent: intent.id,
-        text: `I’ve shared ${projects.length} projects, including shipped work like ${list(named)}. Want me to open the project list?`,
+        text: `${projects.length} projects, from shipped products like ${list(named)} to research systems and experiments. Each has its own page.`,
         actions: [{ kind: 'projects', slugs: (shipped.length ? shipped : projects).slice(0, 4).map((project) => project.slug) }, navigate('/#work', 'All projects')],
       };
 
     case 'book':
       return {
         intent: intent.id,
-        text: `I offer free 30-minute consultations in AI engineering, product design, marketing, and full-stack development. Want me to open Contact so you can choose a time?`,
-        actions: [navigate('/contact', 'Contact')],
+        text: `He offers free 30-minute consultations in AI engineering, product design, marketing and full-stack development. Pick a time, and say what it is about.`,
+        actions: booking ? [{ kind: 'book', url: booking }] : [{ kind: 'link', label: 'Email Pujan', url: email }],
       };
 
     default:

@@ -27,7 +27,6 @@ import {
 export type BackdropVariant = 'hole' | 'pulsar' | 'giant' | 'system';
 
 const STAR_COUNT = 220;
-const CORE_STAR_COUNT = 112;
 const LINK_DISTANCE = 2.1;
 const MAX_PIXEL_RATIO = 1.75;
 const FOV = 50;
@@ -75,20 +74,14 @@ function buildSky(rng: () => number) {
     }
   }
 
-  const coreGeometry = new THREE.BufferGeometry();
-  coreGeometry.setAttribute('position', new THREE.BufferAttribute(positions.slice(0, CORE_STAR_COUNT * 3), 3));
-  const extraGeometry = new THREE.BufferGeometry();
-  extraGeometry.setAttribute('position', new THREE.BufferAttribute(positions.slice(CORE_STAR_COUNT * 3), 3));
+  const starGeometry = new THREE.BufferGeometry();
+  starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   const lineGeometry = new THREE.BufferGeometry();
   lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(links, 3));
   return {
     stars: new THREE.Points(
-      coreGeometry,
+      starGeometry,
       new THREE.PointsMaterial({ color: PAPER, size: 0.07, map: glowTexture(), transparent: true, opacity: 0.7, depthWrite: false }),
-    ),
-    extraStars: new THREE.Points(
-      extraGeometry,
-      new THREE.PointsMaterial({ color: PAPER, size: 0.07, map: glowTexture(), transparent: true, opacity: 0, depthWrite: false }),
     ),
     lines: new THREE.LineSegments(
       lineGeometry,
@@ -138,18 +131,7 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
     const container = containerRef.current;
     if (!container) return;
 
-    const previousBackground = container.style.background;
-    const showStaticFallback = () => {
-      container.style.background = 'radial-gradient(ellipse at 76% 46%, rgb(87 119 15 / 18%), transparent 48%), radial-gradient(ellipse at 78% 48%, rgb(91 20 13 / 10%), transparent 40%)';
-      container.dataset.backdropQuality = 'static';
-    };
-    let renderer: THREE.WebGLRenderer;
-    try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'low-power' });
-    } catch {
-      showStaticFallback();
-      return () => { container.style.background = previousBackground; };
-    }
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'low-power' });
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
     container.appendChild(renderer.domElement);
@@ -160,9 +142,8 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
     camera.position.set(0, 0, 10);
 
     const sky = buildSky(seeded(7));
-    container.dataset.backdropQuality = 'core';
     const root = new THREE.Group();
-    root.add(sky.stars, sky.extraStars, sky.lines);
+    root.add(sky.stars, sky.lines);
     scene.add(root);
 
     const target = new THREE.WebGLRenderTarget(1, 1, { samples: 4 });
@@ -208,94 +189,24 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
     // What the sky and the bodies answer to: the eased pointer plus the swipe kick.
     const look = { sx: 0, sy: 0, vivid: 1 };
     let lastTouch: { x: number; y: number } | null = null;
-    let frame = 0;
-    let last = performance.now();
-    let visible = true;
-    let contextLost = false;
-    let qualityLevel = 0;
-    let extraOpacityTarget = 0;
-    let poorWindows = 0;
-    let smoothWindows = 0;
-    let sampleStart = performance.now();
-    let sampleFrames = 0;
-    let sampleDuration = 0;
-    let lastPacingFrame = 0;
-    let lastInteraction = performance.now();
-    let qualityIgnoreUntil = performance.now() + 2500;
-    const clock = { elapsed: 0 };
-
-    const resetPacing = () => {
-      sampleStart = performance.now();
-      sampleFrames = 0;
-      sampleDuration = 0;
-      poorWindows = 0;
-      smoothWindows = 0;
-    };
-    const markInteraction = () => {
-      lastInteraction = performance.now();
-      resetPacing();
-    };
-    const updateQuality = (now: number) => {
-      const gap = lastPacingFrame ? now - lastPacingFrame : 0;
-      lastPacingFrame = now;
-      if (now < qualityIgnoreUntil || now - lastInteraction < 1200 || !visible || document.hidden) {
-        resetPacing();
-        return;
-      }
-      if (gap > 0) {
-        sampleDuration += gap;
-        sampleFrames += 1;
-      }
-      if (now - sampleStart < 1000 || !sampleFrames) return;
-      const average = sampleDuration / sampleFrames;
-      sampleStart = now;
-      sampleFrames = 0;
-      sampleDuration = 0;
-      if (average > 24) {
-        poorWindows += 1;
-        smoothWindows = 0;
-      } else if (average < 18.5) {
-        smoothWindows += 1;
-        poorWindows = 0;
-      } else {
-        poorWindows = 0;
-        smoothWindows = 0;
-      }
-      if (poorWindows >= 3 && qualityLevel > 0) {
-        qualityLevel -= 1;
-        extraOpacityTarget = qualityLevel === 0 ? 0 : 0.28;
-        container.dataset.backdropQuality = qualityLevel === 0 ? 'core' : 'balanced';
-        poorWindows = 0;
-      } else if (smoothWindows >= 5 && qualityLevel < 2) {
-        qualityLevel += 1;
-        extraOpacityTarget = qualityLevel === 1 ? 0.28 : 0.7;
-        container.dataset.backdropQuality = qualityLevel === 1 ? 'balanced' : 'full';
-        smoothWindows = 0;
-      }
-    };
 
     const onPointer = (event: PointerEvent) => {
-      markInteraction();
       pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
       pointer.y = (event.clientY / window.innerHeight) * 2 - 1;
     };
     const onScroll = () => {
-      markInteraction();
       scroll.target = Math.min(window.scrollY / (window.innerHeight * 1.2), 1);
     };
     const onWheel = (event: WheelEvent) => {
-      markInteraction();
       spin.velocity += event.deltaY * 0.00035;
     };
     const onTouchStart = (event: TouchEvent) => {
-      markInteraction();
       const touch = event.touches[0];
       lastTouch = touch ? { x: touch.clientX, y: touch.clientY } : null;
     };
     const onTouchMove = (event: TouchEvent) => {
       const touch = event.touches[0];
       if (!touch || !lastTouch) return;
-      markInteraction();
       const dx = touch.clientX - lastTouch.x;
       const dy = touch.clientY - lastTouch.y;
       lastTouch = { x: touch.clientX, y: touch.clientY };
@@ -311,8 +222,6 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
       const width = container.clientWidth;
       const height = container.clientHeight;
       if (!width || !height) return;
-      qualityIgnoreUntil = Math.max(qualityIgnoreUntil, performance.now() + 900);
-      resetPacing();
       renderer.setSize(width, height, false);
       const ratio = renderer.getPixelRatio();
       target.setSize(Math.round(width * ratio), Math.round(height * ratio));
@@ -326,6 +235,11 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
     });
     observer.observe(container);
     resize();
+
+    let frame = 0;
+    let last = performance.now();
+    let visible = true;
+    const clock = { elapsed: 0 };
 
     // The lens pass needs the body's place on screen and its size, both from this frame's camera.
     const updateLens = (current: Body) => {
@@ -407,9 +321,6 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
       camera.updateProjectionMatrix();
       root.position.z = 16 * warp;
       (sky.stars.material as THREE.PointsMaterial).size = 0.07 + 0.22 * warp;
-      const extraStarsMaterial = sky.extraStars.material as THREE.PointsMaterial;
-      extraStarsMaterial.opacity += (extraOpacityTarget - extraStarsMaterial.opacity) * Math.min(1, delta * 2.2);
-      sky.extraStars.visible = extraStarsMaterial.opacity > 0.005 || extraOpacityTarget > 0;
 
       const halfH = Math.tan((FOV * Math.PI) / 360) * 10;
       const halfW = halfH * camera.aspect;
@@ -465,40 +376,11 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
       }
     };
 
-    const stopLoop = () => {
-      if (!frame) return;
-      cancelAnimationFrame(frame);
-      frame = 0;
-    };
     const loop = (now: number) => {
-      frame = 0;
+      frame = requestAnimationFrame(loop);
       if (!visible || document.hidden) return;
-      updateQuality(now);
       render(now);
-      frame = requestAnimationFrame(loop);
     };
-    const startLoop = () => {
-      if (reduceMotion || contextLost || !visible || document.hidden || frame) return;
-      last = performance.now();
-      lastPacingFrame = 0;
-      qualityIgnoreUntil = Math.max(qualityIgnoreUntil, last + 1500);
-      resetPacing();
-      frame = requestAnimationFrame(loop);
-    };
-    const onVisibilityChange = () => {
-      if (document.hidden) {
-        stopLoop();
-        resetPacing();
-      } else startLoop();
-    };
-    const onContextLost = (event: Event) => {
-      event.preventDefault();
-      contextLost = true;
-      stopLoop();
-      renderer.domElement.style.visibility = 'hidden';
-      showStaticFallback();
-    };
-    renderer.domElement.addEventListener('webglcontextlost', onContextLost, false);
 
     if (reduceMotion) {
       render(performance.now());
@@ -511,21 +393,14 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
       window.addEventListener('touchend', onTouchEnd, { passive: true });
       const io = new IntersectionObserver(([entry]) => {
         visible = entry.isIntersecting;
-        if (visible) startLoop();
-        else {
-          stopLoop();
-          resetPacing();
-        }
       });
       io.observe(container);
-      document.addEventListener('visibilitychange', onVisibilityChange);
-      startLoop();
+      frame = requestAnimationFrame(loop);
+      last = performance.now();
       onScroll();
 
       return () => {
         cancelAnimationFrame(frame);
-        renderer.domElement.removeEventListener('webglcontextlost', onContextLost, false);
-        document.removeEventListener('visibilitychange', onVisibilityChange);
         io.disconnect();
         window.removeEventListener('pointermove', onPointer);
         window.removeEventListener('scroll', onScroll);
@@ -534,7 +409,6 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
         window.removeEventListener('touchmove', onTouchMove);
         window.removeEventListener('touchend', onTouchEnd);
         observer.disconnect();
-        container.style.background = previousBackground;
         teardown();
       };
     }
@@ -550,8 +424,6 @@ export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant })
 
     return () => {
       observer.disconnect();
-      renderer.domElement.removeEventListener('webglcontextlost', onContextLost, false);
-      container.style.background = previousBackground;
       teardown();
     };
   }, [reduceMotion]);
