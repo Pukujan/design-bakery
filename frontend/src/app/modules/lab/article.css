@@ -240,3 +240,17 @@
     display: none;
   }
 }
+
+/* GitHub alerts are reading callouts, not long decorative italic quotations. */
+.article .rp-callout {
+  margin: 2rem 0;
+  padding: 1.1rem 1.25rem;
+  border-left: 2px solid var(--lab-accent);
+  background: #141610;
+  color: var(--lab-paper);
+  font: inherit;
+}
+.article .rp-callout > :last-child { margin-bottom: 0; }
+@media (max-width: 640px) {
+  .article blockquote { font-family: var(--lab-display); font-style: normal; font-size: 1.05em; line-height: 1.65; }
+}

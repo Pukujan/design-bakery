@@ -1,6 +1,14 @@
 /* A single post or paper: one column, a large title, and the body in the article type. */
 .writing.post {
   max-width: 46rem;
+  /* Keep the galaxy in the margins while giving every reading line a dark base. */
+  background: linear-gradient(
+    90deg,
+    rgb(11 11 10 / 0.3),
+    rgb(11 11 10 / 0.94) 1.25rem,
+    rgb(11 11 10 / 0.94) calc(100% - 1.25rem),
+    rgb(11 11 10 / 0.3)
+  );
 }
 
 .post-back {
@@ -27,7 +35,7 @@
 
 .post-byline {
   margin: 1rem 0 0;
-  color: var(--lab-muted);
+  color: #c7c3b8;
   font-size: 1rem;
 }
 
@@ -36,7 +44,7 @@
   max-width: 34ch;
   font-size: clamp(1.2rem, 2vw, 1.5rem);
   line-height: 1.45;
-  color: var(--lab-muted);
+  color: var(--lab-paper);
 }
 
 .post-body {

@@ -1,0 +1,55 @@
+.cp-voice-presence {
+  --voice-level: 0;
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(84px, calc(env(safe-area-inset-bottom) + 78px));
+  z-index: 2147482001;
+  width: min(250px, calc(100vw - 32px));
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  border: 1px solid rgb(242 239 232 / 0.13);
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgb(16 16 14 / 94%), rgb(7 7 6 / 88%));
+  color: #f2efe8;
+  box-shadow: 0 18px 60px rgb(0 0 0 / 0.48), inset 0 1px 0 rgb(255 255 255 / 0.06);
+  backdrop-filter: blur(18px);
+  transition: left 1.8s cubic-bezier(.18,.75,.22,1), top 1.8s cubic-bezier(.18,.75,.22,1), right 1.8s cubic-bezier(.18,.75,.22,1), bottom 1.8s cubic-bezier(.18,.75,.22,1), box-shadow .4s ease;
+  touch-action: none;
+}
+.cp-voice-presence.is-forming { animation: cp-presence-arrive .95s cubic-bezier(.2,.75,.2,1) both; }
+.cp-voice-presence.is-dragging { transition: none; }
+.cp-voice-presence.is-page-hidden,
+.cp-voice-presence.is-page-hidden * { animation-play-state: paused !important; }
+.cp-voice-copy { width: 100%; display: grid; justify-items: center; gap: .3rem; }
+.cp-voice-state { display: inline-flex; align-items: center; gap: .45rem; color: #c6f432; font: 600 .66rem/1.2 'JetBrains Mono Variable', ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; }
+.cp-voice-state i { width: 7px; height: 7px; border-radius: 50%; background: #c6f432; box-shadow: 0 0 14px #c6f432; animation: cp-status-pulse 1.4s ease-in-out infinite; }
+.cp-voice-line { min-height: 2.4em; margin: 0; color: #e8e5de; font: 500 .84rem/1.35 'Bricolage Grotesque Variable', system-ui, sans-serif; text-align: center; }
+.cp-voice-caret { display: inline-block; width: 1px; height: .9em; margin-left: 2px; background: #c6f432; vertical-align: -.08em; animation: cp-caret .8s steps(2,end) infinite; }
+.cp-voice-planet { position: relative; width: 102px; height: 102px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: grab; touch-action: none; }
+.cp-voice-planet:active { cursor: grabbing; }
+.cp-voice-core { position: relative; z-index: 2; width: 56px; height: 56px; display: grid; place-items: center; overflow: hidden; border: 1px solid rgb(255 255 255 / .45); border-radius: 50%; background: radial-gradient(circle at 35% 27%, #f9ffe1 0 5%, #c6f432 12%, #529c13 44%, #171d0b 72%); box-shadow: 0 0 calc(12px + var(--voice-level) * 25px) rgb(198 244 50 / .75), inset -9px -8px 16px rgb(0 0 0 / .68); animation: cp-core-breathe 3.8s ease-in-out infinite; }
+.cp-voice-core span { color: rgb(255 255 255 / .82); font: 800 .75rem/1 'Bricolage Grotesque Variable', system-ui, sans-serif; letter-spacing: -.08em; text-shadow: 0 1px 8px #000; }
+.cp-voice-orbit { position: absolute; inset: 12px; border: 1px solid rgb(198 244 50 / .62); border-radius: 50%; transform: scale(calc(1 + var(--voice-level) * .18)); box-shadow: 0 0 calc(8px + var(--voice-level) * 14px) rgb(198 244 50 / .35); }
+.cp-voice-orbit--one { animation: cp-orbit 6s linear infinite; }
+.cp-voice-orbit--two { inset: 5px 18px; border-color: rgb(207 65 38 / .8); transform: rotate(62deg) scale(calc(1 + var(--voice-level) * .12)); animation: cp-orbit 8s linear infinite reverse; }
+.cp-voice-wave { position: absolute; z-index: 3; display: flex; align-items: center; gap: 3px; height: 24px; }
+.cp-voice-wave i { width: 2px; height: calc(4px + var(--voice-level) * 18px); border-radius: 2px; background: #efffa7; box-shadow: 0 0 8px #c6f432; transition: height .12s ease; }
+.cp-voice-wave i:nth-child(2n) { height: calc(6px + var(--voice-level) * 13px); }
+.cp-voice-wave i:nth-child(3n) { height: calc(3px + var(--voice-level) * 21px); }
+.cp-voice-particles { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 9% 23%, #c6f432 0 1px, transparent 2px), radial-gradient(circle at 83% 17%, #d54c2a 0 1px, transparent 2px), radial-gradient(circle at 89% 73%, #c6f432 0 1px, transparent 2px), radial-gradient(circle at 12% 81%, #d54c2a 0 1px, transparent 2px); animation: cp-particle-orbit 7s linear infinite; }
+.cp-voice-controls { width: 100%; display: flex; justify-content: center; gap: .45rem; }
+.cp-voice-controls button { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: .35rem; padding: 0 .72rem; border: 1px solid rgb(242 239 232 / .17); border-radius: 999px; background: rgb(255 255 255 / .035); color: #f2efe8; font: 600 .72rem 'Bricolage Grotesque Variable', system-ui, sans-serif; cursor: pointer; }
+.cp-voice-controls button:hover, .cp-voice-controls button:focus-visible { border-color: #c6f432; outline: none; }
+.cp-voice-controls .is-muted { color: #f5b496; }
+.cp-voice-controls .cp-voice-audio { border-color: rgb(198 244 50 / .65); color: #e9ff9d; }
+.cp-voice-controls .cp-voice-end { border-color: rgb(192 52 37 / .45); color: #ffd4c8; }
+@keyframes cp-presence-arrive { from { opacity: 0; transform: translate(var(--portal-x, 30vw), var(--portal-y, -20vh)) scale(.16) rotate(-35deg); filter: blur(8px); } 72% { opacity: 1; transform: translate(-5px, 4px) scale(1.04) rotate(3deg); filter: blur(0); } to { transform: translate(0) scale(1); } }
+@keyframes cp-core-breathe { 50% { transform: scale(1.06); } }
+@keyframes cp-orbit { to { rotate: 360deg; } }
+@keyframes cp-particle-orbit { to { rotate: 360deg; } }
+@keyframes cp-status-pulse { 50% { opacity: .42; transform: scale(.76); } }
+@keyframes cp-caret { 50% { opacity: 0; } }
+@media (max-width: 640px) { .cp-voice-presence { right: max(12px, env(safe-area-inset-right)); bottom: calc(max(82px, env(safe-area-inset-bottom) + 80px) + var(--voice-minimized-offset, 0px)); width: min(218px, calc(100vw - 28px)); padding: .65rem; border-radius: 24px; } .cp-voice-planet { width: 82px; height: 82px; } .cp-voice-core { width: 48px; height: 48px; } }
+@media (prefers-reduced-motion: reduce) { .cp-voice-presence, .cp-voice-presence *, .cp-voice-presence::before, .cp-voice-presence::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }

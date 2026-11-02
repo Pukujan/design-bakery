@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getResearchPaper } from '../data/researchPapers';
 import { Article } from '@/modules/lab/Article';
-import { FlowText } from '@/modules/lab/FlowText';
 import { ArticleToc } from '@/modules/lab/ArticleToc';
 import '@/modules/lab/lab.css';
 import '@/modules/blog/public/list/writing.css';
@@ -36,12 +35,12 @@ export function ResearchPaperPage() {
       <p className="writing-kicker lab-mono">
         {paper.id} · {paper.submitted}
       </p>
-      <h1 className="post-title"><FlowText as="span" text={paper.title}>{paper.title}</FlowText></h1>
+      <h1 className="post-title">{paper.title}</h1>
       <p className="post-byline">{paper.authors.join(', ')}</p>
-      <FlowText className="post-lede" text={paper.abstract}>{paper.abstract}</FlowText>
+      <p className="post-lede">{paper.abstract}</p>
       <ArticleToc source={paper.content} />
       <div className="post-body">
-        <Article source={paper.content} />
+        <Article source={paper.content} flow={false} />
       </div>
       {paper.tags.length ? <p className="post-tags lab-mono">{paper.tags.join(' · ')}</p> : null}
     </article>
