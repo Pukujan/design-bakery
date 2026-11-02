@@ -6,10 +6,10 @@ import type { EngineeringHeroContent } from '../../../lib/adminContentService';
 import { usePortfolio } from '../../../portfolios/PortfolioContext';
 import { openExperience } from '../../../lib/openExperience';
 import { openFeaturedProject } from '../../../lib/openFeaturedProject';
-import eteHero from '../../../portfolios/endtoend-engineer/engineering/hero.json';
+import { useEngineeringHeroSection } from '../../../lib/contentHooks';
 
 export function EngineeringHero() {
-  const content = eteHero as EngineeringHeroContent;
+  const content = useEngineeringHeroSection() as EngineeringHeroContent;
   const { portfolioId } = usePortfolio();
   console.log(
     `[hero:render] ${JSON.stringify({

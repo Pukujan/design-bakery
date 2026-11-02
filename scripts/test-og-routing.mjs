@@ -105,7 +105,6 @@ const CASES = [
   // but they are still inside the matcher and must classify as case studies.
   ['/case-studies/ekagajpatra', true, 'case-study'],
   ['/case-studies/invest-ai', true, 'case-study'],
-  ['/case-studies/ai-agents/v4', true, 'case-study'],
   ['/case-studies/legal-workflow-research/', true, 'case-study'],
   ['/case-studies/study-os', true, 'case-study'],
   ['/case-studies/fossil', true, 'case-study'],

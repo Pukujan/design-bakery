@@ -29,8 +29,8 @@ export const ekagajpatraUxAssets = {
     downloadOnlyA: `${UX_IMAGE_BASE}/ab-download-only-a.png`,
     previewFlowB: `${UX_IMAGE_BASE}/ab-preview-flow-b.png`,
   },
-  productWalkthrough: "/videos/ekagajpatra-original-nepali-english-subtitles.mp4",
-  captions: "/videos/ekagajpatra-english-subtitles.vtt",
+  productWalkthrough: "https://files.design-bakery.com/efd04109-e0fc-4422-863d-02c572d362fe",
+  captions: "https://files.design-bakery.com/08d614a1-0a4f-46d0-b58a-80d98b56c70a",
 } as const;
 
 export type UxVisualKind = "verified-image" | "wireframe" | "placeholder";

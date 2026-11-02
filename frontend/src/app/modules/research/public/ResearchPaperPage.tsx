@@ -300,28 +300,11 @@ export function ResearchPaperPage() {
               Research index
             </Link>
 
-            <div>
-              <span className="inline-block rounded-full bg-neutral-200 dark:bg-neutral-800 px-3 py-0.5 font-mono text-[11px] uppercase tracking-wide text-amber-700 dark:text-amber-500">
-                {STATUS_LABEL[paper.status] ?? paper.status}
-              </span>
-            </div>
-
             <h1 className="rp-title">{paper.title}</h1>
             <p className="rp-byline">{paper.authors.join(' · ')}</p>
-            <p className="mt-1 font-mono text-[12px] text-neutral-500 dark:text-neutral-400 break-words">
-              {paper.id} · submitted {paper.submitted} · status {paper.status}
-            </p>
+            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{paper.submitted}</p>
 
-            <div className="mt-3 flex flex-wrap gap-2">
-              {paper.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-neutral-300 dark:border-neutral-700 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-neutral-600 dark:text-neutral-400"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+            <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">{paper.tags.join(', ')}</p>
             {hasDeepDives ? (
               <div className="rp-readmode-row">
                 <ReadModeToggle mode={readMode} onChange={setReadMode} />
@@ -387,7 +370,6 @@ export function ResearchPaperPage() {
                   onClick={() => setFigureZoom((value) => Math.max(1, Number((value - 0.25).toFixed(2))))}
                   disabled={figureZoom <= 1}
                   aria-label="Zoom out"
-                  title="Zoom out"
                 >
                   <ZoomOut aria-hidden />
                 </button>
@@ -396,7 +378,6 @@ export function ResearchPaperPage() {
                   className="research-figure-dialog-zoom"
                   onClick={() => setFigureZoom(1)}
                   aria-label="Reset zoom"
-                  title="Reset zoom"
                 >
                   {Math.round(figureZoom * 100)}%
                 </button>
@@ -406,7 +387,6 @@ export function ResearchPaperPage() {
                   onClick={() => setFigureZoom((value) => Math.min(3, Number((value + 0.25).toFixed(2))))}
                   disabled={figureZoom >= 3}
                   aria-label="Zoom in"
-                  title="Zoom in"
                 >
                   <ZoomIn aria-hidden />
                 </button>
@@ -415,7 +395,6 @@ export function ResearchPaperPage() {
                   className="research-figure-dialog-button"
                   onClick={() => setFigureZoom(1)}
                   aria-label="Reset zoom"
-                  title="Reset zoom"
                 >
                   <RotateCcw aria-hidden />
                 </button>
@@ -425,7 +404,6 @@ export function ResearchPaperPage() {
                   className="research-figure-dialog-button"
                   onClick={() => setActiveFigure(null)}
                   aria-label="Close figure viewer"
-                  title="Close"
                 >
                   <X aria-hidden />
                 </button>

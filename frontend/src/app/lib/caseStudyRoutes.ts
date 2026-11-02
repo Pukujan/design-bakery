@@ -11,9 +11,6 @@ export const LEGAL_WORKFLOW_RESEARCH_CASE_STUDY_PATH =
 /** Interactive AI agents case study v3 (SVG + dark mode — extras/oni_agent_interactive_page_svg_darkmode_src/). */
 export const AI_AGENTS_CASE_STUDY_PATH = '/case-studies/ai-agents/v3';
 
-/** Reorganized tabbed AI agents case study v4 (A/B layout — extras/oni_agent_interactive_page_svg_darkmode_v4_src/). */
-export const AI_AGENTS_CASE_STUDY_V4_PATH = '/case-studies/ai-agents/v4';
-
 /** Legacy v1 path — resolves to v3 for CMS/Firestore links. */
 export const AI_AGENTS_CASE_STUDY_V1_PATH = '/case-studies/ai-agents';
 

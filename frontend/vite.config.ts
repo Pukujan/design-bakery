@@ -77,11 +77,7 @@ export default defineConfig(async () => {
           __dirname,
           'extras/oni_agent_interactive_page_svg_darkmode_src',
         ),
-        '@oni-agent-case-study-v4': path.resolve(
-          __dirname,
-          'extras/oni_agent_interactive_page_svg_darkmode_v4_src',
-        ),
-        // Shared by the v3 and v4 ONI case studies (deduplicated in TASK-DB-0049).
+        // Used by the ONI case study (deduplicated in TASK-DB-0049).
         '@oni-agent-assets': path.resolve(__dirname, 'extras/oni_agent_shared_assets'),
         '@design-bakery/cover-studio-kit': path.resolve(
           repoRoot,

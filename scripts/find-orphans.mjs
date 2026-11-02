@@ -39,7 +39,6 @@ const ROOTS = [
       'frontend/extras/Create Presentation Case Study/src/app/App.tsx',
       'frontend/extras/invest-ai-case-study/src/app/App.tsx',
       'frontend/extras/oni_agent_interactive_page_svg_darkmode_src/app/App.tsx',
-      'frontend/extras/oni_agent_interactive_page_svg_darkmode_v4_src/app/App.tsx',
     ],
   },
   {
@@ -103,6 +102,8 @@ const ALLOW = [
   // Unrouted work-in-progress for open feature issue #24 (photo gallery).
   // Unfinished, not dead — do not delete.
   /^frontend\/src\/app\/modules\/photo-gallery\//,
+  // Shared blog motion helpers that the same unrouted photo gallery still imports. Keep with the gallery.
+  /^frontend\/src\/app\/modules\/blog\/shared\/BlogPageMotion\.tsx$/,
   // Reference examples shipped with cover-studio-kit; not imported by design.
   /^packages\/cover-studio-kit\/examples\//,
 ];

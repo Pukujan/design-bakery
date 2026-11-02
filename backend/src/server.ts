@@ -8,6 +8,7 @@ import { coverStudioLibraryRouter } from './api/coverStudioLibrary.js';
 import { mediaLibraryRouter } from './api/mediaLibrary.js';
 import { ogPreviewRouter } from './api/ogPreview.js';
 import { publishKitRouter } from './api/publishKit.js';
+import { copilotRouter } from './copilot/route.js';
 import { isOriginAllowed, loadServerEnv } from './config/env.js';
 import { requireAgentToken } from './middleware/agentAuth.js';
 import { requireAdmin } from './middleware/auth.js';
@@ -37,6 +38,7 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/auth', authRouter);
 app.use('/api/public', publicContentRouter);
+app.use('/api/copilot', copilotRouter);
 app.use('/api/agent', requireAgentToken, agentPostsRouter);
 app.use('/api/content', requireAdmin, contentRouter);
 app.use('/api/publish-kit', requireAdmin, publishKitRouter);

@@ -1,0 +1,17 @@
+/* Flowing text: Pretext places each line inside the run's box, so the lines can move round a body. */
+.flow-text {
+  display: block;
+  position: relative;
+}
+
+.flow-lines {
+  position: absolute;
+  inset: 0;
+}
+
+.flow-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: pre;
+}

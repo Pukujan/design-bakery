@@ -1,6 +1,5 @@
 import {
   AI_AGENTS_CASE_STUDY_PATH,
-  AI_AGENTS_CASE_STUDY_V4_PATH,
   EKAGAJPATRA_CASE_STUDY_PATH,
   INVEST_AI_CASE_STUDY_PATH,
   LEGAL_WORKFLOW_RESEARCH_CASE_STUDY_PATH,
@@ -67,15 +66,6 @@ export const BLOG_INDEX_SEO: PageSeoConfig = {
   imageAlt: `${SITE_NAME} engineering blog`,
 };
 
-export const DESIGN_PORTFOLIO_SEO: PageSeoConfig = {
-  title: `Design Portfolio | ${SITE_NAME}`,
-  description:
-    'Product design portfolio — web design, visual systems, community work, and design-led engineering.',
-  canonicalPath: '/design',
-  ogImage: DEFAULT_OG_IMAGE_PATH,
-  imageAlt: `${SITE_NAME} design portfolio`,
-};
-
 export const CASE_STUDY_SEO = {
   ekagajpatra: {
     title: `Ekagajpatra Case Study | ${SITE_NAME}`,
@@ -101,14 +91,6 @@ export const CASE_STUDY_SEO = {
     ogImage: DEFAULT_OG_IMAGE_PATH,
     imageAlt: 'ONI vs agent-ready architecture case study',
   },
-  oniV4: {
-    title: `ONI vs Agent-Ready Architecture (v4) | ${SITE_NAME}`,
-    description:
-      'Reorganized interactive case study: ONI analogy, agent architecture, 500-agent pipeline, and risk — built around modular monolith engineering.',
-    canonicalPath: AI_AGENTS_CASE_STUDY_V4_PATH,
-    ogImage: DEFAULT_OG_IMAGE_PATH,
-    imageAlt: 'ONI vs agent-ready architecture v4 case study',
-  },
   legalWorkflowResearch: {
     title: `Legal Workflow Research Case Study | ${SITE_NAME}`,
     description:
@@ -133,7 +115,6 @@ export const SITEMAP_STATIC_PATHS = [
   EKAGAJPATRA_CASE_STUDY_PATH,
   INVEST_AI_CASE_STUDY_PATH,
   AI_AGENTS_CASE_STUDY_PATH,
-  AI_AGENTS_CASE_STUDY_V4_PATH,
   LEGAL_WORKFLOW_RESEARCH_CASE_STUDY_PATH,
 ] as const;
 

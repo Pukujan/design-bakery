@@ -1,0 +1,74 @@
+/* A single post or paper: one column, a large title, and the body in the article type. */
+.writing.post {
+  max-width: 46rem;
+}
+
+.post-back {
+  display: inline-block;
+  margin-bottom: 2.6rem;
+  color: var(--lab-muted);
+  text-decoration: none;
+}
+
+.post-back:hover {
+  color: var(--lab-accent);
+}
+
+.post-title {
+  margin: 0.6rem 0 0;
+  font-family: var(--lab-display);
+  font-weight: 800;
+  font-stretch: 75%;
+  font-size: clamp(2.6rem, 6.4vw, 4.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.post-byline {
+  margin: 1rem 0 0;
+  color: var(--lab-muted);
+  font-size: 1rem;
+}
+
+.post-lede {
+  margin: 1.2rem 0 0;
+  max-width: 34ch;
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  line-height: 1.45;
+  color: var(--lab-muted);
+}
+
+.post-body {
+  margin-top: 3rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.post-tags {
+  margin-top: 3rem;
+  color: var(--lab-muted);
+}
+
+.post-next {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+  color: var(--lab-paper);
+  text-decoration: none;
+}
+
+.post-next:hover {
+  color: var(--lab-accent);
+}
+
+.post-next-title {
+  font-family: var(--lab-display);
+  font-weight: 800;
+  font-stretch: 75%;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  line-height: 1;
+}

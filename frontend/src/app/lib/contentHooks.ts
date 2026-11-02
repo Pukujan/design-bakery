@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import { usePortfolio } from '../portfolios/PortfolioContext';
+import { usePortfolioDoc } from './portfolioDocs';
 import type { PortfolioId } from '../portfolios/registry';
 import {
   type Project,
@@ -20,6 +22,8 @@ import {
   getAboutFallback,
   getSkillsMetaFallback,
   getExperienceFallback,
+  ETE_EXPERIENCE_BASE,
+  ETE_EXPERIENCE_RENDERED,
 } from '../portfolios/portfolioDefaults';
 import _socialLinksJson from '../components/social-links.json';
 
@@ -28,14 +32,18 @@ function useStaticContent<T>(value: T): T {
   return value;
 }
 
+/** Octo serves the main portfolio's documents; other portfolios keep their bundled defaults. */
+const octoDoc = (portfolioId: PortfolioId, collection: string) =>
+  portfolioId === 'endtoend-engineer' ? collection : null;
+
 export function useProjectsContent() {
   const { portfolioId } = usePortfolio();
-  return useStaticContent<Project[]>(PROJECT_FALLBACKS[portfolioId]);
+  return usePortfolioDoc<Project[]>(octoDoc(portfolioId, 'engineering_projects'), PROJECT_FALLBACKS[portfolioId]);
 }
 
 export function useEngineeringSkillsContent() {
   const { portfolioId } = usePortfolio();
-  return useStaticContent<SkillCategory[]>(ENG_SKILLS_FALLBACKS[portfolioId]);
+  return usePortfolioDoc<SkillCategory[]>(octoDoc(portfolioId, 'engineering_skills'), ENG_SKILLS_FALLBACKS[portfolioId]);
 }
 
 export function useSocialLinksContent() {
@@ -45,7 +53,7 @@ export function useSocialLinksContent() {
 
 export function useEngineeringHeroSection() {
   const { portfolioId } = usePortfolio();
-  return useStaticContent(getHeroFallback(portfolioId));
+  return usePortfolioDoc(octoDoc(portfolioId, 'engineering_hero_content'), getHeroFallback(portfolioId));
 }
 
 export function useEngineeringCommunitySection() {
@@ -55,12 +63,12 @@ export function useEngineeringCommunitySection() {
 
 export function useEngineeringAboutSection() {
   const { portfolioId } = usePortfolio();
-  return useStaticContent<EngineeringAboutContent>(getAboutFallback(portfolioId));
+  return usePortfolioDoc<EngineeringAboutContent>(octoDoc(portfolioId, 'engineering_about_content'), getAboutFallback(portfolioId));
 }
 
 export function useEngineeringSkillsMetaSection() {
   const { portfolioId } = usePortfolio();
-  return useStaticContent<EngineeringSkillsMeta>(getSkillsMetaFallback(portfolioId));
+  return usePortfolioDoc<EngineeringSkillsMeta>(octoDoc(portfolioId, 'engineering_skills_meta'), getSkillsMetaFallback(portfolioId));
 }
 
 export function useContactSection() {
@@ -73,7 +81,13 @@ export function useFooterSection() {
   return useStaticContent<FooterContent>(FOOTER_CONTENT_DEFAULT);
 }
 
+/** The experience list is the rendered list from Octo, with the subtitle from the base document, as the repo merges them. */
 export function useRelevantExperienceContent() {
   const { portfolioId } = usePortfolio();
-  return useStaticContent<RelevantExperienceContent>(getExperienceFallback(portfolioId));
+  const base = usePortfolioDoc<RelevantExperienceContent>(octoDoc(portfolioId, 'relevant_experience_content'), ETE_EXPERIENCE_BASE);
+  const rendered = usePortfolioDoc<RelevantExperienceContent>(octoDoc(portfolioId, 'relevant_experience_rendered'), ETE_EXPERIENCE_RENDERED);
+  return useMemo<RelevantExperienceContent>(
+    () => (portfolioId === 'endtoend-engineer' ? { ...rendered, subtitle: base.subtitle } : getExperienceFallback(portfolioId)),
+    [portfolioId, base, rendered],
+  );
 }

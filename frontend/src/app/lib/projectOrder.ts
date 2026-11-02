@@ -65,7 +65,7 @@ const WITHIN_CATEGORY: Record<ProjectCategory, readonly string[]> = {
     'FOSSIL',
   ],
   experiments: ['Orbitgraph', 'Fluffy V4', 'Voidfeed'],
-  client: ['SaaS Dashboard Systems'],
+  client: [],
 };
 
 export function isProjectCategory(value: string): value is ProjectCategory {

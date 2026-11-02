@@ -4,6 +4,7 @@ import { DefaultSiteHead } from './seo/PageSeo';
 import { AdminAuthProvider } from './lib/adminAuth';
 import { lazyPage } from './lib/lazyPage';
 import { PortfolioPublicLayout } from './portfolios/PortfolioPublicLayout';
+import { CopilotRoot } from './modules/copilot/CopilotRoot';
 import { AdminLayoutShell } from './modules/admin/AdminLayoutShell';
 import { buildAdminChildRoutes } from './modules/admin/adminRoutes';
 import { NotFoundPage } from './components/NotFoundPage';
@@ -20,11 +21,17 @@ import { IrePageRedirect } from './modules/ire/IrePageRedirect';
 const EngineeringHomePage = lazyPage(
   async () => (await import('./modules/engineering/EngineeringHome/EngineeringHome')).EngineeringHome,
 );
+const LabStageLazy = lazyPage(async () => (await import('./modules/lab/LabStage')).LabStage);
+const ConsultPageLazy = lazyPage(async () => (await import('./modules/consult/ConsultPage')).ConsultPage);
+const WorkPage = lazyPage(async () => (await import('./modules/work/WorkPage')).WorkPage);
+const LabHomePage = lazyPage(
+  async () => (await import('./modules/lab/LabHome')).LabHome,
+);
 const BlogListPage = lazyPage(
   async () => (await import('./modules/blog/public/list/BlogListPage')).BlogListPage,
 );
-const BlogDetailPage = lazyPage(
-  async () => (await import('./modules/blog/public/detail/BlogDetailPage')).BlogDetailPage,
+const BlogPostPage = lazyPage(
+  async () => (await import('./modules/blog/public/detail/PostPage')).BlogPostPage,
 );
 const AdminLoginPage = lazyPage(
   async () => (await import('./modules/admin/AdminLogin')).AdminLogin,
@@ -42,10 +49,6 @@ const AiAgentsCaseStudyV3Page = lazyPage(
   async () =>
     (await import('./modules/case-studies/ai-agents/AiAgentsCaseStudyV3Page')).AiAgentsCaseStudyV3Page,
 );
-const AiAgentsCaseStudyV4Page = lazyPage(
-  async () =>
-    (await import('./modules/case-studies/ai-agents/AiAgentsCaseStudyV4Page')).AiAgentsCaseStudyV4Page,
-);
 const LegalWorkflowResearchCaseStudyPage = lazyPage(
   async () =>
     (await import('./modules/case-studies/legal-workflow-research/LegalWorkflowResearchCaseStudyPage'))
@@ -60,7 +63,7 @@ const ResearchListPage = lazyPage(
   async () => (await import('./modules/research/public/ResearchListPage')).ResearchListPage,
 );
 const ResearchPaperPage = lazyPage(
-  async () => (await import('./modules/research/public/ResearchPaperPage')).ResearchPaperPage,
+  async () => (await import('./modules/research/public/PaperPage')).ResearchPaperPage,
 );
 const ResearchSourcePage = lazyPage(
   async () => (await import('./modules/research/public/ResearchSourcePage')).ResearchSourcePage,
@@ -105,9 +108,16 @@ function publicRoutes(): ReactElement[] {
     <Route key="public-shell" path="/" element={<PortfolioPublicLayout />}>
       <Route index element={<EngineeringHomePage />} />
     </Route>,
-    <Route key="blog-shell" path="/blogs" element={<PortfolioPublicLayout />}>
-      <Route index element={<BlogListPage />} />
-      <Route path=":blogId" element={<BlogDetailPage />} />
+    // Homepage redesign prototype (TASK-DB-0098): own dark shell, no site nav, noindex.
+    <Route key="lab-stage" element={<LabStageLazy />}>
+      <Route path="/lab" element={<LabHomePage />} />
+      <Route path="/work/:slug" element={<WorkPage />} />
+      <Route path="/contact" element={<ConsultPageLazy />} />
+      <Route path="/blogs" element={<BlogListPage />} />
+      <Route path="/blogs/:blogId" element={<BlogPostPage />} />
+      <Route path="/research" element={<ResearchListPage />} />
+      <Route path="/research/papers/:paperId" element={<ResearchPaperPage />} />
+      <Route path="/research/sources/:sourceId" element={<ResearchSourcePage />} />
     </Route>,
     <Route
       path="/case-studies/ekagajpatra"
@@ -120,10 +130,6 @@ function publicRoutes(): ReactElement[] {
     <Route
       path="/case-studies/ai-agents/v3"
       element={<AiAgentsCaseStudyV3Page />}
-    />,
-    <Route
-      path="/case-studies/ai-agents/v4"
-      element={<AiAgentsCaseStudyV4Page />}
     />,
     <Route
       path="/case-studies/legal-workflow-research"
@@ -154,11 +160,6 @@ function publicRoutes(): ReactElement[] {
     <Route path="/case-studies/fluffy-v4/gallery" element={<FluffyV4CaseStudyRedirect />} />,
     // IRE market page (IRE #77): static page with a live daily feed, same hand-off pattern.
     <Route path="/ire" element={<IrePageRedirect />} />,
-    <Route key="research-shell" path="/research" element={<PortfolioPublicLayout />}>
-      <Route index element={<ResearchListPage />} />
-      <Route path="papers/:paperId" element={<ResearchPaperPage />} />
-      <Route path="sources/:sourceId" element={<ResearchSourcePage />} />
-    </Route>,
     <Route key="catch-all" path="*" element={<NotFoundPage />} />,
   ];
 }
@@ -168,6 +169,7 @@ export default function App() {
     <AdminAuthProvider>
       <Router>
         <DefaultSiteHead />
+        <CopilotRoot />
         <Routes>
           {adminRoutes()}
           {publicRoutes()}
