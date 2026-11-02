@@ -123,6 +123,48 @@ function bestIntent(question: string, threshold: number): Intent | null {
   return best && best.score >= threshold ? best.intent : null;
 }
 
+/** The first sentences of a description, up to a short limit, so an answer stays a few lines. */
+function lead(text: string, limit = 280): string {
+  const sentences = text.replace(/\s+/g, ' ').trim().split(/(?<=[.!?])\s+/);
+  let out = '';
+  for (const sentence of sentences) {
+    if (out && (out + ' ' + sentence).length > limit) break;
+    out = out ? `${out} ${sentence}` : sentence;
+    if (out.length >= limit * 0.6) break;
+  }
+  return out;
+}
+
+const norm = (text: string) => text.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+/**
+ * "Tell me about Cortex", "what is Orbitgraph", or just a project's name: answered from that project's record
+ * (tagline and the start of its description) with a chip to its page. Short questions only, and only for a
+ * project the site actually has, so a longer follow-up still goes to the model.
+ */
+function projectAbout(question: string, projects: Project[]): CachedAnswer | null {
+  const q = norm(question);
+  if (!q || q.split(' ').length > 9) return null;
+  const asked = /^(please )?(can you |could you )?(tell me (more )?about|what is|what s|what are|explain|describe|about|show me|give me)\b/.test(q);
+  let best: { project: Project; length: number } | null = null;
+  for (const project of projects) {
+    const names = new Set([norm(project.title), norm(project.slug.replace(/-/g, ' ')), project.slug.split('-')[0]]);
+    for (const name of names) {
+      if (name.length < 3) continue;
+      const exact = q === name;
+      if (!exact && !(asked && new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(q))) continue;
+      if (!best || name.length > best.length) best = { project, length: name.length };
+    }
+  }
+  if (!best) return null;
+  const { project } = best;
+  return {
+    intent: 'project',
+    text: `${project.title}: ${project.tagline}. ${lead(project.description)}`,
+    actions: [navigate(`/work/${project.slug}`, `Open ${project.title}`)],
+  };
+}
+
 const list = (items: string[]) => (items.length <= 1 ? (items[0] ?? '') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`);
 
 const navigate = (path: string, label: string): CachedAction => ({ kind: 'navigate', path, label });
@@ -248,6 +290,10 @@ function compose(
  * `firstTurn` lowers the bar, because a first message carries no context to lose.
  */
 export async function cachedAnswer(question: string, firstTurn: boolean): Promise<CachedAnswer | null> {
+  // "Tell me about Cortex": the Ask button on every project page, and the most common project question. Answered
+  // from the project's own record, so it never waits on a model.
+  const projectAnswer = projectAbout(question, await loadProjects());
+  if (projectAnswer) return projectAnswer;
   const intent = smallTalkIntent(question) ?? bestIntent(question, firstTurn ? 0.5 : 0.8);
   if (!intent) return null;
   const [projects, papers, blogs, experience] = await Promise.all([loadProjects(), loadPapers(), loadBlogs(), loadExperience()]);
