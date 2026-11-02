@@ -254,7 +254,9 @@ export function buildPulsar(): Body {
     // Text flows round the field's dense inner loops, not just the core.
     flowRadius: 2.8,
     flowScale: () => size,
-    anchor: (halfW, halfH) => new THREE.Vector3(-halfW * 0.6 * DEPTH_SCALE, halfH * 0.58 * DEPTH_SCALE, -STAR_DEPTH),
+    // Wide screens: top right, clear of the left-aligned heading and its small line. Phones: top left, with the heading below.
+    anchor: (halfW, halfH) =>
+      new THREE.Vector3((halfW > halfH ? 0.6 : -0.6) * halfW * DEPTH_SCALE, halfH * 0.58 * DEPTH_SCALE, -STAR_DEPTH),
     update: (elapsed, _delta, look) => {
       // The star leans toward the cursor, and its field turns slowly about its axis.
       group.rotation.set(look.sy * 0.5, look.sx * 0.7, 0);
