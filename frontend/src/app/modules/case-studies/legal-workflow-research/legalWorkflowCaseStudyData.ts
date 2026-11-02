@@ -1,6 +1,3 @@
-export const LEGAL_WORKFLOW_GITHUB =
-  'https://github.com/Pukujan/litigation-prompt-engineering-v2';
-
 export const LEGAL_WORKFLOW_RESEARCH_CASE_STUDY_PATH =
   '/case-studies/legal-workflow-research';
 
@@ -9,9 +6,6 @@ export const CASE_OS_PRESENTATION_DEMO_PATH =
 
 export const LEGAL_WORKFLOW_INTERACTIVE_DEMO_PATH =
   '/case-studies/legal-workflow-research/legal_workflow_interactive_demo_v5.html';
-
-export const LEGAL_WORKFLOW_TECHNICAL_DEMO_URL =
-  'https://litigation-prompt-engineering-v2.vercel.app/demo/ai-ops';
 
 export const BLOGS_INDEX_PATH = '/blogs';
 
@@ -115,30 +109,9 @@ export const AUTHORITY_RANKS: { title: string; description: string }[] = [
 
 export const RESEARCH_REPOS: { name: string; description: string; url: string }[] = [
   {
-    name: 'litigation-prompt-engineering-v2',
-    description:
-      'Product monolith for case filing, document ingest, prompts, and agent workflows with architecture contracts.',
-    url: LEGAL_WORKFLOW_GITHUB,
-  },
-  {
     name: 'litigation-prompt-engineering',
     description: 'Earlier prompt, eval, and structured extraction platform for litigation documents.',
     url: 'https://github.com/Pukujan/litigation-prompt-engineering',
-  },
-  {
-    name: 'litigation-ops',
-    description: 'Early domain modeling and litigation operations research.',
-    url: 'https://github.com/Pukujan/litigation-ops',
-  },
-  {
-    name: 'create-modular-monolith',
-    description: 'Agent-ready modular monolith architecture scaffold.',
-    url: 'https://github.com/Pukujan/create-modular-monolith',
-  },
-  {
-    name: 'legal-doc-grabber',
-    description: 'Document intake utility for authorized legal document collection.',
-    url: 'https://github.com/Pukujan/legal-doc-grabber',
   },
 ];
 

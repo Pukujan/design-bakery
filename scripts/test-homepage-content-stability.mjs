@@ -125,9 +125,10 @@ for (const project of projects) {
 // than proxying it under a sub-path.
 const STUDY_OS_LIVE_APP = 'https://study.design-bakery.com/';
 const studyOs = projects.find((p) => p.title === 'Study OS');
+// study.design-bakery.com is not deployed (Cloudflare answers 530), so the card must not link it until it is.
 assert.ok(
-  studyOs.links.some((link) => link.label === 'Live App' && link.url === STUDY_OS_LIVE_APP),
-  'Study OS card should have a Live App link to study.design-bakery.com',
+  !studyOs.links.some((link) => link.url === STUDY_OS_LIVE_APP),
+  'Study OS card must not link study.design-bakery.com while that host is not served',
 );
 const vercelConfig = await readJson('./vercel.json');
 for (const [source, destination] of [
@@ -184,7 +185,7 @@ assert.equal(copilot.startedAt, '2026-10-28', 'Website Copilot startedAt is its 
 assert.equal(copilot.category, 'shipped', 'Website Copilot is a live product');
 assert.deepEqual(
   copilot.links.map((link) => link.url),
-  ['https://demo.design-bakery.com', 'https://copilot.design-bakery.com'],
+  ['https://copilot.design-bakery.com/#demos', 'https://copilot.design-bakery.com/#video'],
   'Website Copilot links its live demo and concept video only',
 );
 assert.ok(
@@ -203,7 +204,7 @@ assert.ok(
   'Precedent should link to the absolute URL of its live app',
 );
 assert.ok(
-  precedent.links.some((link) => link.url === 'https://github.com/Pukujan/arize-ai-hackersprint'),
+  precedent.links.some((link) => link.url === 'https://github.com/pukujan-lab-2/arize-ai-hackersprint'),
   'Precedent should link to its public GitHub repo',
 );
 assert.equal(voidfeed.category, 'experiments', 'Voidfeed is an experiment, not the default feature');
