@@ -25,3 +25,26 @@ Restore application/config changes from #148 and #149 to `154350f`, the origin/m
 ## Next action
 
 Pass required CI, auto-merge and verify Komodo production images. No feature work is authorized.
+
+### 2026-11-02 16:22:17 UTC — codex
+
+<!-- continuity:checkpoint {"agent":"codex","blocked":["CI, merge and production rollback verification pending."],"changed":["none"],"completed":["Restored application/config files to pre-session 154350f and preserved owner prompts as deferred issue logs."],"decisions":["Owner rejected the new UI and stopped all feature development; rollback and logging only."],"evidence":["Exact runtime/config diff against 154350f is empty; lint, frontend typecheck and backend build passed. Requests preserved under tasks/requests and issues 145,147,151,152."],"next_action":"Pass required checks and verify Komodo serves the reverted application.","protocol_version":"0.1.0-draft","schema":"project-continuity.checkpoint.v1","task_id":"DB-0102","timestamp":"2026-11-02T16:22:17Z"} -->
+<!-- continuity:checkpoint-operation {"payload_sha256":"11d785af008dbc511ba6ea86a9e8e3e16876db6abed84264565ce375814fb024","request_id":"db0102-20261102-owner-rollback","schema":"project-continuity.checkpoint-operation.v1","task_id":"DB-0102"} -->
+
+Completed:
+- Restored application/config files to pre-session 154350f and preserved owner prompts as deferred issue logs.
+
+Evidence:
+- Exact runtime/config diff against 154350f is empty; lint, frontend typecheck and backend build passed. Requests preserved under tasks/requests and issues 145,147,151,152.
+
+Decisions:
+- Owner rejected the new UI and stopped all feature development; rollback and logging only.
+
+Changed:
+- none
+
+Blocked/uncertain:
+- CI, merge and production rollback verification pending.
+
+Next:
+- Pass required checks and verify Komodo serves the reverted application.
