@@ -1,0 +1,116 @@
+/* Homepage hero entries: the static booking link and the live consultation button. */
+
+.consult-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  width: 100%;
+  max-width: 60rem;
+}
+
+.consult-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 100%;
+  min-height: 2.75rem;
+  padding: 0.55rem 1.1rem 0.55rem 0.9rem;
+  border: 1px solid color-mix(in oklab, var(--lab-accent) 45%, transparent);
+  border-radius: 999px;
+  background: rgb(11 11 10 / 0.7);
+  color: var(--lab-paper);
+  font-family: var(--lab-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.consult-live:hover {
+  border-color: var(--lab-accent);
+  background: rgb(11 11 10 / 0.9);
+}
+
+.consult-live:focus-visible {
+  outline: 2px solid var(--lab-accent);
+  outline-offset: 3px;
+}
+
+.consult-live-dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--lab-accent);
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--lab-accent) 60%, transparent);
+  animation: consult-live-pulse 2.4s ease-out infinite;
+}
+
+.consult-live-text {
+  min-width: 0;
+  white-space: pre;
+}
+
+.consult-live-caret {
+  flex: none;
+  width: 0.55ch;
+  height: 1.1em;
+  background: var(--lab-accent);
+  animation: consult-caret-blink 1s steps(1, end) infinite;
+}
+
+@keyframes consult-caret-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes consult-live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--lab-accent) 60%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 0.6rem transparent;
+  }
+}
+
+.consult-book-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  background: var(--lab-accent);
+  color: var(--lab-ink);
+  font-family: var(--lab-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: transform 0.2s, filter 0.2s;
+}
+
+.consult-book-cta:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.consult-book-cta:focus-visible {
+  outline: 2px solid var(--lab-paper);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consult-live-caret,
+  .consult-live-dot {
+    animation: none;
+  }
+}
