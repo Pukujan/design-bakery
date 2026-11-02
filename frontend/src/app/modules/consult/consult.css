@@ -328,3 +328,14 @@
     scroll-margin-top: 6rem;
   }
 }
+/* The consultation label stays readable even when the pulsar crosses behind it. */
+.consult-intro {
+  position: relative;
+  display: inline-block;
+  z-index: 1;
+  margin-left: -0.55rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 4px;
+  background: rgb(11 11 10 / 0.92);
+  color: var(--lab-paper);
+}
