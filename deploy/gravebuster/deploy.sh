@@ -40,6 +40,7 @@ REPO_DIR=${DEPLOY_REPO_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}
 COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
 EDGE_OVERLAY="$SCRIPT_DIR/docker-compose.edge.yml"
 API_ENV_FILE="$SCRIPT_DIR/.env.api"
+ENV_FILE="$SCRIPT_DIR/.env"
 STATE_FILE=${DEPLOY_STATE_FILE:-$SCRIPT_DIR/.deploy-state}
 LOG_FILE=${DEPLOY_LOG_FILE:-$SCRIPT_DIR/deploy.log}
 # The lock is a DIRECTORY (see acquire_lock below) — macOS has no flock(1).
@@ -217,6 +218,19 @@ state_write() {
 		echo "DEPLOYED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 	} >"$tmp"
 	mv "$tmp" "$STATE_FILE"
+}
+
+# Komodo's compose up (stack design-bakery-vps) reads the image tags from .env in this
+# folder, not from this script's variables, so record the live tags there after every swap.
+# An empty API tag keeps the one already recorded.
+write_tags() { # <web image> [api image]
+	local api=${2:-$(sed -n 's/^DESIGN_BAKERY_API_IMAGE=//p' "$ENV_FILE" 2>/dev/null | tail -1)}
+	local tmp="$ENV_FILE.tmp"
+	{
+		grep -v -E '^DESIGN_BAKERY_(API_)?IMAGE=' "$ENV_FILE" 2>/dev/null || true
+		echo "DESIGN_BAKERY_IMAGE=$1"
+		if [ -n "$api" ]; then echo "DESIGN_BAKERY_API_IMAGE=$api"; fi
+	} >"$tmp" && mv "$tmp" "$ENV_FILE"
 }
 
 http_code() {
@@ -403,6 +417,7 @@ if [ "$API_HEALTHY" = "1" ] && wait_healthy; then
 	if smoke; then
 		if api_content_smoke; then
 			state_write "$SHA" "$NEW_IMAGE" "$PREVIOUS_IMAGE" "$(api_state_current "$NEW_API_IMAGE")" "$(api_state_previous "$PREVIOUS_API_IMAGE")"
+			write_tags "$NEW_IMAGE" "$(api_state_current "$NEW_API_IMAGE")"
 			log "deploy OK: $SHORT -> $NEW_IMAGE"
 			log "rollback with: deploy/gravebuster/rollback.sh"
 			exit 0
@@ -431,6 +446,7 @@ if [ "$AUTO_ROLLBACK" = "1" ] && [ -n "$PREVIOUS_IMAGE" ] && docker image inspec
 		log "rollback did NOT come up healthy — manual attention required"
 	fi
 	state_write "$(state_get SHA)" "$PREVIOUS_IMAGE" "$(state_get PREVIOUS_IMAGE)" "$(api_state_current "$PREVIOUS_API_IMAGE")" "$(api_state_previous "$(state_get PREVIOUS_API_IMAGE)")"
+	write_tags "$PREVIOUS_IMAGE" "$(api_state_current "$PREVIOUS_API_IMAGE")"
 else
 	log "no usable previous image to roll back to"
 fi
