@@ -10,7 +10,8 @@ import { answer as localAnswer, type CopilotProject } from '../lab/copilotAnswer
 import { getTurnstileToken } from './turnstile';
 
 export type CopilotAction =
-  | { kind: 'navigate'; path: string; label: string }
+  /** `go` is set only when the visitor has just confirmed the move; otherwise it is a chip. */
+  | { kind: 'navigate'; path: string; label: string; go?: boolean }
   | { kind: 'projects'; slugs: string[] }
   | { kind: 'link'; label: string; url: string }
   | { kind: 'book'; url: string; name?: string; email?: string; topic?: string };
@@ -269,8 +270,9 @@ function handle(event: Event, replyId: number) {
     }));
   } else if (event.type === 'action') {
     patchMessage(replyId, (m) => ({ actions: [...m.actions, event.action] }));
-    // Moving the page is the point of a tour: do it as the model says it.
-    if (event.action.kind === 'navigate') {
+    // The server sets `go` only after the visitor said yes to an offer. On desktop the
+    // panel stays open through the move; the draft lives in the store, so it survives.
+    if (event.action.kind === 'navigate' && event.action.go) {
       if (window.matchMedia('(min-width: 821px)').matches) copilot.setOpen(true);
       copilot.go(event.action.path);
     }
