@@ -142,14 +142,204 @@
   font-size: 0.62rem;
 }
 
-@media (max-width: 640px) {
+/* Phones (760px and below): the chat is a bottom sheet. --cp-kb is the keyboard's height
+   and --cp-vvh the visible height, both set by CopilotDock from the visual viewport. */
+@media (max-width: 760px) {
   .cp-panel {
     top: auto;
-    height: min(78svh, 640px);
+    bottom: var(--cp-kb, 0px);
+    height: min(78svh, 640px, var(--cp-vvh, 100svh));
     width: 100vw;
     border-left: 0;
     border-top: 1px solid var(--lab-line);
     border-radius: 20px 20px 0 0;
+  }
+
+  /* Empty state: suggestions sit above a composer that is anchored to the bottom. */
+  .cp-chat--dock .lab-suggestions {
+    order: 1;
+  }
+
+  .cp-chat--dock .lab-composer {
+    order: 2;
+    margin-top: auto;
+  }
+}
+
+/* The panel's header row: keyboard dismiss and minimize on the left and right of Close. */
+.cp-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 36px;
+  margin-bottom: 0.25rem;
+}
+
+.cp-bar-end {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.cp-bar .cp-close {
+  align-self: center;
+  margin-bottom: 0;
+}
+
+.cp-hide-keys,
+.cp-min {
+  height: 36px;
+  border: 1px solid var(--lab-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--lab-paper);
+  font: 600 0.8rem var(--lab-display);
+  cursor: pointer;
+}
+
+.cp-hide-keys {
+  padding: 0 0.85rem;
+}
+
+.cp-min {
+  display: grid;
+  place-items: center;
+  width: 36px;
+}
+
+.cp-hide-keys:hover,
+.cp-hide-keys:focus-visible,
+.cp-min:hover,
+.cp-min:focus-visible {
+  border-color: var(--lab-accent);
+  color: var(--lab-accent);
+}
+
+/* The minimized chat: a strip at the bottom edge with the latest reply and the field. */
+.cp-dock {
+  --cp-strip-h: calc(116px + env(safe-area-inset-bottom, 0px));
+}
+
+.cp-mini {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--cp-kb, 0px);
+  z-index: 2147482000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in oklab, var(--lab-ink) 94%, transparent);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--lab-line);
+  box-shadow: 0 -12px 40px rgb(0 0 0 / 0.35);
+}
+
+.cp-mini-open {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.15rem 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--lab-paper);
+  font: 500 0.9rem/1.35 var(--lab-display);
+  text-align: left;
+  cursor: pointer;
+}
+
+.cp-mini-open > svg {
+  flex: none;
+  color: var(--lab-muted);
+}
+
+.cp-mini-preview {
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: color-mix(in oklab, var(--lab-paper) 82%, transparent);
+}
+
+.cp-mini-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cp-mini-form input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 1rem;
+  border: 1px solid var(--lab-line);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--lab-paper) 6%, var(--lab-ink));
+  color: var(--lab-paper);
+  font: 500 1rem var(--lab-display);
+}
+
+.cp-mini-form input::placeholder {
+  color: var(--lab-muted);
+}
+
+.cp-mini-form input:focus {
+  outline: none;
+  border-color: var(--lab-accent);
+}
+
+.cp-mini-send,
+.cp-mini-close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--lab-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--lab-paper);
+  cursor: pointer;
+}
+
+.cp-mini-close {
+  width: 36px;
+  height: 36px;
+}
+
+.cp-mini-send {
+  border-color: var(--lab-accent);
+  background: var(--lab-accent);
+  color: var(--lab-ink);
+}
+
+.cp-mini-send:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.cp-mini-open:focus-visible,
+.cp-mini-form input:focus-visible,
+.cp-mini-send:focus-visible,
+.cp-mini-close:focus-visible {
+  outline: 2px solid var(--lab-accent);
+  outline-offset: 3px;
+}
+
+/* The voice orb floats above the strip while it is shown. */
+.cp-dock--strip .vo {
+  bottom: calc(var(--cp-kb, 0px) + var(--cp-strip-h) + 12px);
+}
+
+@media (min-width: 761px) {
+  .cp-mini {
+    display: none;
   }
 }
 
