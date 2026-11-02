@@ -5,6 +5,7 @@ import rehypeRaw from 'rehype-raw';
 import { LabDiagram } from './Diagram';
 import { FlowText } from './FlowText';
 import { slugify } from './toc';
+import { remarkGithubAlerts } from '../research/render/remarkGithubAlerts';
 import './article.css';
 
 /** The plain text of a heading, so its anchor matches the contents. */
@@ -126,7 +127,7 @@ export function Article({ source, flow = true }: { source: string; flow?: boolea
   const components = useMemo(() => componentsFor(flow), [flow]);
   return (
     <div className="article">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkGithubAlerts]} rehypePlugins={[rehypeRaw]} components={components}>
         {source}
       </ReactMarkdown>
     </div>
