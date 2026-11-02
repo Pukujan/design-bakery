@@ -83,7 +83,8 @@ browser ──► Cloudflare edge (design-bakery.com zone, proxied)
                                                     │  Caddy, static
                                                     ├─ /api/*        ─► api:8787   (Express)
                                                     ├─ blog/case-study ─► api:8787   (link previews)
-                                                    └─ /ai-for-good/* ─► ai-for-good-livid.vercel.app
+                                                    ├─ /ai-for-good/* ─► ai-for-good-livid.vercel.app
+                                                    └─ /github-planets[/*] ─► github-planets-web:3000 (Orbitgraph)
 ```
 
 | Piece | Value |

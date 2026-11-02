@@ -110,6 +110,17 @@
 			}
 		}
 
+		# Not in vercel.json: /github-planets is Orbitgraph (Pukujan/github-planets), its
+		# own container built with APP_BASE_PATH=/github-planets/, so its pages, assets
+		# and API all live under this prefix and the prefix is NOT stripped. Until
+		# 2026-11-02 the tunnel sent all of www to that container; once www moved to
+		# this one, the path 404'd here (TASK-DB-0099). The upstream resolves on the
+		# tunnel network (WITH_EDGE=1), where github-planets-web sits next to us.
+		@githubPlanets path /github-planets /github-planets/*
+		handle @githubPlanets {
+			reverse_proxy github-planets-web:3000
+		}
+
 		# --- filesystem (Vercel checks this before applying the rewrites below) ---
 		# Directory requests: /dir and /dir/ both serve /dir/index.html (no trailing-slash
 		# redirect — Vercel serves the directory index directly, e.g. /case-studies/cortex).
