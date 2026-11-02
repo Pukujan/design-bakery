@@ -1,10 +1,19 @@
 import { useEffect } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useLocation, useOutlet } from 'react-router-dom';
-import { LabBackdrop } from './LabBackdrop';
+import { LabBackdrop, type BackdropVariant } from './LabBackdrop';
+import { LabAstronaut } from './LabAstronaut';
 import { LabBar } from './LabHeader';
 import { PortfolioProvider } from '../../portfolios/PortfolioContext';
 import './lab.css';
+
+/** Each part of the site has its own body in the sky: the black hole on /lab and /work, the pulsar on /contact, the red supergiant on /blogs and the star system on /research. */
+function backdropFor(pathname: string): BackdropVariant {
+  if (pathname.startsWith('/contact')) return 'pulsar';
+  if (pathname.startsWith('/blogs')) return 'giant';
+  if (pathname.startsWith('/research')) return 'system';
+  return 'hole';
+}
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
 
@@ -14,6 +23,7 @@ const EASE = [0.2, 0.7, 0.1, 1] as const;
  */
 export function LabStage() {
   const location = useLocation();
+  const variant = backdropFor(location.pathname);
   const outlet = useOutlet();
   const reduceMotion = useReducedMotion();
 
@@ -28,8 +38,10 @@ export function LabStage() {
   return (
     <PortfolioProvider portfolioId="endtoend-engineer">
     <div className="lab-stage">
-      <LabBackdrop />
+      <LabBackdrop variant={variant} />
+      <div className={`lab-shade${variant === 'giant' ? ' is-on' : ''}`} aria-hidden="true" />
       <LabBar />
+      <LabAstronaut />
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={location.pathname}

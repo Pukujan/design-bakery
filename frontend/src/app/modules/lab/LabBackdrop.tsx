@@ -2,55 +2,39 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useReducedMotion } from 'motion/react';
 import { createLensPass, lensGeometry } from './lensing';
+import {
+  HORIZON_RADIUS,
+  PAPER,
+  buildHole,
+  buildGiant,
+  buildPulsar,
+  buildSystem,
+  glowTexture,
+  seeded,
+  type Body,
+} from './bodies';
 
 /**
- * The hero's background: a black hole sitting in a constellation (TASK-DB-0098).
- * Adapted from the ACS constellation's hotloader (Pukujan/acs-constellation, lib/blackhole.ts):
- * an event horizon, a photon ring, an accretion disk and halo glows, set in a field of stars
- * joined by constellation lines. The pointer tilts the sky, scroll and swipe push it forward and
- * spin it. It pauses when off screen or in a background tab, and holds one still frame under
- * prefers-reduced-motion.
+ * The lab backdrop (TASK-DB-0098): a constellation with one body in it. The black hole on /lab
+ * (lensed, from the ACS constellation), a pulsar on /contact, a nebula on /blogs and a star system
+ * on /research. The canvas stays mounted across pages; a route change swaps the body and fades it in.
+ * The pointer tilts the sky, scroll and swipe move the camera and spin it. It pauses when off
+ * screen or in a background tab, and holds one still frame under prefers-reduced-motion.
  */
 
-const PAPER = new THREE.Color('#f2efe8');
-const ACCENT = new THREE.Color('#c6f432');
+export type BackdropVariant = 'hole' | 'pulsar' | 'giant' | 'system';
+
 const STAR_COUNT = 220;
 const LINK_DISTANCE = 2.1;
-const DISK_COUNT = 1100;
 const MAX_PIXEL_RATIO = 1.75;
 const FOV = 50;
-const HORIZON_RADIUS = 1.05;
+/** How far a body flies in or out of frame on a switch, and the pace of the switch. */
+const FLY = 26;
+const FLIGHT_SPEED = 0.55;
+/** How far away the warp starts, in world units. */
+const WARP_DEPTH = 30;
 
-/** A small seeded random, so the constellation is the same on every visit. */
-function seeded(seed: number): () => number {
-  let a = seed;
-  return () => {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/** A soft round sprite for stars, the disk and the halo. */
-function glowTexture(): THREE.CanvasTexture {
-  const size = 64;
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  if (ctx) {
-    const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-    gradient.addColorStop(0, 'rgba(255,255,255,1)');
-    gradient.addColorStop(0.3, 'rgba(255,255,255,0.55)');
-    gradient.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, size, size);
-  }
-  return new THREE.CanvasTexture(canvas);
-}
-
+/** The constellation: stars joined by faint lines, the same on every page. */
 function buildSky(rng: () => number) {
   const positions = new Float32Array(STAR_COUNT * 3);
   for (let i = 0; i < STAR_COUNT; i++) {
@@ -83,89 +67,50 @@ function buildSky(rng: () => number) {
   return {
     stars: new THREE.Points(
       starGeometry,
-      new THREE.PointsMaterial({ color: PAPER, size: 0.09, map: glowTexture(), transparent: true, depthWrite: false }),
+      new THREE.PointsMaterial({ color: PAPER, size: 0.07, map: glowTexture(), transparent: true, opacity: 0.7, depthWrite: false }),
     ),
     lines: new THREE.LineSegments(
       lineGeometry,
-      new THREE.LineBasicMaterial({ color: PAPER, transparent: true, opacity: 0.12, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: PAPER, transparent: true, opacity: 0.06, depthWrite: false }),
     ),
   };
 }
 
-function buildHole(rng: () => number) {
-  const hole = new THREE.Group();
-
-  // Event horizon: black, so the stars behind it are hidden.
-  hole.add(new THREE.Mesh(new THREE.SphereGeometry(1.05, 48, 32), new THREE.MeshBasicMaterial({ color: 0x000000 })));
-
-  // Photon ring, and a fainter one just outside it.
-  const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(1.14, 0.02, 12, 200),
-    new THREE.MeshBasicMaterial({ color: ACCENT, transparent: true, opacity: 0.95 }),
-  );
-  const outerRing = new THREE.Mesh(
-    new THREE.TorusGeometry(1.32, 0.008, 8, 220),
-    new THREE.MeshBasicMaterial({ color: ACCENT, transparent: true, opacity: 0.35 }),
-  );
-  hole.add(ring, outerRing);
-
-  // Accretion disk: tilted, its particles brighter and more accent-coloured near the hole.
-  const diskPositions = new Float32Array(DISK_COUNT * 3);
-  const diskColors = new Float32Array(DISK_COUNT * 3);
-  const inner = 1.3;
-  const outer = 3.1;
-  const colour = new THREE.Color();
-  for (let i = 0; i < DISK_COUNT; i++) {
-    const r = inner + Math.sqrt(rng()) * (outer - inner);
-    const angle = rng() * Math.PI * 2;
-    diskPositions[i * 3] = r * Math.cos(angle);
-    diskPositions[i * 3 + 1] = (rng() - 0.5) * 0.05 * r;
-    diskPositions[i * 3 + 2] = r * Math.sin(angle);
-    const heat = 1 - (r - inner) / (outer - inner);
-    colour.copy(PAPER).lerp(ACCENT, heat * 0.85).multiplyScalar(0.55 + heat * 0.6);
-    diskColors[i * 3] = colour.r;
-    diskColors[i * 3 + 1] = colour.g;
-    diskColors[i * 3 + 2] = colour.b;
+function buildBody(variant: BackdropVariant): Body {
+  switch (variant) {
+    case 'pulsar':
+      return buildPulsar();
+    case 'giant':
+      return buildGiant();
+    case 'system':
+      return buildSystem();
+    default:
+      return buildHole(seeded(7));
   }
-  const diskGeometry = new THREE.BufferGeometry();
-  diskGeometry.setAttribute('position', new THREE.BufferAttribute(diskPositions, 3));
-  diskGeometry.setAttribute('color', new THREE.BufferAttribute(diskColors, 3));
-  const disk = new THREE.Points(
-    diskGeometry,
-    new THREE.PointsMaterial({
-      size: 0.045,
-      vertexColors: true,
-      map: glowTexture(),
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    }),
-  );
-  disk.rotation.x = 1.12;
-  disk.rotation.z = 0.22;
-  hole.add(disk);
-
-  // Halo: two wide soft glows around the whole hole.
-  const halo = new THREE.SpriteMaterial({
-    color: ACCENT,
-    map: glowTexture(),
-    transparent: true,
-    opacity: 0.22,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-  });
-  const haloNear = new THREE.Sprite(halo);
-  haloNear.scale.set(4.4, 4.4, 1);
-  const haloFar = new THREE.Sprite(halo.clone());
-  haloFar.material.opacity = 0.09;
-  haloFar.scale.set(9, 9, 1);
-  hole.add(haloNear, haloFar);
-
-  return { hole, disk };
 }
 
-export function LabBackdrop() {
+/** Frees a body's geometry, materials and textures. */
+function disposeTree(object: THREE.Object3D) {
+  object.traverse((item) => {
+    const mesh = item as THREE.Object3D & { geometry?: THREE.BufferGeometry; material?: THREE.Material | THREE.Material[] };
+    mesh.geometry?.dispose();
+    const materials = Array.isArray(mesh.material) ? mesh.material : mesh.material ? [mesh.material] : [];
+    for (const material of materials) {
+      (material as THREE.Material & { map?: THREE.Texture | null }).map?.dispose();
+      material.dispose();
+    }
+  });
+}
+
+function easeOut(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+
+export function LabBackdrop({ variant = 'hole' }: { variant?: BackdropVariant }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const variantRef = useRef<BackdropVariant>(variant);
+  variantRef.current = variant;
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -179,18 +124,47 @@ export function LabBackdrop() {
     renderer.domElement.setAttribute('aria-hidden', 'true');
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 100);
     camera.position.set(0, 0, 10);
 
-    const rng = seeded(7);
-    const sky = buildSky(rng);
-    const { hole, disk } = buildHole(rng);
+    const sky = buildSky(seeded(7));
     const root = new THREE.Group();
-    // The hole is not in the rotating sky group: it sits off-centre and drifts with the cursor.
     root.add(sky.stars, sky.lines);
-    scene.add(root, hole);
+    scene.add(root);
+
     const target = new THREE.WebGLRenderTarget(1, 1, { samples: 4 });
     const lens = createLensPass(target.texture);
+
+    // The body on screen. A route change swaps it; the new one fades in.
+    let body: Body | null = null;
+    let bodyVariant: BackdropVariant | null = null;
+    let placed = false;
+    let intro = 0;
+    // The camera turn toward a new body: progress 0 starts the turn, 1 is facing forward.
+    let turnProgress = 1;
+    // The outgoing bodies, each with where it was and which side it flies off.
+    const leaving: { body: Body; from: THREE.Vector3; side: number }[] = [];
+    let flightSide = 1;
+    const viewHalf = () => {
+      const halfH = Math.tan((FOV * Math.PI) / 360) * 10;
+      return { halfW: halfH * camera.aspect, halfH };
+    };
+    const swapBody = (next: BackdropVariant) => {
+      const { halfW, halfH } = viewHalf();
+      const previous = body;
+      const from = previous ? previous.anchor(halfW, halfH, pointer.sx, pointer.sy) : null;
+      body = buildBody(next);
+      const to = body.anchor(halfW, halfH, pointer.sx, pointer.sy);
+      // The new body comes in from the side away from the old one, which leaves the other way.
+      flightSide = from && to.x !== from.x ? Math.sign(to.x - from.x) : 1;
+      if (previous && from) leaving.push({ body: previous, from, side: flightSide });
+      body.group.scale.setScalar(previous ? 1 : 0.001);
+      scene.add(body.group);
+      bodyVariant = next;
+      placed = false;
+      intro = previous ? 1 : 0;
+      turnProgress = previous && !reduceMotion ? 0 : 1;
+    };
 
     // Pointer, scroll and swipe are read into targets; the frame loop eases toward them.
     const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
@@ -244,27 +218,12 @@ export function LabBackdrop() {
     let visible = true;
     const clock = { elapsed: 0 };
 
-    // Off-centre: to the right on a wide screen, upper on a phone, drifting toward the cursor.
-    let placed = false;
-    const placeHole = (ease: number) => {
-      const halfH = Math.tan((FOV * Math.PI) / 360) * 10;
-      const halfW = halfH * camera.aspect;
-      const x = THREE.MathUtils.clamp(halfW * 0.5, 0.9, 3.8) + pointer.sx * Math.min(halfW * 0.16, 1.2);
-      const y = halfH * 0.22 - pointer.sy * halfH * 0.14;
-      if (!placed) {
-        hole.position.set(x, y, 0);
-        placed = true;
-        return;
-      }
-      hole.position.x += (x - hole.position.x) * ease;
-      hole.position.y += (y - hole.position.y) * ease;
-    };
-
-    // The lens pass needs the hole's place on screen and its size, both from this frame's camera.
-    const updateLens = () => {
-      const centre = hole.getWorldPosition(new THREE.Vector3());
+    // The lens pass needs the body's place on screen and its size, both from this frame's camera.
+    const updateLens = (current: Body) => {
+      const centre = current.group.getWorldPosition(new THREE.Vector3());
       const screen = centre.clone().project(camera);
-      const lensed = lensGeometry(HORIZON_RADIUS, camera.position.distanceTo(centre), FOV, camera.aspect);
+      const lensed = lensGeometry(current.lensRadius ?? HORIZON_RADIUS, camera.position.distanceTo(centre), FOV, camera.aspect);
+      lens.uniforms.uBlack.value = current.lensBlack ? 1 : 0;
       lens.uniforms.uCenter.value.set(screen.x * 0.5 + 0.5, screen.y * 0.5 + 0.5);
       lens.uniforms.uAspect.value = camera.aspect;
       lens.uniforms.uShadow.value = lensed.shadow;
@@ -277,6 +236,8 @@ export function LabBackdrop() {
       last = now;
       clock.elapsed += delta;
 
+      if (variantRef.current !== bodyVariant) swapBody(variantRef.current);
+
       pointer.sx += (pointer.x - pointer.sx) * 0.05;
       pointer.sy += (pointer.y - pointer.sy) * 0.05;
       scroll.value += (scroll.target - scroll.value) * 0.08;
@@ -285,18 +246,70 @@ export function LabBackdrop() {
 
       root.rotation.y = pointer.sx * 0.3 + spin.angle * 0.2 + clock.elapsed * 0.02;
       root.rotation.x = pointer.sy * 0.18 + scroll.value * 0.2;
-      camera.position.z = 10 - scroll.value * 3.2;
-      camera.position.y = -pointer.sy * 0.4;
-      camera.lookAt(0, 0, 0);
-      disk.rotation.y += delta * 0.32;
+      const distance = 10 - scroll.value * 3.2;
+      turnProgress = Math.min(1, turnProgress + delta * FLIGHT_SPEED);
+      const warp = Math.sin(Math.PI * turnProgress);
+      // The flyby, like a ship going past: the camera slides beside the body it is leaving, banks as it
+      // goes, and warps on into the next body.
+      const sideX = (leaving[0]?.from.x ?? 0) * 0.6 * warp;
+      camera.position.set(sideX, -pointer.sy * 0.4, distance);
+      camera.lookAt(sideX, 0, 0);
+      camera.rotateZ(-flightSide * 0.16 * warp);
+      // The space warp: the view stretches, the stars rush past the camera and grow streaked, then it settles.
+      camera.fov = FOV + 34 * warp;
+      camera.updateProjectionMatrix();
+      root.position.z = 16 * warp;
+      (sky.stars.material as THREE.PointsMaterial).size = 0.07 + 0.22 * warp;
 
-      placeHole(reduceMotion ? 1 : 0.06);
-      renderer.setRenderTarget(target);
-      renderer.clear();
-      renderer.render(scene, camera);
-      renderer.setRenderTarget(null);
-      updateLens();
-      renderer.render(lens.scene, lens.camera);
+      const halfH = Math.tan((FOV * Math.PI) / 360) * 10;
+      const halfW = halfH * camera.aspect;
+
+      const e = easeOut(turnProgress);
+      for (const old of leaving) {
+        old.body.update(clock.elapsed, delta);
+        // The old body is passed: it rushes at the camera, grows, and goes past it.
+        old.body.group.position.set(old.from.x, old.from.y, old.from.z + WARP_DEPTH * 1.6 * e);
+        old.body.group.scale.setScalar(1 + e * 0.8);
+      }
+      if (turnProgress >= 1) {
+        for (const old of leaving) {
+          scene.remove(old.body.group);
+          disposeTree(old.body.group);
+        }
+        leaving.length = 0;
+      }
+
+      const current = body as Body | null;
+      if (!current) return;
+      intro = reduceMotion ? 1 : Math.min(1, intro + delta * 1.4);
+      current.group.scale.setScalar(Math.max(0.001, easeOut(intro)));
+      current.update(clock.elapsed, delta);
+
+      const spot = current.anchor(halfW, halfH, pointer.sx, pointer.sy);
+      if (!placed) {
+        current.group.position.copy(spot);
+        placed = true;
+      }
+      if (turnProgress < 1) {
+        // Warping in: the new body comes out of deep space and settles into its place.
+        const start = new THREE.Vector3(spot.x, spot.y, -WARP_DEPTH);
+        current.group.position.lerpVectors(start, spot, e);
+      } else {
+        current.group.position.lerp(spot, reduceMotion ? 1 : 0.06);
+      }
+
+      if (current.lensed) {
+        renderer.setRenderTarget(target);
+        renderer.clear();
+        renderer.render(scene, camera);
+        renderer.setRenderTarget(null);
+        updateLens(current);
+        renderer.render(lens.scene, lens.camera);
+      } else {
+        renderer.setRenderTarget(null);
+        renderer.clear();
+        renderer.render(scene, camera);
+      }
     };
 
     const loop = (now: number) => {
@@ -337,19 +350,7 @@ export function LabBackdrop() {
     }
 
     function teardown() {
-      scene.traverse((object) => {
-        const item = object as THREE.Object3D & {
-          geometry?: THREE.BufferGeometry;
-          material?: THREE.Material | THREE.Material[];
-        };
-        item.geometry?.dispose();
-        const materials = Array.isArray(item.material) ? item.material : item.material ? [item.material] : [];
-        for (const material of materials) {
-          const map = (material as THREE.Material & { map?: THREE.Texture | null }).map;
-          map?.dispose();
-          material.dispose();
-        }
-      });
+      disposeTree(scene);
       target.dispose();
       lens.dispose();
       renderer.dispose();

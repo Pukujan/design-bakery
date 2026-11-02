@@ -39,6 +39,7 @@ const FRAGMENT = /* glsl */ `
   uniform float uStrength;
   uniform float uActive;
   uniform vec3 uRing;
+  uniform float uBlack;
   varying vec2 vUv;
 
   void main(){
@@ -85,8 +86,9 @@ const FRAGMENT = /* glsl */ `
 
     // Inside the silhouette the sky stops: the hole is black, not a window onto the page.
     float shadow = smoothstep(uShadow * 0.8, uShadow * 1.04, r);
-    col.rgb *= shadow;
-    col.a = mix(1.0, col.a, shadow);
+    float s = mix(1.0, shadow, uBlack);
+    col.rgb *= s;
+    col.a = mix(1.0, col.a, s);
 
     // Light that orbited the hole, held in a hairline at the edge of the shadow.
     float ringR = (r - uShadow * 1.07) / max(uShadow * 0.13, 1e-4);
@@ -108,6 +110,7 @@ export function createLensPass(source: THREE.Texture) {
     uStrength: { value: 0.03 },
     uActive: { value: 1 },
     uRing: { value: LENS_RING.clone() },
+    uBlack: { value: 1 },
   };
   const material = new THREE.ShaderMaterial({
     uniforms,

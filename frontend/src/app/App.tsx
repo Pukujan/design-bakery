@@ -30,8 +30,8 @@ const LabHomePage = lazyPage(
 const BlogListPage = lazyPage(
   async () => (await import('./modules/blog/public/list/BlogListPage')).BlogListPage,
 );
-const BlogDetailPage = lazyPage(
-  async () => (await import('./modules/blog/public/detail/BlogDetailPage')).BlogDetailPage,
+const BlogPostPage = lazyPage(
+  async () => (await import('./modules/blog/public/detail/PostPage')).BlogPostPage,
 );
 const AdminLoginPage = lazyPage(
   async () => (await import('./modules/admin/AdminLogin')).AdminLogin,
@@ -63,7 +63,7 @@ const ResearchListPage = lazyPage(
   async () => (await import('./modules/research/public/ResearchListPage')).ResearchListPage,
 );
 const ResearchPaperPage = lazyPage(
-  async () => (await import('./modules/research/public/ResearchPaperPage')).ResearchPaperPage,
+  async () => (await import('./modules/research/public/PaperPage')).ResearchPaperPage,
 );
 const ResearchSourcePage = lazyPage(
   async () => (await import('./modules/research/public/ResearchSourcePage')).ResearchSourcePage,
@@ -114,7 +114,7 @@ function publicRoutes(): ReactElement[] {
       <Route path="/work/:slug" element={<WorkPage />} />
       <Route path="/contact" element={<ConsultPageLazy />} />
       <Route path="/blogs" element={<BlogListPage />} />
-      <Route path="/blogs/:blogId" element={<BlogDetailPage />} />
+      <Route path="/blogs/:blogId" element={<BlogPostPage />} />
       <Route path="/research" element={<ResearchListPage />} />
       <Route path="/research/papers/:paperId" element={<ResearchPaperPage />} />
       <Route path="/research/sources/:sourceId" element={<ResearchSourcePage />} />

@@ -1033,13 +1033,6 @@ button.lab-chip--solid:hover {
   display: none !important;
 }
 
-/* Mermaid diagrams keep their own light colours on a light panel. */
-.lab-stage [class*="mermaid"] {
-  background-color: #f5f3ee !important;
-  border-radius: 14px;
-  padding: 16px;
-  color: #1a1a1a !important;
-}
 
 /* Blog colours follow the lab palette: the active and primary controls take the accent, the
    yellow and blue chips and the coloured dots stop competing with the content. */
@@ -1059,4 +1052,19 @@ button.lab-chip--solid:hover {
 .lab-stage [class*="text-muted"],
 .lab-stage [class*="placeholder"] {
   color: var(--lab-muted) !important;
+}
+
+/* A dark shade in the middle of the page, so the text reads over the big red giant. */
+.lab-shade {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  background: radial-gradient(ellipse 52% 60% at 50% 50%, rgb(11 11 10 / 0.92) 0%, rgb(11 11 10 / 0.8) 45%, rgb(11 11 10 / 0) 100%);
+}
+
+.lab-shade.is-on {
+  opacity: 1;
 }
