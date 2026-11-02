@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type PointerEvent, type RefObject } from '
 import { useReducedMotion } from 'motion/react';
 import { Mic, MicOff, PhoneOff } from 'lucide-react';
 import { audioLevel, useVoice, voice } from './voice';
+import { pickOrigin } from './skyOrigin';
 import './voice-orb.css';
 
 type Mode = 'connecting' | 'listening' | 'speaking';
@@ -15,12 +16,6 @@ const WARM_UP_LINES = [
   'Did you know I offer managed AI copilots for individual websites?',
   'Want to talk through a service?',
 ];
-
-const SUBTITLE: Record<Mode, string> = {
-  connecting: '',
-  listening: 'Virtual Pujan is listening',
-  speaking: 'Virtual Pujan is speaking',
-};
 
 /** How long the orb waits after the visitor lets go before it drifts back to its edge. */
 const RETURN_AFTER_MS = 4000;
@@ -196,6 +191,8 @@ export default function VoiceOrb() {
   const live = useVoice();
   const reduceMotion = useReducedMotion() ?? false;
   const [demo] = useState<Mode | null>(readDemo);
+  const [demoOrigin] = useState(pickOrigin);
+  const origin = live.origin ?? demoOrigin;
   const mode: Mode | null = demo ?? (live.status === 'idle' ? null : live.status === 'connecting' ? 'connecting' : live.speaking === 'agent' ? 'speaking' : 'listening');
   const muted = !demo && live.muted;
 
@@ -274,7 +271,13 @@ export default function VoiceOrb() {
     setNudge((n) => n + 1);
   };
 
-  const subtitle = muted ? 'Mic is off. Virtual Pujan cannot hear you' : mode === 'connecting' ? '' : SUBTITLE[mode];
+  const label = muted
+    ? 'Muted'
+    : mode === 'connecting'
+      ? 'Connecting'
+      : mode === 'listening'
+        ? origin.listening
+        : origin.speaking;
 
   return (
     <>
@@ -298,9 +301,15 @@ export default function VoiceOrb() {
         </div>
         <div className="vo-meta">
           <span className="vo-label" aria-live="polite">
-            {muted ? 'Muted' : mode === 'connecting' ? 'Connecting' : mode === 'listening' ? 'Listening' : 'Speaking'}
+            {label}
           </span>
-          {mode === 'connecting' ? <WarmUpLine reduceMotion={reduceMotion} /> : <span className="vo-sub">{subtitle}</span>}
+          {mode === 'connecting' ? (
+            live.hold ? <span className="vo-warm">{live.hold}</span> : <WarmUpLine reduceMotion={reduceMotion} />
+          ) : live.hold ? (
+            <span className="vo-sub">{live.hold}</span>
+          ) : muted ? (
+            <span className="vo-sub">Mic is off. I cannot hear you</span>
+          ) : null}
         </div>
         <button
           type="button"
@@ -309,7 +318,7 @@ export default function VoiceOrb() {
           onClick={demo ? undefined : () => void voice.toggleMute()}
         >
           {muted ? <MicOff size={16} aria-hidden="true" /> : <Mic size={16} aria-hidden="true" />}
-          <span>{muted ? 'Unmute' : 'Mute'}</span>
+          <span>{muted ? 'Open channel' : 'Go silent'}</span>
         </button>
         <button
           type="button"
@@ -318,7 +327,7 @@ export default function VoiceOrb() {
           onClick={demo ? undefined : () => voice.stop()}
         >
           <PhoneOff size={16} aria-hidden="true" />
-          <span>End call</span>
+          <span>End transmission</span>
         </button>
       </div>
     </>
