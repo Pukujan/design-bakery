@@ -960,22 +960,30 @@ button.lab-chip--solid:hover {
   letter-spacing: -0.02em;
 }
 
-.lab-stage a {
+:where(.lab-stage) a {
   color: inherit;
 }
 
-.lab-stage a:hover {
+:where(.lab-stage) a:hover {
   color: var(--lab-accent);
 }
 
-.lab-stage button {
+/* The element defaults for links and buttons inside the stage carry no specificity (:where), so a
+   component's own class always wins. They used to outrank .lab-chip--solid and set light text on lime. */
+:where(.lab-stage) button {
   border-color: var(--lab-line);
   color: var(--lab-paper);
 }
 
-.lab-stage button:hover {
+:where(.lab-stage) button:hover {
   border-color: var(--lab-accent);
   color: var(--lab-accent);
+}
+
+/* Lime-filled controls always carry dark text, in every state. Add a new lime control's class here. */
+:is(.lab-chip--solid, .lab-send, .cp-mini-send),
+:is(.lab-chip--solid, .lab-send, .cp-mini-send):is(:hover, :focus-visible, :active, :disabled) {
+  color: var(--lab-ink) !important;
 }
 
 /* The blog's cards and controls drop the heavy outlines and offset shadows inside the lab stage. */
