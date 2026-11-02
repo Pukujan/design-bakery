@@ -59,6 +59,35 @@ function projectLink(project: CopilotProject): CopilotAction | null {
 export function answer(question: string): CopilotAnswer {
   const q = question.toLowerCase();
 
+  // Small talk, so a plain "hello" is never met with "I couldn't find that". The wording is
+  // fixed and claims nothing the site does not say; the live service has the same replies.
+  if (/^\s*(hi|hello|hey|yo|howdy|hiya|good (morning|afternoon|evening))\b[\s!.,?]*(there)?[\s!.,?]*$/.test(q)) {
+    return {
+      text: "Hey. I can take you through Pujan's work, research or writing, or point you at whatever is closest to what you are building.",
+    };
+  }
+  if (/\b(how are you|how's it going|how are things|what's up|whats up)\b/.test(q)) {
+    return {
+      text: "Doing well, thanks. I'm Pujan's AI presence on this site, so I mostly think about his work. What would you like to see?",
+    };
+  }
+  if (/\b(are you (a |an )?(real|human|bot|ai|robot|person|pujan)|am i (talking|speaking) to)\b/.test(q)) {
+    return {
+      text: "I'm Pujan's virtual presence on this site: an AI, not Pujan live. I answer from what is published here.",
+    };
+  }
+  if (/\b(what can you (do|help)|how does this work|help me)\b/.test(q)) {
+    return {
+      text: 'I can walk you through the projects, the research papers and the writing, tell you about the work history, or help you book a free consultation.',
+    };
+  }
+  if (/\b(thanks|thank you|cheers|appreciate it)\b/.test(q)) {
+    return { text: 'Anytime. Ask about a project, a paper, or the work history whenever you want.' };
+  }
+  if (/^\s*(bye|goodbye|see you|see ya|cya|later)\b/.test(q)) {
+    return { text: 'Thanks for stopping by. Come back any time, or email Pujan if you want to talk.' };
+  }
+
   if (/\b(tour|show me around|walk me|where (do|should) i start)\b/.test(q)) {
     return {
       text: "Happy to. I'll scroll you to the work first: the big tiles are shipped products, then systems, research and experiments. Ask me about any of them on the way.",

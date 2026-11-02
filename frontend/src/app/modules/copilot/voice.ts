@@ -152,7 +152,7 @@ export const voice = {
         let question = '';
         try { question = String(JSON.parse(data.payload || '{}').text ?? '').slice(0, 2000); } catch { /* invalid speech payload */ }
         if (!question || generation !== run) return JSON.stringify({ say: 'Could you say that again?' });
-        const answer = await copilot.send(question, { path: window.location.pathname, title: document.title });
+        const answer = await copilot.send(question, { path: window.location.pathname, title: document.title }, { typed: false });
         return JSON.stringify({ say: answer || 'Please try that again.' });
       });
       call.on(lk.RoomEvent.TrackSubscribed, (track) => {
