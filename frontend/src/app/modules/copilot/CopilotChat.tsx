@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ArrowUp, Mic, PhoneOff, Rocket, Square } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useProjectRecords } from '../../lib/portfolioDocs';
@@ -165,12 +165,28 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
     void copilot.send(question, { path: location.pathname, title: document.title });
   };
 
+  // Before the first message, focusing the box opens a second line: sample questions while it
+  // is empty, then the closest matches to what is being typed.
+  const typed = draft.trim().toLowerCase();
+  const hints = messages.length === 0 && focused
+    ? (typed
+        ? [...SUGGESTIONS].filter((q) => typed.split(/\s+/).every((word) => q.toLowerCase().includes(word)) && q.toLowerCase() !== typed)
+            .sort((a, b) => Number(b.toLowerCase().startsWith(typed)) - Number(a.toLowerCase().startsWith(typed)))
+            .slice(0, 2)
+        : [...SUGGESTIONS].slice(0, 4))
+    : [];
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
     ask(draft);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Tab' && !event.shiftKey && typed && hints.length) {
+      event.preventDefault();
+      copilot.setDraft(hints[0]);
+      return;
+    }
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       ask(draft);
@@ -213,33 +229,6 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
         </div>
       )}
 
-      {messages.length === 0 && (
-        <div className="cp-empty">
-          <div className="cp-intro">
-            <p className="lab-mono cp-intro-label">Virtual Pujan · not live</p>
-            <p className="cp-intro-text">
-              Hi, I'm Pujan's virtual presence on Design Bakery. I'm not Pujan live, but I answer from what is published on this
-              site, and I'll only open a page once you say yes.
-            </p>
-          </div>
-          <div className="lab-suggestions">
-            {SUGGESTIONS.map((suggestion, index) => (
-              <motion.button
-                key={suggestion}
-                type="button"
-                className="lab-chip"
-                onClick={() => ask(suggestion)}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 + index * 0.08, ease: EASE }}
-              >
-                {suggestion}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      )}
-
       <form className="lab-composer" onSubmit={submit} onClick={() => inputRef.current?.focus()}>
         <label htmlFor={id} className="sr-only">
           Ask about my work
@@ -260,13 +249,12 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
         <div className="lab-composer-actions">
           <button
             type="button"
-            className="cp-voice vo-call"
+            className="cp-voice"
             aria-label={voiceState.status === 'idle' ? 'Start voice call' : 'End voice call'}
             onClick={() => voiceState.status === 'idle' ? void voice.start() : voice.stop()}
           >
-            <span className="vo-call-wave" aria-hidden="true" />
-            {voiceState.status === 'idle' ? <Mic size={18} /> : <PhoneOff size={18} />}
-            <span>{voiceState.status === 'idle' ? 'Call' : 'End call'}</span>
+            {voiceState.status === 'idle' ? <Mic size={16} /> : <PhoneOff size={16} />}
+            <span>{voiceState.status === 'idle' ? 'Voice call' : 'End call'}</span>
           </button>
           {busy ? (
             <button type="button" className="lab-send" aria-label="Stop" onClick={() => copilot.stop()}>
@@ -278,6 +266,27 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
             </button>
           )}
         </div>
+        <AnimatePresence initial={false}>
+          {hints.length > 0 && (
+            <motion.ul
+              key="hints"
+              className="cp-hints"
+              aria-label="Suggested questions"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: EASE }}
+            >
+              {hints.map((hint) => (
+                <li key={hint}>
+                  <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => ask(hint)}>
+                    {hint}
+                  </button>
+                </li>
+              ))}
+            </motion.ul>
+          )}
+        </AnimatePresence>
       </form>
       {(voiceState.status !== 'idle' || voiceState.error) && (
         <p className="lab-mono lab-msg-note" role="status">
