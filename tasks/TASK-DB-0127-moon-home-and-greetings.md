@@ -15,3 +15,11 @@ The saved (instant) replies stop reading the same every time, a greeting typed d
 ## Next
 - The moon leaving the orb on connect and returning on hang up (needs the orb restructured).
 - Typed answers spoken in general: needs a "say this" message to the voice agent in the chatbots repo.
+
+## Update: guided navigation
+
+On a call, opening a post, project or paper is a journey with the agent's cursor doing each step: press the header link to the list page, scroll the list slowly (with the wheel shown) to the card, glide to the card (it lights up like a hover) and press it, then the new page's title is tapped. Sections and top-level pages already glide to their header link, scroll and tap the heading. Checked from /research to /blogs/3: hover on the Writing link at 1 s, list scrolled 0 to 1435 px, card pressed at 5 s, article opened.
+Also: tapping the call pill opens the chat; the agent's cursor lights up the link under it (`data-agent-hover` mirrors the hover rules in lab.css); the bubble swings to the side with room; the pill clears Continue chat up to 1280 px.
+
+## Next
+Citing a section while talking about it (needs heading anchors in posts and a tool for the model to name a section).

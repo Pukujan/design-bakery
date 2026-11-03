@@ -193,6 +193,73 @@ function flushText(id: number) {
   release(reveal);
 }
 
+/** The list page a detail page belongs to, or null for any other path. */
+function detailParent(path: string): string | null {
+  if (/^\/blogs\/[^/]+$/.test(path)) return '/blogs';
+  if (/^\/work\/[^/]+$/.test(path)) return '/#work';
+  if (/^\/research\/papers\/[^/]+$/.test(path)) return '/research';
+  return null;
+}
+
+const pause = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+
+/** Waits for a link to a path to be on the page; null if it never shows up. */
+async function linkFor(path: string, ms = 3000): Promise<HTMLElement | null> {
+  for (let waited = 0; waited <= ms; waited += 120) {
+    const link = document.querySelector<HTMLElement>(`a[href="${path.replace(/"/g, '')}"]`);
+    if (link) return link;
+    await pause(120);
+  }
+  return null;
+}
+
+/**
+ * Opens a detail page the way a visitor would, with the agent's cursor doing each step: to the list page through its
+ * link, a slow scroll to the card, a press on the card, and then the new page's title. If the card cannot be found it
+ * simply goes there.
+ */
+async function journey(path: string) {
+  const list = detailParent(path);
+  if (!list) return;
+  agentCursor.release(25_000);
+  let card = document.querySelector<HTMLElement>(`a[href="${path.replace(/"/g, '')}"]`);
+  if (!card) {
+    // Not on this page: go to the list page first, by pressing its link.
+    await agentCursor.pointAtLinkFor(list);
+    if (navigateFn) navigateFn(list);
+    else window.location.assign(list);
+    const hash = list.split('#')[1];
+    for (let tries = 0; tries < 25 && hash && !document.getElementById(hash); tries += 1) await pause(120);
+    card = await linkFor(path);
+  }
+  if (!card) {
+    if (navigateFn) navigateFn(path);
+    else window.location.assign(path);
+    agentCursor.release(4000);
+    return;
+  }
+  // Scroll to the card slowly, wheel and all, then point at it and press.
+  const rect = card.getBoundingClientRect();
+  const inView = rect.top >= 90 && rect.bottom <= window.innerHeight - 30;
+  if (!inView) {
+    const down = rect.top > 0;
+    const seconds = scrollStageToElement(card, { slow: true });
+    if (seconds > 0) {
+      agentCursor.startScroll(down ? 'down' : 'up', seconds * 1000);
+      await pause(seconds * 1000 + 250);
+    }
+  }
+  await agentCursor.pointAtLinkFor(path);
+  card.click();
+  // On the new page: back to the top, and the cursor taps its title.
+  await pause(500);
+  for (let tries = 0; tries < 25 && window.location.pathname !== path; tries += 1) await pause(120);
+  scrollStageToTop({ slow: false });
+  await pause(500);
+  await agentCursor.pointAtElement(document.querySelector('main h1, h1'));
+  agentCursor.release(6000);
+}
+
 export const copilot = {
   setNavigate(fn: ((path: string) => void) | null) {
     navigateFn = fn;
@@ -214,6 +281,12 @@ export const copilot = {
   },
   /** Scroll to a section, or change page with the app's router and then scroll. */
   go(path: string, options: { slow?: boolean; agent?: boolean } = {}) {
+    // A page deep in the site (a post, a project, a paper) is reached the way a person would: through its list page, scrolling
+    // to the card, and clicking it.
+    if (options.agent && detailParent(path) && !path.includes('#')) {
+      void journey(path);
+      return;
+    }
     const [pathname, hash] = path.split('#');
     const scroll = () => {
       const target = hash ? document.getElementById(hash) : null;
