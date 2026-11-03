@@ -29,6 +29,7 @@ import { FOLLOW_ON_CALL } from './answers.js';
 import { routeRequest } from './routines.js';
 import { latestNews, newsBlock } from './news.js';
 import { createTextFilter } from './textFilter.js';
+import { contextBudget, estimateTokens, fitHistory, sanitizeSummary, summarize, summaryBlock, SUMMARY_MAX_CHARS } from './memory.js';
 import { isCutOff, trimToLastSentence } from './truncation.js';
 import { isPlainSmallTalk } from './smallTalk.js';
 
@@ -47,7 +48,18 @@ const chatBody = z.object({
   page: z.object({ path: z.string().max(300), title: z.string().max(200) }).optional(),
   /** True on a voice call: the reply is spoken, and the page may move on its own. */
   voice: z.boolean().optional(),
+  /** Rolling notes on the older part of a long chat, kept by the browser. Untrusted: capped, sanitised, quoted as data (memory.ts). */
+  summary: z.string().max(SUMMARY_MAX_CHARS).optional(),
+  /** How many earlier turns the summary stands for, for the trace only. */
+  covered: z.number().int().min(0).max(100_000).optional(),
 });
+
+/** Condensing a chat is rare and small, so it has its own, tighter allowance. */
+const summaryBody = z.object({
+  previous: z.string().max(SUMMARY_MAX_CHARS).optional(),
+  messages: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().min(1).max(2000) })).min(1).max(30),
+});
+const summaryLimiter = createLimiter({ windowMax: 40, windowMs: 3600_000, burstMax: 3, burstMs: 60_000 });
 
 const limiter = createLimiter(limitConfigFromEnv());
 const passLimiter = createLimiter({ windowMax: 20, windowMs: 3600_000, burstMax: 5, burstMs: 60_000 });
@@ -153,6 +165,23 @@ copilotRouter.post('/voice', async (req, res) => {
   }
 });
 
+// A long chat is condensed into notes by one cheap model call, with a hard timeout. A failure is a plain 503: the
+// browser then simply keeps sending its newest turns, which memory.ts trims to the token budget.
+copilotRouter.post('/summarize', async (req, res) => {
+  const session = await checkPass(req.get('x-copilot-pass'));
+  if (!session) { res.status(401).json({ ok: false, code: 'NO_PASS' }); return; }
+  const parsed = summaryBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ ok: false, code: 'VALIDATION' }); return; }
+  if (!summaryLimiter.take(`sum:${session}`).ok || !summaryLimiter.take(`sum-ip:${ipOf(req)}`).ok) {
+    res.status(429).json({ ok: false, code: 'RATE_LIMITED' }); return;
+  }
+  const providers = chain();
+  if (!providers.length || !budget.open()) { res.status(503).json({ ok: false, code: 'NO_MODEL' }); return; }
+  const notes = await summarize(parsed.data.previous ?? '', parsed.data.messages, providers, { onUsage: (tokens) => budget.record(tokens) });
+  if (!notes) { res.status(503).json({ ok: false, code: 'SUMMARY_FAILED' }); return; }
+  res.set('cache-control', 'no-store').json({ ok: true, summary: notes });
+});
+
 copilotRouter.post('/chat', async (req, res) => {
   const session = await checkPass(req.get('x-copilot-pass'));
   if (!session) {
@@ -172,7 +201,8 @@ copilotRouter.post('/chat', async (req, res) => {
     res.status(429).set('retry-after', String(Math.ceil((bySession.retryAt - Date.now()) / 1000))).json({ ok: false, code: 'RATE_LIMITED' });
     return;
   }
-  const { messages, page, voice = false } = parsed.data;
+  const { messages, page, voice = false, covered = 0 } = parsed.data;
+  const summary = sanitizeSummary(parsed.data.summary);
   const question = messages.at(-1)?.content ?? '';
   const turn = new TurnTrace(session);
   turn.input = question;
@@ -194,7 +224,7 @@ copilotRouter.post('/chat', async (req, res) => {
   // a yes or no to one of the router's own idle offers, which it answers itself.
   const before = messages.at(-2)?.role === 'assistant' ? messages.at(-2)?.content : undefined;
   const answeringUs = Boolean(before && /\?\s*$/.test(before.trim()));
-  const routed = await routeRequest(question, messages.length === 1, voice, before);
+  const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before);
   const cached = routed && (!answeringUs || routed.routine.startsWith('offer:')) ? routed : null;
   if (cached) {
     turn.model = `cache:${cached.intent}`;
@@ -260,15 +290,23 @@ copilotRouter.post('/chat', async (req, res) => {
     // stays byte-identical across a conversation, which is what lets a provider's prefix
     // cache hit instead of re-billing the brief on every step of a tool loop.
     const where = page ? `\n\n[The visitor is on ${page.path} ("${page.title}").]` : '';
-    const history: ModelMessage[] = messages.map((m, index) =>
-      index === messages.length - 1 && m.role === 'user' ? { role: 'user', content: `${m.content}${where}` } : { role: m.role, content: m.content },
+    const system = `${voice ? `${SYSTEM}\n\n${VOICE_NOTE}` : SYSTEM}\n\n# Site brief\n${brief}${newsBlock(news)}${summaryBlock(summary)}`;
+    // Fit the history to the token budget. The routing above used the full list; the newest turns stay verbatim here,
+    // so a pending offer (always in the last two) and the question itself are never cut.
+    const fit = fitHistory(messages, estimateTokens(system) + estimateTokens(where) + 300, contextBudget());
+    turn.contextTokens = fit.tokens;
+    turn.summaryUsed = Boolean(summary);
+    turn.historyDropped = fit.dropped + covered;
+    turn.historyKept = fit.messages.length;
+    const history: ModelMessage[] = fit.messages.map((m, index) =>
+      index === fit.messages.length - 1 && m.role === 'user' ? { role: 'user', content: `${m.content}${where}` } : { role: m.role, content: m.content },
     );
     const citations = createCitations();
     // A short social reply ("im doing fine thanks!") is answered from the prompt: no tools, one step.
     const smallTalk = isPlainSmallTalk(question, before);
     const result = streamText({
       model,
-      system: `${voice ? `${SYSTEM}\n\n${VOICE_NOTE}` : SYSTEM}\n\n# Site brief\n${brief}${newsBlock(news)}`,
+      system,
       messages: history,
       tools: smallTalk ? {} : makeTools(
         // On a call the model moves the page itself and sends no buttons.

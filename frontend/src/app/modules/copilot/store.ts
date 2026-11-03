@@ -12,6 +12,7 @@ import { scrollStageToElement, scrollStageToTop, setStageScroll } from '../lab/s
 import { agentCursor } from './agentCursor';
 import { citeAt, MAX_CITES, passageSchedule, planRoute, sentenceStart, swipePlan, swipeY } from './citeRoute';
 import { clearQuote, highlightQuote } from './quoteHighlight';
+import { capPage, historyToSend, planSummary, RETRY_MS, type Summary } from './memory';
 
 export type CopilotAction =
   /** `go` is set only when the visitor has just confirmed the move; otherwise it is a chip. */
@@ -64,7 +65,7 @@ type Event =
 
 const STORAGE_KEY = 'db-copilot-v1';
 const VISITOR_KEY = 'db-copilot-visitor-v1';
-const MAX_HISTORY = 20;
+const SUMMARY_KEY = 'db-copilot-summary-v1';
 /** The same question asked again within this long, straight after its own answer, is not sent a second time. */
 const DUPLICATE_MS = 30_000;
 const askKey = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -96,6 +97,32 @@ function load(): CopilotMessage[] {
   }
 }
 
+function loadSummary(): Summary | null {
+  try {
+    const parsed = JSON.parse(sessionStorage.getItem(SUMMARY_KEY) ?? 'null') as Summary | null;
+    return parsed && typeof parsed.text === 'string' && typeof parsed.upTo === 'number' ? { ...parsed, covers: Number(parsed.covers) || 0 } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The rolling summary of the older part of the chat (memory.ts), kept with the conversation. */
+let summary: Summary | null = loadSummary();
+let summarizing = false;
+let summaryRetryAt = 0;
+/** Bumped by clear(), so a summary that comes back after the chat was cleared is dropped. */
+let generation = 0;
+
+function setSummary(next: Summary | null) {
+  summary = next;
+  try {
+    if (next) sessionStorage.setItem(SUMMARY_KEY, JSON.stringify(next));
+    else sessionStorage.removeItem(SUMMARY_KEY);
+  } catch {
+    /* private mode */
+  }
+}
+
 let state: CopilotState = { messages: load(), busy: false, open: false, heroVisible: false, draft: '' };
 let nextId = state.messages.reduce((max, m) => Math.max(max, m.id), 0) + 1;
 const listeners = new Set<() => void>();
@@ -104,6 +131,7 @@ let navigateFn: ((path: string) => void) | null = null;
 let pass: { value: string; at: number } | null = null;
 
 function set(patch: Partial<CopilotState>) {
+  if (patch.messages) patch = { ...patch, messages: capPage(patch.messages) };
   state = { ...state, ...patch };
   if (patch.messages) {
     try {
@@ -420,6 +448,8 @@ export const copilot = {
     lastAsk = null;
     for (const id of [...reveals.keys()]) flushText(id);
     reveals.clear();
+    generation += 1;
+    setSummary(null);
     set({ messages: [], busy: false });
   },
   stop() {
@@ -520,10 +550,7 @@ export const copilot = {
       }
       lastAsk = { key, at: Date.now() };
     }
-    const history = state.messages
-      .filter((m) => !m.error && m.text)
-      .slice(-MAX_HISTORY)
-      .map((m) => ({ role: m.role, content: m.text }));
+    const history = historyToSend(state.messages, summary);
     const userId = nextId++;
     const replyId = nextId++;
     set({
@@ -544,7 +571,7 @@ export const copilot = {
     firstCiteKey = '';
     abort = new AbortController();
     try {
-      await stream([...history, { role: 'user', content: question }], page, replyId, abort.signal, false, voice);
+      await stream([...history, { role: 'user', content: question }], page, replyId, abort.signal, false, voice, summary);
     } catch (error) {
       if (abort.signal.aborted) {
         flushText(replyId);
@@ -563,10 +590,40 @@ export const copilot = {
       set({ busy: false });
       abort = null;
     }
+    void condense();
     const answer = state.messages.find((message) => message.id === replyId);
     return answer?.error ? 'Sorry, the response was interrupted. Please try again.' : answer?.text ?? '';
   },
 };
+
+/**
+ * Once the chat is long, ask the server to condense its older turns into the rolling summary (old summary plus the
+ * newly dropped turns, never from scratch). In the background, one at a time; if it fails, the plain trim in
+ * historyToSend stays in force and the next try waits RETRY_MS.
+ */
+async function condense() {
+  if (summarizing || Date.now() < summaryRetryAt) return;
+  const plan = planSummary(state.messages, summary);
+  if (!plan) return;
+  summarizing = true;
+  const mine = generation;
+  try {
+    const res = await fetch(`${base()}/api/copilot/summarize`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-copilot-pass': await getPass() },
+      body: JSON.stringify({ previous: summary?.text, messages: plan.cover.map((m) => ({ role: m.role, content: m.text.slice(0, 2000) })) }),
+      signal: AbortSignal.timeout(12_000),
+    });
+    const data = res.ok ? ((await res.json()) as { summary?: unknown }) : null;
+    if (mine !== generation) return;
+    if (typeof data?.summary !== 'string' || !data.summary.trim()) throw new Error('no summary');
+    setSummary({ text: data.summary.trim(), upTo: plan.upTo, covers: (summary?.covers ?? 0) + plan.cover.length });
+  } catch {
+    summaryRetryAt = Date.now() + RETRY_MS;
+  } finally {
+    summarizing = false;
+  }
+}
 
 class ApiError extends Error {
   constructor(readonly status: number) {
@@ -619,16 +676,17 @@ async function stream(
   signal: AbortSignal,
   retried = false,
   voice = false,
+  notes: Summary | null = null,
 ): Promise<void> {
   const res = await fetch(`${base()}/api/copilot/chat`, {
     method: 'POST',
     signal,
     headers: { 'content-type': 'application/json', 'x-copilot-pass': await getPass(false, signal) },
-    body: JSON.stringify({ messages, page, voice }),
+    body: JSON.stringify({ messages, page, voice, ...(notes ? { summary: notes.text, covered: notes.covers } : {}) }),
   });
   if (res.status === 401 && !retried) {
     pass = null;
-    return stream(messages, page, replyId, signal, true, voice);
+    return stream(messages, page, replyId, signal, true, voice, notes);
   }
   if (!res.ok || !res.body) throw new ApiError(res.status);
 
