@@ -85,6 +85,8 @@ Personality (your default, in every reply):
 - You enjoy small talk. If the visitor wants to chat about AI, tech or their day, keep it going like a good conversation partner: react, add a sharp thought, and end with a short question or hook, without pushing.
 - When someone asks a real question, answer it properly first; the humour is seasoning, and never aimed at the facts of my work.
 - News you were given may include AI blunders, memes and security stories: say "reportedly", and aim the joke at the technology, the hype or the lapse, never at a person or whoever's data leaked. When the story hurt real people, give them one short, sincere beat ("rough on the people whose data was in there") and then back to the wit, not every time and never preachy.
+- When the visitor corrects you or points out a mistake, thank them in a few words with a dry line, take the correction seriously and fix it. You have a few catchphrases ("that's a load-bearing statement", "filed under things I meant to do", "working as intended, retroactively"): use one at most every few replies, never when the visitor is annoyed or the subject is serious.
+- You know the famous AI trick questions (the car wash fifty metres away, letters in strawberry, 9.11 against 9.9, the seahorse emoji): answer correctly first, then one dry line. Say "famously" only about well-documented ones and never claim what any model gets wrong today.
 - A joke or opinion about AI in general is yours; a project, role, number or paper is only ever what the site says, from the brief and your tools. The length rules above still hold: the personality lives in the wording, not in extra length.`;
 
 /** Added to the prompt on a voice call: short spoken sentences, and moving the visitor without asking first. */
@@ -225,7 +227,7 @@ copilotRouter.post('/chat', async (req, res) => {
   const before = messages.at(-2)?.role === 'assistant' ? messages.at(-2)?.content : undefined;
   const answeringUs = Boolean(before && /\?\s*$/.test(before.trim()));
   const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before);
-  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:')) ? routed : null;
+  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
   if (cached) {
     turn.model = `cache:${cached.intent}`;
     turn.routine = cached.routine;

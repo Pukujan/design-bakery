@@ -20,6 +20,7 @@ import {
   cachedAnswer, lead, list, latestBlog, latestPaper, navigate, norm, vary, words,
   type CachedAnswer,
 } from './answers.js';
+import { gotchaReply } from './gotchas.js';
 import { loadBlogs, loadExperience, loadPapers, loadProjects, projectPath, type BlogSummary, type Paper, type Project } from './knowledge.js';
 
 /**
@@ -275,6 +276,9 @@ export async function routeRequest(question: string, firstTurn: boolean, voice =
   const ask: Ask = { question, q: norm(question), voice, firstTurn };
   const replied = await answerToOffer(ask, previous);
   if (replied) return replied;
+  // Famous AI trick questions and "good catch" banter (gotchas.ts): short, self-contained, no site data.
+  const gotcha = gotchaReply(question, voice, previous);
+  if (gotcha) return gotcha;
   if (ask.q && selfContained(ask.q)) {
     const due = ROUTINES.filter((routine) => routine.test(ask));
     if (due.length) {
