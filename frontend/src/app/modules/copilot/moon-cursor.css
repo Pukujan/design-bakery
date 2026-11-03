@@ -194,3 +194,34 @@
 @media (prefers-reduced-motion: reduce) {
   .moon-dots i { animation: none; opacity: 0.7; }
 }
+
+/* The listening rings, on the moon now: small when quiet, reaching further as the voice gets louder. */
+.moon-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgb(var(--lab-accent-rgb) / 0.6);
+  opacity: 0;
+  pointer-events: none;
+  animation: moon-wave 2.4s ease-out infinite;
+}
+
+.moon-ring-2 {
+  animation-delay: 1.2s;
+  border-color: rgb(var(--lab-cool-rgb) / 0.6);
+}
+
+@keyframes moon-wave {
+  0% {
+    transform: scale(calc(0.9 + var(--lvl, 0) * 0.3));
+    opacity: calc(0.15 + var(--lvl, 0) * 0.85);
+  }
+  100% {
+    transform: scale(calc(1.5 + var(--lvl, 0) * 1));
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moon-ring { animation: none; opacity: 0.25; }
+}

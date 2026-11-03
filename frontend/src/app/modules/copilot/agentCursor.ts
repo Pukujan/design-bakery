@@ -5,9 +5,9 @@
  */
 import { useSyncExternalStore } from 'react';
 
-type State = { visible: boolean; x: number; y: number; presses: number; scroll: 'up' | 'down' | null };
+type State = { visible: boolean; x: number; y: number; presses: number; scroll: 'up' | 'down' | null; moonOut: boolean; moonReturning: boolean };
 
-let state: State = { visible: false, x: -100, y: -100, presses: 0, scroll: null };
+let state: State = { visible: false, x: -100, y: -100, presses: 0, scroll: null, moonOut: false, moonReturning: false };
 let scrollTimer: ReturnType<typeof setTimeout> | undefined;
 const listeners = new Set<() => void>();
 let hideTimer: ReturnType<typeof setTimeout> | undefined;
@@ -46,6 +46,10 @@ const GLIDE_MS = 800;
 const PRESS_MS = 280;
 
 export const agentCursor = {
+  /** The moon is out of the call card (it leaves when a call connects) and is on its way back when the call ends. */
+  setMoon(patch: { out?: boolean; returning?: boolean }) {
+    set({ ...(patch.out === undefined ? {} : { moonOut: patch.out }), ...(patch.returning === undefined ? {} : { moonReturning: patch.returning }) });
+  },
   /**
    * Bring the cursor to the link for `path` and press it, then resolve. If that link is not on screen the cursor just
    * appears mid-page and rests there, since the page is about to scroll.

@@ -4,6 +4,7 @@ import { useReducedMotion } from 'motion/react';
 import { Mic, MicOff, PhoneOff } from 'lucide-react';
 import { audioLevel, useVoice, voice } from './voice';
 import { copilot } from './store';
+import { useAgentCursor } from './agentCursor';
 import { pickOrigin } from './skyOrigin';
 import './voice-orb.css';
 
@@ -192,11 +193,13 @@ function GatherStars({ anchor, onDone }: { anchor: RefObject<HTMLElement | null>
  */
 export default function VoiceOrb() {
   const live = useVoice();
+  const moon = useAgentCursor();
   const reduceMotion = useReducedMotion() ?? false;
   const [demo] = useState<Mode | null>(readDemo);
   const [demoOrigin] = useState(pickOrigin);
   const origin = live.origin ?? demoOrigin;
-  const mode: Mode | null = demo ?? (live.status === 'idle' ? null : live.status === 'connecting' ? 'connecting' : live.speaking === 'agent' ? 'speaking' : 'listening');
+  // After the call ends the card stays up until the moon is back inside it.
+  const mode: Mode | null = demo ?? (live.status === 'idle' ? (moon.moonReturning ? 'listening' : null) : live.status === 'connecting' ? 'connecting' : live.speaking === 'agent' ? 'speaking' : 'listening');
   const muted = !demo && live.muted;
 
   const orbRef = useRef<HTMLDivElement>(null);
@@ -290,7 +293,7 @@ export default function VoiceOrb() {
       {gathering && <GatherStars anchor={orbRef} onDone={() => setGathering(false)} />}
       <div
         ref={pillRef}
-        className={`vo vo-${mode}${muted ? ' vo-muted' : ''}${dragging ? ' vo-dragging' : ''}`}
+        className={`vo vo-${mode}${muted ? ' vo-muted' : ''}${dragging ? ' vo-dragging' : ''}${moon.moonOut && !moon.moonReturning ? ' vo-away' : ''}${live.status === 'idle' ? ' vo-ending' : ''}`}
         role="region"
         aria-label="Voice call"
         style={{ transform: `translate(calc(-50% + ${offset.x}px), ${offset.y}px)` }}

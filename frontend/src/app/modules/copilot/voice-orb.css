@@ -257,3 +257,8 @@
   .vo { transition: none; }
 }
 
+
+/* The moon is out: the card's orb is its empty home, so the rings (now on the moon) go quiet. */
+.vo-away .vo-ring { display: none; }
+.vo-away .vo-core { opacity: 0.35; transform: scale(0.7); transition: opacity 0.5s, transform 0.5s; }
+.vo-ending .vo-btn { pointer-events: none; opacity: 0.5; }

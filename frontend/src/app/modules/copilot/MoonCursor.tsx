@@ -3,7 +3,8 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { flowField } from '../lab/flow';
 import { useAgentCursor } from './agentCursor';
 import { useCopilot } from './store';
-import { useVoice } from './voice';
+import { audioLevel, useVoice } from './voice';
+import { agentCursor } from './agentCursor';
 import './moon-cursor.css';
 
 type Mood = 'happy' | 'scared' | 'whee' | 'sleepy' | 'wink' | 'love' | 'wow';
@@ -27,7 +28,7 @@ export default function MoonCursor() {
   const agent = useAgentCursor();
   const { messages, open: chatOpen } = useCopilot();
   const reduceMotion = useReducedMotion() ?? false;
-  const active = voice.status !== 'idle' || agent.visible;
+  const active = voice.status !== 'idle' || agent.visible || agent.moonReturning;
   const rootRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const eyesRef = useRef<SVGGElement>(null);
@@ -38,6 +39,15 @@ export default function MoonCursor() {
   const voiceRef = useRef(voice);
   voiceRef.current = voice;
   const [quip, setQuip] = useState('');
+  // When the call ends the moon flies back into the call card, which stays up until it is in.
+  const lastStatus = useRef(voice.status);
+  useEffect(() => {
+    const was = lastStatus.current;
+    lastStatus.current = voice.status;
+    if (voice.status !== 'idle') {
+      if (agentRef.current.moonReturning) agentCursor.setMoon({ returning: false });
+    } else if (was !== 'idle' && agentRef.current.moonOut) agentCursor.setMoon({ returning: true });
+  }, [voice.status]);
   agentRef.current = agent;
   const [mood, setMood] = useState<Mood>('happy');
   const [spinning, setSpinning] = useState(0);
@@ -49,7 +59,15 @@ export default function MoonCursor() {
     let body = bodyRef.current;
     if (!root || !body) return;
 
+    // The call card's orb is the moon's home: it starts there and leaves when the call connects.
+    const orbCentre = () => {
+      const rect = document.querySelector('.vo-core')?.getBoundingClientRect();
+      return rect && rect.width > 0 ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : null;
+    };
     const pos = { x: window.innerWidth * 0.82, y: window.innerHeight * 0.7 };
+    let launched = false;
+    let returnStart = 0;
+    let level = 0;
     const vel = { x: 0, y: 0 };
     let target = { ...pos };
     const pointer = { x: -999, y: -999, at: -Infinity };
@@ -229,6 +247,38 @@ export default function MoonCursor() {
       root = rootRef.current ?? root;
       body = bodyRef.current ?? body;
       const a = agentRef.current;
+      if (!launched && !a.moonReturning) {
+        const home = orbCentre();
+        if (voiceRef.current.status === 'connecting' && home) {
+          // Waiting in the card while the call connects.
+          pos.x = home.x - SIZE / 2;
+          pos.y = home.y - SIZE / 2;
+          vel.x = 0;
+          vel.y = 0;
+          target = { ...pos };
+          root.style.opacity = '0';
+          root.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0)`;
+          return;
+        }
+        // Connected: out it comes, up and away from the card.
+        launched = true;
+        if (home && !reduceMotion) {
+          pos.x = home.x - SIZE / 2;
+          pos.y = home.y - SIZE / 2;
+          vel.x = rand(-260, 260);
+          vel.y = -620;
+          popAt = now;
+          say('whee', 1400);
+        }
+        target = place({ x: rand(0, window.innerWidth), y: rand(0, window.innerHeight * 0.7) });
+        anchor = { ...target };
+        root.style.opacity = '1';
+        agentCursor.setMoon({ out: true });
+      }
+      // The rings around the moon follow the call's level: the visitor's voice while listening, the agent's while it speaks.
+      const raw = Math.max(voiceRef.current.muted ? 0 : audioLevel('user'), audioLevel('agent'));
+      level += (raw - level) * (raw > level ? 0.4 : 0.14);
+      root.style.setProperty('--lvl', level.toFixed(3));
       // Lazy and unhurried by default; quicker only to run from the pointer, and when the agent is going somewhere.
       let stiffness = 7;
       const hole = reduceMotion ? undefined : flowField.obstacles.find((o) => o.kind === 'disc' && o.r > 14 && Number.isFinite(o.x) && Number.isFinite(o.y) && Number.isFinite(o.r));
@@ -269,7 +319,19 @@ export default function MoonCursor() {
         say('scared', 9000);
       }
 
-      if (fall === 'pulled') {
+      if (a.moonReturning) {
+        // The call has ended: back into the card, shrinking as it goes in.
+        const home = orbCentre();
+        if (!returnStart) returnStart = now;
+        target = home ? { x: home.x - SIZE / 2, y: home.y - SIZE / 2 } : { ...pos };
+        stiffness = 24;
+        const close = home ? Math.hypot(pos.x - target.x, pos.y - target.y) < 12 : true;
+        if (now - returnStart > 1600 || (close && now - returnStart > 500)) {
+          root.style.opacity = '0';
+          agentCursor.setMoon({ out: false, returning: false });
+          return;
+        }
+      } else if (fall === 'pulled') {
         if (!hole || hole.kind !== 'disc' || a.visible) {
           fall = 'none';
           pullAt = now + rand(90000, 200000);
@@ -363,7 +425,7 @@ export default function MoonCursor() {
       const loopX = a.visible || reduceMotion ? 0 : Math.cos(swirlAngle) * 190 * swirl;
       const loopY = a.visible || reduceMotion ? 0 : Math.sin(swirlAngle) * 120 * swirl;
       // The spot it heads for, with the pointer's parallax and the swirl laid over the plan (the plan itself is untouched).
-      const goal = fall === 'pulled' ? target : place({ x: target.x + (a.visible ? 0 : parallax.x) + loopX, y: target.y + (a.visible ? 0 : parallax.y) + loopY });
+      const goal = fall === 'pulled' || a.moonReturning ? target : place({ x: target.x + (a.visible ? 0 : parallax.x) + loopX, y: target.y + (a.visible ? 0 : parallax.y) + loopY });
       if (reduceMotion) {
         pos.x = target.x;
         pos.y = target.y;
@@ -390,7 +452,7 @@ export default function MoonCursor() {
       lean *= 0.92;
       tilt *= 0.92;
       const roll = clamp(vel.x * 0.05, -28, 28) + lean + tilt * 0.4 + spinRoll;
-      const shrink = fall === 'pulled' ? 1 - Math.pow(clamp((now - fallStart) / 5500, 0, 1), 1.6) * 0.9 : popAt ? 0.1 + 0.9 * clamp((now - popAt) / 700, 0, 1) : 1;
+      const shrink = a.moonReturning ? 1 - clamp((now - returnStart) / 1400, 0, 1) * 0.9 : fall === 'pulled' ? 1 - Math.pow(clamp((now - fallStart) / 5500, 0, 1), 1.6) * 0.9 : popAt ? 0.1 + 0.9 * clamp((now - popAt) / 700, 0, 1) : 1;
       root.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0)`;
       body.style.transform = `rotate(${roll.toFixed(1)}deg) scale(${(1 + Math.min(0.18, Math.abs(vel.y) * 0.0006)) * shrink}, ${(1 - Math.min(0.12, Math.abs(vel.y) * 0.0004)) * shrink})`;
       // The eyes follow the pointer.
@@ -422,6 +484,7 @@ export default function MoonCursor() {
 
     return () => {
       clearTimeout(quipTimer);
+      agentCursor.setMoon({ out: false });
       cancelAnimationFrame(raf);
       window.removeEventListener('pointermove', onPointer);
       window.removeEventListener('pointerdown', onTap);
@@ -451,6 +514,8 @@ export default function MoonCursor() {
   const sign = scroll === 'up' ? -1 : 1;
   return (
     <div ref={rootRef} className={`moon${spinning ? ' moon-spin' : ''}`} key={spinning % 2} data-mood={mood} data-act={voice.thinking ? 'thinking' : voice.speaking === 'agent' || voice.hold || quip ? 'talking' : undefined} aria-hidden="true">
+      <span className="moon-ring moon-ring-1" />
+      <span className="moon-ring moon-ring-2" />
       <div ref={bodyRef} className="moon-body">
         <svg viewBox="0 0 48 48" width={SIZE} height={SIZE}>
           <defs>

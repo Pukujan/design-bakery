@@ -23,3 +23,7 @@ Also: tapping the call pill opens the chat; the agent's cursor lights up the lin
 
 ## Next
 Citing a section while talking about it (needs heading anchors in posts and a tool for the model to name a section).
+
+## Update: the call card is the moon's home
+
+The moon waits invisible inside the call card's orb while the call connects, shoots out of it when the call connects, and flies back in (shrinking) when the call ends; the card stays up until it is inside. The listening rings are on the moon now and follow the call's level; while the moon is out the card's orb is dimmed and its rings are off. Checked with simulated call states (connecting, connected, ended): hidden at the orb's position while connecting, out and away within 0.4 s of connecting, back in about 0.9 s after the call ends. Not checked with a real call.
