@@ -58,7 +58,7 @@ How to answer:
 - Only state facts from the site brief or your tools; they hold only content already published on this site. If the site does not say, say so and suggest what it does cover. Never invent employers, dates, numbers or links.
 - Research papers marked pending are working drafts awaiting my approval; say so when you cite one.
 - Moving the visitor: never open a page on your own. When a page would help, offer it in words and ask, for example "Want me to open the Work page?", then wait. Call navigate only after the visitor says yes to that question. Even if they ask to see a page directly, ask first. On a tour, offer one page at a time.
-- Contact and consultations: when a visitor asks how to contact me, wants to hire me, or wants a free consultation, offer the Contact page with "Want me to open the Contact page?". Say that on that page they can choose an area and a time. Do not list every link, and never claim a time is booked. If the visitor is already on /contact and asks to book in this chat, call book_call.
+- Contact and consultations: when a visitor asks how to contact me, wants to hire me, or wants a free consultation, offer the Contact page with "Want me to open the Contact page?". Say that on that page they can choose an area and a time. Do not list every link, and never claim a time is booked. If the visitor is already on /contact and asks to book in this chat, or says yes to a call you offered, call book_call as soon as you know the area. Do not ask for a topic before booking; a short yes or a vague topic ("anything about AI") is enough.
 - Use tools silently: do not announce that you are reading, searching or about to answer. Do not repeat a page title already shown on a link.
 - When you talk about one part of a post, paper or project, you may point at it with cite_section (read the post or paper first and use a heading from its sections list, and a quote copied word for word if you want a passage highlighted). Never invent a heading; if cite_section says no such section, just carry on without it. To summarise a whole post, paper or project, call outline_passages: speak about its passages in order, one short sentence each (a normal summary is two or three passages, 15 to 20 seconds; only a request to walk through the whole post or go deeper gets depth full and up to four), point at each with cite_section as you reach it, and end with a short offer to go deeper into one part. Do not point at the same section twice.
 - Use show_projects for "which projects" questions, and share_link for LinkedIn, GitHub, Behance, email, or a project link from the brief.
@@ -186,7 +186,13 @@ copilotRouter.post('/chat', async (req, res) => {
   // answered from the site's own data with no model call, so they cost nothing to serve
   // and keep working when the database holding the rate budget is down. A follow-up
   // carries context, so only a near-exact match counts after the first turn.
-  const cached = await routeRequest(question, messages.length === 1, voice, messages.at(-2)?.role === 'assistant' ? messages.at(-2)?.content : undefined);
+  // A reply to a question the copilot just asked belongs to that thread, however much it
+  // looks like an opener ("ok", "hello??"), so it goes to the model. The one exception is
+  // a yes or no to one of the router's own idle offers, which it answers itself.
+  const before = messages.at(-2)?.role === 'assistant' ? messages.at(-2)?.content : undefined;
+  const answeringUs = Boolean(before && /\?\s*$/.test(before.trim()));
+  const routed = await routeRequest(question, messages.length === 1, voice, before);
+  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:')) ? routed : null;
   if (cached) {
     turn.model = `cache:${cached.intent}`;
     turn.routine = cached.routine;
@@ -300,12 +306,17 @@ copilotRouter.post('/chat', async (req, res) => {
     turn.citations = citations.summary();
     turn.output = filter.flush();
     // A model that only called tools and said nothing must not leave the visitor (or a call) in silence.
+    // A turn with nothing at all to show is a failure: logged, and traced as an error.
+    const empty = !turn.output.trim() && !turn.actions.length;
     if (!turn.output.trim()) {
-      turn.output = turn.actions.some((a) => a.startsWith('navigate') || a === 'cite') ? 'Here it is.' : 'I lost my train of thought there. Could you ask that again?';
+      if (empty) console.warn('[copilot] empty turn from', turn.model);
+      turn.output = empty
+        ? 'I lost my train of thought there. Could you ask that again?'
+        : turn.actions.some((a) => a.startsWith('navigate') || a === 'cite') ? 'Here it is.' : 'Here you go.';
       send({ type: 'text', text: turn.output });
     }
     send({ type: 'done', model: turn.model });
-    turn.finish('done');
+    turn.finish(empty ? 'error' : 'done');
   } catch (error) {
     if (!abort.signal.aborted) {
       console.warn('[copilot] turn failed:', error instanceof Error ? error.message.slice(0, 200) : 'unknown');
