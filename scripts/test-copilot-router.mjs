@@ -113,6 +113,17 @@ for (const line of nudges) {
 // "yes" after a model question, or with no offer, is not the router's.
 assert.ok(!(await routeRequest('yes', false, false, 'Which project would you like?'))?.routine?.startsWith('offer'));
 
+// A question that points back at the conversation goes to the model after the first turn, never to a routine or a
+// saved intent (found in a live test: "the first project we talked about" was answered by the projects reply).
+const backRefs = [
+  'And what was the first project we talked about?', 'What did I say I do for work?', 'you mentioned a paper earlier, open that one',
+  'what did we discuss about Cortex', 'which post did I ask about before', 'show me the last one again', 'what was the project you told me about',
+];
+for (const q of backRefs) assert.equal(await routeRequest(q, false), null, `"${q}" refers to the conversation and must reach the model`);
+// The same words as a first message have no conversation to refer to: unchanged.
+assert.ok(await routeRequest('Tell me about your projects', true), 'a first-turn projects question stays instant');
+assert.ok(await routeRequest('Tell me about your projects', false), 'a plain projects question later stays instant');
+
 // Never hijack a follow-up, a long or a reasoning question: these reach the model.
 const toModel = [
   'open it', 'open the second one', 'show me more', 'show me that again', 'open the other paper', 'which one uses React',

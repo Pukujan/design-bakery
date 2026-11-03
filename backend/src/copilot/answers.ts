@@ -387,7 +387,17 @@ function compose(
  * The instant answer for this question, or null when it needs the model.
  * `firstTurn` lowers the bar, because a first message carries no context to lose.
  */
+/**
+ * The question points back at the conversation ("the first project we talked about", "what did I say", "you
+ * mentioned"). Only the model, which has the history, can answer it: a saved reply or routine would match on a
+ * keyword like "project" and answer a different question. Used on every turn after the first.
+ */
+export function refersBack(question: string): boolean {
+  return /\b(we (just )?(talked|spoke|discussed|covered|mentioned|looked|saw|said)|(you|i) (just )?(said|say|mentioned|told|showed|asked|talked)|what did i|did i|earlier|last time|previously|just now|a moment ago|(said|mentioned|asked|talked about|discussed) before|the (first|last|previous|earlier|second|third|other) (one|thing|project|post|paper|question|topic)|that one|again)\b/.test(norm(question));
+}
+
 export async function cachedAnswer(question: string, firstTurn: boolean, voice = false): Promise<CachedAnswer | null> {
+  if (!firstTurn && refersBack(question)) return null;
   // The Contact page's "Ask the AI right now" sends "How can you help with <area>?": one fixed answer per area.
   const service = serviceAnswer(question, await loadProjects());
   if (service) return service;

@@ -154,4 +154,12 @@ const blogsAsStored = [
 ];
 assert.equal(latestBlog(blogsAsStored).id, 2, 'the latest post is the newest by date, not the last month name alphabetically');
 
+// Questions about the conversation itself reach the model after the first turn (live-test finding: the keyword "project"
+// settled the intent and answered a different question).
+for (const q of ['And what was the first project we talked about?', 'What did I say I do for work?', 'what did we talk about earlier', 'you mentioned a project, which one was it?']) {
+  assert.equal(await cachedAnswer(q, false), null, `"${q}" must reach the model, not a saved reply`);
+}
+assert.ok(await cachedAnswer('Tell me about your projects', true), 'a first-turn projects question stays instant');
+assert.ok(await cachedAnswer('Tell me about your projects', false), 'a plain projects question later stays instant');
+
 console.log(`copilot instant answers: ${firstTurn.length} intents, ${followUps.length} follow-ups routed to the model`);
