@@ -115,8 +115,8 @@ export default function MoonCursor() {
       const now = performance.now();
       const options = QUIPS[next];
       const v = voiceRef.current;
-      if (!options || now < nextQuip || talkingRef.current || chatOpenRef.current || v.thinking || v.speaking !== 'none' || Math.random() > 0.35) return;
-      nextQuip = now + rand(45_000, 110_000);
+      if (!options || now < nextQuip || talkingRef.current || chatOpenRef.current || v.thinking || v.speaking !== 'none') return;
+      nextQuip = now + rand(40_000, 60_000);
       const [text, clipName] = options[Math.floor(Math.random() * options.length)];
       setQuip(text);
       clearTimeout(quipTimer);
