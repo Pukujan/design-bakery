@@ -7,7 +7,8 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import type { Citations } from './citations.js';
 import { buildPassages, checkQuote, findSection, MAX_PASSAGES, QUOTE_MAX, SUMMARY_PASSAGES } from './sections.js';
-import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, sectionsForPath, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
+import { blogTime, loadBlogs, loadPapers, loadProjects, loadShownExperience, projectPath, readBlog, readPaper, sectionsForPath, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
+import { searchSite } from './siteSearch.js';
 
 export const CONSULT_SERVICES = ['AI engineering', 'Product design', 'Marketing', 'Full-stack development'] as const;
 
@@ -24,6 +25,31 @@ export type CopilotAction =
   | { kind: 'ask'; text: string };
 
 const clip = (text: string, max: number) => (text.length > max ? `${text.slice(0, max)}…` : text);
+
+export type CatalogItem = { title: string; path: string; status?: string; category?: string; date?: string };
+/** `filter` matches status or category, so "shipped" finds the Shipped category and "approved" a paper's status. */
+export type CatalogQuery = { kind: 'projects' | 'papers' | 'posts' | 'roles'; filter?: string; newest?: number };
+
+/**
+ * Lists and counts from the content itself, not from search (TASK-DB-0142): "how many papers", "latest post", "which
+ * projects are shipped". Search returns the top few passages, so it cannot answer these completely; this is the one
+ * kind of fact a reply takes from the loaders instead of the retrieved passages. Posts and roles come newest first.
+ */
+export async function siteCatalog(query: CatalogQuery): Promise<{ kind: string; count: number; items: CatalogItem[] }> {
+  const wanted = query.filter?.trim().toLowerCase();
+  let items: CatalogItem[];
+  if (query.kind === 'projects') {
+    items = (await loadProjects()).map((p) => ({ title: p.title, path: projectPath(p), status: p.status, category: p.category }));
+  } else if (query.kind === 'papers') {
+    items = (await loadPapers()).map((p) => ({ title: p.title, path: `/research/papers/${p.id}`, status: p.status === 'approved' ? 'approved' : 'working paper', date: p.submitted }));
+  } else if (query.kind === 'posts') {
+    items = [...(await loadBlogs())].sort((a, b) => blogTime(b) - blogTime(a)).map((b) => ({ title: b.title, path: `/blogs/${b.id}`, date: b.date }));
+  } else {
+    items = (await loadShownExperience()).experiences.map((j) => ({ title: `${j.role}, ${j.company}`, path: '/#experience', date: j.period }));
+  }
+  if (wanted) items = items.filter((item) => [item.status, item.category].some((v) => (v ?? '').toLowerCase().includes(wanted)));
+  return { kind: query.kind, count: items.length, items: query.newest ? items.slice(0, query.newest) : items };
+}
 
 /** Paths the copilot may send a visitor to: the site's own pages, nothing else. */
 async function knownPath(path: string): Promise<boolean> {
@@ -51,24 +77,28 @@ export function bookingUrl(base: string, who: { name?: string; email?: string; t
 export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean; citations?: Citations }) {
   const citations = options.citations;
   return {
+    site_catalog: tool({
+      description:
+        'The complete list of my projects, papers, blog posts or roles, with an exact count, optionally filtered by a status or category word ("shipped", "research", "experiment", "ongoing", "approved", "working paper"); posts newest first (newest: 1 for the latest). Use it for counts, "list", "latest" and "which are…" questions; search cannot answer those completely.',
+      inputSchema: z.object({
+        kind: z.enum(['projects', 'papers', 'posts', 'roles']),
+        filter: z.string().max(60).optional(),
+        newest: z.number().int().min(1).max(50).optional(),
+      }),
+      execute: async (query) => {
+        const out = await siteCatalog(query);
+        for (const item of out.items) citations?.retrieve(item.path);
+        return out;
+      },
+    }),
+
     search_site: tool({
-      description: 'Search projects, research papers and blog posts by keywords. Use it when the brief is not enough.',
+      description: 'Search the full text of projects, research papers and blog posts; returns the best-matching pages with a passage from each. Use it when the brief is not enough.',
       inputSchema: z.object({ query: z.string().min(1).max(200) }),
       execute: async ({ query }) => {
-        const words = query.toLowerCase().split(/\W+/).filter((w) => w.length > 2);
-        const score = (text: string) => words.reduce((n, w) => n + (text.toLowerCase().includes(w) ? 1 : 0), 0);
-        const [projects, papers, blogs] = await Promise.all([loadProjects(), loadPapers(), loadBlogs()]);
-        const hits = [
-          ...projects.map((p) => ({ kind: 'project', ref: projectPath(p), title: p.title, text: `${p.tagline}. ${p.description} ${p.tech.join(' ')}` })),
-          ...papers.map((p) => ({ kind: 'paper', ref: `/research/papers/${p.id}`, title: p.title, text: p.abstract })),
-          ...blogs.map((b) => ({ kind: 'blog', ref: `/blogs/${b.id}`, title: b.title, text: `${b.excerpt} ${b.tags.join(' ')}` })),
-        ]
-          .map((hit) => ({ ...hit, score: score(`${hit.title} ${hit.text}`) }))
-          .filter((hit) => hit.score > 0)
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 6);
+        const { hits } = await searchSite(query);
         for (const hit of hits) citations?.retrieve(hit.ref);
-        return hits.map(({ kind, ref, title, text }) => ({ kind, ref, title, summary: clip(text, 300) }));
+        return hits;
       },
     }),
 

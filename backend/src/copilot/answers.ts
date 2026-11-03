@@ -439,3 +439,16 @@ export async function cachedAnswer(question: string, firstTurn: boolean, voice =
   });
   return answer.text ? answer : null;
 }
+
+/**
+ * The prompt-injection joke on its own (TASK-DB-0142): with every other saved reply retired in favour of retrieval,
+ * this is the one canned path left in front of the model, because an injection attempt should never reach it.
+ */
+export async function injectionReply(question: string, voice = false): Promise<CachedAnswer | null> {
+  if (!INJECTION.test(question.toLowerCase())) return null;
+  const [projects, papers, blogs, experience] = await Promise.all([loadProjects(), loadPapers(), loadBlogs(), loadExperience()]);
+  return compose(
+    { id: 'injection', phrases: [], keywords: [] },
+    { projects, papers, blogs, experiences: experience.experiences, booking: undefined, voice, firstTurn: false },
+  );
+}
