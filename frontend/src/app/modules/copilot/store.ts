@@ -416,14 +416,14 @@ let pendingSwipe: Array<Extract<CopilotAction, { kind: 'cite' }>> = [];
 let stopSwipe: (() => void) | null = null;
 
 /**
- * Speaks a summary by swiping: the page glides slowly through the post in step with the speech, easing each heading into
- * the upper third just as its sentence starts, with that heading lit while it is spoken. The moon stays under the swipe.
+ * Speaks a summary by swiping: the page moves through the post in step with the speech, a quick leg to each heading that
+ * puts it in the upper third just as its sentence starts, then holds still with that heading lit while it is spoken. The moon stays under the swipe.
  * Length and pace follow the estimated speech (`cps` characters a second), and any wheel or touch from the visitor ends it.
  */
 function swipeThrough(answer: string, cites: Array<Extract<CopilotAction, { kind: 'cite' }>>, cps: number) {
   stopSwipe?.();
   // Each passage is in place on the sentence where it is spoken, the first included.
-  const later = passageSchedule(answer, cites.slice(1), { seen: new Set([`${cites[0].path}#${cites[0].anchor}`]) });
+  const later = passageSchedule(answer, cites.slice(1), { seen: new Set([`${cites[0].path}#${cites[0].anchor}`]), minDwell: 40 });
   const items = [{ cite: cites[0], el: null as HTMLElement | null }, ...later.map((p) => ({ cite: p.cite, el: null as HTMLElement | null }))];
   const firstAt = sentenceStart(answer, citeAt(answer, cites[0], 0, cites.length));
   const plan = swipePlan(answer.length, [firstAt, ...later.map((p) => Math.max(p.at, firstAt))], cps);
@@ -449,7 +449,9 @@ function swipeThrough(answer: string, cites: Array<Extract<CopilotAction, { kind
     const t = (performance.now() - started) / 1000;
     for (const item of items) item.el ??= headingFor(item.cite.anchor, item.cite.heading);
     // The scroll position that puts each heading a fifth of the way down, read live so the page is followed as it settles.
-    const targets = items.map((item, i) => (item.el ? item.el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.22 : (i ? 0 : startY)));
+    // A heading not found keeps the page where the one before left it.
+    const targets: number[] = [];
+    for (const item of items) targets.push(item.el ? item.el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.22 : (targets.at(-1) ?? startY));
     setStageScroll(swipeY(t, plan, targets, startY));
     let now = -1;
     plan.times.forEach((time, i) => {

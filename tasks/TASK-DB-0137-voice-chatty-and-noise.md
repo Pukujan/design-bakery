@@ -78,3 +78,13 @@ From the owner's call on production (session `a5c2ed…`, 2026-11-03 06:32–06:
 - **Misheard names.** "President" was answered with a joke about executive orders. The call prompt now says the words come from speech recognition and to read a near-name as the project ("President" is Precedent, "Arise" is Arize).
 - **Said it was opening a page without opening it** ("Let's start with Cortex", no navigate). The call prompt now forbids that and says to pick one on "any of them". In a local replay, "Just anyone, come on." navigated to /work/cortex.
 - **Not a bug:** the `[email]` in the contact answer's trace is the trace mask (`tracing.ts`); visitors get the real address.
+
+## Swipe lands in the right place (fourth commit)
+
+Reproduced on `/research/papers/db-r-2026-010` with a three-cite summary (1280×768, heading target 169 px from the top):
+
+- **Before:** the first heading reached its place and then scrolled away during its own sentence (the leg to the next heading started at once and ran 10 s). The second was in place only at 12 s, though its sentence starts at 4.5 s. The third was never reached, and the closing 240 px drift pushed the second off the top of the screen.
+- **Why:** `passageSchedule` asks for 70 characters between moves, so a 67-character first sentence pushed the second cite two sentences late and left no room for the third. `swipeY` eased out of each heading straight away and drifted after the last. A heading not found had a target of 0 (the page top).
+- **Now** (`citeRoute.ts`, `store.ts`): the page holds still while a passage is spoken and moves in one 1.1 s leg that ends as the next sentence starts; no drift; a swipe needs 40 characters between moves; a missing heading keeps the page where it is. Measured: each of the three headings sat at exactly 169 px from its sentence start until the next leg.
+- **Faster voice-call scrolls** (`stageScroll.ts`): page, section and card scrolls take 1.2 to 2.4 s instead of 2.5 to 7 s.
+- Checks: `test-copilot-cite-route.mjs` (new paper case), frontend `tsc`, eslint.
