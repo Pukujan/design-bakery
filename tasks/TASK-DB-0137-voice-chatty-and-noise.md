@@ -68,3 +68,13 @@ Evidence (local stack, 2026-11-03):
 Hush costs 1.5 ms per 50 ms frame (3% of a core). An earlier docker run lost 4 lines to busy reply models (two 45 s RPC
 timeouts), not to the worker. Checks: worker unittest (14), `test:copilot-addressee`, `test:copilot-stream`,
 `test:copilot-answers`, backend build, frontend tsc and eslint.
+
+## Trace follow-ups (third commit)
+
+From the owner's call on production (session `a5c2ed…`, 2026-11-03 06:32–06:40) and the owner's report that the page "doesn't scroll to the right place":
+
+- **"Show me" on a call did not move the page.** `show_projects` only adds cards under the answer, and on a call there are no chips, so the page stayed put while it said "There they are". Now (`store.ts` `showCards`) the moon goes to the work list, scrolls the first card on screen before the answer is spoken, and points at the rest while it talks. Checked in the local site: the first card is fully in view 5 s in, then Cortex, Orbitgraph and Fluffy V4 are reached in turn. Section and citation scrolls on desktop were measured and land exactly.
+- **The canned project list caught questions about one project or about the conversation.** Examples: "What stack is Precedent built with?", "what was the first project we talked about?", "what else does he have?", "the President project", "this project". These now go to the model (`answers.ts`), and five trace lines are added to `test:copilot-answers`.
+- **Misheard names.** "President" was answered with a joke about executive orders. The call prompt now says the words come from speech recognition and to read a near-name as the project ("President" is Precedent, "Arise" is Arize).
+- **Said it was opening a page without opening it** ("Let's start with Cortex", no navigate). The call prompt now forbids that and says to pick one on "any of them". In a local replay, "Just anyone, come on." navigated to /work/cortex.
+- **Not a bug:** the `[email]` in the contact answer's trace is the trace mask (`tracing.ts`); visitors get the real address.

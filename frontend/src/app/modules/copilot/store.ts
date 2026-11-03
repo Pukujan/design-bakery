@@ -294,17 +294,7 @@ async function journey(path: string) {
     return;
   }
   // Scroll to the card slowly, wheel and all, then point at it and press.
-  const rect = card.getBoundingClientRect();
-  const inView = rect.top >= 90 && rect.bottom <= window.innerHeight - 30;
-  if (!inView) {
-    const down = rect.top > 0;
-    const seconds = scrollStageToElement(card, { slow: true });
-    if (seconds > 0) {
-      agentCursor.say(['Somewhere in here...', 'Scrolling a bit...', 'Hold on, it is further down...'], seconds * 1000);
-      agentCursor.startScroll(down ? 'down' : 'up', seconds * 1000);
-      await pause(seconds * 1000 + 250);
-    }
-  }
+  await scrollToCard(card);
   agentCursor.say(['Ah, there it is.', 'Found it.', 'That one.']);
   await agentCursor.pointAtLinkFor(path);
   card.click();
@@ -315,6 +305,47 @@ async function journey(path: string) {
   await pause(500);
   await agentCursor.pointAtElement(document.querySelector('main h1, h1'));
   agentCursor.release(6000);
+}
+
+/** Scrolls a card slowly into view, wheel and all, unless the whole card is already on screen. */
+async function scrollToCard(card: HTMLElement) {
+  const rect = card.getBoundingClientRect();
+  if (rect.top >= 90 && rect.bottom <= window.innerHeight - 30) return;
+  const seconds = scrollStageToElement(card, { slow: true, offset: -Math.round(window.innerHeight * 0.18) });
+  if (seconds > 0) {
+    agentCursor.say(['Somewhere in here...', 'Scrolling a bit...', 'Hold on, it is further down...'], seconds * 1000);
+    agentCursor.startScroll(rect.top > 0 ? 'down' : 'up', seconds * 1000);
+    await pause(seconds * 1000 + 250);
+  }
+}
+
+/**
+ * On a call, project cards in the chat are not seen (the visitor is listening, and there are no chips), so the page shows
+ * them instead: to the work list if they are not on this page, then down the list, pointing at each card in turn. Resolves
+ * once the first card is on screen, so the answer is spoken while the rest are shown.
+ */
+async function showCards(slugs: string[]) {
+  const paths = slugs.map((slug) => `/work/${slug}`);
+  agentCursor.release(25_000);
+  if (!document.querySelector(`a[href="${paths[0]}"]`)) await copilot.go('/#work', { slow: true, agent: true });
+  const cards: HTMLElement[] = [];
+  for (const path of paths) {
+    const card = await linkFor(path, cards.length ? 0 : 3000);
+    if (card) cards.push(card);
+  }
+  // Top to bottom, so the page only ever scrolls down.
+  cards.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
+  if (!cards.length) return;
+  await scrollToCard(cards[0]);
+  await agentCursor.pointAtElement(cards[0]);
+  void (async () => {
+    for (const card of cards.slice(1)) {
+      await pause(1800);
+      await scrollToCard(card);
+      await agentCursor.pointAtElement(card);
+    }
+    agentCursor.release(3000);
+  })();
 }
 
 /** The heading a cite points at: by its anchor, else by its text (a heading the page numbers or styles differently). */
@@ -783,6 +814,12 @@ function handle(event: Event, replyId: number) {
         const before = Promise.all(pendingMoves);
         pendingMoves.push(before.then(() => cite(action)).catch(() => undefined));
       } else pendingCites.push(action);
+      return;
+    }
+    if (event.action.kind === 'projects' && voiceReplies.has(replyId)) {
+      const slugs = event.action.slugs;
+      const before = Promise.all(pendingMoves);
+      pendingMoves.push(before.then(() => showCards(slugs)).catch(() => undefined));
       return;
     }
     // Chips appear once the text has been typed. On a call there are no chips: the page moves instead.

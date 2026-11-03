@@ -390,6 +390,15 @@ function compose(
  * The instant answer for this question, or null when it needs the model.
  * `firstTurn` lowers the bar, because a first message carries no context to lose.
  */
+/** A question about the conversation itself ("what did I say", "the one we talked about"), not about the site. */
+const REFERS_BACK = /\b(we (talked|discussed|spoke|looked)|you (said|told|mentioned|showed)|i (said|told|asked|mentioned)|earlier|at the start|first one|last one)\b/;
+
+/** Whether the question names one of the projects by its title or slug. */
+function namesProject(question: string, projects: Project[]): boolean {
+  const q = ` ${norm(question)} `;
+  return projects.some((project) => [norm(project.title), norm(project.slug.replace(/-/g, ' '))].some((name) => name.length >= 3 && q.includes(` ${name} `)));
+}
+
 export async function cachedAnswer(question: string, firstTurn: boolean, voice = false): Promise<CachedAnswer | null> {
   // The Contact page's "Ask the AI right now" sends "How can you help with <area>?": one fixed answer per area.
   const service = serviceAnswer(question, await loadProjects());
@@ -405,7 +414,14 @@ export async function cachedAnswer(question: string, firstTurn: boolean, voice =
   if (!firstTurn && intent.id === 'greeting') return null;
   // "Hey, Campos!" greets someone else (on a call, someone in the visitor's room): the model decides, and may stay quiet.
   if (intent.id === 'greeting' && words(question).some((word) => !GREETED.has(word))) return null;
+  // "What was the first project we talked about?" is about this conversation, which only the model has.
+  if (REFERS_BACK.test(norm(question))) return null;
   const [projects, papers, blogs, experience] = await Promise.all([loadProjects(), loadPapers(), loadBlogs(), loadExperience()]);
+  // The project list answers "what have you built", not a question about one project ("what stack is Precedent built
+  // with", "the President project" as speech heard it, "this project") nor, mid-conversation, "what else?" (the model
+  // knows which were already shown).
+  const q = norm(question);
+  if (intent.id === 'projects' && (namesProject(question, projects) || /\b(this|that|the [a-z]+) project\b/.test(q) || (!firstTurn && /\b(another|else|other|more)\b/.test(q)))) return null;
   const answer = compose(intent, {
     projects,
     papers,

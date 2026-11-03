@@ -74,7 +74,10 @@ for (const [question, expected] of firstTurn) {
 
 // A follow-up depends on the conversation, so only a near-exact match may be answered
 // from the cache; these all have to reach the model.
-const followUps = ['open', 'summarize that', 'the third one', 'what about the second', 'why?', 'more', 'hello??', 'hi'];
+const followUps = ['open', 'summarize that', 'the third one', 'what about the second', 'why?', 'more', 'hello??', 'hi',
+  // From the traces (2026-11-03): one project named, the conversation itself, and "what else" all got the project list.
+  'What stack is Precedent built with?', 'And what was the first project we talked about?', 'What about Another project. What else does he have?',
+  "what's the President project?", 'What did Arise have to do with this project?'];
 for (const followUp of followUps) {
   assert.equal(await cachedAnswer(followUp, false), null, `"${followUp}" must reach the model, not the cache`);
 }
