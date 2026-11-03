@@ -41,7 +41,7 @@
 
 ## Should anything become a separate repo?
 
-- **Not yet.** Everything deploys from one Vercel project + one Railway service and shares the same UI kit. Start with workspace packages (steps 5–6); split to a separate repo only if a section gets its own deploy target or collaborators (most likely candidates: research/benchmarks, and the case-study static builds).
+- **Not yet.** Everything deploys from one repo (one frontend build + one API service) and shares the same UI kit. Start with workspace packages (steps 5–6); split to a separate repo only if a section gets its own deploy target or collaborators (most likely candidates: research/benchmarks, and the case-study static builds).
 - `packages/cover-studio-kit` is already exportable (`pnpm run export:cover-studio`) and can stay as-is.
 
 ## Combined estimate

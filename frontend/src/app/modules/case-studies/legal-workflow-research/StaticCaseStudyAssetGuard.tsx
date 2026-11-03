@@ -4,7 +4,7 @@ import { LEGAL_WORKFLOW_RESEARCH_CASE_STUDY_PATH } from './legalWorkflowCaseStud
 
 /**
  * If the SPA shell loads for a static `.html` asset under the legal workflow
- * case study, force a full document navigation so Vercel serves the file from
+ * case study, force a full document navigation so the server serves the file from
  * `public/` instead of React Router's catch-all redirecting to `/`.
  */
 export function StaticCaseStudyAssetGuard() {

@@ -1,12 +1,11 @@
 /**
  * Server-side Open Graph / link-preview rendering (issue #80, Step E).
  *
- * Reproduces the Vercel Edge middleware that used to live at `middleware.ts` at the
- * repo root. That middleware rewrote the SPA shell for blog and case-study URLs so
- * link-preview bots and crawlers read a real `<title>` / `og:*` instead of the
- * generic app shell. With the site served from gravebuster, nothing reproduced it,
- * so crawler previews regressed to the generic shell — this router is that logic as
- * an Express route, behind Caddy.
+ * Rewrites the SPA shell for blog and case-study URLs so link-preview bots and
+ * crawlers read a real `<title>` / `og:*` instead of the generic app shell. It is an
+ * Express route behind Caddy (the `@ogPreview` matcher in
+ * deploy/gravebuster/Caddyfile). It replaced an Edge middleware (`middleware.ts`) from
+ * the Vercel days.
  *
  * The pure HTML/meta builders are copied verbatim from `frontend/src/og/` (the
  * frontend keeps the browser-facing ones); `scripts/test-og-contract.mjs` fails CI
@@ -130,8 +129,7 @@ function sendHtml(res: Response, html: string, cacheControl: string): void {
  * does, apart from Accept-Encoding) would hand a crawler the human shell or the
  * reverse. `max-age=0` stops such a cache storing either. This is exactly what the
  * SPA fallback already served for these paths, so nothing that was cacheable becomes
- * uncacheable — the Edge middleware's 300 s `s-maxage` was Vercel's CDN, which the
- * tunnel does not reproduce.
+ * uncacheable.
  */
 const OG_CACHE = 'public, max-age=0, must-revalidate';
 
@@ -284,7 +282,7 @@ ogPreviewRouter.use((req, res, next) => {
 
   const pathname = req.path;
 
-  // vercel.json excludes `*.html` from the SPA fallback, so those 404. Caddy answers
+  // The Caddyfile excludes `*.html` from the SPA fallback, so those 404. Caddy answers
   // them before this router; this keeps a direct hit on the API port honest.
   if (/\.html$/i.test(pathname)) {
     next();
