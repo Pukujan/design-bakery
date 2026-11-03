@@ -16,7 +16,7 @@ export function LabLogo() {
   }, [reduceMotion]);
 
   return (
-    <Link to="/lab" className="lab-logo" aria-label="Design Baker, home">
+    <Link to="/" className="lab-logo" aria-label="Design Baker, home">
       D
       <motion.span
         key={fontIndex}
@@ -38,7 +38,7 @@ export function LabBar() {
     <header className="lab-bar">
       <LabLogo />
       <nav className="lab-nav lab-mono" aria-label="Site">
-        <Link to="/lab#work">Work</Link>
+        <Link to="/#work">Work</Link>
         <Link to="/blogs">Writing</Link>
         <Link to="/research">Research</Link>
         <Link to="/contact">Contact</Link>

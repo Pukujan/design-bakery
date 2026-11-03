@@ -73,7 +73,13 @@
 }
 
 .lab-logo {
-  font-size: 1.35rem;
+  /* A big, easy target: the letters are large and the padding makes the clickable area at least 48px tall. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 3rem;
+  padding: 0.4rem 1rem;
+  margin: -0.4rem 0 -0.4rem -1rem;
+  font-size: 1.9rem;
   font-weight: 800;
   font-stretch: 75%;
   letter-spacing: -0.02em;
@@ -88,6 +94,16 @@
 .lab-nav {
   display: flex;
   gap: clamp(1rem, 3vw, 2.25rem);
+}
+
+.lab-nav {
+  align-items: center;
+}
+
+/* Padding gives each link a comfortable target without moving it. */
+.lab-nav a {
+  padding: 0.8rem 0.6rem;
+  margin: -0.8rem -0.6rem;
 }
 
 .lab-nav a:hover {

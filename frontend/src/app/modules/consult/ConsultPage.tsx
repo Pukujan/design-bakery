@@ -163,7 +163,7 @@ export function ConsultPage() {
                   <span className="consult-tile-name">Book a free 30-minute call</span>
                   <span className="consult-tile-hint">Pick a time that suits you. Opens my calendar.</span>
                 </a>
-                <button type="button" className="consult-tile" onClick={askTheChat}>
+                <button type="button" className="consult-tile" data-copilot-open onClick={askTheChat}>
                   <span className="consult-tile-name">Ask the AI right now</span>
                   <span className="consult-tile-hint">Instant answers about this, no waiting.</span>
                 </button>
