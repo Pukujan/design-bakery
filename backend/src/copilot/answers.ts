@@ -16,7 +16,7 @@
  * near-exact match later. A follow-up ("open", "summarise that") depends on the
  * conversation, so it goes to the model.
  */
-import { loadBlogs, loadExperience, loadPapers, loadProjects, SOCIAL_LINKS, type BlogSummary, type Paper, type Project } from './knowledge.js';
+import { blogTime, loadBlogs, loadExperience, loadPapers, loadProjects, SOCIAL_LINKS, type BlogSummary, type Paper, type Project } from './knowledge.js';
 
 export type CachedAction =
   | { kind: 'navigate'; path: string; label: string }
@@ -237,7 +237,7 @@ export const list = (items: string[]) => (items.length <= 1 ? (items[0] ?? '') :
 export const navigate = (path: string, label: string): CachedAction => ({ kind: 'navigate', path, label });
 
 /** Most recent blog and paper, by date, for the pointers that name one. */
-export const latestBlog = (blogs: BlogSummary[]) => [...blogs].sort((a, b) => b.date.localeCompare(a.date))[0];
+export const latestBlog = (blogs: BlogSummary[]) => [...blogs].sort((a, b) => blogTime(b) - blogTime(a))[0];
 export const latestPaper = (papers: Paper[]) => [...papers].sort((a, b) => b.submitted.localeCompare(a.submitted))[0];
 
 function compose(

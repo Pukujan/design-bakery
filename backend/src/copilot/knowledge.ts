@@ -61,7 +61,14 @@ type Hero = { titleLine1?: string; titleLine2?: string; description?: string; ba
 type SkillCategory = { title: string; skills: string[] };
 
 export type Paper = { id: string; title: string; status: string; submitted: string; abstract: string };
-export type BlogSummary = { id: number; title: string; excerpt: string; date: string; tags: string[] };
+export type BlogSummary = { id: number; title: string; excerpt: string; date: string; tags: string[]; publishedAt?: string };
+
+/**
+ * When a post was written, for ordering. `date` is the display date the author set ("June 18 2026",
+ * "November 2025"), which as text sorts November after June; `publishedAt` is only the fallback, since posts
+ * imported in one batch all share an import time.
+ */
+export const blogTime = (post: Pick<BlogSummary, 'date' | 'publishedAt'>) => Date.parse(post.date) || Date.parse(post.publishedAt ?? '') || 0;
 
 const fileCache = new Map<string, { mtimeMs: number; value: unknown }>();
 
@@ -159,7 +166,10 @@ export async function loadBlogs(): Promise<BlogSummary[]> {
       excerpt: post.excerpt,
       date: post.date,
       tags: post.tags,
+      publishedAt: post.publishedAt,
     }));
+    // Newest first, so the brief and every "latest" answer agree.
+    value.sort((a, b) => blogTime(b) - blogTime(a));
     blogCache = { at: Date.now(), value };
     return value;
   } catch {
@@ -217,7 +227,7 @@ export async function siteBrief(): Promise<string> {
   }
   lines.push('', '## Research papers (id | title | status | submitted). All are working papers unless status is approved.');
   for (const paper of papers) lines.push(`- ${paper.id} | ${paper.title} | ${paper.status} | ${paper.submitted}`, `  ${clip(paper.abstract, 150)}`);
-  lines.push('', '## Blog posts (id | date | title)');
+  lines.push('', '## Blog posts, newest first (id | date | title)');
   for (const post of blogs) lines.push(`- ${post.id} | ${post.date} | ${post.title}: ${clip(post.excerpt, 80)}`);
   lines.push('', '## Links', ...SOCIAL_LINKS.map((link) => `- ${link.label}: ${link.url}`));
   lines.push('', '## Site pages', ...SITE_PAGES.map((page) => `- ${page.path} (${page.label})`), '- /work/<slug> (one presentation page per project)', '- /blogs/<id>', '- /research/papers/<id>');

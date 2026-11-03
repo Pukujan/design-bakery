@@ -14,8 +14,9 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('..', import.meta.url);
 
 let cachedAnswer;
+let latestBlog;
 try {
-  ({ cachedAnswer } = await import(new URL('./backend/lib/copilot/answers.js', root).href));
+  ({ cachedAnswer, latestBlog } = await import(new URL('./backend/lib/copilot/answers.js', root).href));
 } catch {
   throw new Error('copilot instant answers: build the backend first (pnpm --dir backend run build)');
 }
@@ -144,5 +145,13 @@ assert.equal((await cachedAnswer('hello, how can I contact you?', false))?.inten
 assert.equal((await cachedAnswer('thanks, show me your research', false))?.intent, 'research', 'a thanks must not hijack a research question');
 assert.equal((await cachedAnswer('hey there', true))?.intent, 'greeting', 'a bare greeting is still a greeting');
 assert.equal((await cachedAnswer('thanks!', false))?.intent, 'thanks', 'a bare thanks is still a thanks');
+
+// "Latest post" is by the written date, not the text of it: "November 2025" sorts after "June 18 2026" as text.
+const blogsAsStored = [
+  { id: 1, title: 'Prompt Engineering: Beyond Basic Prompts', excerpt: '', tags: [], date: 'November 2025', publishedAt: '2026-05-22T23:35:16.956Z' },
+  { id: 2, title: 'Hades SEO Workflow Automation Study Log', excerpt: '', tags: [], date: 'June 18 2026', publishedAt: '2026-06-18T04:55:45.803Z' },
+  { id: 3, title: 'How I Am Making AI Coding Agents More Reliable', excerpt: '', tags: [], date: 'May 2026', publishedAt: '2026-05-22T23:35:17.490Z' },
+];
+assert.equal(latestBlog(blogsAsStored).id, 2, 'the latest post is the newest by date, not the last month name alphabetically');
 
 console.log(`copilot instant answers: ${firstTurn.length} intents, ${followUps.length} follow-ups routed to the model`);
