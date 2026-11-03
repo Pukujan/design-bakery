@@ -21,6 +21,7 @@ import { createDailyBudget, createLimiter, limitConfigFromEnv } from './fairUse.
 import { siteBrief } from './knowledge.js';
 import { devProvider, pickProfile, routeFor, smartProviders, type Provider } from './providers.js';
 import { createCitations } from './citations.js';
+import { withChip } from './chips.js';
 import { makeTools, type CopilotAction } from './tools.js';
 import { TurnTrace } from './tracing.js';
 import { takeDurableCopilotLimit, durableLimitConfigured } from './durableLimit.js';
@@ -206,7 +207,7 @@ copilotRouter.post('/chat', async (req, res) => {
     for (const action of cached.actions) {
       // On a call there are no buttons: only a page move the call makes itself.
       if (voice && !(follow && action.kind === 'navigate')) continue;
-      send({ type: 'action', action: action.kind === 'navigate' ? { ...action, go: follow } : action });
+      send({ type: 'action', action: withChip(action.kind === 'navigate' ? { ...action, go: follow } : action) });
     }
     if (voice) for (const step of cached.steps ?? []) send({ type: 'action', action: { kind: 'scrollstep', path: step.path, at: step.at } });
     send({ type: 'done', model: turn.model });
@@ -273,7 +274,7 @@ copilotRouter.post('/chat', async (req, res) => {
         // On a call the model moves the page itself and sends no buttons.
         (action) => {
           if (voice && action.kind !== 'navigate' && action.kind !== 'cite') return;
-          send({ type: 'action', action });
+          send({ type: 'action', action: withChip(action) });
         },
         { canNavigate: voice || visitorSaidYes(messages), citations },
       ),
