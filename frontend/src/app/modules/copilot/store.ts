@@ -61,6 +61,7 @@ type Event =
   | { type: 'action'; action: CopilotAction }
   | { type: 'step'; name: string; status: 'start' | 'done' | 'error' }
   | { type: 'done'; model: string }
+  | { type: 'quiet' }
   | { type: 'error'; message: string };
 
 const STORAGE_KEY = 'db-copilot-v1';
@@ -771,6 +772,9 @@ function handle(event: Event, replyId: number) {
       const move = onCall ? copilot.go(event.action.path, { slow: true, agent: true }) : copilot.guide(event.action.path);
       if (onCall) pendingMoves.push(move);
     }
+  } else if (event.type === 'quiet') {
+    // On a call the words heard were not for the copilot (someone else in the room): the turn leaves the chat, with no reply.
+    set({ messages: state.messages.filter((m) => m.id !== replyId && m.id !== replyId - 1) });
   } else if (event.type === 'error') {
     patchMessage(replyId, (m) => ({ text: m.text || event.message, error: !m.text }));
   } else if (event.type === 'done') {

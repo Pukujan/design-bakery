@@ -23,6 +23,9 @@ const CLOSERS = ['</think>', '<｜end▁of▁thinking｜>'];
 /** Text that only says what the copilot is about to do. */
 const NARRATION = /^(let me|i'll|i will|one moment|sure,? let me|pulling|taking you|looking|checking|opening|here(?:'s| is) the)/i;
 
+/** The whole reply on a voice call when the words heard were not for the copilot (VOICE_NOTE in route.ts). */
+export const QUIET = /^\s*\[quiet\][\s.]*$/i;
+
 export type TextFilter = {
   /** A text delta from the model. */
   push: (text: string) => void;
@@ -32,6 +35,8 @@ export type TextFilter = {
   toolResult: () => void;
   /** The turn ended. Returns the final visible text. */
   flush: () => string;
+  /** The reply was QUIET: flush() returned nothing on purpose. */
+  quiet: () => boolean;
 };
 
 export function createTextFilter(send: (text: string, replace?: boolean) => void, hold = 220): TextFilter {
@@ -39,6 +44,7 @@ export function createTextFilter(send: (text: string, replace?: boolean) => void
   let shown = '';
   let afterTool = false;
   let firstTool = true;
+  let quiet = false;
 
   /** The answer text in `raw`, with any leaked reasoning in front of it removed. */
   const clean = () => {
@@ -80,8 +86,14 @@ export function createTextFilter(send: (text: string, replace?: boolean) => void
       afterTool = true;
     },
     flush() {
+      // On a call the model answers words not meant for it (someone else in the room) with QUIET: nothing is shown or said.
+      if (!shown && QUIET.test(clean())) {
+        quiet = true;
+        return '';
+      }
       emit();
       return shown.trim();
     },
+    quiet: () => quiet,
   };
 }

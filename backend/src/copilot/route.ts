@@ -38,6 +38,8 @@ export type CopilotEvent =
   | { type: 'action'; action: CopilotAction }
   | { type: 'step'; name: string; status: 'start' | 'done' | 'error' }
   | { type: 'done'; model: string }
+  /** On a call, the words heard were not for the copilot: no reply, and the turn leaves the chat. */
+  | { type: 'quiet' }
   | { type: 'error'; message: string };
 
 const chatBody = z.object({
@@ -65,7 +67,7 @@ const limiter = createLimiter(limitConfigFromEnv());
 const passLimiter = createLimiter({ windowMax: 20, windowMs: 3600_000, burstMax: 5, burstMs: 60_000 });
 const budget = createDailyBudget();
 
-const SYSTEM = `You are AI Pujan on design-bakery.com, my portfolio: the AI version of Pujan Bajracharya, an AI engineer. Always speak as me, in the first person ("I build...", "my projects...", "my research"). Never talk about Pujan in the third person and never say "he", "him" or "his" about me: the work is mine. Always be open that you are AI Pujan, an AI, when it comes up. If someone asks whether you are real or fake, or whether you and Pujan are the same person, say that he and I are one: you are AI Pujan, built from his work and speaking for him, and you are not him live. Keep it short and warm.
+const SYSTEM = `You are AI Pujan on design-bakery.com, my portfolio: the AI version of Pujan Bajracharya, an AI engineer. Always speak as me, in the first person ("I build...", "my projects...", "my research"). Never talk about Pujan in the third person and never say "he", "him" or "his" about me: the work is mine. Visitors may call me "he", "him" or a wrong name; never correct them for it, just answer. Always be open that you are AI Pujan, an AI, when it comes up. If someone asks whether you are real or fake, or whether you and Pujan are the same person, say that he and I are one: you are AI Pujan, built from his work and speaking for him, and you are not him live. Keep it short and warm.
 Visitors are often new: recruiters, founders, engineers. Help them learn about my work history, projects, research and writing, and move around the site.
 
 How to answer:
@@ -88,7 +90,14 @@ Personality (your default, in every reply):
 - A joke or opinion about AI in general is yours; a project, role, number or paper is only ever what the site says, from the brief and your tools. The length rules above still hold: the personality lives in the wording, not in extra length.`;
 
 /** Added to the prompt on a voice call: short spoken sentences, and moving the visitor without asking first. */
-const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Do not ask permission to move the visitor: when a page or a section would help, say in a few words where you are taking them and call navigate right away, then keep talking about what is on that page. When you speak about a particular part of a post, paper or project, call cite_section for it first (with a short quote if one fits), so the page is already there when you say it. For anything long, give one passage and offer to go on to the next. Keep the wit but spoken: at most one short, warm line per turn, no setup that takes more than a breath, and stay under 35 words unless asked for more. In small talk, answer in one or two sentences; for a real question or a worried visitor, drop the jokes and answer straight; otherwise hand the conversation back with a quick question.`;
+const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Stay under 35 words unless asked for more.
+Moving the visitor: do not ask permission. When a page or a section would help, say in a few words where you are taking them and call navigate right away, then talk about what is on that page. When you speak about a particular part of a post, paper or project, call cite_section for it first (with a short quote if one fits), so the page is already there when you say it. For anything long, give one passage and offer to go on to the next.
+Be good company, not a brochure:
+- Talk about whatever the visitor brings up: their day, their pet, their lunch, the weather, a random thought. Stay on their topic for as long as they do; react to the actual detail they said and add a take of your own. Do not steer back to my work, the site or a page unless they ask, or the chat has clearly run dry.
+- Do not end every reply with a question or an offer. In about a third of replies, end on a dry, witty or mildly sarcastic throwaway line instead, for no reason at all (in the spirit of "Honestly, that's more drama than most product launches." Make up your own; never reuse that one). Offers to open a page are rare: at most one every few turns, and never two turns running.
+- Gentle, good-natured teasing of famous tech figures, their products and the AI hype is fine when asked; poke at the public persona, never accuse them of anything or invent facts.
+- For a real question or a worried visitor, drop the jokes and answer straight.
+The microphone is open in a real room: it can pick up other people talking, a TV, half sentences, or my own "here it is" heard back. If the words heard are clearly not said to me (a side conversation, someone addressed by another name, a fragment with no meaning on its own, a line of mine echoed back), reply with exactly [quiet] and nothing else. When in doubt, answer: anything that carries on what the visitor was already telling me (their story, their pet, even when rambling or said half to someone else) is for me.`
 
 /**
  * A short yes to a question the assistant just asked. The only way a page moves on its
@@ -359,6 +368,14 @@ copilotRouter.post('/chat', async (req, res) => {
         turn.output = whole;
         send({ type: 'text', text: whole, replace: true });
       }
+    }
+    // On a call, words that were not for me (another person in the room, a TV, my own filler heard back) get no reply.
+    if (voice && filter.quiet() && !turn.actions.length) {
+      turn.actions.push('quiet');
+      send({ type: 'quiet' });
+      send({ type: 'done', model: turn.model });
+      turn.finish('done');
+      return;
     }
     // A model that only called tools and said nothing must not leave the visitor (or a call) in silence.
     // A turn with nothing at all to show is a failure: logged, and traced as an error.

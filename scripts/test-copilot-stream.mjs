@@ -115,4 +115,19 @@ const answer = 'That is the lay of the land. Want me to dig into a project, a pa
   assert.equal(filter.flush(), 'Two things stand out.\n\nThe first is the eval harness.');
 }
 
-console.log('copilot stream filter: 6 cases (leaked reasoning, late close, hold, narration, open block, paragraph break)');
+// 7. On a call, background talk is answered with [quiet]: nothing is shown or said, and the route can tell.
+{
+  const seen = harness();
+  const filter = createTextFilter(seen.send);
+  feed(filter, '[quiet]');
+  assert.equal(filter.flush(), '');
+  assert.equal(filter.quiet(), true);
+  assert.equal(seen.text, '');
+  const spoken = harness();
+  const normal = createTextFilter(spoken.send);
+  feed(normal, 'Poor Chad. Rats are braver than they look.');
+  assert.equal(normal.flush(), 'Poor Chad. Rats are braver than they look.');
+  assert.equal(normal.quiet(), false);
+}
+
+console.log('copilot stream filter: 7 cases (leaked reasoning, late close, hold, narration, open block, paragraph break, quiet)');

@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { copilot, requestVoiceGrant, typedReply } from './store';
 import type { LocalAudioTrack, Room } from 'livekit-client';
-import { noteActivity, pauseNudges, playSpokenReply, preloadHold, isNudge, resumeNudges, startHold, startNudges, startThinking, stopHold, stopNudges, type Thinking } from './holdAudio';
+import { noteActivity, pauseNudges, playSpokenReply, preloadHold, isNudge, resumeNudges, startHold, startNudges, startThinking, stopHold, stopNudges, withoutEcho, type Thinking } from './holdAudio';
 import { pickOrigin, type SkyOrigin } from './skyOrigin';
 
 /** Who is talking right now, so the orb can show it. */
@@ -197,6 +197,9 @@ export const voice = {
         let question = '';
         try { question = String(JSON.parse(data.payload || '{}').text ?? '').slice(0, 2000); } catch { /* invalid speech payload */ }
         if (!question || generation !== run) return JSON.stringify({ say: 'Could you say that again?' });
+        // My own filler or closer heard back through the speakers is not part of the question; if that is all it was, no turn.
+        question = withoutEcho(question);
+        if (!question) return JSON.stringify({ say: '' });
         // Nothing is quiet while an answer is worked out: the reminders hold off, and fillers fill the wait.
         pauseNudges();
         set({ thinking: true });
@@ -210,8 +213,10 @@ export const voice = {
           // spoken, and its bubble shown, only once the page is there.
           await Promise.race([copilot.takeMoves(), new Promise((resolve) => setTimeout(resolve, 30_000))]);
         } finally {
-          // A clip in progress fades out, and a closer ("Ahh, here it is") follows only a filler heard in full.
-          await waiting.finish();
+          // A clip in progress stops on its next pause, and a closer ("Ahh, here it is") follows only a filler heard in full.
+          // No answer (the words were for someone else in the room) means no closer either: the filler just stops.
+          if (answer) await waiting.finish();
+          else waiting.cancel();
           if (thinking === waiting) thinking = null;
           set({ thinking: false });
           resumeNudges();
@@ -228,7 +233,8 @@ export const voice = {
         for (const { cite, at, hold } of copilot.takeCites(answer)) {
           stepTimers.push(setTimeout(() => void copilot.citeFor(cite, (hold / SPEECH_CHARS_PER_S) * 1000), SPEECH_LEAD_MS + (at / SPEECH_CHARS_PER_S) * 1000));
         }
-        return JSON.stringify({ say: answer || 'Please try that again.' });
+        // An empty answer is the copilot staying quiet on purpose (background talk): the agent says nothing.
+        return JSON.stringify({ say: answer });
       });
       call.on(lk.RoomEvent.TrackSubscribed, (track) => {
         if (track.kind !== lk.Track.Kind.Audio || generation !== run) return;

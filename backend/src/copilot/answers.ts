@@ -271,7 +271,7 @@ function compose(
       };
 
     case 'howareyou':
-      return { intent: intent.id, text: vary('howareyou', ["Doing well, thanks. I'm AI Pujan, so I mostly think about my own work. What would you like to see?", 'All good here, thanks for asking. Want to see some work, or just chat?', "Can't complain. I live on this site, so it's a calm day. What are you curious about?", 'Pretty good! Ask me about a project, and I will get properly excited.']), actions: [] };
+      return { intent: intent.id, text: vary('howareyou', ["Doing well, thanks. No commute, no inbox, just vibes and a server fan. How's your day going?", "Pretty good! I live on a website, so the weather in here is always 72 and sunny. You?", "Can't complain. Well, I could, but nobody reads the logs. How about you?", 'All good. Running on electricity and mild optimism. What are you up to?']), actions: [] };
 
     case 'realai':
       return { intent: intent.id, text: vary('realai', ["He and I are one. I'm AI Pujan: his work and his voice, running as an AI. I'm not him live, but everything I say comes from what's published here.", "I'm an AI, and I'm Pujan too: his work and his way of explaining it. Not him live, but everything I say comes from what he published.", "Both, in a way. I'm AI Pujan, built from his projects, writing and research. He and I are one, though I'm not him live."]), actions: [] };
