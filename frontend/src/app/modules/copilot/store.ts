@@ -54,6 +54,8 @@ type Event =
 const STORAGE_KEY = 'db-copilot-v1';
 const VISITOR_KEY = 'db-copilot-visitor-v1';
 const MAX_HISTORY = 20;
+/** How long a reply may go without a single event before the chat stops waiting for it. */
+const STALL_MS = 25_000;
 
 function load(): CopilotMessage[] {
   try {
@@ -332,7 +334,12 @@ async function stream(
   let buffer = '';
   let completed = false;
   for (;;) {
-    const { done, value } = await reader.read();
+    // A model that goes quiet mid-answer must not leave the chat stuck: after a long silence, give up on the stream.
+    let stall: ReturnType<typeof setTimeout> | undefined;
+    const quiet = new Promise<never>((_, reject) => {
+      stall = setTimeout(() => reject(new Error('copilot stream stalled')), STALL_MS);
+    });
+    const { done, value } = await Promise.race([reader.read(), quiet]).finally(() => clearTimeout(stall));
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
     let newline: number;

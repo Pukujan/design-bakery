@@ -88,4 +88,21 @@ assert.ok(contact.text.includes('pujan3645@gmail.com'), 'the contact answer shou
 const tour = await cachedAnswer('give me a tour', true);
 assert.ok(tour.actions.some((action) => action.kind === 'navigate' && action.path === '/#work'), 'the tour should start at the work section');
 
+// "Tell me about <project>" is what every project page's Ask button sends: it is answered from the project's own
+// record with a chip to its page, for every project the site has, and a long follow-up still reaches the model.
+for (const project of projects) {
+  const about = await cachedAnswer(`Tell me about ${project.title}.`, false);
+  assert.ok(about, `"Tell me about ${project.title}." should be answered from the cache`);
+  assert.ok(about.text.startsWith(project.title), `the answer for ${project.title} should start with its title`);
+  assert.ok(
+    about.actions.some((action) => action.kind === 'navigate' && action.path === `/work/${project.slug}`),
+    `the answer for ${project.title} should link its page`,
+  );
+}
+assert.equal(
+  await cachedAnswer('tell me about the Cortex kernel design and its evals in depth please', false),
+  null,
+  'a long project question must still reach the model',
+);
+
 console.log(`copilot instant answers: ${firstTurn.length} intents, ${followUps.length} follow-ups routed to the model`);
