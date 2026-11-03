@@ -38,11 +38,11 @@ function useMobile() {
   );
 }
 
-type View = { bottom: number; height: number };
+type View = { bottom: number; height: number; top: number };
 
 /**
- * The visual viewport minus the layout viewport: how far the on-screen keyboard lifts the
- * bottom edge, and how tall the visible area is. Null when the browser does not report it.
+ * The visual viewport: where its top sits in the layout viewport, how tall it is, and how far the on-screen keyboard
+ * lifts the bottom edge. Null when the browser does not report it.
  */
 function useVisualViewport(enabled: boolean): View | null {
   const [view, setView] = useState<View | null>(null);
@@ -57,8 +57,9 @@ function useVisualViewport(enabled: boolean): View | null {
       const next = {
         bottom: Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)),
         height: Math.round(vv.height),
+        top: Math.round(vv.offsetTop),
       };
-      setView((prev) => (prev && prev.bottom === next.bottom && prev.height === next.height ? prev : next));
+      setView((prev) => (prev && prev.bottom === next.bottom && prev.height === next.height && prev.top === next.top ? prev : next));
     };
     update();
     vv.addEventListener('resize', update);
@@ -130,9 +131,11 @@ export default function CopilotDock() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // On a phone the box is not focused on open: the keyboard would cover most of the conversation the visitor came back
+  // to read. They tap the box to type.
   useEffect(() => {
-    if (open) document.getElementById('cp-ask-dock')?.focus({ preventScroll: true });
-  }, [open]);
+    if (open && !mobile) document.getElementById('cp-ask-dock')?.focus({ preventScroll: true });
+  }, [open, mobile]);
 
   // A page change the visitor approved (the copilot only changes page on a confirmed chip)
   // closes the keyboard and folds the chat into the strip, on phones.
@@ -165,13 +168,13 @@ export default function CopilotDock() {
   // On a call, the call card is what opens the chat, so the Continue chat pill steps aside (the shortcut still works).
   const showPill = !open && !heroVisible && call.status === 'idle';
   const vars = view
-    ? ({ '--cp-kb': `${view.bottom}px`, '--cp-vvh': `${view.height}px` } as CSSProperties)
+    ? ({ '--cp-kb': `${view.bottom}px`, '--cp-vvh': `${view.height}px`, '--cp-vvtop': `${view.top}px` } as CSSProperties)
     : undefined;
 
   return (
     <div
       ref={rootRef}
-      className={`cp-dock${strip ? ' cp-dock--strip' : ''}`}
+      className={`cp-dock${strip ? ' cp-dock--strip' : ''}${view ? ' cp-dock--vv' : ''}`}
       style={vars}
       onFocus={onFocus}
       onBlur={onBlur}
@@ -232,6 +235,11 @@ export default function CopilotDock() {
             aria-label="Copilot"
             initial={reduceMotion ? false : { x: '105%' }}
             animate={{ x: 0 }}
+            onAnimationComplete={() => {
+              // The thread is laid out while the panel slides in; land on the latest message once it is in place.
+              const thread = rootRef.current?.querySelector<HTMLElement>('.cp-thread');
+              if (thread) thread.scrollTop = thread.scrollHeight;
+            }}
             exit={{ x: '105%' }}
             transition={{ duration: 0.55, ease: EASE }}
           >
@@ -244,6 +252,10 @@ export default function CopilotDock() {
                   onClick={blurActive}
                 >
                   Hide keyboard
+                </button>
+              ) : messages.length > 0 ? (
+                <button type="button" className="cp-link cp-new" onClick={() => copilot.clear()}>
+                  New chat
                 </button>
               ) : (
                 <span />

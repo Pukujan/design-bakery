@@ -160,8 +160,8 @@
   font-size: 0.62rem;
 }
 
-/* Phones (760px and below): the chat is a bottom sheet. --cp-kb is the keyboard's height
-   and --cp-vvh the visible height, both set by CopilotDock from the visual viewport. */
+/* Phones (760px and below): the chat is a bottom sheet. --cp-kb is the keyboard's height, --cp-vvh the visible
+   height and --cp-vvtop where the visible area starts, all set by CopilotDock from the visual viewport. */
 @media (max-width: 760px) {
   .cp-panel {
     top: auto;
@@ -171,6 +171,16 @@
     border-left: 0;
     border-top: 1px solid var(--lab-line);
     border-radius: 20px 20px 0 0;
+  }
+
+  /* Where the browser reports the visual viewport, the sheet hangs from its bottom edge, measured from the top. iOS
+     Safari moves the page and reports innerHeight differently while the keyboard is up, so a bottom offset put the sheet
+     far above the keyboard, with only the box showing. */
+  .cp-dock--vv .cp-panel,
+  .cp-dock--vv .cp-mini {
+    top: calc(var(--cp-vvtop) + var(--cp-vvh));
+    bottom: auto;
+    translate: 0 -100%;
   }
 
   /* Empty state: suggestions sit above a composer that is anchored to the bottom. */
@@ -192,6 +202,12 @@
   gap: 0.5rem;
   min-height: 36px;
   margin-bottom: 0.25rem;
+}
+
+/* New chat sits in the header row, left of Close, so the thread gets the height. */
+.cp-new {
+  margin-left: 0;
+  font: 500 0.75rem var(--lab-mono);
 }
 
 .cp-bar-end {

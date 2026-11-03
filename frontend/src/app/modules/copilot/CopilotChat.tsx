@@ -275,14 +275,6 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
           : undefined
       }
     >
-      {variant === 'dock' && messages.length > 0 && (
-        <div className="lab-copilot-status lab-mono">
-          <button type="button" className="cp-link" onClick={() => copilot.clear()}>
-            New chat
-          </button>
-        </div>
-      )}
-
       <AnimatePresence initial={false}>
         {showThread && (
         <motion.div

@@ -96,3 +96,12 @@ The owner found that the hero chat looked as if nothing happened once it lost fo
 - **Hero peek** (`CopilotChat.tsx`, `chat-core.css`): folded, the hero shows one or two lines above the box, a pulsing dot with "Thinking…" while it works, then the start of the reply. Clicking it or the box opens the whole conversation. The thread no longer opens on its own while a reply is working.
 - **A bubble when scrolled away** (`replyPeek.ts`, `CopilotDock.tsx`): with the hero off screen and the panel shut, a bubble over the pill shows dots, then the reply's first words for 12 s, and the pill says "New reply" until the chat is opened. A click opens the chat. If the moon is out, its own bubble carries the reply instead, so there is only ever one.
 - Checked in the local site: hero peek while working and after the reply, a click opens the thread; scrolled away, dots then the reply, "New reply", and the pill back to "Continue chat" after opening. A saved reply (no working state) also shows. The moon carrying it was not seen live (the moon is out only on a call or while it guides).
+
+## Continue chat on a phone (sixth commit)
+
+The owner's iPhone screenshots: after Continue chat, the keyboard came up and the sheet sat far above it, with only the box on screen (part of it above the top edge) and the page showing between the box and the keyboard.
+
+- **Sheet placed from the visual viewport's top** (`CopilotDock.tsx`, `copilot.css`): the sheet and the strip now hang from `visualViewport.offsetTop + height` (`--cp-vvtop`, `--cp-vvh`, `translate: 0 -100%`). The old `bottom: innerHeight - vv.height - vv.offsetTop` was wrong on iOS Safari, where innerHeight and the page offset change while the keyboard is up.
+- **No keyboard on open on a phone**: the box is not focused when the sheet opens, so the visitor sees the conversation; they tap the box to type. Desktop and tablet still focus it.
+- **One header row**: New chat moved into the bar next to Close, and the thread scrolls to the latest message once the panel has slid in.
+- Checked at 375×812, 768×1024 and desktop. With a keyboard simulated (visible area 300 to 776 px), the sheet ended at exactly 776 px. Not yet checked on a real iPhone.
