@@ -286,14 +286,18 @@ async function journey(path: string) {
   }
   // Scroll to the card slowly, wheel and all, then point at it and press.
   const rect = card.getBoundingClientRect();
-  const inView = rect.top >= 90 && rect.bottom <= window.innerHeight - 30;
+  // The card only has to be where the cursor can reach it: its middle on screen, below the header.
+  const middle = rect.top + rect.height / 2;
+  const inView = middle >= 130 && middle <= window.innerHeight - 70;
   if (!inView) {
     const down = rect.top > 0;
-    const seconds = scrollStageToElement(card, { slow: true });
+    // Land the card in the middle of the screen (or just under the header when it is taller than the window).
+    const seconds = scrollStageToElement(card, { slow: true, offset: -Math.max(110, (window.innerHeight - rect.height) / 2) });
     if (seconds > 0) {
       agentCursor.say(['Somewhere in here...', 'Scrolling a bit...', 'Hold on, it is further down...'], seconds * 1000);
       agentCursor.startScroll(down ? 'down' : 'up', seconds * 1000);
-      await pause(seconds * 1000 + 250);
+      await pause(seconds * 1000);
+      await agentCursor.settle(card);
     }
   }
   agentCursor.say(['Ah, there it is.', 'Found it.', 'That one.']);
