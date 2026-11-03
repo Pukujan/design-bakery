@@ -54,6 +54,10 @@ type Event =
 const STORAGE_KEY = 'db-copilot-v1';
 const VISITOR_KEY = 'db-copilot-visitor-v1';
 const MAX_HISTORY = 20;
+/** The same question asked again within this long, straight after its own answer, is not sent a second time. */
+const DUPLICATE_MS = 30_000;
+const askKey = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+let lastAsk: { key: string; at: number } | null = null;
 
 function load(): CopilotMessage[] {
   try {
@@ -190,6 +194,7 @@ export const copilot = {
   },
   clear() {
     abort?.abort();
+    lastAsk = null;
     for (const id of [...reveals.keys()]) flushText(id);
     reveals.clear();
     set({ messages: [], busy: false });
@@ -224,6 +229,17 @@ export const copilot = {
   async send(text: string, page: { path: string; title: string }, options: { typed?: boolean } = {}) {
     const question = text.trim().slice(0, 2000);
     if (!question || state.busy) return '';
+    // Pressing a button again ("Ask the copilot about X") must not send the same request over and over: while its
+    // answer is the latest message, the repeat shows that answer instead of asking again. Voice turns are exempt,
+    // since someone repeating themselves aloud means it.
+    if (options.typed !== false) {
+      const key = askKey(question);
+      const latest = state.messages.at(-1);
+      if (lastAsk && lastAsk.key === key && Date.now() - lastAsk.at < DUPLICATE_MS && latest?.role === 'assistant' && !latest.error) {
+        return latest.text;
+      }
+      lastAsk = { key, at: Date.now() };
+    }
     const history = state.messages
       .filter((m) => !m.error && m.text)
       .slice(-MAX_HISTORY)
