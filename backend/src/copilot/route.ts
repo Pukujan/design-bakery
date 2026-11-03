@@ -28,6 +28,8 @@ import { FOLLOW_ON_CALL } from './answers.js';
 import { routeRequest } from './routines.js';
 import { latestNews, newsBlock } from './news.js';
 import { createTextFilter } from './textFilter.js';
+import { isCutOff, trimToLastSentence } from './truncation.js';
+import { isPlainSmallTalk } from './smallTalk.js';
 
 export type CopilotEvent =
   | { type: 'text'; text: string; replace?: boolean }
@@ -88,9 +90,9 @@ function visitorSaidYes(messages: Array<{ role: string; content: string }>): boo
   return before?.role === 'assistant' && /\?\s*$/.test(before.content.trim());
 }
 
-function chain(): Provider[] {
+function chain(voice = false): Provider[] {
   const dev = devProvider();
-  const smart = pickProfile() === 'smart' ? byHealth(smartProviders()) : [];
+  const smart = pickProfile() === 'smart' ? byHealth(smartProviders(), voice) : [];
   if (smart.length) startWatcher();
   return dev ? [...smart, dev] : smart;
 }
@@ -229,7 +231,7 @@ copilotRouter.post('/chat', async (req, res) => {
     }
     console.warn('[copilot] no durable rate limiter configured; in-memory limits only');
   }
-  const providers = chain();
+  const providers = chain(voice);
   if (!providers.length || !budget.open()) {
     res.status(503).json({ ok: false, code: providers.length ? 'BUDGET' : 'NO_MODEL' });
     return;
@@ -245,7 +247,8 @@ copilotRouter.post('/chat', async (req, res) => {
     name: 'copilot',
     baseURL: 'http://copilot.invalid/v1',
     apiKey: 'per-provider',
-    fetch: fallbackFetch(steps, fetch, console.warn, undefined, undefined, (used) => {
+    // A caller hears the wait: on a call a model that has not started in 4 s gives way to the next (6 s in a chat).
+    fetch: fallbackFetch(steps, fetch, console.warn, undefined, voice ? 4000 : undefined, (used) => {
       turn.model = used;
     }),
   })(steps[0].model);
@@ -260,11 +263,13 @@ copilotRouter.post('/chat', async (req, res) => {
       index === messages.length - 1 && m.role === 'user' ? { role: 'user', content: `${m.content}${where}` } : { role: m.role, content: m.content },
     );
     const citations = createCitations();
+    // A short social reply ("im doing fine thanks!") is answered from the prompt: no tools, one step.
+    const smallTalk = isPlainSmallTalk(question, before);
     const result = streamText({
       model,
       system: `${voice ? `${SYSTEM}\n\n${VOICE_NOTE}` : SYSTEM}\n\n# Site brief\n${brief}${newsBlock(news)}`,
       messages: history,
-      tools: makeTools(
+      tools: smallTalk ? {} : makeTools(
         // On a call the model moves the page itself and sends no buttons.
         (action) => {
           if (voice && action.kind !== 'navigate' && action.kind !== 'cite') return;
@@ -272,8 +277,9 @@ copilotRouter.post('/chat', async (req, res) => {
         },
         { canNavigate: voice || visitorSaidYes(messages), citations },
       ),
-      stopWhen: stepCountIs(6),
-      maxOutputTokens: 240,
+      stopWhen: stepCountIs(smallTalk ? 1 : 6),
+      // The prompt keeps replies short; this is the ceiling, with room above a visible reply for a model that still thinks.
+      maxOutputTokens: voice ? 300 : 400,
       abortSignal: abort.signal,
     });
 
@@ -298,6 +304,7 @@ copilotRouter.post('/chat', async (req, res) => {
       } else if (part.type === 'error') {
         throw part.error;
       } else if (part.type === 'finish') {
+        turn.finishReason = part.finishReason;
         turn.inputTokens = part.totalUsage.inputTokens ?? 0;
         turn.outputTokens = part.totalUsage.outputTokens ?? 0;
         budget.record(turn.inputTokens + turn.outputTokens);
@@ -305,6 +312,15 @@ copilotRouter.post('/chat', async (req, res) => {
     }
     turn.citations = citations.summary();
     turn.output = filter.flush();
+    // A reply the model was cut off in is never sent as complete: pull it back to its last whole sentence.
+    if (isCutOff(turn.finishReason, turn.output)) {
+      turn.truncated = true;
+      const whole = trimToLastSentence(turn.output);
+      if (whole !== turn.output) {
+        turn.output = whole;
+        send({ type: 'text', text: whole, replace: true });
+      }
+    }
     // A model that only called tools and said nothing must not leave the visitor (or a call) in silence.
     // A turn with nothing at all to show is a failure: logged, and traced as an error.
     const empty = !turn.output.trim() && !turn.actions.length;

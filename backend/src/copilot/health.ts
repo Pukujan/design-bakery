@@ -20,9 +20,13 @@ export interface Health {
 const state = new Map<string, Health>();
 
 /** Healthy and never-probed providers first, in their own order; failing ones after. */
-export function byHealth<T extends { id: string }>(providers: T[]): T[] {
+export function byHealth<T extends { id: string }>(providers: T[], fastest = false): T[] {
   const failing = (p: T) => state.get(p.id)?.ok === false;
-  return [...providers.filter((p) => !failing(p)), ...providers.filter(failing)];
+  const healthy = providers.filter((p) => !failing(p));
+  // On a call the wait is heard: the provider whose last probe was quickest goes first. Never-probed ones keep their place.
+  const ms = (p: T) => state.get(p.id)?.ms ?? Infinity;
+  if (fastest) healthy.sort((a, b) => (ms(a) === Infinity || ms(b) === Infinity ? 0 : ms(a) - ms(b)));
+  return [...healthy, ...providers.filter(failing)];
 }
 
 export function healthReport(providers: Provider[] = smartProviders()) {
