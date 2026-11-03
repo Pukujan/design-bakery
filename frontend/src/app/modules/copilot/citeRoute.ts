@@ -133,3 +133,21 @@ export function swipeY(t: number, plan: { times: number[]; end: number }, target
   }
   return points.at(-1)!.y;
 }
+
+/**
+ * Where a guest moon comes in from: just past the screen edge nearest to the spot it is heading for, level with that
+ * spot, and the way out is the same rule from wherever it is.
+ */
+export function nearestEdge(point: { x: number; y: number }, view: { width: number; height: number }, size: number): { x: number; y: number; side: 'left' | 'right' | 'top' | 'bottom' } {
+  const gap = size + 24;
+  const near = [
+    { side: 'left' as const, d: point.x },
+    { side: 'right' as const, d: view.width - point.x },
+    { side: 'top' as const, d: point.y },
+    { side: 'bottom' as const, d: view.height - point.y },
+  ].sort((a, b) => a.d - b.d)[0].side;
+  if (near === 'left') return { side: near, x: -gap, y: point.y };
+  if (near === 'right') return { side: near, x: view.width + gap, y: point.y };
+  if (near === 'top') return { side: near, x: point.x, y: -gap };
+  return { side: near, x: point.x, y: view.height + gap };
+}

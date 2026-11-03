@@ -54,3 +54,14 @@
   display: inline-block;
   vertical-align: -2px;
 }
+
+/* An expansion chip is a reply, not a destination: dashed, lighter, and it sits in the chat. */
+.lab-chip--reply {
+  border-style: dashed;
+  color: var(--lab-muted, var(--lab-paper));
+  font-size: 0.8125rem;
+}
+.lab-chip--reply:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
