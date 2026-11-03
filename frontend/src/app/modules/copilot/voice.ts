@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { copilot, requestVoiceGrant } from './store';
 import type { LocalAudioTrack, Room } from 'livekit-client';
-import { noteActivity, preloadHold, startHold, startNudges, stopHold, stopNudges } from './holdAudio';
+import { noteActivity, pauseNudges, preloadHold, resumeNudges, startHold, startNudges, startThinking, stopHold, stopNudges, type Thinking } from './holdAudio';
 import { pickOrigin, type SkyOrigin } from './skyOrigin';
 
 /** Who is talking right now, so the orb can show it. */
@@ -14,10 +14,12 @@ type VoiceState = {
   muted: boolean;
   /** The pre-recorded line being spoken while the call connects, or ''. */
   hold: string;
+  /** An answer is being worked out for the visitor's last question. */
+  thinking: boolean;
   /** Where this call seems to come from, picked when it starts. */
   origin: SkyOrigin | null;
 };
-let state: VoiceState = { status: 'idle', error: '', audioBlocked: false, speaking: 'none', muted: false, hold: '', origin: null };
+let state: VoiceState = { status: 'idle', error: '', audioBlocked: false, speaking: 'none', muted: false, hold: '', thinking: false, origin: null };
 
 /** A level meter on one audio stream: the visitor's mic or the agent's voice. */
 type Meter = { source: MediaStreamAudioSourceNode; analyser: AnalyserNode; samples: Float32Array<ArrayBuffer> };
@@ -29,6 +31,14 @@ let generation = 0;
 let pending: AbortController | null = null;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let agentTimer: ReturnType<typeof setTimeout> | undefined;
+/** The fillers playing while an answer is worked out, and the page scrolls timed to the answer being spoken. */
+let thinking: Thinking | null = null;
+let thinkingSince = 0;
+let stepTimers: Array<ReturnType<typeof setTimeout>> = [];
+/** How fast the agent speaks, in characters a second, to time scrolls to the words. */
+const SPEECH_CHARS_PER_S = 14;
+/** The agent needs a moment after it receives an answer before the first word is heard. */
+const SPEECH_LEAD_MS = 800;
 const audioElements = new Set<HTMLMediaElement>();
 const listeners = new Set<() => void>();
 const set = (patch: Partial<VoiceState>) => {
@@ -107,6 +117,10 @@ function close(error = '') {
   pending = null;
   clearTimeout(timer);
   clearTimeout(agentTimer);
+  thinking?.cancel();
+  thinking = null;
+  for (const timer of stepTimers) clearTimeout(timer);
+  stepTimers = [];
   microphone?.stop();
   microphone = null;
   const current = room;
@@ -182,7 +196,27 @@ export const voice = {
         let question = '';
         try { question = String(JSON.parse(data.payload || '{}').text ?? '').slice(0, 2000); } catch { /* invalid speech payload */ }
         if (!question || generation !== run) return JSON.stringify({ say: 'Could you say that again?' });
-        const answer = await copilot.send(question, { path: window.location.pathname, title: document.title }, { typed: false });
+        // Nothing is quiet while an answer is worked out: the reminders hold off, and fillers fill the wait.
+        pauseNudges();
+        set({ thinking: true });
+        const waiting = startThinking((hold) => set({ hold }));
+        thinking = waiting;
+        thinkingSince = Date.now();
+        let answer = '';
+        try {
+          answer = await copilot.send(question, { path: window.location.pathname, title: document.title }, { voice: true });
+        } finally {
+          // A clip in progress ends first, then a closer ("Ahh, here it is"), so the answer is never cut across.
+          await waiting.finish();
+          if (thinking === waiting) thinking = null;
+          set({ thinking: false });
+          resumeNudges();
+        }
+        if (generation !== run) return JSON.stringify({ say: '' });
+        // Passage by passage: each scroll fires as the spoken answer reaches that part.
+        for (const step of copilot.takeSteps()) {
+          stepTimers.push(setTimeout(() => copilot.go(step.path, { slow: true, agent: true }), SPEECH_LEAD_MS + (step.at / SPEECH_CHARS_PER_S) * 1000));
+        }
         return JSON.stringify({ say: answer || 'Please try that again.' });
       });
       call.on(lk.RoomEvent.TrackSubscribed, (track) => {
@@ -214,6 +248,9 @@ export const voice = {
       call.on(lk.RoomEvent.ActiveSpeakersChanged, (speakers) => {
         if (generation !== run) return;
         if (speakers.length) noteActivity();
+        // The visitor talks over a filler: stop it at once.
+        // (Not in the first moments: the tail of their own question still reads as speech.)
+        if (speakers.some((speaker) => speaker.isLocal) && Date.now() - thinkingSince > 1500) thinking?.cancel();
         const agent = speakers.some((speaker) => speaker.isAgent && !speaker.isLocal);
         const user = speakers.some((speaker) => speaker.isLocal);
         set({ speaking: agent ? 'agent' : user ? 'user' : 'none' });
@@ -243,3 +280,6 @@ export const voice = {
     }
   },
 };
+
+// Development only: pretend a call is on, to try the moon and its bubbles from the console.
+if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as { __voiceSet?: typeof set }).__voiceSet = set;

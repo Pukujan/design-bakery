@@ -38,6 +38,10 @@ export class TurnTrace {
   model = 'none';
   input = '';
   output = '';
+  /** 'text' or 'voice'. */
+  channel = 'text';
+  /** The page moves and chips this turn sent, one word each, so a trace shows what the visitor was shown. */
+  actions: string[] = [];
   inputTokens = 0;
   outputTokens = 0;
   private steps = new Map<string, Step>();
@@ -67,6 +71,11 @@ export class TurnTrace {
       'input.value': this.input,
       'output.value': this.output,
       'copilot.status': status,
+      // Where the answer came from: a saved answer (cache:<intent>) or a model, and over text or a call.
+      'copilot.model': this.model,
+      'copilot.source': this.model.startsWith('cache:') ? 'cache' : 'model',
+      'copilot.channel': this.channel,
+      'copilot.actions': this.actions.join(' '),
     });
     const llm = open(
       'llm',

@@ -1,3 +1,4 @@
+import { scrollStageToElement } from '../../lab/stageScroll';
 import { useEffect, useState } from 'react';
 import type { RefObject } from 'react';
 import { List, X } from 'lucide-react';
@@ -76,7 +77,7 @@ function TocList({ entries, active, onNavigate }: { entries: TocEntry[]; active:
             aria-current={active === entry.id ? 'location' : undefined}
             onClick={(event) => {
               event.preventDefault();
-              document.getElementById(entry.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              scrollStageToElement(document.getElementById(entry.id));
               history.replaceState(null, '', `#${entry.id}`);
               onNavigate?.();
             }}

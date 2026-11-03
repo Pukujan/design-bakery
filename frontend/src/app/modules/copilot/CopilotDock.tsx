@@ -16,6 +16,7 @@ import './copilot.css';
 import { CopilotChat } from './CopilotChat';
 import { MiniCopilot } from './MiniCopilot';
 import VoiceOrb from './VoiceOrb';
+import MoonCursor from './MoonCursor';
 import { copilot, useCopilot } from './store';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
@@ -95,6 +96,20 @@ export default function CopilotDock() {
 
   const strip = mobile && open && minimized;
 
+  // A click outside the panel closes it. Clicks on the chat itself, the call orb, or any control that opens the chat
+  // (marked data-copilot-open) are not "outside", so those buttons keep working.
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('.cp-dock, .cp-chat, [data-copilot-open]')) return;
+      copilot.setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [open]);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') copilot.setOpen(false);
@@ -153,6 +168,7 @@ export default function CopilotDock() {
       onBlur={onBlur}
     >
       <VoiceOrb />
+      <MoonCursor />
       <AnimatePresence>
         {showPill && (
           <motion.button

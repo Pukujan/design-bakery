@@ -8,13 +8,17 @@ import { useSyncExternalStore } from 'react';
 import { getAuthApiBaseUrl } from '../../lib/adminToken';
 import { answer as localAnswer, type CopilotProject } from '../lab/copilotAnswers';
 import { getTurnstileToken } from './turnstile';
+import { scrollStageToElement, scrollStageToTop } from '../lab/stageScroll';
+import { agentCursor } from './agentCursor';
 
 export type CopilotAction =
   /** `go` is set only when the visitor has just confirmed the move; otherwise it is a chip. */
   | { kind: 'navigate'; path: string; label: string; go?: boolean }
   | { kind: 'projects'; slugs: string[] }
   | { kind: 'link'; label: string; url: string }
-  | { kind: 'book'; url: string; name?: string; email?: string; topic?: string };
+  | { kind: 'book'; url: string; name?: string; email?: string; topic?: string }
+  /** Voice calls only: scroll to a section when the spoken answer reaches character `at` (never shown as a chip). */
+  | { kind: 'scrollstep'; path: string; at: number };
 
 export type CopilotMessage = {
   id: number;
@@ -53,6 +57,15 @@ type Event =
 const STORAGE_KEY = 'db-copilot-v1';
 const VISITOR_KEY = 'db-copilot-visitor-v1';
 const MAX_HISTORY = 20;
+/** The same question asked again within this long, straight after its own answer, is not sent a second time. */
+const DUPLICATE_MS = 30_000;
+const askKey = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+let lastAsk: { key: string; at: number } | null = null;
+/** Replies that belong to a voice call: they never open the side panel, and they may move the page on their own. */
+const voiceReplies = new Set<number>();
+let pendingSteps: Array<{ path: string; at: number }> = [];
+/** How long a reply may go without a single event before the chat stops waiting for it. */
+const STALL_MS = 25_000;
 
 function load(): CopilotMessage[] {
   try {
@@ -189,6 +202,7 @@ export const copilot = {
   },
   clear() {
     abort?.abort();
+    lastAsk = null;
     for (const id of [...reveals.keys()]) flushText(id);
     reveals.clear();
     set({ messages: [], busy: false });
@@ -197,33 +211,63 @@ export const copilot = {
     abort?.abort();
   },
   /** Scroll to a section, or change page with the app's router and then scroll. */
-  go(path: string) {
+  go(path: string, options: { slow?: boolean; agent?: boolean } = {}) {
     const [pathname, hash] = path.split('#');
     const scroll = () => {
-      if (!hash) return window.scrollTo({ top: 0, behavior: 'smooth' });
-      const target = document.getElementById(hash);
-      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return undefined;
-    };
-    if (!pathname || pathname === window.location.pathname) {
-      scroll();
-      return;
-    }
-    if (navigateFn) navigateFn(path);
-    else window.location.assign(path);
-    // The new page needs a moment to mount before its section exists.
-    let tries = 0;
-    const wait = window.setInterval(() => {
-      tries += 1;
-      if (!hash || document.getElementById(hash) || tries > 25) {
-        window.clearInterval(wait);
-        scroll();
+      const target = hash ? document.getElementById(hash) : null;
+      const down = target ? target.getBoundingClientRect().top > 0 : false;
+      const seconds = hash ? scrollStageToElement(target, options) : scrollStageToTop(options);
+      // On a call the cursor shows the scroll: a wheel moving down or up for as long as the page takes.
+      if (options.agent && seconds > 0) agentCursor.startScroll(down ? 'down' : 'up', seconds * 1000);
+      // Then it points at what it came to show: the section's heading, or the new page's title.
+      if (options.agent) {
+        const shown = target ?? document.querySelector('main h1, h1');
+        window.setTimeout(() => void agentCursor.pointAtElement(shown), seconds * 1000 + 150);
       }
-    }, 120);
+    };
+    const run = () => {
+      if (options.agent) agentCursor.release(options.slow ? 9000 : 2500);
+      if (!pathname || pathname === window.location.pathname) {
+        scroll();
+        return;
+      }
+      if (navigateFn) navigateFn(path);
+      else window.location.assign(path);
+      // The new page needs a moment to mount before its section exists.
+      let tries = 0;
+      const wait = window.setInterval(() => {
+        tries += 1;
+        if (!hash || document.getElementById(hash) || tries > 25) {
+          window.clearInterval(wait);
+          scroll();
+        }
+      }, 120);
+    };
+    // On a call the agent's cursor glides to the link and presses it first, then the page moves.
+    if (options.agent) void agentCursor.pointAtLinkFor(path).then(run);
+    else run();
   },
-  async send(text: string, page: { path: string; title: string }, options: { typed?: boolean } = {}) {
+  /** The scroll steps of the voice answer just given, to run as it is spoken. */
+  takeSteps() {
+    const steps = pendingSteps;
+    pendingSteps = [];
+    return steps;
+  },
+  async send(text: string, page: { path: string; title: string }, options: { typed?: boolean; voice?: boolean } = {}) {
     const question = text.trim().slice(0, 2000);
     if (!question || state.busy) return '';
+    // Pressing a button again ("Ask the copilot about X") must not send the same request over and over: while its
+    // answer is the latest message, the repeat shows that answer instead of asking again. Voice turns are exempt,
+    // since someone repeating themselves aloud means it.
+    const voice = options.voice === true;
+    if (!voice && options.typed !== false) {
+      const key = askKey(question);
+      const latest = state.messages.at(-1);
+      if (lastAsk && lastAsk.key === key && Date.now() - lastAsk.at < DUPLICATE_MS && latest?.role === 'assistant' && !latest.error) {
+        return latest.text;
+      }
+      lastAsk = { key, at: Date.now() };
+    }
     const history = state.messages
       .filter((m) => !m.error && m.text)
       .slice(-MAX_HISTORY)
@@ -238,10 +282,12 @@ export const copilot = {
         { id: replyId, role: 'assistant', text: '', steps: [], actions: [], streaming: true },
       ],
     });
-    revealFor(replyId, options.typed === false);
+    revealFor(replyId, options.typed === false || voice);
+    if (voice) voiceReplies.add(replyId);
+    pendingSteps = [];
     abort = new AbortController();
     try {
-      await stream([...history, { role: 'user', content: question }], page, replyId, abort.signal);
+      await stream([...history, { role: 'user', content: question }], page, replyId, abort.signal, false, voice);
     } catch (error) {
       if (abort.signal.aborted) {
         flushText(replyId);
@@ -255,6 +301,7 @@ export const copilot = {
     } finally {
       await untilTyped(replyId);
       reveals.delete(replyId);
+      voiceReplies.delete(replyId);
       patchMessage(replyId, () => ({ streaming: false, steps: [] }));
       set({ busy: false });
       abort = null;
@@ -314,16 +361,17 @@ async function stream(
   replyId: number,
   signal: AbortSignal,
   retried = false,
+  voice = false,
 ): Promise<void> {
   const res = await fetch(`${base()}/api/copilot/chat`, {
     method: 'POST',
     signal,
     headers: { 'content-type': 'application/json', 'x-copilot-pass': await getPass(false, signal) },
-    body: JSON.stringify({ messages, page }),
+    body: JSON.stringify({ messages, page, voice }),
   });
   if (res.status === 401 && !retried) {
     pass = null;
-    return stream(messages, page, replyId, signal, true);
+    return stream(messages, page, replyId, signal, true, voice);
   }
   if (!res.ok || !res.body) throw new ApiError(res.status);
 
@@ -332,7 +380,12 @@ async function stream(
   let buffer = '';
   let completed = false;
   for (;;) {
-    const { done, value } = await reader.read();
+    // A model that goes quiet mid-answer must not leave the chat stuck: after a long silence, give up on the stream.
+    let stall: ReturnType<typeof setTimeout> | undefined;
+    const quiet = new Promise<never>((_, reject) => {
+      stall = setTimeout(() => reject(new Error('copilot stream stalled')), STALL_MS);
+    });
+    const { done, value } = await Promise.race([reader.read(), quiet]).finally(() => clearTimeout(stall));
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
     let newline: number;
@@ -360,13 +413,21 @@ function handle(event: Event, replyId: number) {
       steps: event.status === 'start' ? [...m.steps, event.name] : m.steps.filter((s) => s !== event.name),
     }));
   } else if (event.type === 'action') {
-    // Chips appear once the text has been typed.
-    void untilTyped(replyId).then(() => patchMessage(replyId, (m) => ({ actions: [...m.actions, event.action] })));
+    if (event.action.kind === 'scrollstep') {
+      pendingSteps.push({ path: event.action.path, at: event.action.at });
+      return;
+    }
+    // Chips appear once the text has been typed. On a call there are no chips: the page moves instead.
+    if (!voiceReplies.has(replyId)) {
+      void untilTyped(replyId).then(() => patchMessage(replyId, (m) => ({ actions: [...m.actions, event.action] })));
+    }
     // The server sets `go` only after the visitor said yes to an offer. On desktop the
     // panel stays open through the move; the draft lives in the store, so it survives.
     if (event.action.kind === 'navigate' && event.action.go) {
-      if (window.matchMedia('(min-width: 821px)').matches) copilot.setOpen(true);
-      copilot.go(event.action.path);
+      // On a call the page moves and the side panel stays shut: the visitor is listening, not reading.
+      if (!voiceReplies.has(replyId) && window.matchMedia('(min-width: 821px)').matches) copilot.setOpen(true);
+      const onCall = voiceReplies.has(replyId);
+      copilot.go(event.action.path, { slow: onCall, agent: onCall });
     }
   } else if (event.type === 'error') {
     patchMessage(replyId, (m) => ({ text: m.text || event.message, error: !m.text }));
@@ -394,3 +455,6 @@ function answerOffline(question: string, replyId: number, status: number) {
   patchMessage(replyId, () => ({ offline: true }));
   void untilTyped(replyId).then(() => patchMessage(replyId, () => ({ actions })));
 }
+
+// Development only: a handle for trying the copilot from the console.
+if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as { __copilot?: typeof copilot }).__copilot = copilot;

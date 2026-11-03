@@ -88,4 +88,53 @@ assert.ok(contact.text.includes('pujan3645@gmail.com'), 'the contact answer shou
 const tour = await cachedAnswer('give me a tour', true);
 assert.ok(tour.actions.some((action) => action.kind === 'navigate' && action.path === '/#work'), 'the tour should start at the work section');
 
+// "Tell me about <project>" is what every project page's Ask button sends: it is answered from the project's own
+// record with a chip to its page, for every project the site has, and a long follow-up still reaches the model.
+for (const project of projects) {
+  const about = await cachedAnswer(`Tell me about ${project.title}.`, false);
+  assert.ok(about, `"Tell me about ${project.title}." should be answered from the cache`);
+  assert.ok(about.text.startsWith(project.title), `the answer for ${project.title} should start with its title`);
+  assert.ok(
+    about.actions.some((action) => action.kind === 'navigate' && action.path === `/work/${project.slug}`),
+    `the answer for ${project.title} should link its page`,
+  );
+}
+assert.equal(
+  await cachedAnswer('tell me about the Cortex kernel design and its evals in depth please', false),
+  null,
+  'a long project question must still reach the model',
+);
+
+// A voice call's tour goes passage by passage: one scroll step per section, in order, the first at once. The same
+// tour in a chat has no steps.
+const voiceTour = await cachedAnswer('give me a tour', true, true);
+assert.deepEqual(voiceTour.steps.map((step) => step.path), ['/#about', '/#work', '/#experience'], 'the voice tour visits about, work, experience');
+assert.equal(voiceTour.steps[0].at, 0, 'the voice tour starts scrolling at once');
+assert.ok(voiceTour.steps.every((step, index) => index === 0 || step.at > voiceTour.steps[index - 1].at), 'tour steps must be in order');
+assert.ok(voiceTour.steps.every((step) => step.at < voiceTour.text.length), 'every step falls inside the spoken text');
+assert.equal((await cachedAnswer('give me a tour', true, false)).steps, undefined, 'a chat tour has no scroll steps');
+
+// "Show me your project" is not a question about the project whose slug starts with "project".
+const generic = await cachedAnswer('Show me your project.', false);
+assert.notEqual(generic?.intent, 'project', '"show me your project" must not pick one project by its generic first word');
+
+// Every question a button sends must be answered from the cache, never by a model: the Contact page's four areas
+// and the sample questions in the chat box.
+const buttonQuestions = [
+  'How can you help with AI engineering?',
+  'How can you help with product design?',
+  'How can you help with marketing?',
+  'How can you help with full-stack development?',
+  'Who are you?',
+  'What experience do you have?',
+  'Can I book a consultation?',
+  'What do you build?',
+  'Give me a tour',
+  'Show me your projects',
+  'What is Cortex?',
+];
+for (const question of buttonQuestions) {
+  assert.ok(await cachedAnswer(question, false), `the button question "${question}" must be answered from the cache`);
+}
+
 console.log(`copilot instant answers: ${firstTurn.length} intents, ${followUps.length} follow-ups routed to the model`);
