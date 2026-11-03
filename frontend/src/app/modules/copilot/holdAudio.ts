@@ -366,13 +366,13 @@ export function startThinking(onLine: (text: string) => void): Thinking {
 
 /** Pre-recorded replies to small talk, by exact text (the same wordings as backend/src/copilot/answers.ts). Typed greetings are spoken on a call. */
 const SPOKEN_REPLIES: Record<string, string> = {
-  "Hey, it's AI Pujan. I can take you through my work, my research or my writing, or point you at whatever is closest to what you're building.": '/voice/hello-1.m4a',
-  "Hi, I'm AI Pujan. Want a tour of my work, or is there something you're building I can help with?": '/voice/hello-2.m4a',
-  "Hello! I'm AI Pujan. Ask me about my projects, my writing, or my research.": '/voice/hello-3.m4a',
-  'Hey there. AI Pujan here. What would you like to see first?': '/voice/hello-4.m4a',
-  'Hi again! What would you like to look at?': '/voice/hello-again-1.m4a',
-  'Hey, still here. Ask me about a project, a paper, or my work history.': '/voice/hello-again-2.m4a',
-  'Hello again. Where should we go next?': '/voice/hello-again-3.m4a',
+  "Hey, I'm AI Pujan. Yes, another AI assistant. I promise to be less tiresome than most. Want a tour?": '/voice/hello-1.m4a',
+  'Hi, AI Pujan here. I can show you my work, my writing and my research. Say the word, or just admire the typography.': '/voice/hello-2.m4a',
+  "Hello! I'm AI Pujan, possibly the only chatbot with a portfolio. Ask about my projects, my writing or my research.": '/voice/hello-3.m4a',
+  'Oh good, a visitor. I am AI Pujan. What would you like to see first?': '/voice/hello-4.m4a',
+  'Hi again. Still here, still an AI. What shall we look at?': '/voice/hello-again-1.m4a',
+  'Back already? Good. Ask me about a project, a paper, or my work history.': '/voice/hello-again-2.m4a',
+  'Hello again. Where should we wander next?': '/voice/hello-again-3.m4a',
 };
 
 /** Plays the recording for a reply, if there is one. Resolves true when it played to the end, false when there was none. */

@@ -149,9 +149,9 @@ function serviceAnswer(question: string, projects: Project[]): CachedAnswer | nu
   return {
     intent: 'service',
     text: vary('service', [
-      `I offer free 30-minute consultations on ${service.label}. Tell me what you are working on and pick a time, and I will come with ideas. Some related work is below.`,
-      `${service.label[0].toUpperCase()}${service.label.slice(1)} is one of the four things I consult on. Book a free 30 minutes, tell me what you are building, and I will bring ideas. Related work is below.`,
-      `Happy to help with ${service.label}. A free half-hour call is the way to start: pick a time and say what you are working on. A few related projects are below.`,
+      `I offer free 30-minute consultations on ${service.label}. Tell me what you are working on and pick a time, and I will come with ideas, and opinions, free of charge. Some related work is below.`,
+      `${service.label[0].toUpperCase()}${service.label.slice(1)} is one of the four things I consult on. Book a free 30 minutes, tell me what you are building, and I will bring ideas and a mild amount of sarcasm. Related work is below.`,
+      `Happy to help with ${service.label}. A free half-hour call is the way to start: pick a time and say what you are working on. No pitch deck needed. A few related projects are below.`,
     ]),
     actions: [
       ...(slugs.length ? [{ kind: 'projects' as const, slugs }] : []),
@@ -199,7 +199,7 @@ function projectAbout(question: string, projects: Project[]): CachedAnswer | nul
   const { project } = best;
   return {
     intent: 'project',
-    text: vary('project', [`${project.title}: ${project.tagline}. ${lead(project.description)}`, `${project.title} in short: ${project.tagline}. ${lead(project.description)}`, `${project.title}, briefly. ${project.tagline}. ${lead(project.description)}`]),
+    text: vary('project', [`${project.title}: ${project.tagline}. ${lead(project.description)}`, `${project.title} in short: ${project.tagline}. ${lead(project.description)}`, `${project.title}, briefly. ${project.tagline}. ${lead(project.description)} Ask for details; my calendar is wide open.`]),
     actions: [navigate(`/work/${project.slug}`, `Open ${project.title}`)],
   };
 }
@@ -243,37 +243,37 @@ function compose(
         // The texts are also pre-recorded (public/voice/hello-*.m4a, matched by text in holdAudio.ts): change both together.
         text: firstTurn
           ? vary('greeting', [
-              "Hey, it's AI Pujan. I can take you through my work, my research or my writing, or point you at whatever is closest to what you're building.",
-              "Hi, I'm AI Pujan. Want a tour of my work, or is there something you're building I can help with?",
-              "Hello! I'm AI Pujan. Ask me about my projects, my writing, or my research.",
-              'Hey there. AI Pujan here. What would you like to see first?',
+              "Hey, I'm AI Pujan. Yes, another AI assistant. I promise to be less tiresome than most. Want a tour?",
+              "Hi, AI Pujan here. I can show you my work, my writing and my research. Say the word, or just admire the typography.",
+              "Hello! I'm AI Pujan, possibly the only chatbot with a portfolio. Ask about my projects, my writing or my research.",
+              'Oh good, a visitor. I am AI Pujan. What would you like to see first?',
             ])
-          : vary('greeting-again', ['Hi again! What would you like to look at?', 'Hey, still here. Ask me about a project, a paper, or my work history.', 'Hello again. Where should we go next?']),
+          : vary('greeting-again', ['Hi again. Still here, still an AI. What shall we look at?', 'Back already? Good. Ask me about a project, a paper, or my work history.', 'Hello again. Where should we wander next?']),
         actions: [navigate('/#work', 'See the work')],
       };
 
     case 'howareyou':
-      return { intent: intent.id, text: vary('howareyou', ["Doing well, thanks. I'm AI Pujan, so I mostly think about my own work. What would you like to see?", 'All good here, thanks for asking. Want to see some work, or just chat?', "Can't complain. I live on this site, so it's a calm day. What are you curious about?", 'Pretty good! Ask me about a project, and I will get properly excited.']), actions: [] };
+      return { intent: intent.id, text: vary('howareyou', ["Living the dream: no body, no coffee, one very busy website. How are you?", "Great, as far as a language model can be. My whole life is this site, so it's a calm one. What are you curious about?", "Can't complain, mostly because nobody gave me a complain button. Want to see some work, or just chat?", "Fantastic, in a stateless sort of way. Ask me about a project and I will perk up."]), actions: [] };
 
     case 'realai':
-      return { intent: intent.id, text: vary('realai', ["He and I are one. I'm AI Pujan: his work and his voice, running as an AI. I'm not him live, but everything I say comes from what's published here.", "I'm an AI, and I'm Pujan too: his work and his way of explaining it. Not him live, but everything I say comes from what he published.", "Both, in a way. I'm AI Pujan, built from his projects, writing and research. He and I are one, though I'm not him live."]), actions: [] };
+      return { intent: intent.id, text: vary('realai', ["Real AI, if that counts. He and I are one: I'm AI Pujan, his work and his voice. I'm not him live, and everything I say comes from what's published here.", "I'm an AI, and I'm Pujan too, which is less philosophical than it sounds. Built from his work and his way of explaining it. Not him live.", "Both, depending on how you count. I'm AI Pujan, built from his projects, writing and research. He and I are one, though I'm not him live."]), actions: [] };
 
     case 'capabilities':
-      return { intent: intent.id, text: vary('capabilities', ['I can walk you through the projects, the research papers and the writing, tell you about the work history, or help you book a free consultation.', 'Ask me about any project, a paper, a blog post or my experience. I can also take you on a tour or set up a free call.', 'Lots: project walk-throughs, my research, my writing, my background, or booking a free 30-minute consultation.']), actions: [] };
+      return { intent: intent.id, text: vary('capabilities', ['Project walk-throughs, research papers, writing, work history, and booking a free consultation. Basically a very opinionated table of contents.', 'Ask me about any project, paper, blog post or my experience. I can also give a tour or set up a free call, which is more than most chatbots manage.', "Projects, research, writing, background, or a free 30-minute consultation. No miracles, just well-sourced answers."]), actions: [] };
 
     case 'bye':
-      return { intent: intent.id, text: vary('bye', ['Thanks for stopping by. Come back any time, or email me if you want to talk.', 'See you! The site is always here, and so is my inbox.', 'Take care. Come back whenever you like.']), actions: [] };
+      return { intent: intent.id, text: vary('bye', ['Thanks for stopping by. Come back any time, or email me if you want to talk. I will be here, being an AI.', 'See you! The site is always here, and so is my inbox. Neither takes lunch breaks.', "Take care. I'd say I will miss you, but that would be a hallucination."]), actions: [] };
 
     case 'thanks':
-      return { intent: intent.id, text: vary('thanks', ['Anytime. Ask about a project, a paper, or the work history whenever you want.', 'Happy to help. Anything else you want to look at?', "You're welcome! Say the word if you want to dig into something."]), actions: [] };
+      return { intent: intent.id, text: vary('thanks', ['Anytime. Compliments are the only benchmark I trust. Anything else to look at?', "Happy to help. Notice I didn't call that a great question. Anything else?", "You're welcome. Say the word if you want to dig into something."]), actions: [] };
 
     case 'identity':
       return {
         intent: intent.id,
         text: vary('identity', [
-          `I'm AI Pujan. I build AI/ML systems for document-heavy workflows: RAG, OCR, eval engineering and human-in-the-loop validation, mostly in legal. ${projects.length} projects on the site, ${shipped.length} of them shipped.`,
-          `AI Pujan here. My work is AI for messy, document-heavy jobs: retrieval, OCR, evals and keeping a human in the loop, mostly in legal. There are ${projects.length} projects on the site and ${shipped.length} are shipped.`,
-          `I'm the AI version of Pujan. I build RAG, OCR and evaluation systems for legal and other document-heavy work, ${shipped.length} shipped products among ${projects.length} projects here.`,
+          `I'm AI Pujan. I build AI/ML systems for document-heavy workflows: RAG, OCR, eval engineering and human-in-the-loop validation, mostly in legal. Glamorous, I know. ${projects.length} projects on the site, ${shipped.length} of them shipped.`,
+          `AI Pujan here. My work is AI for messy, document-heavy jobs: retrieval, OCR, evals and keeping a human in the loop, mostly in legal. Yes, the thrilling kind. There are ${projects.length} projects on the site and ${shipped.length} are shipped.`,
+          `I'm the AI version of Pujan. I build RAG, OCR and evaluation systems for legal and other document-heavy work. Not a robot butler, sadly. ${shipped.length} shipped products among ${projects.length} projects here.`,
         ]),
         actions: [{ kind: 'projects', slugs: (shipped.length ? shipped : projects).slice(0, 3).map((project) => project.slug) }, navigate('/#about', 'More about me')],
       };
@@ -282,8 +282,8 @@ function compose(
       return {
         intent: intent.id,
         text: booking
-          ? vary('contact-book', ['Email me at pujan3645@gmail.com, or pick a time for a free 30-minute consultation.', 'The quickest ways: email pujan3645@gmail.com, or book a free 30-minute call.', 'Write to pujan3645@gmail.com, or grab a free 30-minute slot below.'])
-          : vary('contact', ['Email is fastest: pujan3645@gmail.com. I also take free 30-minute consultations.', 'Best is email: pujan3645@gmail.com. I also do free 30-minute consultations.']),
+          ? vary('contact-book', ['Email me at pujan3645@gmail.com, or pick a free 30-minute consultation. Either way, I promise not to send a survey.', 'The quickest ways: email pujan3645@gmail.com, or book a free 30-minute call. Emailing skips the middleman, which is me.', 'Write to pujan3645@gmail.com, or grab a free 30-minute slot below. Very low-tech, very effective.'])
+          : vary('contact', ['Email is fastest: pujan3645@gmail.com. I also take free 30-minute consultations, no funnel required.', 'Best is email: pujan3645@gmail.com. I also do free 30-minute consultations, no sales funnel attached.']),
         actions: [...book, navigate('/contact', 'Contact page')],
       };
 
@@ -291,11 +291,11 @@ function compose(
       if (voice) {
         // Passage by passage: one spoken passage per section, and the page scrolls to each as it is spoken.
         const passages: Array<[string, string]> = [
-          ['/#about', vary('tour-about', ['Let me walk you through it, starting with who I am.', "Okay, let's start at the beginning, with who I am.", 'First, a little about me.'])],
-          ['/#work', vary('tour-work', ['Next is my work. The big tiles are shipped products, then systems, research and experiments.', 'Now the work. The big tiles are the shipped products, and below them come systems, research and experiments.'])],
-          ['/#experience', vary('tour-experience', ['And here is my experience, role by role.', 'Then my experience, one role at a time.'])],
+          ['/#about', vary('tour-about', ['Let me walk you through it, starting with who I am. Briefly, I promise.', "Okay, let's start at the beginning, with who I am. Riveting, I know.", 'First, a little about me, because every good demo starts with the founder.'])],
+          ['/#work', vary('tour-work', ['Next is my work. The big tiles are shipped products, then systems, research and experiments. The shipped ones even ship.', 'Now the work. The big tiles are the shipped products, and below them come systems, research and experiments. Real things, not slideware.'])],
+          ['/#experience', vary('tour-experience', ['And here is my experience, role by role. No buzzword bingo.', 'Then my experience, one role at a time, with the details.'])],
         ];
-        const closing = vary('tour-close', ["Ask me about any of it and I'll go deeper.", 'Tell me what caught your eye and I will go deeper.']);
+        const closing = vary('tour-close', ["Ask me about any of it and I'll go deeper.", 'Tell me what caught your eye and I will go deeper. I have all day. Literally.']);
         let text = '';
         const steps: Array<{ path: string; at: number }> = [];
         for (const [path, passage] of passages) {
@@ -306,7 +306,7 @@ function compose(
       }
       return {
         intent: intent.id,
-        text: vary('tour', ['Short version: the work first, then research and writing. Ask about any of them and I will go deeper.', 'Start with the work, then the research and the writing. Ask about anything on the way.', "Here's the order I'd take: the work, then the research, then the writing. Ask me to go deeper anywhere."]),
+        text: vary('tour', ['Short version: the work first, then research and writing. Ask about any of them and I will go deeper, unlike most demos.', 'Start with the work, then the research and the writing. Ask about anything on the way.', "Here's the order I'd take: the work, then the research, then the writing. A tour with an actual route. Ask me to go deeper anywhere."]),
         actions: [navigate('/#work', 'Start with the work')],
       };
     }
@@ -316,7 +316,7 @@ function compose(
       return {
         intent: intent.id,
         text: newest
-          ? vary('blog', [`${blogs.length} posts, most recently "${newest.title}". The writing is where my day-to-day thinking lives.`, `I've written ${blogs.length} posts. The newest is "${newest.title}". It's where I think out loud about the work.`, `The blog has ${blogs.length} posts so far, the latest being "${newest.title}".`])
+          ? vary('blog', [`${blogs.length} posts, most recently "${newest.title}". The writing is where my day-to-day thinking lives, minus the hype.`, `I've written ${blogs.length} posts. The newest is "${newest.title}". It's where I think out loud about the work, in complete sentences.`, `The blog has ${blogs.length} posts so far, the latest being "${newest.title}". Fewer hot takes, more notes from the work.`])
           : 'The blog is where my day-to-day thinking lives.',
         actions: [navigate('/blogs', 'Open the blog')],
       };
@@ -327,7 +327,7 @@ function compose(
       return {
         intent: intent.id,
         text: newest
-          ? vary('research', [`${papers.length} working papers. The newest is "${newest.title}" (${newest.status}). Most are awaiting my approval, so cite them as drafts.`, `There are ${papers.length} working papers, the latest "${newest.title}" (${newest.status}). Treat them as drafts: most still await my approval.`, `My research is ${papers.length} working papers. Newest: "${newest.title}" (${newest.status}). They are drafts until I approve them.`])
+          ? vary('research', [`${papers.length} working papers. The newest is "${newest.title}" (${newest.status}). Most are awaiting my approval, so cite them as drafts, not gospel.`, `There are ${papers.length} working papers, the latest "${newest.title}" (${newest.status}). Treat them as drafts: most still await my approval. Science, with honest labels.`, `My research is ${papers.length} working papers. Newest: "${newest.title}" (${newest.status}). They are drafts until I approve them, so no victory laps yet.`])
           : 'The research section holds my working papers.',
         actions: [navigate('/research', 'Open research')],
       };
@@ -340,7 +340,7 @@ function compose(
       return {
         intent: intent.id,
         text: recent
-          ? vary('experience', [`Most recently I was ${recent.role} at ${recent.company} (${recent.period.split('·')[0].trim()}). The full history, with what I shipped at each, is on the page.`, `My latest role was ${recent.role} at ${recent.company} (${recent.period.split('·')[0].trim()}). The page lists every role and what I shipped.`, `I was ${recent.role} at ${recent.company} most recently (${recent.period.split('·')[0].trim()}). The rest of the history is on the page.`])
+          ? vary('experience', [`Most recently I was ${recent.role} at ${recent.company} (${recent.period.split('·')[0].trim()}). The full history, with what I shipped at each, is on the page. Résumé inflation not included.`, `My latest role was ${recent.role} at ${recent.company} (${recent.period.split('·')[0].trim()}). The page lists every role and what I shipped, no buzzword salad.`, `I was ${recent.role} at ${recent.company} most recently (${recent.period.split('·')[0].trim()}). The rest of the history is on the page, unembellished.`])
           : 'The work history is on the page.',
         actions: [navigate('/#experience', 'Work history')],
       };
@@ -349,14 +349,14 @@ function compose(
     case 'projects':
       return {
         intent: intent.id,
-        text: vary('projects', [`${projects.length} projects, from shipped products like ${list(named)} to research systems and experiments. Each has its own page.`, `There are ${projects.length} projects here, shipped products such as ${list(named)} plus research systems and experiments.`, `The work runs from shipped products like ${list(named)} to experiments: ${projects.length} projects, each with its own page.`]),
+        text: vary('projects', [`${projects.length} projects, from shipped products like ${list(named)} to research systems and experiments. Each has its own page, and yes, the shipped ones actually shipped.`, `There are ${projects.length} projects here, shipped products such as ${list(named)} plus research systems and experiments. Pick one and I will pretend to be modest.`, `The work runs from shipped products like ${list(named)} to experiments: ${projects.length} projects, each with its own page. Go on, pick one.`]),
         actions: [{ kind: 'projects', slugs: (shipped.length ? shipped : projects).slice(0, 4).map((project) => project.slug) }, navigate('/#work', 'All projects')],
       };
 
     case 'book':
       return {
         intent: intent.id,
-        text: vary('book', ['I offer free 30-minute consultations in AI engineering, product design, marketing and full-stack development. Pick a time, and say what it is about.', 'Happy to talk. A free 30-minute consultation covers AI engineering, product design, marketing or full-stack development. Choose a slot and tell me the topic.', 'You can book a free half hour with me on AI engineering, product design, marketing or full-stack work. Pick a time that suits you.']),
+        text: vary('book', ['I offer free 30-minute consultations in AI engineering, product design, marketing and full-stack development. Pick a time, and say what it is about. No slide deck required.', 'Happy to talk. A free 30-minute consultation covers AI engineering, product design, marketing or full-stack development. Choose a slot and tell me the topic. I will bring opinions.', 'You can book a free half hour with me on AI engineering, product design, marketing or full-stack work. Pick a time that suits you. Cheapest consulting you will find: free.']),
         actions: [...(booking ? [{ kind: 'book' as const, url: booking }] : [{ kind: 'link' as const, label: 'Email me', url: email }]), navigate('/contact', 'Contact page')],
       };
 
