@@ -247,8 +247,8 @@ api_state_previous() { # <value to record when the API was deployed this run>
 	if [ "$WITH_API" = "1" ]; then printf '%s' "$1"; else state_get PREVIOUS_API_IMAGE; fi
 }
 
-# Smoke test: the health endpoint plus the routes that exercise the vercel.json
-# parity rules (SPA fallback, static asset, proxy redirect, external redirect).
+# Smoke test: the health endpoint plus the routes that exercise the Caddyfile
+# rules (SPA fallback, static asset, permanent redirect, external redirect).
 smoke() {
 	local base="http://127.0.0.1:$WEB_HOST_PORT"
 	local failures=0
@@ -291,7 +291,6 @@ smoke() {
 	# The dashboard's canonical path, and the old /ire/app path redirecting to it.
 	check 200 /ire
 	check 301 /ire/app
-	check 308 /ai-for-good
 	check 307 /studyos
 	return "$failures"
 }

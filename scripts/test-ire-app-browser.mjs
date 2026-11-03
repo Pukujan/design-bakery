@@ -34,7 +34,7 @@ const TYPES = {
   '.ico': 'image/x-icon',
 };
 
-// Minimal static server with the same directory-index behaviour as Vercel/Caddy.
+// Minimal static server with the same directory-index behaviour as Caddy.
 async function resolveFile(urlPath) {
   const clean = normalize(decodeURIComponent(urlPath.split('?')[0])).replace(/^(\.\.[/\\])+/, '');
   for (const c of [join(dist, clean), join(dist, clean, 'index.html')]) {

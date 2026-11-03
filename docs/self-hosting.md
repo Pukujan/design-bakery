@@ -13,8 +13,14 @@ Caddyfile and tunnel); the Mac is now the host running it.
 
 **Historical (2026-10-07):** the site was live on gravebuster — the tunnel served
 `www.design-bakery.com` and the apex from `design-bakery-web:80`, and the `api`
-container was deployed behind Caddy's `/api/*` proxy (TASK-DB-0076). The Vercel
-project stays in place, disconnected, as the rollback.
+container was deployed behind Caddy's `/api/*` proxy (TASK-DB-0076).
+
+**Vercel is gone (TASK-DB-0131).** The Vercel project was deleted, `vercel.json` was
+removed from the repo, and `deploy/gravebuster/Caddyfile` is now the source of truth for
+routing (the CI tests assert against it). The `/ai-for-good/*` proxy and redirect were
+dropped, because their upstream Vercel app no longer exists. Mentions of Vercel below
+(§2 parity tables, §5 cutover steps, the rollback notes) are historical and kept as a
+record of the migration.
 
 ---
 
@@ -82,8 +88,7 @@ browser ──► Cloudflare edge (design-bakery.com zone, proxied)
               └─ www / apex ──► same tunnel ──► design-bakery-web:80
                                                     │  Caddy, static
                                                     ├─ /api/*        ─► api:8787   (Express)
-                                                    ├─ blog/case-study ─► api:8787   (link previews)
-                                                    └─ /ai-for-good/* ─► ai-for-good-livid.vercel.app
+                                                    └─ blog/case-study ─► api:8787   (link previews)
 ```
 
 | Piece | Value |
@@ -97,24 +102,25 @@ browser ──► Cloudflare edge (design-bakery.com zone, proxied)
 | Logs | `docker logs design-bakery-web`, `deploy/gravebuster/deploy.log`, `deploy/gravebuster/autodeploy.log` |
 
 **Build.** `deploy/gravebuster/Dockerfile` is a two-stage build: `node:24-bookworm-slim`
-runs the same steps as Vercel (`pnpm install --frozen-lockfile`, then
-`pnpm --dir frontend run build`, output `frontend/dist`), and `caddy:2-alpine` serves
+runs `pnpm install --frozen-lockfile`, then
+`pnpm --dir frontend run build` (output `frontend/dist`), and `caddy:2-alpine` serves
 the result. Node 24 comes from `.node-version`, pnpm 10.32.1 from
 `package.json#packageManager`.
 
-**Routing.** `deploy/gravebuster/Caddyfile` reproduces every rule in `vercel.json`,
-commented 1:1. The important semantics, which are easy to get wrong:
+**Routing.** `deploy/gravebuster/Caddyfile` is the source of truth for every redirect and rewrite
+(it was written to reproduce the old `vercel.json` rule for rule). The important
+semantics, which are easy to get wrong:
 
-1. `redirects` are evaluated **before** the filesystem (`/ai-for-good` → `/ai-for-good/` 308,
-   `/studyos[/…]` → `https://study.design-bakery.com/…` 307).
-2. `rewrites` are evaluated **after** the filesystem — so `/case-studies/cortex` serves the
+1. Redirects are evaluated **before** the filesystem (`/studyos[/…]` →
+   `https://study.design-bakery.com/…` 307, `/ire/app` → `/ire/` 301).
+2. Rewrites are evaluated **after** the filesystem — so `/case-studies/cortex` serves the
    real `case-studies/cortex/index.html`, and only `/case-studies/cortex/a` (which exists
    solely as `…/a/index.html`) hits the cortex rewrite.
-3. The catch-all `/((?!.*\.html$).*)` → `/index.html` is the SPA fallback, and paths
+3. The final `handle` (→ `/index.html`) is the SPA fallback, and paths
    ending in `.html` deliberately 404 instead of falling back.
-4. Not in `vercel.json`: the apex → `https://www.design-bakery.com` **307** is Vercel
-   *domain* configuration. It is reproduced in the Caddyfile (`@apex host design-bakery.com`)
-   so both hostnames can point at this container without serving the site twice.
+4. The apex → `https://www.design-bakery.com` **307** lives in the Caddyfile
+   (`@apex host design-bakery.com`) so both hostnames can point at this container without
+   serving the site twice.
 
 **The `/version-2` sub-app.** The cinematic-journey page (TASK-DB-0083) is an **additive**
 page: `frontend/version-2-app` builds with `base: "/version-2/"`, `scripts/build-version-2-app.mjs`
@@ -126,13 +132,12 @@ HTML. A brief experiment (TASK-DB-0084) promoted the journey to `/` and moved th
 `/shell/index.html`; it was reverted in TASK-DB-0085, and the owners' intent is that the
 journey stays additive.
 
-`/ai-for-good/*` is proxied to the separate `ai-for-good-livid.vercel.app` app with
-`Host` rewritten to the destination, matching Vercel's rewrite proxy. That app is out of
-scope for this move (issue #52).
-
 ---
 
-## 2. Parity with Vercel
+## 2. Parity with Vercel (historical)
+
+> Recorded at the 2026-10 cutover, when the Vercel site still existed to compare against.
+> The `/ai-for-good` rows describe a proxy that has since been removed (TASK-DB-0131).
 
 Probed from gravebuster on 2026-09-25 against commit `b9ecda471919`; local =
 `http://127.0.0.1:8085`, live = `https://www.design-bakery.com`. Every path matches on
@@ -260,7 +265,7 @@ What `deploy.sh` does, in order:
 8. Health-check `127.0.0.1:8085/healthz` (up to 90 s), then smoke-check `/`, `/healthz`,
    `/research/papers/db-r-2026-010`, `/robots.txt`, `/version-2` (200) and a journey scene
    plate under the `/version-2/` prefix, `/ire` (200), `/ire/app` (301),
-   `/ai-for-good` (308), `/studyos` (307). Two of those are body checks, not status
+   `/studyos` (307). Two of those are body checks, not status
    checks: `/` must contain the shell's title marker and `/version-2` must reference its
    own `/version-2/assets/` prefix — a status-only smoke cannot tell the two documents
    apart, and this is the check that catches a routing mistake that serves the wrong one
@@ -353,7 +358,9 @@ Disaster recovery (host lost, checkout gone): `git clone`, copy `.env`, then
 
 ---
 
-## 5. Routing www.design-bakery.com and the apex (remaining manual steps)
+## 5. Routing www.design-bakery.com and the apex (historical cutover steps)
+
+> Done long ago, and written while the Vercel project still existed. Kept as a record.
 
 ### What the existing tunnel looks like
 
@@ -437,7 +444,7 @@ reachable *from the cloudflared container*, i.e. on `study-os_edge` — not on t
 5. **Verify** (expect the same results as the §2 table):
 
    ```bash
-   for p in / /research/papers/db-r-2026-010 /case-studies/cortex /ai-for-good /studyos /robots.txt; do
+   for p in / /research/papers/db-r-2026-010 /case-studies/cortex /studyos /robots.txt; do
      printf '%-38s %s\n' "$p" "$(curl -sS -o /dev/null -w '%{http_code} %{content_type}' https://www.design-bakery.com$p)"
    done
    curl -sSI https://design-bakery.com/ | grep -i '^location'   # apex -> www 307
@@ -559,8 +566,8 @@ launchctl bootout gui/$(id -u)/com.designbakery.autodeploy
   Prune old tags deliberately (§4).
 - **Repo checkout:** `~/apps/design-bakery` is managed by `deploy.sh` (detached HEAD).
   Do not develop in it; edits there are overwritten on the next deploy.
-- **Vercel:** unchanged and still deployed. Do not modify the Vercel project or its
-  domains while the migration is in flight — it is the fallback.
+- **Vercel:** removed (TASK-DB-0131). There is no Vercel fallback; rollback is the
+  previous image tag (§4).
 
 ---
 

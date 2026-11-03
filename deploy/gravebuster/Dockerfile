@@ -2,9 +2,10 @@
 #
 # design-bakery on gravebuster (TASK-DB-0055).
 #
-# Stage 1 reproduces the Vercel build exactly (`installCommand` / `buildCommand` /
-# `outputDirectory` from vercel.json), stage 2 serves `frontend/dist` with Caddy using
-# deploy/gravebuster/Caddyfile, which reproduces every redirect/rewrite in vercel.json.
+# Stage 1 installs and builds the frontend (`pnpm install`, then
+# `pnpm --dir frontend run build`, output in `frontend/dist`); stage 2 serves
+# `frontend/dist` with Caddy using deploy/gravebuster/Caddyfile, the source of truth for
+# every redirect/rewrite.
 #
 # Build from the repo root:
 #   docker build -f deploy/gravebuster/Dockerfile -t design-bakery-web:local .
@@ -32,12 +33,11 @@ COPY backend/package.json ./backend/
 COPY backend/services/package.json ./backend/services/
 COPY packages/cover-studio-kit/package.json ./packages/cover-studio-kit/
 
-# Same as vercel.json "installCommand". --frozen-lockfile keeps builds reproducible;
+# --frozen-lockfile keeps builds reproducible;
 # the lockfile is the only source of truth for dependency versions.
 RUN pnpm install --frozen-lockfile
 
-# Optional build-time config, mirroring the VITE_* variables the Vercel build gets
-# (frontend/.env.example). All are public values inlined into the bundle — never put
+# Optional build-time config, the VITE_* variables in frontend/.env.example. All are public values inlined into the bundle — never put
 # backend secrets here. Empty values are treated as "unset" by the app, so an
 # unconfigured deploy still builds: the blog then falls back to the committed
 # frontend/src/app/modules/blog/data/blog-data.json snapshot.
@@ -57,7 +57,7 @@ ENV VITE_SITE_URL=${VITE_SITE_URL} \
 
 COPY . .
 
-# Same as vercel.json "buildCommand". frontend prebuild regenerates public/sitemap.xml
+# frontend prebuild regenerates public/sitemap.xml
 # (falls back to the committed blog-data.json when no API/Supabase env is present).
 RUN pnpm --dir frontend run build
 

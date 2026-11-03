@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 /**
  * /ire is a standalone page — the IRE dashboard, built from frontend/ire-app and served
- * by the host's /ire rewrite (vercel.json and the Caddyfile) — not a route in this SPA.
+ * by the host's /ire rewrite (the Caddyfile) — not a route in this SPA.
  * In-app <Link to="/ire"> clicks (the portfolio card) land here first, so hand off with a
  * full page load. That does not loop: this SPA never serves /ire, the host rewrites it
  * to the dashboard's index.html.

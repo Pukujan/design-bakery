@@ -1,5 +1,5 @@
 /**
- * Crawler / link-preview meta for SPA case study routes (Vercel Edge middleware).
+ * Crawler / link-preview meta for SPA case study routes (served by the ogPreview router).
  * Edge-safe: no @/ path aliases or app/seo imports.
  */
 
