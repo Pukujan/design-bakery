@@ -17,7 +17,7 @@
  * - on a call the reply's navigate action carries `go`, so the browser moves before the speech (store.ts takeMoves).
  */
 import {
-  cachedAnswer, lead, list, latestBlog, latestPaper, navigate, norm, vary, words,
+  cachedAnswer, lead, refersBack, list, latestBlog, latestPaper, navigate, norm, vary, words,
   type CachedAnswer,
 } from './answers.js';
 import { gotchaReply } from './gotchas.js';
@@ -279,6 +279,7 @@ export async function routeRequest(question: string, firstTurn: boolean, voice =
   // Famous AI trick questions and "good catch" banter (gotchas.ts): short, self-contained, no site data.
   const gotcha = gotchaReply(question, voice, previous);
   if (gotcha) return gotcha;
+  if (!firstTurn && refersBack(question)) return null;
   if (ask.q && selfContained(ask.q)) {
     const due = ROUTINES.filter((routine) => routine.test(ask));
     if (due.length) {
