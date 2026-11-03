@@ -3,7 +3,8 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { flowField } from '../lab/flow';
 import { useAgentCursor } from './agentCursor';
 import { useCopilot } from './store';
-import { useVoice } from './voice';
+import { audioLevel, useVoice } from './voice';
+import { agentCursor } from './agentCursor';
 import './moon-cursor.css';
 
 type Mood = 'happy' | 'scared' | 'whee' | 'sleepy' | 'wink' | 'love' | 'wow';
@@ -25,14 +26,28 @@ const rand = (min: number, max: number) => min + Math.random() * (max - min);
 export default function MoonCursor() {
   const voice = useVoice();
   const agent = useAgentCursor();
-  const { messages } = useCopilot();
+  const { messages, open: chatOpen } = useCopilot();
   const reduceMotion = useReducedMotion() ?? false;
-  const active = voice.status !== 'idle' || agent.visible;
+  const active = voice.status !== 'idle' || agent.visible || agent.moonReturning;
   const rootRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const eyesRef = useRef<SVGGElement>(null);
   const agentRef = useRef(agent);
   const talkingRef = useRef(false);
+  const chatOpenRef = useRef(false);
+  chatOpenRef.current = chatOpen;
+  const voiceRef = useRef(voice);
+  voiceRef.current = voice;
+  const [quip, setQuip] = useState('');
+  // When the call ends the moon flies back into the call card, which stays up until it is in.
+  const lastStatus = useRef(voice.status);
+  useEffect(() => {
+    const was = lastStatus.current;
+    lastStatus.current = voice.status;
+    if (voice.status !== 'idle') {
+      if (agentRef.current.moonReturning) agentCursor.setMoon({ returning: false });
+    } else if (was !== 'idle' && agentRef.current.moonOut) agentCursor.setMoon({ returning: true });
+  }, [voice.status]);
   agentRef.current = agent;
   const [mood, setMood] = useState<Mood>('happy');
   const [spinning, setSpinning] = useState(0);
@@ -44,7 +59,15 @@ export default function MoonCursor() {
     let body = bodyRef.current;
     if (!root || !body) return;
 
+    // The call card's orb is the moon's home: it starts there and leaves when the call connects.
+    const orbCentre = () => {
+      const rect = document.querySelector('.vo-core')?.getBoundingClientRect();
+      return rect && rect.width > 0 ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : null;
+    };
     const pos = { x: window.innerWidth * 0.82, y: window.innerHeight * 0.7 };
+    let launched = false;
+    let returnStart = 0;
+    let level = 0;
     const vel = { x: 0, y: 0 };
     let target = { ...pos };
     const pointer = { x: -999, y: -999, at: -Infinity };
@@ -82,6 +105,7 @@ export default function MoonCursor() {
     let goneUntil = 0;
     let popAt = 0;
     let spinRoll = 0;
+    let bubbleSide: 'left' | 'right' = 'right';
     let pullAt = performance.now() + rand(60000, 150000);
     if (import.meta.env.DEV) (window as unknown as { __moonPull?: () => void }).__moonPull = () => { pullAt = 0; };
 
@@ -90,6 +114,36 @@ export default function MoonCursor() {
       if (moodNow !== next) {
         moodNow = next;
         setMood(next);
+        maybeQuip(next);
+      }
+    };
+
+    // Little reactions: mostly a word in the bubble, now and then aloud. Never while it speaks, while the chat is open (it is
+    // paying attention then), or while someone is talking.
+    let nextQuip = performance.now() + 30_000;
+    let quipTimer: ReturnType<typeof setTimeout> | undefined;
+    const QUIPS: Partial<Record<Mood, Array<[string, string?]>>> = {
+      whee: [['wheee!', 'whee'], ['hehe', 'hehe'], ['haha!', 'haha']],
+      scared: [['eek!', 'eek'], ['whoa!', 'eek']],
+      wink: [['hehe', 'hehe'], ['psst...']],
+      love: [['aww', undefined], ['hehe', 'hehe']],
+      wow: [['ooh!', 'ooh'], ['haha!', 'haha']],
+    };
+    const maybeQuip = (next: Mood) => {
+      const now = performance.now();
+      const options = QUIPS[next];
+      const v = voiceRef.current;
+      if (!options || now < nextQuip || talkingRef.current || chatOpenRef.current || v.thinking || v.speaking !== 'none') return;
+      nextQuip = now + rand(40_000, 60_000);
+      const [text, clipName] = options[Math.floor(Math.random() * options.length)];
+      setQuip(text);
+      clearTimeout(quipTimer);
+      quipTimer = setTimeout(() => setQuip(''), 1600);
+      // Aloud only rarely, and only when the call is quiet.
+      if (clipName && Math.random() < 0.12 && v.status === 'connected') {
+        const audio = new Audio(`/voice/quip-${clipName}.m4a`);
+        audio.volume = 0.8;
+        void audio.play().catch(() => undefined);
       }
     };
 
@@ -185,12 +239,46 @@ export default function MoonCursor() {
     });
 
     const frame = (now: number) => {
-      raf = requestAnimationFrame(frame);
+      // Placed at once, so a frame that is late (a hidden tab) never leaves it in the corner.
+    root.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0)`;
+    raf = requestAnimationFrame(frame);
       const dt = Math.min(0.05, (now - lastTick) / 1000);
       lastTick = now;
       root = rootRef.current ?? root;
       body = bodyRef.current ?? body;
       const a = agentRef.current;
+      if (!launched && !a.moonReturning) {
+        const home = orbCentre();
+        if (voiceRef.current.status === 'connecting' && home) {
+          // Waiting in the card while the call connects.
+          pos.x = home.x - SIZE / 2;
+          pos.y = home.y - SIZE / 2;
+          vel.x = 0;
+          vel.y = 0;
+          target = { ...pos };
+          root.style.opacity = '0';
+          root.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0)`;
+          return;
+        }
+        // Connected: out it comes, up and away from the card.
+        launched = true;
+        if (home && !reduceMotion) {
+          pos.x = home.x - SIZE / 2;
+          pos.y = home.y - SIZE / 2;
+          vel.x = rand(-260, 260);
+          vel.y = -620;
+          popAt = now;
+          say('whee', 1400);
+        }
+        target = place({ x: rand(0, window.innerWidth), y: rand(0, window.innerHeight * 0.7) });
+        anchor = { ...target };
+        root.style.opacity = '1';
+        agentCursor.setMoon({ out: true });
+      }
+      // The rings around the moon follow the call's level: the visitor's voice while listening, the agent's while it speaks.
+      const raw = Math.max(voiceRef.current.muted ? 0 : audioLevel('user'), audioLevel('agent'));
+      level += (raw - level) * (raw > level ? 0.4 : 0.14);
+      root.style.setProperty('--lvl', level.toFixed(3));
       // Lazy and unhurried by default; quicker only to run from the pointer, and when the agent is going somewhere.
       let stiffness = 7;
       const hole = reduceMotion ? undefined : flowField.obstacles.find((o) => o.kind === 'disc' && o.r > 14 && Number.isFinite(o.x) && Number.isFinite(o.y) && Number.isFinite(o.r));
@@ -222,7 +310,7 @@ export default function MoonCursor() {
         root.style.opacity = '1';
         say('whee', 1400);
       }
-      if (fall === 'none' && hole && hole.kind === 'disc' && !a.visible && !talkingRef.current && now > pullAt) {
+      if (fall === 'none' && hole && hole.kind === 'disc' && !a.visible && !talkingRef.current && !chatOpenRef.current && now > pullAt) {
         const c = centre();
         fall = 'pulled';
         fallStart = now;
@@ -231,7 +319,19 @@ export default function MoonCursor() {
         say('scared', 9000);
       }
 
-      if (fall === 'pulled') {
+      if (a.moonReturning) {
+        // The call has ended: back into the card, shrinking as it goes in.
+        const home = orbCentre();
+        if (!returnStart) returnStart = now;
+        target = home ? { x: home.x - SIZE / 2, y: home.y - SIZE / 2 } : { ...pos };
+        stiffness = 24;
+        const close = home ? Math.hypot(pos.x - target.x, pos.y - target.y) < 12 : true;
+        if (now - returnStart > 1600 || (close && now - returnStart > 500)) {
+          root.style.opacity = '0';
+          agentCursor.setMoon({ out: false, returning: false });
+          return;
+        }
+      } else if (fall === 'pulled') {
         if (!hole || hole.kind !== 'disc' || a.visible) {
           fall = 'none';
           pullAt = now + rand(90000, 200000);
@@ -264,7 +364,8 @@ export default function MoonCursor() {
         const cy = pos.y + SIZE / 2;
         const dist = Math.hypot(cx - pointer.x, cy - pointer.y);
         const talking = talkingRef.current;
-        if (!talking && !reduceMotion && now - pointer.at < 5000 && dist < FLEE_RADIUS) {
+        const watching = chatOpenRef.current;
+        if (!talking && !watching && !reduceMotion && now - pointer.at < 5000 && dist < FLEE_RADIUS) {
           // The visitor's pointer is too close: run the other way.
           const ux = dist > 1 ? (cx - pointer.x) / dist : 1;
           const uy = dist > 1 ? (cy - pointer.y) / dist : 0;
@@ -276,7 +377,16 @@ export default function MoonCursor() {
           stiffness = 18;
         } else {
           const pill = document.querySelector<HTMLElement>('.cp-pill');
-          if (now > phaseUntil && !talking) {
+          const panel = watching ? document.querySelector<HTMLElement>('.cp-panel') : null;
+          if (panel) {
+            // The chat is open: sit beside the composer (or on the sheet's edge on a phone) and pay attention.
+            const rect = panel.getBoundingClientRect();
+            anchor = rect.left > SIZE + 24
+              ? place({ x: rect.left - SIZE - 12, y: rect.bottom - 150 })
+              : place({ x: rect.right - SIZE - 16, y: rect.top - SIZE - 6 });
+            perched = true;
+            phaseUntil = now + 2000;
+          } else if (now > phaseUntil && !talking) {
             // A long trip now and then, 4 to 28 seconds apart; the Continue chat button is one of the places.
             phaseUntil = now + rand(4000, 28000);
             if (pill && Math.random() < 0.35) {
@@ -315,7 +425,7 @@ export default function MoonCursor() {
       const loopX = a.visible || reduceMotion ? 0 : Math.cos(swirlAngle) * 190 * swirl;
       const loopY = a.visible || reduceMotion ? 0 : Math.sin(swirlAngle) * 120 * swirl;
       // The spot it heads for, with the pointer's parallax and the swirl laid over the plan (the plan itself is untouched).
-      const goal = fall === 'pulled' ? target : place({ x: target.x + (a.visible ? 0 : parallax.x) + loopX, y: target.y + (a.visible ? 0 : parallax.y) + loopY });
+      const goal = fall === 'pulled' || a.moonReturning ? target : place({ x: target.x + (a.visible ? 0 : parallax.x) + loopX, y: target.y + (a.visible ? 0 : parallax.y) + loopY });
       if (reduceMotion) {
         pos.x = target.x;
         pos.y = target.y;
@@ -330,17 +440,27 @@ export default function MoonCursor() {
       }
 
       if (fall !== 'pulled') spinRoll *= 0.9;
+      // The bubble opens toward the side with room, and swings over gracefully (the CSS eases it) when the moon nears an edge.
+      const bubbleW = Math.min(240, window.innerWidth * 0.6) + 12;
+      const roomRight = window.innerWidth - pos.x;
+      const flipLeft = bubbleSide === 'right' ? roomRight < bubbleW && pos.x + SIZE > roomRight : !(roomRight > bubbleW + 90);
+      const side = flipLeft ? 'left' : 'right';
+      if (side !== bubbleSide) {
+        bubbleSide = side;
+        root.dataset.side = side;
+      }
       lean *= 0.92;
       tilt *= 0.92;
       const roll = clamp(vel.x * 0.05, -28, 28) + lean + tilt * 0.4 + spinRoll;
-      const shrink = fall === 'pulled' ? 1 - Math.pow(clamp((now - fallStart) / 5500, 0, 1), 1.6) * 0.9 : popAt ? 0.1 + 0.9 * clamp((now - popAt) / 700, 0, 1) : 1;
+      const shrink = a.moonReturning ? 1 - clamp((now - returnStart) / 1400, 0, 1) * 0.9 : fall === 'pulled' ? 1 - Math.pow(clamp((now - fallStart) / 5500, 0, 1), 1.6) * 0.9 : popAt ? 0.1 + 0.9 * clamp((now - popAt) / 700, 0, 1) : 1;
       root.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0)`;
       body.style.transform = `rotate(${roll.toFixed(1)}deg) scale(${(1 + Math.min(0.18, Math.abs(vel.y) * 0.0006)) * shrink}, ${(1 - Math.min(0.12, Math.abs(vel.y) * 0.0004)) * shrink})`;
       // The eyes follow the pointer.
       const eyes = eyesRef.current;
       if (eyes) {
-        const ex = pointer.x - (pos.x + SIZE / 2);
-        const ey = pointer.y - (pos.y + SIZE / 2);
+        const watched = chatOpenRef.current ? document.querySelector('.cp-panel')?.getBoundingClientRect() : null;
+        const ex = (watched ? watched.left + watched.width / 2 : pointer.x) - (pos.x + SIZE / 2);
+        const ey = (watched ? watched.bottom - 100 : pointer.y) - (pos.y + SIZE / 2);
         const len = Math.hypot(ex, ey) || 1;
         eyes.style.setProperty('--look-x', `${((ex / len) * 1.7).toFixed(2)}px`);
         eyes.style.setProperty('--look-y', `${((ey / len) * 1.3).toFixed(2)}px`);
@@ -349,7 +469,7 @@ export default function MoonCursor() {
         moodNow = 'happy';
         setMood('happy');
       }
-      if (now > nextFace && moodNow === 'happy') {
+      if (now > nextFace && moodNow === 'happy' && !chatOpenRef.current) {
         // An odd little face now and then, so it is never just smiling.
         nextFace = now + rand(6000, 14000);
         const faces: Mood[] = ['wink', 'love', 'wow'];
@@ -363,6 +483,8 @@ export default function MoonCursor() {
     raf = requestAnimationFrame(frame);
 
     return () => {
+      clearTimeout(quipTimer);
+      agentCursor.setMoon({ out: false });
       cancelAnimationFrame(raf);
       window.removeEventListener('pointermove', onPointer);
       window.removeEventListener('pointerdown', onTap);
@@ -383,14 +505,17 @@ export default function MoonCursor() {
       ? { kind: 'dots', text: '' }
       : voice.speaking === 'agent' && excerpt
         ? { kind: 'text', text: excerpt }
-        : null;
+        : quip
+          ? { kind: 'text', text: quip }
+          : null;
   talkingRef.current = bubble !== null;
-  const bubbleRight = typeof window !== 'undefined' && agent.x + 220 > window.innerWidth;
   if (!active) return null;
   const scroll = agent.scroll;
   const sign = scroll === 'up' ? -1 : 1;
   return (
-    <div ref={rootRef} className={`moon${spinning ? ' moon-spin' : ''}`} key={spinning % 2} data-mood={mood} data-act={voice.thinking ? 'thinking' : voice.speaking === 'agent' || voice.hold ? 'talking' : undefined} aria-hidden="true">
+    <div ref={rootRef} className={`moon${spinning ? ' moon-spin' : ''}`} key={spinning % 2} data-mood={mood} data-act={voice.thinking ? 'thinking' : voice.speaking === 'agent' || voice.hold || quip ? 'talking' : undefined} aria-hidden="true">
+      <span className="moon-ring moon-ring-1" />
+      <span className="moon-ring moon-ring-2" />
       <div ref={bodyRef} className="moon-body">
         <svg viewBox="0 0 48 48" width={SIZE} height={SIZE}>
           <defs>
@@ -452,11 +577,12 @@ export default function MoonCursor() {
             </motion.div>
           )}
         </AnimatePresence>
+        <div className="moon-bubble-anchor">
         <AnimatePresence>
           {bubble && (
             <motion.div
               key={bubble.kind === 'dots' ? 'dots' : bubble.text}
-              className={`moon-bubble${bubbleRight ? ' moon-bubble-left' : ''}`}
+              className="moon-bubble"
               initial={{ opacity: 0, scale: 0.6, y: 6 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8 }}
@@ -474,6 +600,7 @@ export default function MoonCursor() {
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
         {agent.visible && <span className="moon-label">AI Pujan</span>}
         <AnimatePresence>
           {agent.presses > 0 && agent.visible && (

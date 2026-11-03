@@ -3,6 +3,8 @@ import { useEffect, useRef, useState, type PointerEvent, type RefObject } from '
 import { useReducedMotion } from 'motion/react';
 import { Mic, MicOff, PhoneOff } from 'lucide-react';
 import { audioLevel, useVoice, voice } from './voice';
+import { copilot } from './store';
+import { useAgentCursor } from './agentCursor';
 import { pickOrigin } from './skyOrigin';
 import './voice-orb.css';
 
@@ -191,11 +193,13 @@ function GatherStars({ anchor, onDone }: { anchor: RefObject<HTMLElement | null>
  */
 export default function VoiceOrb() {
   const live = useVoice();
+  const moon = useAgentCursor();
   const reduceMotion = useReducedMotion() ?? false;
   const [demo] = useState<Mode | null>(readDemo);
   const [demoOrigin] = useState(pickOrigin);
   const origin = live.origin ?? demoOrigin;
-  const mode: Mode | null = demo ?? (live.status === 'idle' ? null : live.status === 'connecting' ? 'connecting' : live.speaking === 'agent' ? 'speaking' : 'listening');
+  // After the call ends the card stays up until the moon is back inside it.
+  const mode: Mode | null = demo ?? (live.status === 'idle' ? (moon.moonReturning ? 'listening' : null) : live.status === 'connecting' ? 'connecting' : live.speaking === 'agent' ? 'speaking' : 'listening');
   const muted = !demo && live.muted;
 
   const orbRef = useRef<HTMLDivElement>(null);
@@ -205,7 +209,7 @@ export default function VoiceOrb() {
   const [offset, setOffset] = useState<Offset>({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [nudge, setNudge] = useState(0);
-  const drag = useRef<{ id: number; x: number; y: number; origin: Offset; rect: DOMRect } | null>(null);
+  const drag = useRef<{ id: number; x: number; y: number; origin: Offset; rect: DOMRect; moved: boolean } | null>(null);
 
   // Stars gather each time a call starts, not on every redraw.
   useEffect(() => {
@@ -246,7 +250,7 @@ export default function VoiceOrb() {
     if ((event.target as HTMLElement).closest('button')) return;
     const pill = pillRef.current;
     if (!pill) return;
-    drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY, origin: offset, rect: pill.getBoundingClientRect() };
+    drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY, origin: offset, rect: pill.getBoundingClientRect(), moved: false };
     event.currentTarget.setPointerCapture(event.pointerId);
     setDragging(true);
   };
@@ -255,6 +259,7 @@ export default function VoiceOrb() {
     const current = drag.current;
     if (!current || current.id !== event.pointerId) return;
     const { rect } = current;
+    if (Math.hypot(event.clientX - current.x, event.clientY - current.y) > 6) current.moved = true;
     const dx = Math.min(
       Math.max(event.clientX - current.x, EDGE_MARGIN - rect.left),
       window.innerWidth - EDGE_MARGIN - rect.right,
@@ -268,6 +273,8 @@ export default function VoiceOrb() {
 
   const endDrag = (event: PointerEvent<HTMLDivElement>) => {
     if (!drag.current || drag.current.id !== event.pointerId) return;
+    // A tap on the pill (not a drag, and not a button) opens the chat.
+    if (event.type === 'pointerup' && !drag.current.moved && !demo) copilot.setOpen(true);
     drag.current = null;
     setDragging(false);
     setNudge((n) => n + 1);
@@ -286,7 +293,7 @@ export default function VoiceOrb() {
       {gathering && <GatherStars anchor={orbRef} onDone={() => setGathering(false)} />}
       <div
         ref={pillRef}
-        className={`vo vo-${mode}${muted ? ' vo-muted' : ''}${dragging ? ' vo-dragging' : ''}`}
+        className={`vo vo-${mode}${muted ? ' vo-muted' : ''}${dragging ? ' vo-dragging' : ''}${moon.moonOut && !moon.moonReturning ? ' vo-away' : ''}${live.status === 'idle' ? ' vo-ending' : ''}`}
         role="region"
         aria-label="Voice call"
         style={{ transform: `translate(calc(-50% + ${offset.x}px), ${offset.y}px)` }}

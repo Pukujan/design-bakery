@@ -136,12 +136,22 @@
 }
 
 /* The moon's speech bubble: what it is saying, or three dots while it thinks. */
-.moon-bubble {
+/* The anchor holds the bubble's place above the moon and swings it to the other side near an edge. */
+.moon-bubble-anchor {
   position: absolute;
   bottom: 52px;
   left: -6px;
   width: max-content;
   max-width: min(240px, 60vw);
+  pointer-events: none;
+  transition: transform 0.6s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.moon[data-side='left'] .moon-bubble-anchor {
+  transform: translateX(calc(-100% + 46px));
+}
+
+.moon-bubble {
   padding: 8px 12px;
   border-radius: 16px 16px 16px 4px;
   background: var(--lab-paper, #f2efe8);
@@ -149,11 +159,10 @@
   font: 500 13px/1.35 var(--lab-display, system-ui, sans-serif);
   box-shadow: 0 6px 20px rgb(0 0 0 / 0.4);
   transform-origin: bottom left;
+  transition: border-radius 0.6s;
 }
 
-.moon-bubble-left {
-  left: auto;
-  right: -6px;
+.moon[data-side='left'] .moon-bubble {
   border-radius: 16px 16px 4px 16px;
   transform-origin: bottom right;
 }
@@ -184,4 +193,35 @@
 
 @media (prefers-reduced-motion: reduce) {
   .moon-dots i { animation: none; opacity: 0.7; }
+}
+
+/* The listening rings, on the moon now: small when quiet, reaching further as the voice gets louder. */
+.moon-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgb(var(--lab-accent-rgb) / 0.6);
+  opacity: 0;
+  pointer-events: none;
+  animation: moon-wave 2.4s ease-out infinite;
+}
+
+.moon-ring-2 {
+  animation-delay: 1.2s;
+  border-color: rgb(var(--lab-cool-rgb) / 0.6);
+}
+
+@keyframes moon-wave {
+  0% {
+    transform: scale(calc(0.9 + var(--lvl, 0) * 0.3));
+    opacity: calc(0.15 + var(--lvl, 0) * 0.85);
+  }
+  100% {
+    transform: scale(calc(1.5 + var(--lvl, 0) * 1));
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moon-ring { animation: none; opacity: 0.25; }
 }
