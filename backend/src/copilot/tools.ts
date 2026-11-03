@@ -19,7 +19,9 @@ export type CopilotAction =
   /** Voice calls only: scroll to a section when the spoken answer reaches character `at`. */
   | { kind: 'scrollstep'; path: string; at: number }
   /** Point at a real section of a post, paper or project: scroll to `anchor`, tap it, and highlight `quote` if one was checked. */
-  | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string; mode?: 'swipe' | 'perch' };
+  | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string; mode?: 'swipe' | 'perch' }
+  /** An expansion chip: a follow-up question that stays in the chat. The server sets `chip` on every action (chips.ts). */
+  | { kind: 'ask'; text: string };
 
 const clip = (text: string, max: number) => (text.length > max ? `${text.slice(0, max)}…` : text);
 
@@ -161,6 +163,15 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
         citations?.setLimit(max);
         citations?.setMode(depth === 'full' ? 'perch' : 'swipe');
         return { ok: true, path: clean, passages: buildPassages(sections, max) };
+      },
+    }),
+
+    suggest_followups: tool({
+      description: 'Offer up to three short follow-up questions as buttons under your answer, each something the visitor might ask next about the same topic (for example "What is it built with?"). Each is sent as their message when clicked, so write it as the visitor would say it. Not for opening pages: use navigate or show_projects for that.',
+      inputSchema: z.object({ questions: z.array(z.string().min(3).max(80)).min(1).max(3) }),
+      execute: async ({ questions }) => {
+        for (const text of questions) emit({ kind: 'ask', text });
+        return { ok: true };
       },
     }),
 

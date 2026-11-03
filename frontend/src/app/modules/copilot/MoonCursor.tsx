@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { flowField } from '../lab/flow';
 import { useAgentCursor } from './agentCursor';
+import { nearestEdge } from './citeRoute';
 import { useCopilot } from './store';
 import { audioLevel, useVoice } from './voice';
 import { agentCursor } from './agentCursor';
@@ -29,6 +30,7 @@ export default function MoonCursor() {
   const { messages, open: chatOpen } = useCopilot();
   const reduceMotion = useReducedMotion() ?? false;
   const active = voice.status !== 'idle' || agent.visible || agent.moonReturning;
+  useEffect(() => agentCursor.setOnCall(voice.status !== 'idle'), [voice.status]);
   const rootRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const eyesRef = useRef<SVGGElement>(null);
@@ -69,6 +71,8 @@ export default function MoonCursor() {
     let swiping = false;
     let swipeStart = 0;
     let returnStart = 0;
+    let leaveStart = 0;
+    let leaveTo = { x: 0, y: 0 };
     let level = 0;
     const vel = { x: 0, y: 0 };
     let target = { ...pos };
@@ -135,7 +139,7 @@ export default function MoonCursor() {
       const now = performance.now();
       const options = QUIPS[next];
       const v = voiceRef.current;
-      if (!options || now < nextQuip || talkingRef.current || chatOpenRef.current || v.thinking || v.speaking !== 'none') return;
+      if (!options || agentRef.current.guest || now < nextQuip || talkingRef.current || chatOpenRef.current || v.thinking || v.speaking !== 'none') return;
       nextQuip = now + rand(40_000, 60_000);
       const [text, clipName] = options[Math.floor(Math.random() * options.length)];
       setQuip(text);
@@ -253,6 +257,7 @@ export default function MoonCursor() {
         swiping = false;
         root.dataset.grab = '';
       }
+      if (!a.leaving) leaveStart = 0;
       if (!launched && !a.moonReturning) {
         const home = orbCentre();
         if (voiceRef.current.status === 'connecting' && home) {
@@ -275,6 +280,13 @@ export default function MoonCursor() {
           vel.y = -620;
           popAt = now;
           say('whee', 1400);
+        }
+        else if (a.guest && a.entry && !reduceMotion) {
+          // A guest on a text chat's errand: in from just past the nearest edge, already heading for the link.
+          pos.x = a.entry.x;
+          pos.y = a.entry.y;
+          vel.x = a.entry.x < 0 ? 320 : a.entry.x > window.innerWidth ? -320 : 0;
+          vel.y = a.entry.y < 0 ? 320 : a.entry.y > window.innerHeight ? -320 : 0;
         }
         target = place({ x: rand(0, window.innerWidth), y: rand(0, window.innerHeight * 0.7) });
         anchor = { ...target };
@@ -361,6 +373,20 @@ export default function MoonCursor() {
             return;
           }
         }
+      } else if (a.leaving) {
+        // A guest's errand is done: out through the nearest edge.
+        if (!leaveStart) {
+          leaveStart = now;
+          leaveTo = nearestEdge({ x: pos.x + SIZE / 2, y: pos.y + SIZE / 2 }, { width: window.innerWidth, height: window.innerHeight }, SIZE);
+        }
+        target = { x: leaveTo.x, y: leaveTo.y };
+        stiffness = 14;
+        const out = pos.x < -SIZE * 0.6 || pos.y < -SIZE * 0.6 || pos.x > window.innerWidth - SIZE * 0.4 || pos.y > window.innerHeight - SIZE * 0.4;
+        if (out || now - leaveStart > 2400) {
+          root.style.opacity = '0';
+          agentCursor.finishGuest();
+          return;
+        }
       } else if (a.visible && a.scroll) {
         // The agent swipes the page: the moon presses on it and pulls it along (up to scroll down, down to scroll up), lifts,
         // and goes back for another stroke while the page glides.
@@ -446,7 +472,7 @@ export default function MoonCursor() {
       const loopX = a.visible || reduceMotion ? 0 : Math.cos(swirlAngle) * 190 * swirl;
       const loopY = a.visible || reduceMotion ? 0 : Math.sin(swirlAngle) * 120 * swirl;
       // The spot it heads for, with the pointer's parallax and the swirl laid over the plan (the plan itself is untouched).
-      const goal = fall === 'pulled' || a.moonReturning ? target : place({ x: target.x + (a.visible ? 0 : parallax.x) + loopX, y: target.y + (a.visible ? 0 : parallax.y) + loopY });
+      const goal = fall === 'pulled' || a.moonReturning || a.leaving ? target : place({ x: target.x + (a.visible ? 0 : parallax.x) + loopX, y: target.y + (a.visible ? 0 : parallax.y) + loopY });
       if (reduceMotion) {
         pos.x = target.x;
         pos.y = target.y;

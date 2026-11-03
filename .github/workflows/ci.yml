@@ -75,6 +75,9 @@ jobs:
       - name: Check the copilot's streaming text filter
         run: pnpm test:copilot-stream
 
+      - name: Check the copilot's cut-off replies and thinking switch
+        run: pnpm test:copilot-truncation
+
       - name: Check content icon coverage
         run: pnpm test:icon-coverage
 
