@@ -174,14 +174,17 @@ const route = await readFile(new URL('./backend/src/copilot/route.ts', root), 'u
 const system = route.match(/const SYSTEM = `([\s\S]*?)`;/)[1];
 const voice = route.match(/const VOICE_NOTE = `([\s\S]*?)`;/)[1];
 assert.match(system, /first person/);
-assert.match(system, /very sarcastic and sharp/);
-assert.match(system, /sarcasm is seasoning/);
+assert.match(system, /Kind first, funny second/);
+assert.match(system, /moderately sarcastic/);
+assert.match(system, /stressed or in a hurry/);
+assert.match(system, /one short, sincere beat/);
+assert.match(system, /humour is seasoning/);
 assert.match(system, /Never accuse any real person/);
 assert.match(system, /no invented quotes|never invent quotes/i);
 assert.match(system, /small talk/);
 assert.match(system, /Only state facts from the site brief/);
 assert.match(system, /under 45 words/);
-assert.match(voice, /at most one short, sharp line/);
+assert.match(voice, /at most one short, warm line/);
 assert.match(voice, /under 35 words/);
 
 console.log('copilot news and persona: ok');
