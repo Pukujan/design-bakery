@@ -1,0 +1,18 @@
+name: latest
+version: 1
+description: Open the newest blog post or research paper.
+when_it_applies: "latest / newest / most recent post or paper".
+domain: engineering
+code: ../../routines.ts (runner), registered in ROUTINES
+created_by:
+  model: Claude Sonnet 5.5 (claude-sonnet-5-5)
+  harness: Claude Code (desktop)
+  date: 2026-11-02
+  versions: [1]
+tested_on:
+  - model: none (no model call; deterministic)
+    harness: node scripts/test-copilot-router.mjs
+    date: 2026-11-02
+    version: 1
+    result: cases in examples/inputs/cases.json pass against the compiled backend
+    output: examples/inputs/cases.json

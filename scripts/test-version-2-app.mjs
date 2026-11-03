@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Static checks for the /version-2 page (frontend/version-2-app): that the Vite base,
-// the asset prefix and the /version-2 routing in vercel.json, the Caddyfile and
+// the asset prefix and the /version-2 routing in the Caddyfile and
 // deploy.sh all agree. No network, no browser; runs in CI.
 //
 // History: this page was briefly promoted to the site root (`/`) in TASK-DB-0084, with
@@ -58,32 +58,28 @@ const buildScript = await read('./scripts/build-version-2-app.mjs');
 assert.match(buildScript, /frontend\/dist\/version-2/, 'the build should target frontend/dist/version-2');
 assert.ok(!buildScript.includes('shell/index.html'), 'the build should not move the shell aside');
 
-// 3. Routing parity: /version-2 and /version-2/ serve the app's shell, before the SPA
-//    catch-all, in vercel.json and the Caddyfile alike.
-const vercel = JSON.parse(await read('./vercel.json'));
-const rewrites = vercel.rewrites.map((r) => r.source);
-const catchAll = rewrites.indexOf('/((?!.*\\.html$).*)');
-assert.ok(catchAll >= 0, 'vercel.json should keep the SPA catch-all');
+// 3. Routing: /version-2 and /version-2/ serve the app's shell, before the SPA
+//    catch-all, in the Caddyfile (the live server's config).
+const caddy = await read('./deploy/gravebuster/Caddyfile');
+const catchAllMatch = caddy.match(/\n\t\thandle \{\n\t\t\trewrite \* (\/\S+)/);
+assert.ok(catchAllMatch, 'Caddyfile should keep the SPA catch-all');
 assert.equal(
-  vercel.rewrites[catchAll].destination,
+  catchAllMatch[1],
   '/index.html',
   'the SPA catch-all should serve the site shell at /index.html',
 );
-for (const source of ['/version-2', '/version-2/']) {
-  const i = rewrites.indexOf(source);
-  assert.ok(i >= 0, `vercel.json should rewrite ${source}`);
-  assert.equal(vercel.rewrites[i].destination, '/version-2/index.html');
-  assert.ok(i < catchAll, `${source} rewrite must come before the SPA catch-all`);
-}
-assert.ok(
-  !vercel.redirects.some((r) => r.source === '/version-2' || r.source === '/version-2/'),
-  'vercel.json should not redirect /version-2 — it serves the page',
-);
-const caddy = await read('./deploy/gravebuster/Caddyfile');
 assert.match(
   caddy,
   /@version2 path \/version-2 \/version-2\/\n\s*handle @version2 \{\n\s*rewrite \* \/version-2\/index\.html/,
-  'Caddyfile should mirror the /version-2 rewrite',
+  'Caddyfile should rewrite /version-2 and /version-2/ to the page',
+);
+assert.ok(
+  caddy.indexOf('handle @version2') < catchAllMatch.index,
+  '/version-2 rewrite must come before the SPA catch-all',
+);
+assert.ok(
+  !/redir[^\n]*\/version-2/.test(caddy),
+  'the Caddyfile should not redirect /version-2 — it serves the page',
 );
 assert.ok(!caddy.includes('/shell/index.html'), 'the Caddyfile should not serve a /shell/index.html document');
 

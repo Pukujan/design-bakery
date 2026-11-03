@@ -1,4 +1,4 @@
-/** Crawler-facing Open Graph HTML for blog URLs (Vercel Edge middleware). */
+/** Crawler-facing Open Graph HTML for blog URLs (served by the ogPreview router). */
 
 import {
   collectBlogSocialMetaTags,

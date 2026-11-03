@@ -5,9 +5,9 @@
  */
 import { useSyncExternalStore } from 'react';
 
-type State = { visible: boolean; x: number; y: number; presses: number; scroll: 'up' | 'down' | null };
+type State = { visible: boolean; x: number; y: number; presses: number; scroll: 'up' | 'down' | null; moonOut: boolean; moonReturning: boolean };
 
-let state: State = { visible: false, x: -100, y: -100, presses: 0, scroll: null };
+let state: State = { visible: false, x: -100, y: -100, presses: 0, scroll: null, moonOut: false, moonReturning: false };
 let scrollTimer: ReturnType<typeof setTimeout> | undefined;
 const listeners = new Set<() => void>();
 let hideTimer: ReturnType<typeof setTimeout> | undefined;
@@ -37,10 +37,19 @@ function visibleLinkFor(path: string): HTMLElement | null {
   return onScreen ? link : null;
 }
 
+/** Takes the agent's hover look off every link it was on. */
+function clearHover() {
+  document.querySelectorAll('[data-agent-hover]').forEach((element) => element.removeAttribute('data-agent-hover'));
+}
+
 const GLIDE_MS = 800;
 const PRESS_MS = 280;
 
 export const agentCursor = {
+  /** The moon is out of the call card (it leaves when a call connects) and is on its way back when the call ends. */
+  setMoon(patch: { out?: boolean; returning?: boolean }) {
+    set({ ...(patch.out === undefined ? {} : { moonOut: patch.out }), ...(patch.returning === undefined ? {} : { moonReturning: patch.returning }) });
+  },
   /**
    * Bring the cursor to the link for `path` and press it, then resolve. If that link is not on screen the cursor just
    * appears mid-page and rests there, since the page is about to scroll.
@@ -58,6 +67,10 @@ export const agentCursor = {
     const rect = link.getBoundingClientRect();
     set({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
     await wait(GLIDE_MS);
+    // The cursor is over the link: it lights up the way it does under a real pointer (CSS :hover cannot be set from a script).
+    clearHover();
+    link.setAttribute('data-agent-hover', '');
+    await wait(220);
     set({ presses: state.presses + 1 });
     await wait(PRESS_MS);
   },
@@ -93,10 +106,14 @@ export const agentCursor = {
   /** Let the cursor fade away after the move it is part of has had time to play. */
   release(afterMs: number) {
     clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => set({ visible: false }), afterMs);
+    hideTimer = setTimeout(() => {
+      clearHover();
+      set({ visible: false });
+    }, afterMs);
   },
   hide() {
     clearTimeout(hideTimer);
+    clearHover();
     set({ visible: false });
   },
 };

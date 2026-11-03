@@ -137,4 +137,12 @@ for (const question of buttonQuestions) {
   assert.ok(await cachedAnswer(question, false), `the button question "${question}" must be answered from the cache`);
 }
 
+// A greeting word in front of a real question must not turn it into a greeting (found on a real call: "Hey there. Tell me
+// about your projects." was answered with the greeting).
+assert.equal((await cachedAnswer('Hey there. Tell me about your projects.', false))?.intent, 'projects', 'a greeting word must not hijack a projects question');
+assert.equal((await cachedAnswer('hello, how can I contact you?', false))?.intent, 'contact', 'a greeting word must not hijack a contact question');
+assert.equal((await cachedAnswer('thanks, show me your research', false))?.intent, 'research', 'a thanks must not hijack a research question');
+assert.equal((await cachedAnswer('hey there', true))?.intent, 'greeting', 'a bare greeting is still a greeting');
+assert.equal((await cachedAnswer('thanks!', false))?.intent, 'thanks', 'a bare thanks is still a thanks');
+
 console.log(`copilot instant answers: ${firstTurn.length} intents, ${followUps.length} follow-ups routed to the model`);

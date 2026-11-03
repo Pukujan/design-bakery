@@ -1,0 +1,66 @@
+[
+  {
+    "previous": "Want me to walk you through my projects?",
+    "utterance": "yes",
+    "routine": "offer:projects",
+    "navigate": "/#work",
+    "go": true
+  },
+  {
+    "previous": "Want me to walk you through my projects?",
+    "utterance": "sure",
+    "routine": "offer:projects",
+    "go": true
+  },
+  {
+    "previous": "Want me to walk you through my projects?",
+    "utterance": "okay do it",
+    "routine": "offer:projects"
+  },
+  {
+    "previous": "I can also help you book a free consultation.",
+    "utterance": "yeah please",
+    "routine": "offer:consultation",
+    "navigate": "/contact",
+    "go": true
+  },
+  {
+    "previous": "I'm still here if you want to ask anything.",
+    "utterance": "yes",
+    "routine": "offer:open-ended"
+  },
+  {
+    "previous": "Want me to walk you through my projects?",
+    "utterance": "no",
+    "routine": "offer:decline"
+  },
+  {
+    "previous": "I can also help you book a free consultation.",
+    "utterance": "not now",
+    "routine": "offer:decline"
+  },
+  {
+    "previous": "Want me to walk you through my projects?",
+    "utterance": "maybe later",
+    "routine": "offer:decline"
+  },
+  {
+    "previous": "Want me to walk you through my projects?",
+    "utterance": "yes but first tell me about Cortex",
+    "routine_not": "offer:projects"
+  },
+  {
+    "previous": "Want me to walk you through my projects?",
+    "utterance": "hmm",
+    "routine_not": "offer:projects"
+  },
+  {
+    "previous": "What do you want to see?",
+    "utterance": "yes",
+    "routine_not": "offer:projects"
+  },
+  {
+    "utterance": "yes",
+    "routine_not": "offer:projects"
+  }
+]

@@ -1,6 +1,6 @@
 # Firebase (legacy / optional)
 
-Firebase is **optional** — production uses **Supabase + Railway Express** ([doc/deploy-vercel-railway.md](../doc/deploy-vercel-railway.md)).
+Firebase is **optional** — production is self-hosted ([docs/self-hosting.md](../../../docs/self-hosting.md)).
 
 This folder holds Firebase CLI config and Storage rules for:
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Static checks for the IRE dashboard (frontend/ire-app): the page shell's SEO head,
 // the social preview, the feed fixture the browser checks replay, and the /ire routing
-// in vercel.json and the Caddyfile. No network, no browser; runs in CI.
+// in the Caddyfile. No network, no browser; runs in CI.
 //
 // The rendered behaviour (test hooks, tier switch, open-weight copy, mobile) lives in
 // scripts/test-ire-app-browser.mjs, which runs against the built output.
@@ -173,39 +173,25 @@ assert.ok(!keyLike.test(html), 'the dashboard shell contains something that look
 assert.ok(!keyLike.test(JSON.stringify(saved)), 'the feed fixture contains something that looks like a key');
 
 // 6. Routing. /ire and /ire/ serve the dashboard; the old /ire/app path redirects to it
-//    (vercel.json uses `permanent: true`, which Vercel serves as a 308; the Caddyfile
-//    mirrors it with an explicit 301).
-const vercel = JSON.parse(await read('./vercel.json'));
-const rewrites = vercel.rewrites.map((r) => r.source);
-const catchAll = rewrites.indexOf('/((?!.*\\.html$).*)');
-assert.ok(catchAll >= 0, 'vercel.json should keep the SPA catch-all');
-for (const source of ['/ire', '/ire/']) {
-  const i = rewrites.indexOf(source);
-  assert.ok(i >= 0, `vercel.json should rewrite ${source}`);
-  assert.equal(vercel.rewrites[i].destination, '/ire/index.html');
-  assert.ok(i < catchAll, `${source} rewrite must come before the SPA catch-all`);
-}
-assert.ok(!rewrites.includes('/ire/app'), 'the old /ire/app rewrite should be gone');
-for (const source of ['/ire/app', '/ire/app/']) {
-  const r = (vercel.redirects ?? []).find((x) => x.source === source);
-  assert.ok(r, `vercel.json should redirect ${source}`);
-  assert.equal(r.destination, '/ire/');
-  assert.equal(r.permanent, true, `${source} should be a permanent redirect`);
-}
+//    permanently (the Caddyfile answers 301). The Caddyfile is the live server's config.
 const caddy = await read('./deploy/gravebuster/Caddyfile');
+const catchAll = caddy.search(/\n\t\thandle \{\n\t\t\trewrite \* \/index\.html/);
+assert.ok(catchAll >= 0, 'Caddyfile should keep the SPA catch-all');
 assert.match(
   caddy,
   /@ire path \/ire \/ire\/\n\s*handle @ire \{\n\s*rewrite \* \/ire\/index\.html/,
-  'Caddyfile should mirror the /ire rewrite',
+  'Caddyfile should rewrite /ire and /ire/ to the dashboard',
 );
-assert.ok(
-  caddy.indexOf('handle @ire') < caddy.indexOf('rewrite * /index.html'),
-  'the Caddy /ire rule must come before the SPA fallback',
-);
+assert.ok(caddy.indexOf('handle @ire') < catchAll, 'the Caddy /ire rule must come before the SPA fallback');
+assert.ok(!/path \/ire\/app\s*\n\s*handle/.test(caddy), 'the old /ire/app rewrite should be gone');
 assert.match(
   caddy,
   /@ireAppLegacy path \/ire\/app \/ire\/app\/\n\s*redir @ireAppLegacy \/ire\/ 301/,
-  'Caddyfile should redirect the old /ire/app path',
+  'Caddyfile should permanently redirect the old /ire/app path to /ire/',
+);
+assert.ok(
+  caddy.indexOf('redir @ireAppLegacy') < catchAll,
+  'the /ire/app redirect must come before the SPA fallback',
 );
 // The site's own SPA keeps a /ire route that hands off with a full page load, because the
 // portfolio card renders /ire as an in-app <Link> (client-side, so no host rewrite runs).

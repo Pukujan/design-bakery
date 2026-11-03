@@ -1,0 +1,18 @@
+name: offer
+version: 1
+description: Answer a short yes or no to an offer AI Pujan just made out loud (walk through projects, book a consultation, ask anything).
+when_it_applies: The previous assistant message is one of the known nudge lines and the visitor's reply is a bare yes, no or not now. Otherwise the model answers, as before.
+domain: engineering
+code: ../../routines.ts (OFFERS, answerToOffer)
+created_by:
+  model: Claude Sonnet 5.5 (claude-sonnet-5-5)
+  harness: Claude Code (desktop)
+  date: 2026-11-02
+  versions: [1]
+tested_on:
+  - model: none (no model call; deterministic)
+    harness: node scripts/test-copilot-router.mjs
+    date: 2026-11-02
+    version: 1
+    result: cases in examples/inputs/cases.json pass against the compiled backend
+    output: examples/inputs/cases.json

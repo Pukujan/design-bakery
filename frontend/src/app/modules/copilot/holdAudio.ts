@@ -27,6 +27,8 @@ const NUDGES: Line[] = [
   { src: '/voice/nudge-3.m4a', text: 'I can also help you book a free consultation.' },
   { src: '/voice/nudge-4.m4a', text: 'Ask me about my research, my work history, or anything on the site.' },
 ];
+/** Is this one of the quiet-call reminders (not the muted notice)? */
+export const isNudge = (text: string) => NUDGES.some((line) => line.text === text);
 const MUTED: Line = { src: '/voice/nudge-muted.m4a', text: "I can't hear you right now. It looks like your mic is muted." };
 
 /**
@@ -62,10 +64,10 @@ const THINK_GAP_MS = 700;
 const THINK_LONG_AFTER_MS = 9000;
 const SLOW_AFTER_MS = 12_000;
 const FADE_MS = 200;
-/** A quiet call is nudged every 10 to 20 seconds, up to this many times until someone speaks again. */
-const NUDGE_MIN_MS = 10_000;
-const NUDGE_MAX_MS = 20_000;
-const MAX_NUDGES = 4;
+/** A quiet call is nudged every 40 to 60 seconds, up to this many times until someone speaks again. */
+const NUDGE_MIN_MS = 40_000;
+const NUDGE_MAX_MS = 60_000;
+const MAX_NUDGES = 3;
 
 const cache = new Map<string, HTMLAudioElement>();
 
@@ -100,6 +102,7 @@ function fadeOut(audio: HTMLAudioElement | null) {
 /** Fetch the clips ahead of the click, so the first one starts with no wait. */
 export function preloadHold() {
   for (const line of [...CONNECTING, SLOW, ...NUDGES, MUTED, ...OPENERS, ...MIDDLES, LONG_WAIT, ...CLOSERS]) clip(line.src);
+  for (const src of Object.values(SPOKEN_REPLIES)) clip(src);
 }
 
 /* ---------- Connecting ---------- */
@@ -361,4 +364,29 @@ export function startThinking(onLine: (text: string) => void): Thinking {
       }
     },
   };
+}
+
+/** Pre-recorded replies to small talk, by exact text (the same wordings as backend/src/copilot/answers.ts). Typed greetings are spoken on a call. */
+const SPOKEN_REPLIES: Record<string, string> = {
+  "Hey, it's AI Pujan. I can take you through my work, my research or my writing, or point you at whatever is closest to what you're building.": '/voice/hello-1.m4a',
+  "Hi, I'm AI Pujan. Want a tour of my work, or is there something you're building I can help with?": '/voice/hello-2.m4a',
+  "Hello! I'm AI Pujan. Ask me about my projects, my writing, or my research.": '/voice/hello-3.m4a',
+  'Hey there. AI Pujan here. What would you like to see first?': '/voice/hello-4.m4a',
+  'Hi again! What would you like to look at?': '/voice/hello-again-1.m4a',
+  'Hey, still here. Ask me about a project, a paper, or my work history.': '/voice/hello-again-2.m4a',
+  'Hello again. Where should we go next?': '/voice/hello-again-3.m4a',
+};
+
+/** Plays the recording for a reply, if there is one. Resolves true when it played to the end, false when there was none. */
+export function playSpokenReply(text: string): Promise<boolean> | null {
+  const src = SPOKEN_REPLIES[text];
+  if (!src) return null;
+  const audio = clip(src);
+  audio.currentTime = 0;
+  audio.volume = 1;
+  return new Promise((resolve) => {
+    audio.onended = () => resolve(true);
+    audio.onerror = () => resolve(false);
+    audio.play().catch(() => resolve(false));
+  });
 }

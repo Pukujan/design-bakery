@@ -43,7 +43,8 @@ const ROOTS = [
   },
   {
     dir: 'backend/src',
-    entries: ['backend/src/server.ts'],
+    // newsJob.ts is a CLI entry for a timer (node backend/lib/copilot/newsJob.js), not imported.
+    entries: ['backend/src/server.ts', 'backend/src/copilot/newsJob.ts'],
   },
   {
     dir: 'backend/services/src',
@@ -243,7 +244,7 @@ function main() {
     const rel = toRepoPath(file);
     if (rel.startsWith('scripts/')) entries.push(rel);
   }
-  // Repo-root entry files (Vercel Edge middleware) and workspace-package mains.
+  // Repo-root entry files and workspace-package mains.
   for (const rel of [...EXTRA_ENTRIES, ...packageEntries()]) {
     if (fs.existsSync(path.join(repoRoot, rel))) entries.push(rel);
   }
