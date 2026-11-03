@@ -63,6 +63,7 @@ const askKey = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').
 let lastAsk: { key: string; at: number } | null = null;
 /** Replies that belong to a voice call: they never open the side panel, and they may move the page on their own. */
 const voiceReplies = new Set<number>();
+let pendingMoves: Promise<void>[] = [];
 /** Set by voice.ts: called with a finished typed reply, so a call can speak the ones it has a recording for. */
 export const typedReply: { hook?: (text: string) => void } = {};
 let pendingSteps: Array<{ path: string; at: number }> = [];
@@ -280,47 +281,49 @@ export const copilot = {
     abort?.abort();
   },
   /** Scroll to a section, or change page with the app's router and then scroll. */
-  go(path: string, options: { slow?: boolean; agent?: boolean } = {}) {
+  go(path: string, options: { slow?: boolean; agent?: boolean } = {}): Promise<void> {
     // A page deep in the site (a post, a project, a paper) is reached the way a person would: through its list page, scrolling
     // to the card, and clicking it.
-    if (options.agent && detailParent(path) && !path.includes('#')) {
-      void journey(path);
-      return;
-    }
+    if (options.agent && detailParent(path) && !path.includes('#')) return journey(path);
     const [pathname, hash] = path.split('#');
-    const scroll = () => {
-      const target = hash ? document.getElementById(hash) : null;
-      const down = target ? target.getBoundingClientRect().top > 0 : false;
-      const seconds = hash ? scrollStageToElement(target, options) : scrollStageToTop(options);
-      // On a call the cursor shows the scroll: a wheel moving down or up for as long as the page takes.
-      if (options.agent && seconds > 0) agentCursor.startScroll(down ? 'down' : 'up', seconds * 1000);
-      // Then it points at what it came to show: the section's heading, or the new page's title.
-      if (options.agent) {
-        const shown = target ?? document.querySelector('main h1, h1');
-        window.setTimeout(() => void agentCursor.pointAtElement(shown), seconds * 1000 + 150);
-      }
-    };
-    const run = () => {
+    const scroll = () =>
+      new Promise<void>((resolve) => {
+        const target = hash ? document.getElementById(hash) : null;
+        const down = target ? target.getBoundingClientRect().top > 0 : false;
+        const seconds = hash ? scrollStageToElement(target, options) : scrollStageToTop(options);
+        // On a call the cursor shows the scroll: a wheel moving down or up for as long as the page takes.
+        if (options.agent && seconds > 0) agentCursor.startScroll(down ? 'down' : 'up', seconds * 1000);
+        // Then it points at what it came to show: the section's heading, or the new page's title.
+        if (options.agent) {
+          const shown = target ?? document.querySelector('main h1, h1');
+          window.setTimeout(() => void agentCursor.pointAtElement(shown).then(() => resolve()), seconds * 1000 + 150);
+        } else resolve();
+      });
+    const run = (): Promise<void> => {
       if (options.agent) agentCursor.release(options.slow ? 9000 : 2500);
-      if (!pathname || pathname === window.location.pathname) {
-        scroll();
-        return;
-      }
+      if (!pathname || pathname === window.location.pathname) return scroll();
       if (navigateFn) navigateFn(path);
       else window.location.assign(path);
       // The new page needs a moment to mount before its section exists.
-      let tries = 0;
-      const wait = window.setInterval(() => {
-        tries += 1;
-        if (!hash || document.getElementById(hash) || tries > 25) {
-          window.clearInterval(wait);
-          scroll();
-        }
-      }, 120);
+      return new Promise<void>((resolve) => {
+        let tries = 0;
+        const wait = window.setInterval(() => {
+          tries += 1;
+          if (!hash || document.getElementById(hash) || tries > 25) {
+            window.clearInterval(wait);
+            void scroll().then(() => resolve());
+          }
+        }, 120);
+      });
     };
     // On a call the agent's cursor glides to the link and presses it first, then the page moves.
-    if (options.agent) void agentCursor.pointAtLinkFor(path).then(run);
-    else run();
+    return options.agent ? agentCursor.pointAtLinkFor(path).then(run) : run();
+  },
+  /** On a call, the moves the answer just given has started: the answer is spoken only once they are done. */
+  takeMoves(): Promise<void> {
+    const moves = pendingMoves;
+    pendingMoves = [];
+    return Promise.all(moves).then(() => undefined);
   },
   /** The scroll steps of the voice answer just given, to run as it is spoken. */
   takeSteps() {
@@ -502,7 +505,8 @@ function handle(event: Event, replyId: number) {
       // On a call the page moves and the side panel stays shut: the visitor is listening, not reading.
       if (!voiceReplies.has(replyId) && window.matchMedia('(min-width: 821px)').matches) copilot.setOpen(true);
       const onCall = voiceReplies.has(replyId);
-      copilot.go(event.action.path, { slow: onCall, agent: onCall });
+      const move = copilot.go(event.action.path, { slow: onCall, agent: onCall });
+      if (onCall) pendingMoves.push(move);
     }
   } else if (event.type === 'error') {
     patchMessage(replyId, (m) => ({ text: m.text || event.message, error: !m.text }));
