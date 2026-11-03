@@ -59,6 +59,16 @@ function projectLink(project: CopilotProject): CopilotAction | null {
 export function answer(question: string): CopilotAnswer {
   const q = question.toLowerCase();
 
+  // The Contact page's "Ask the AI right now": one fixed answer per area I consult on.
+  const area = /^\s*(how can you help|how do you help|can you help)( me)? (with|for)\b.*\b(ai engineering|product design|marketing|full[- ]?stack)/.exec(q);
+  if (area) {
+    const label = /full/.test(area[4]) ? 'full-stack development' : area[4];
+    return {
+      text: `I offer free 30-minute consultations on ${label}. Tell me what you are working on and pick a time, and I will come with ideas.`,
+      actions: [{ kind: 'link', label: 'Go to contact', href: '/contact' }],
+    };
+  }
+
   // Small talk, so a plain "hello" is never met with "I couldn't find that". The wording is
   // fixed and claims nothing the site does not say; the live service has the same replies.
   if (/^\s*(hi|hello|hey|yo|howdy|hiya|good (morning|afternoon|evening))\b[\s!.,?]*(there)?[\s!.,?]*$/.test(q)) {
@@ -162,7 +172,7 @@ export const SUGGESTIONS = [
   'Can I book a consultation?',
   'What do you build?',
   'Give me a tour',
-  'Which project used OCR?',
+  'Show me your projects',
   'What is Cortex?',
 ] as const;
 
