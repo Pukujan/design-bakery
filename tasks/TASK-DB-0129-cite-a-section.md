@@ -23,3 +23,10 @@ Backend build, frontend tsc and the copilot test scripts pass. In the browser wi
 - Walk: `citeRoute.ts` `planRoute(current, target, anchor)` gives the ordered steps (page via its list, then heading); `walkTo` in `store.ts` plays the page step with the existing `journey()` through `go()`. Cites are serialized in a queue so several never overlap.
 - Several cites in one answer: on a call the first happens before he speaks; the rest are timed to where the answer names each (`citeAt`, never earlier than the previous one) through `takeCites` in `voice.ts`. In chat the chips come in the order cited.
 - Tests: guard cases added to `test-copilot-cite.mjs`; `test-copilot-cite-route.mjs` for the route and timing.
+
+## Update: anchor and dwell
+- `outline_passages(path)` (backend, `buildPassages` in `sections.ts`): a whole-post summary is at most 4 headings taken evenly in reading order, no repeats, contents and references skipped, each with a quotable first sentence; the post or paper must have been read this turn. The prompt asks for one or two short sentences per passage and a closing offer to go deeper. `cite_section` also refuses a fifth move and a repeated section.
+- One perch per passage: `walkTo` scrolls so the heading sits in the upper third, `agentCursor.perch` glides to the margin beside it (side with room; above it on a phone, `perchSpot`), taps it and stays, following the heading's live rect every 120 ms. The moon does not wander, flee or quip while the agent is visible. The quote stays lit for the passage and is cleared at the next move.
+- Timing (`passageSchedule` in `citeRoute.ts`, used by `takeCites`/`voice.ts`): later moves start on sentence starts, in order, at least 70 characters after the previous one, at most 4 per answer, no repeats; each passage's hold is the speech between its start and the next. The first move still happens before he speaks (its hold is fixed at 14 s until the next move takes over).
+- Chat: no cursor; the cite chips come in the order cited.
+- Tests: passage builder, tool cap/repeat, schedule and perch in `test-copilot-cite.mjs` / `test-copilot-cite-route.mjs`.

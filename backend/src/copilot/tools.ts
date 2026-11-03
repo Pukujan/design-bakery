@@ -6,7 +6,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { Citations } from './citations.js';
-import { checkQuote, findSection, QUOTE_MAX } from './sections.js';
+import { buildPassages, checkQuote, findSection, MAX_PASSAGES, QUOTE_MAX } from './sections.js';
 import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, sectionsForPath, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
 
 export const CONSULT_SERVICES = ['AI engineering', 'Product design', 'Marketing', 'Full-stack development'] as const;
@@ -132,10 +132,32 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
           citations?.record({ path: clean, ok: false, reason: 'no such section' });
           return { ok: false, error: 'no such section', sections: sections.map((s) => s.heading).slice(0, 20) };
         }
+        // At most MAX_PASSAGES moves in one answer, and a section is never pointed at twice.
+        if (citations) {
+          const done = citations.log().filter((c) => c.ok);
+          if (done.length >= MAX_PASSAGES) return { ok: false, error: `already pointed at ${MAX_PASSAGES} sections; just talk now` };
+          if (done.some((c) => c.path === clean && c.anchor === section.id)) return { ok: false, error: 'already pointed at that section this answer' };
+        }
         const checked = checkQuote(section, quote);
         citations?.record({ path: clean, anchor: section.id, quote: checked, ok: true });
         emit({ kind: 'cite', path: clean, anchor: section.id, heading: section.heading, ...(checked ? { quote: checked } : {}) });
         return { ok: true, heading: section.heading, quoteShown: Boolean(checked) };
+      },
+    }),
+
+    outline_passages: tool({
+      description: `For a summary of one post, paper or project: the (at most ${MAX_PASSAGES}) passages to talk about, in order, each with its heading and a first sentence you may quote. Say one or two short sentences per passage (about 35 seconds in all on a call), call cite_section for each in that order, and end with a short offer to go deeper into one part. Reading the page first (read_blog or read_paper) is required for a post or paper.`,
+      inputSchema: z.object({ path: z.string().max(200) }),
+      execute: async ({ path }) => {
+        const clean = path.split('#')[0];
+        if (!(await knownPath(clean))) return { ok: false, error: 'not a page on this site' };
+        if (citations && !/^\/work\//.test(clean)) {
+          const verdict = citations.check(clean);
+          if (!verdict.ok) return { ok: false, error: verdict.reason };
+        }
+        const sections = await sectionsForPath(clean);
+        if (!sections?.length) return { ok: false, error: 'this page has no sections' };
+        return { ok: true, path: clean, passages: buildPassages(sections) };
       },
     }),
 

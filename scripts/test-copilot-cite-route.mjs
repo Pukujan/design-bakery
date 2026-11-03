@@ -21,3 +21,29 @@ assert.equal(citeAt('short answer here', { heading: 'Nowhere to be found' }, 1, 
 assert.equal(citeAt(answer, { heading: 'Evidence boundaries' }, 0, 2, 100), 100, 'never before the previous citation');
 
 console.log('copilot cite route: ok');
+
+// Dwell and anchor: passages land on sentence starts, in order, spaced, capped, never repeated.
+const { passageSchedule, perchSpot, sentenceStart, MAX_CITES, MIN_DWELL_CHARS } = await import(new URL('../frontend/src/app/modules/copilot/citeRoute.ts', import.meta.url).href);
+const talk = 'Here is the short version. The first part is about recording what you do, and it is quite simple. The second part is about replaying it under supervision, which is where trust is built. The third part moves the whole thing to a cloud worker once it has proved itself. Want me to go deeper into one part?';
+const mk = (heading, i) => ({ path: '/blogs/1', anchor: `h${i}`, heading });
+const cites = [mk('Recording', 1), mk('Replaying it', 2), mk('Cloud worker', 3), mk('Recording', 1), mk('Fifth', 5), mk('Sixth', 6)];
+const plan = passageSchedule(talk, cites, { seen: new Set(['/blogs/1#h0']) });
+assert.ok(plan.length <= MAX_CITES - 1, 'the first move is made before speaking, so at most 3 more');
+assert.deepEqual(plan.map((p) => p.cite.anchor), [...new Set(plan.map((p) => p.cite.anchor))], 'no section twice');
+for (const [i, p] of plan.entries()) {
+  assert.ok(p.at > 0 && p.at < talk.length, 'offset inside the text');
+  assert.equal(p.at, sentenceStart(talk, p.at), 'a move starts at a sentence start, never mid-sentence');
+  if (i) assert.ok(p.at >= plan[i - 1].at + MIN_DWELL_CHARS, 'each passage gets its minimum dwell');
+  assert.ok(p.hold >= (i < plan.length - 1 ? MIN_DWELL_CHARS : 1), 'hold covers the passage');
+}
+assert.equal(plan.at(-1).at + plan.at(-1).hold, talk.length, 'the last passage lasts to the end of the answer');
+assert.deepEqual(passageSchedule('Short.', cites), [], 'too short to move twice');
+assert.deepEqual(passageSchedule(talk, [mk('Recording', 0)], { seen: new Set(['/blogs/1#h0']) }), [], 'the first cite is not repeated');
+
+// The perch: margin on the side with room, above on a phone.
+const rect = { left: 300, right: 700, top: 200, height: 40 };
+assert.deepEqual(perchSpot(rect, { width: 1280, height: 800 }), { x: 254, y: 220 });
+assert.deepEqual(perchSpot({ ...rect, left: 20, right: 300 }, { width: 1280, height: 800 }), { x: 346, y: 220 }, 'no room on the left: the right margin');
+assert.equal(perchSpot({ left: 16, right: 360, top: 200, height: 40 }, { width: 390, height: 800 }).y, 166, 'phone: above the heading');
+assert.equal(perchSpot({ left: 300, right: 700, top: 10, height: 40 }, { width: 1280, height: 800 }).y, 70, 'kept below the nav');
+console.log('copilot cite dwell: ok');

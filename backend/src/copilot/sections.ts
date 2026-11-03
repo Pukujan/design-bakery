@@ -103,3 +103,38 @@ export function checkQuote(section: Section, quote: string | undefined): string 
   const at = fold(block).indexOf(folded);
   return squash(block).slice(at, at + wanted.length);
 }
+
+export const MAX_PASSAGES = 4;
+const SKIP_HEADINGS = /^(table of contents|contents|references|bibliography|appendix\b.*|acknowledg(e)?ments?)$/i;
+
+export type Passage = { heading: string; anchor: string; quote?: string };
+
+/** The first sentence of a section's first block, as a quote that checkQuote accepts. */
+function firstSentence(section: Section): string | undefined {
+  const block = section.blocks.find((b) => b.length >= 20);
+  if (!block) return undefined;
+  const sentence = /^.{20,}?[.!?](?=\s|$)/.exec(block)?.[0] ?? block;
+  return checkQuote(section, sentence.length > QUOTE_MAX ? sentence.slice(0, QUOTE_MAX).replace(/\s+\S*$/, '') : sentence);
+}
+
+/**
+ * The passages of a whole-post summary: at most MAX_PASSAGES headings, in reading order, never the same one twice, taken
+ * evenly across the post (skipping contents and references), each with a quotable first sentence. Built from the live
+ * headings, so a post's summary follows its edits.
+ */
+export function buildPassages(sections: Section[], max = MAX_PASSAGES): Passage[] {
+  const limit = Math.min(Math.max(1, max), MAX_PASSAGES);
+  const usable: Section[] = [];
+  const seen = new Set<string>();
+  for (const section of sections) {
+    if (seen.has(section.id) || SKIP_HEADINGS.test(plainHeading(section.heading).replace(/^\d+(\.\d+)*\.?\s+/, ''))) continue;
+    seen.add(section.id);
+    usable.push(section);
+  }
+  // Prefer the main (shallowest) headings; fall back to all of them when the post has few.
+  const top = Math.min(...usable.map((s) => s.level), 6);
+  const main = usable.filter((s) => s.level === top || (s.level === top + 1 && usable.filter((u) => u.level === top).length < 2));
+  const pool = main.length >= 2 ? main : usable;
+  const picked = pool.length <= limit ? pool : Array.from({ length: limit }, (_, i) => pool[Math.round((i * (pool.length - 1)) / (limit - 1))]);
+  return [...new Set(picked)].map((s) => ({ heading: s.heading, anchor: s.id, quote: firstSentence(s) }));
+}

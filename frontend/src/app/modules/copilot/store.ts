@@ -10,7 +10,7 @@ import { answer as localAnswer, type CopilotProject } from '../lab/copilotAnswer
 import { getTurnstileToken } from './turnstile';
 import { scrollStageToElement, scrollStageToTop } from '../lab/stageScroll';
 import { agentCursor } from './agentCursor';
-import { citeAt, planRoute } from './citeRoute';
+import { MAX_CITES, passageSchedule, planRoute } from './citeRoute';
 import { clearQuote, highlightQuote } from './quoteHighlight';
 
 export type CopilotAction =
@@ -74,6 +74,9 @@ let pendingSteps: Array<{ path: string; at: number }> = [];
 /** The citations of a call's answer after the first: each is walked to as the answer reaches it. */
 let pendingCites: Array<Extract<CopilotAction, { kind: 'cite' }>> = [];
 let citesThisTurn = 0;
+const citedKeys = new Set<string>();
+/** The citation made before the answer is spoken; the later ones are scheduled after it. */
+let firstCiteKey = '';
 /** How long a reply may go without a single event before the chat stops waiting for it. */
 const STALL_MS = 25_000;
 
@@ -289,13 +292,14 @@ function headingFor(anchor: string, heading: string): HTMLElement | null {
  */
 let citeQueue: Promise<void> = Promise.resolve();
 /** Several citations in one answer are walked to one after the other, never at once. */
-function cite(action: Extract<CopilotAction, { kind: 'cite' }>): Promise<void> {
-  const run = citeQueue.then(() => walkTo(action)).catch(() => undefined);
+function cite(action: Extract<CopilotAction, { kind: 'cite' }>, holdMs?: number): Promise<void> {
+  const run = citeQueue.then(() => walkTo(action, holdMs)).catch(() => undefined);
   citeQueue = run;
   return run;
 }
 
-async function walkTo(action: Extract<CopilotAction, { kind: 'cite' }>) {
+/** `holdMs` is how long the passage takes to speak: the moon stays at the heading and the quote stays lit for that long. */
+async function walkTo(action: Extract<CopilotAction, { kind: 'cite' }>, holdMs = 14_000) {
   for (const step of planRoute(window.location.pathname, action.path, action.anchor)) {
     if (step.kind === 'page') await copilot.go(step.path, { slow: true, agent: true });
   }
@@ -310,9 +314,10 @@ async function walkTo(action: Extract<CopilotAction, { kind: 'cite' }>) {
     return;
   }
   clearQuote();
-  agentCursor.release(25_000);
+  agentCursor.release(holdMs + 4000);
+  // The heading sits in the upper third of the screen; if it already does, the page does not move.
   const rect = heading.getBoundingClientRect();
-  const inView = rect.top >= 110 && rect.bottom <= window.innerHeight * 0.6;
+  const inView = rect.top >= 90 && rect.top <= window.innerHeight * 0.38;
   if (!inView) {
     const down = rect.top > 0;
     const seconds = scrollStageToElement(heading, { slow: true, offset: -Math.round(window.innerHeight * 0.22) });
@@ -321,15 +326,11 @@ async function walkTo(action: Extract<CopilotAction, { kind: 'cite' }>) {
       await pause(seconds * 1000 + 250);
     }
   }
-  await agentCursor.pointAtElement(heading);
-  if (action.quote) {
-    const block = highlightQuote(heading, action.quote);
-    if (block) {
-      await pause(500);
-      await agentCursor.pointAtElement(block);
-    }
-  }
-  agentCursor.release(7000);
+  // Tap the heading from the margin beside it and stay there while the passage is spoken.
+  await agentCursor.perch(heading);
+  if (action.quote) highlightQuote(heading, action.quote, holdMs);
+  await pause(Math.min(holdMs, 1500));
+  agentCursor.release(Math.max(0, holdMs - 1500) + 1500);
 }
 
 export const copilot = {
@@ -391,7 +392,9 @@ export const copilot = {
     return options.agent ? agentCursor.pointAtLinkFor(path).then(run) : run();
   },
   /** Point at a section of the page cited by the copilot (a chip click in text chat, a move on a call). */
-  cite,
+  cite: (action: Extract<CopilotAction, { kind: 'cite' }>) => cite(action),
+  /** The same, with how long its passage takes to speak (a call). */
+  citeFor: cite,
   /** On a call, the moves the answer just given has started: the answer is spoken only once they are done. */
   takeMoves(): Promise<void> {
     const moves = pendingMoves;
@@ -402,11 +405,7 @@ export const copilot = {
   takeCites(answer: string) {
     const cites = pendingCites;
     pendingCites = [];
-    let after = 0;
-    return cites.map((action, index) => {
-      after = citeAt(answer, action, index + 1, cites.length + 1, after);
-      return { action, at: after };
-    });
+    return passageSchedule(answer, cites, { seen: new Set(firstCiteKey ? [firstCiteKey] : []) });
   },
   /** The scroll steps of the voice answer just given, to run as it is spoken. */
   takeSteps() {
@@ -448,6 +447,8 @@ export const copilot = {
     pendingSteps = [];
     pendingCites = [];
     citesThisTurn = 0;
+    citedKeys.clear();
+    firstCiteKey = '';
     abort = new AbortController();
     try {
       await stream([...history, { role: 'user', content: question }], page, replyId, abort.signal, false, voice);
@@ -584,8 +585,13 @@ function handle(event: Event, replyId: number) {
       // On a call it happens before the answer is spoken, after any page move this answer made (the pages load in turn).
       // The first happens before the answer is spoken; later ones as he reaches them (takeCites).
       const action = event.action;
+      // At most MAX_CITES moves in one answer, and a section is never visited twice.
+      const key = `${action.path}#${action.anchor}`;
+      if (citesThisTurn >= MAX_CITES || citedKeys.has(key)) return;
+      citedKeys.add(key);
       citesThisTurn += 1;
       if (citesThisTurn === 1) {
+        firstCiteKey = key;
         const before = Promise.all(pendingMoves);
         pendingMoves.push(before.then(() => cite(action)).catch(() => undefined));
       } else pendingCites.push(action);

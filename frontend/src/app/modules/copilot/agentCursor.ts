@@ -4,6 +4,7 @@
  * that jumps. This file holds its state; AgentCursor.tsx draws it.
  */
 import { useSyncExternalStore } from 'react';
+import { perchSpot } from './citeRoute';
 
 type State = { visible: boolean; x: number; y: number; presses: number; scroll: 'up' | 'down' | null; moonOut: boolean; moonReturning: boolean; caption: string };
 
@@ -11,6 +12,7 @@ let state: State = { visible: false, x: -100, y: -100, presses: 0, scroll: null,
 let scrollTimer: ReturnType<typeof setTimeout> | undefined;
 const listeners = new Set<() => void>();
 let hideTimer: ReturnType<typeof setTimeout> | undefined;
+let perchTimer: ReturnType<typeof setInterval> | undefined;
 
 const set = (patch: Partial<State>) => {
   state = { ...state, ...patch };
@@ -102,6 +104,28 @@ export const agentCursor = {
     set({ presses: state.presses + 1 });
   },
   /**
+   * Sit beside a heading and stay there: glide to its margin, tap it, then follow its position as the page settles (the
+   * moon is anchored to the heading, not to a spot on the screen) until the next move or release.
+   */
+  async perch(element: HTMLElement | null) {
+    if (!element) return;
+    agentCursor.unperch();
+    clearTimeout(hideTimer);
+    const spot = () => perchSpot(element.getBoundingClientRect(), { width: window.innerWidth, height: window.innerHeight });
+    set({ visible: true, scroll: null, ...spot() });
+    await wait(GLIDE_MS);
+    set({ presses: state.presses + 1 });
+    perchTimer = setInterval(() => {
+      if (!element.isConnected) return;
+      const next = spot();
+      if (Math.abs(next.x - state.x) > 2 || Math.abs(next.y - state.y) > 2) set(next);
+    }, 120);
+  },
+  unperch() {
+    clearInterval(perchTimer);
+    perchTimer = undefined;
+  },
+  /**
    * Show the cursor scrolling: it rests mid-page with a wheel and arrows moving up or down for as long as the page takes
    * to scroll, so the visitor sees the agent doing it.
    */
@@ -116,11 +140,13 @@ export const agentCursor = {
   release(afterMs: number) {
     clearTimeout(hideTimer);
     hideTimer = setTimeout(() => {
+      agentCursor.unperch();
       clearHover();
       set({ visible: false });
     }, afterMs);
   },
   hide() {
+    agentCursor.unperch();
     clearTimeout(hideTimer);
     clearHover();
     set({ visible: false });

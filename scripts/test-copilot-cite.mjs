@@ -121,4 +121,26 @@ assert.match(trace[1], new RegExp(`^/research/papers/${paperId}#`));
 assert.match(trace[3], /!no such section/);
 assert.equal(guarded.log()[1].ok, true);
 
+// 7. The passage builder: a whole-post summary is at most four headings, in order, no repeats, each quotable.
+const { buildPassages, MAX_PASSAGES } = sections;
+const longPost = ['# Big post', '', 'Intro words here that are long enough to quote. More.', '', '## Table of Contents', '', '- a'];
+for (let i = 1; i <= 9; i += 1) longPost.push('', `## Part ${i < 3 ? 'same' : i}`, '', `This is the opening sentence of part ${i}, long enough to quote. And a second one.`);
+longPost.push('', '## References', '', 'A list of sources that we skip entirely.');
+const passages = buildPassages(sectionsOfMarkdown(longPost.join('\n'), { levels: [1, 2, 3] }));
+assert.ok(passages.length <= MAX_PASSAGES && passages.length >= 3, 'three or four passages for a long post');
+assert.equal(new Set(passages.map((p) => p.anchor)).size, passages.length, 'no repeats (two headings share a name and still differ)');
+assert.ok(!passages.some((p) => /references|table of contents/i.test(p.heading)), 'contents and references are skipped');
+const order = sectionsOfMarkdown(longPost.join('\n'), { levels: [1, 2, 3] }).map((s) => s.id);
+assert.deepEqual(passages.map((p) => order.indexOf(p.anchor)), [...passages.map((p) => order.indexOf(p.anchor))].sort((a, b) => a - b), 'in reading order');
+assert.ok(passages.every((p) => p.quote && p.quote.length <= 160), 'each has a quotable first sentence');
+assert.equal(buildPassages(sectionsOfMarkdown('## Only\n\nOne section with a sentence long enough.', { levels: [2] })).length, 1);
+assert.equal(buildPassages([]).length, 0);
+// The tool refuses a fifth move and a repeat.
+const capped = createCitations();
+const cap = tools.makeTools(() => {}, { canNavigate: false, citations: capped }).cite_section;
+const runCap = (heading) => cap.execute({ path: `/work/${slug}`, heading }, { toolCallId: 't', messages: [] });
+assert.equal((await runCap('What it is')).ok, true);
+assert.equal((await runCap('What it is')).ok, false, 'a section is never pointed at twice in one answer');
+assert.equal((await runCap('Built with')).ok, true);
+
 console.log('copilot cite: ok');
