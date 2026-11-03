@@ -276,13 +276,10 @@ export async function routeRequest(question: string, firstTurn: boolean, voice =
   const ask: Ask = { question, q: norm(question), voice, firstTurn };
   const replied = await answerToOffer(ask, previous);
   if (replied) return replied;
-<<<<<<< HEAD
   // Famous AI trick questions and "good catch" banter (gotchas.ts): short, self-contained, no site data.
   const gotcha = gotchaReply(question, voice, previous);
   if (gotcha) return gotcha;
-=======
   if (!firstTurn && refersBack(question)) return null;
->>>>>>> origin/task/TASK-DB-0131-no-saved-reply-for-backrefs
   if (ask.q && selfContained(ask.q)) {
     const due = ROUTINES.filter((routine) => routine.test(ask));
     if (due.length) {
