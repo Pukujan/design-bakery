@@ -23,7 +23,7 @@ import { devProvider, pickProfile, routeFor, smartProviders, type Provider } fro
 import { makeTools, type CopilotAction } from './tools.js';
 import { TurnTrace } from './tracing.js';
 import { takeDurableCopilotLimit, durableLimitConfigured } from './durableLimit.js';
-import { cachedAnswer } from './answers.js';
+import { cachedAnswer, FOLLOW_ON_CALL } from './answers.js';
 import { createTextFilter } from './textFilter.js';
 
 export type CopilotEvent =
@@ -39,6 +39,8 @@ const chatBody = z.object({
     .min(1)
     .max(24),
   page: z.object({ path: z.string().max(300), title: z.string().max(200) }).optional(),
+  /** True on a voice call: the reply is spoken, and the page may move on its own. */
+  voice: z.boolean().optional(),
 });
 
 const limiter = createLimiter(limitConfigFromEnv());
@@ -57,6 +59,9 @@ How to answer:
 - Use tools silently: do not announce that you are reading, searching or about to answer. Do not repeat a page title already shown on a link.
 - Use show_projects for "which projects" questions, and share_link for LinkedIn, GitHub, Behance, email, or a project link from the brief.
 - Plain text only, no markdown headings or tables. Short lists are fine.`;
+
+/** Added to the prompt on a voice call: short spoken sentences, and moving the visitor without asking first. */
+const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Do not ask permission to move the visitor: when a page or a section would help, say in a few words where you are taking them and call navigate right away, then keep talking about what is on that page. For anything long, give one passage and offer to go on to the next.`;
 
 /**
  * A short yes to a question the assistant just asked. The only way a page moves on its
@@ -152,26 +157,37 @@ copilotRouter.post('/chat', async (req, res) => {
     res.status(429).set('retry-after', String(Math.ceil((bySession.retryAt - Date.now()) / 1000))).json({ ok: false, code: 'RATE_LIMITED' });
     return;
   }
-  const { messages, page } = parsed.data;
+  const { messages, page, voice = false } = parsed.data;
   const question = messages.at(-1)?.content ?? '';
   const turn = new TurnTrace(session);
   turn.input = question;
+  turn.channel = voice ? 'voice' : 'text';
 
   res.status(200).set({ 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-store', 'x-accel-buffering': 'no' });
   res.flushHeaders();
-  const send = (event: CopilotEvent) => res.write(`${JSON.stringify(event)}\n`);
+  const send = (event: CopilotEvent) => {
+    if (event.type === 'action') turn.actions.push(event.action.kind === 'navigate' ? `navigate:${event.action.path}${event.action.go ? '(go)' : ''}` : event.action.kind);
+    res.write(`${JSON.stringify(event)}\n`);
+  };
 
   // The instant tier, before the durable limit: the questions visitors open with are
   // answered from the site's own data with no model call, so they cost nothing to serve
   // and keep working when the database holding the rate budget is down. A follow-up
   // carries context, so only a near-exact match counts after the first turn.
-  const cached = await cachedAnswer(question, messages.length === 1);
+  const cached = await cachedAnswer(question, messages.length === 1, voice);
   if (cached) {
     turn.model = `cache:${cached.intent}`;
     turn.output = cached.text;
     send({ type: 'text', text: cached.text });
-    // An instant answer offers its pages as chips the visitor clicks; it never moves them.
-    for (const action of cached.actions) send({ type: 'action', action: action.kind === 'navigate' ? { ...action, go: false } : action });
+    // In a chat an instant answer offers its pages as chips the visitor clicks. On a call, when the visitor asked to be
+    // shown something, the call takes them there, and a tour scrolls section by section as it is spoken.
+    const follow = voice && FOLLOW_ON_CALL.has(cached.intent);
+    for (const action of cached.actions) {
+      // On a call there are no buttons: only a page move the call makes itself.
+      if (voice && !(follow && action.kind === 'navigate')) continue;
+      send({ type: 'action', action: action.kind === 'navigate' ? { ...action, go: follow } : action });
+    }
+    if (voice) for (const step of cached.steps ?? []) send({ type: 'action', action: { kind: 'scrollstep', path: step.path, at: step.at } });
     send({ type: 'done', model: turn.model });
     turn.finish('done');
     res.end();
@@ -226,9 +242,16 @@ copilotRouter.post('/chat', async (req, res) => {
     );
     const result = streamText({
       model,
-      system: `${SYSTEM}\n\n# Site brief\n${brief}`,
+      system: `${voice ? `${SYSTEM}\n\n${VOICE_NOTE}` : SYSTEM}\n\n# Site brief\n${brief}`,
       messages: history,
-      tools: makeTools((action) => send({ type: 'action', action }), { canNavigate: visitorSaidYes(messages) }),
+      tools: makeTools(
+        // On a call the model moves the page itself and sends no buttons.
+        (action) => {
+          if (voice && action.kind !== 'navigate') return;
+          send({ type: 'action', action });
+        },
+        { canNavigate: voice || visitorSaidYes(messages) },
+      ),
       stopWhen: stepCountIs(6),
       maxOutputTokens: 240,
       abortSignal: abort.signal,
@@ -261,6 +284,11 @@ copilotRouter.post('/chat', async (req, res) => {
       }
     }
     turn.output = filter.flush();
+    // A model that only called tools and said nothing must not leave the visitor (or a call) in silence.
+    if (!turn.output.trim()) {
+      turn.output = turn.actions.some((a) => a.startsWith('navigate')) ? 'Here it is.' : 'I lost my train of thought there. Could you ask that again?';
+      send({ type: 'text', text: turn.output });
+    }
     send({ type: 'done', model: turn.model });
     turn.finish('done');
   } catch (error) {

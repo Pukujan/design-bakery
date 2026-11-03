@@ -57,6 +57,7 @@ function useTypedPlaceholder(active: boolean) {
 function ActionView({ action }: { action: CopilotAction }) {
   const records = useProjectRecords();
   const projectBySlug = new Map(records.map((p) => [p.slug, p]));
+  if (action.kind === 'scrollstep') return null;
   if (action.kind === 'navigate') {
     return (
       <button type="button" className="lab-chip lab-chip--solid" onClick={() => copilot.go(action.path)}>

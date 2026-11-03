@@ -16,6 +16,7 @@ import './copilot.css';
 import { CopilotChat } from './CopilotChat';
 import { MiniCopilot } from './MiniCopilot';
 import VoiceOrb from './VoiceOrb';
+import MoonCursor from './MoonCursor';
 import { copilot, useCopilot } from './store';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
@@ -167,6 +168,7 @@ export default function CopilotDock() {
       onBlur={onBlur}
     >
       <VoiceOrb />
+      <MoonCursor />
       <AnimatePresence>
         {showPill && (
           <motion.button
