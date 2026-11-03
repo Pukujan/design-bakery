@@ -22,7 +22,9 @@ export type CopilotAction =
   /** Voice calls only: scroll to a section when the spoken answer reaches character `at` (never shown as a chip). */
   | { kind: 'scrollstep'; path: string; at: number }
   /** Point at a section of a post, paper or project: scroll to its heading, tap it, highlight `quote`. Checked against the live content by the server. */
-  | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string; mode?: 'swipe' | 'perch' };
+  | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string; mode?: 'swipe' | 'perch' }
+  /** An expansion chip: a follow-up question. Clicking sends `text` as the visitor's message; the page does not move. */
+  | { kind: 'ask'; text: string };
 
 export type CopilotMessage = {
   id: number;
@@ -81,6 +83,8 @@ const citedKeys = new Set<string>();
 let firstCiteKey = '';
 /** How long a reply may go without a single event before the chat stops waiting for it. */
 const STALL_MS = 25_000;
+/** How long a clicked citation's passage stays lit, and the moon beside it, in a text chat. */
+const CHIP_CITE_HOLD_MS = 6000;
 
 function load(): CopilotMessage[] {
   try {
@@ -460,8 +464,19 @@ export const copilot = {
     // On a call the agent's cursor glides to the link and presses it first, then the page moves.
     return options.agent ? agentCursor.pointAtLinkFor(path).then(run) : run();
   },
-  /** Point at a section of the page cited by the copilot (a chip click in text chat, a move on a call). */
-  cite: (action: Extract<CopilotAction, { kind: 'cite' }>) => cite(action),
+  /**
+   * A navigation chip, or a "yes" to an offer to open a page: the moon comes in as a guest, goes to the link and presses it,
+   * and leaves a moment after the page has arrived. On a phone the chat sheet closes first, since it would cover the target.
+   */
+  guide(path: string): Promise<void> {
+    if (!window.matchMedia('(min-width: 821px)').matches) set({ open: false });
+    return copilot.go(path, { slow: true, agent: true }).catch(() => agentCursor.hide());
+  },
+  /** Point at a section of the page cited by the copilot (a chip click in text chat). The moon stays a few seconds, not a whole spoken passage. */
+  cite: (action: Extract<CopilotAction, { kind: 'cite' }>) => {
+    if (!window.matchMedia('(min-width: 821px)').matches) set({ open: false });
+    return cite(action, CHIP_CITE_HOLD_MS);
+  },
   /** The same, with how long its passage takes to speak (a call). */
   citeFor: cite,
   /** On a call, the moves the answer just given has started: the answer is spoken only once they are done. */
@@ -694,7 +709,8 @@ function handle(event: Event, replyId: number) {
       // On a call the page moves and the side panel stays shut: the visitor is listening, not reading.
       if (!voiceReplies.has(replyId) && window.matchMedia('(min-width: 821px)').matches) copilot.setOpen(true);
       const onCall = voiceReplies.has(replyId);
-      const move = copilot.go(event.action.path, { slow: onCall, agent: onCall });
+      // Typed or spoken, the moon takes the visitor there.
+      const move = onCall ? copilot.go(event.action.path, { slow: true, agent: true }) : copilot.guide(event.action.path);
       if (onCall) pendingMoves.push(move);
     }
   } else if (event.type === 'error') {

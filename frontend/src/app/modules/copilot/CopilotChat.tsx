@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { ArrowUp, Mic, PhoneOff, Rocket, Square } from 'lucide-react';
+import { ArrowUp, Compass, MessageCircle, Mic, PhoneOff, Square } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useProjectRecords } from '../../lib/portfolioDocs';
 import { PLACEHOLDER_QUESTIONS, SUGGESTIONS } from '../lab/copilotAnswers';
+import { chipKindOf, openLabel } from './chips';
 import { copilot, useCopilot, type CopilotAction, type CopilotMessage } from './store';
 import { useVoice, voice } from './voice';
 import './chat-core.css';
@@ -18,6 +19,7 @@ const STEP_LABEL: Record<string, string> = {
   show_projects: 'Pulling up projects',
   share_link: 'Finding the link',
   book_call: 'Opening the booking page',
+  suggest_followups: 'Thinking of follow-ups',
 };
 
 
@@ -54,22 +56,45 @@ function useTypedPlaceholder(active: boolean) {
   return text;
 }
 
+const ICON = { className: 'cp-rocket', size: 14, 'aria-hidden': true, focusable: 'false' } as const;
+
+/**
+ * Two kinds of chip (chips.ts): a navigation chip takes the visitor somewhere and the moon walks them there, so it has
+ * a compass and says where it goes; an expansion chip is a follow-up in the same topic, reads like something the
+ * visitor would say, and sends it as their message.
+ */
 function ActionView({ action }: { action: CopilotAction }) {
   const records = useProjectRecords();
+  const location = useLocation();
+  const { busy } = useCopilot();
   const projectBySlug = new Map(records.map((p) => [p.slug, p]));
-  if (action.kind === 'scrollstep') return null;
+  if (action.kind === 'scrollstep' || chipKindOf(action) === null) return null;
+  if (action.kind === 'ask') {
+    return (
+      <button
+        type="button"
+        className="lab-chip lab-chip--reply"
+        data-chip="expand"
+        disabled={busy}
+        onClick={() => void copilot.send(action.text, { path: location.pathname, title: document.title })}
+      >
+        <MessageCircle {...ICON} />
+        {action.text}
+      </button>
+    );
+  }
   if (action.kind === 'cite') {
     return (
-      <button type="button" className="lab-chip" onClick={() => void copilot.cite(action)}>
-        <Rocket className="cp-rocket" size={14} aria-hidden="true" focusable="false" />
-        Show: {action.heading}
+      <button type="button" className="lab-chip" data-chip="navigate" onClick={() => void copilot.cite(action)}>
+        <Compass {...ICON} />
+        Jump to {action.heading}
       </button>
     );
   }
   if (action.kind === 'navigate') {
     return (
-      <button type="button" className="lab-chip lab-chip--solid" onClick={() => copilot.go(action.path)}>
-        <Rocket className="cp-rocket" size={14} aria-hidden="true" focusable="false" />
+      <button type="button" className="lab-chip lab-chip--solid" data-chip="navigate" onClick={() => void copilot.guide(action.path)}>
+        <Compass {...ICON} />
         {action.label}
       </button>
     );
@@ -85,11 +110,12 @@ function ActionView({ action }: { action: CopilotAction }) {
               key={slug}
               type="button"
               className="lab-chip"
+              data-chip="navigate"
               style={{ '--chip-dot': project.accentColor } as React.CSSProperties}
-              onClick={() => copilot.go(`/work/${slug}`)}
+              onClick={() => void copilot.guide(`/work/${slug}`)}
             >
-              <Rocket className="cp-rocket" size={14} aria-hidden="true" focusable="false" />
-              {project.title}
+              <Compass {...ICON} />
+              {openLabel(project.title)}
             </button>
           );
         })}
@@ -98,15 +124,25 @@ function ActionView({ action }: { action: CopilotAction }) {
   }
   if (action.kind === 'book') {
     return (
-      <a className="lab-chip lab-chip--solid" href={action.url} target="_blank" rel="noopener noreferrer">
+      <a className="lab-chip lab-chip--solid" data-chip="navigate" href={action.url} target="_blank" rel="noopener noreferrer">
         Pick a time ↗
       </a>
+    );
+  }
+  // A page of this site is walked to like any other; a link to another site or a mail address opens as a link.
+  if (action.url.startsWith('/')) {
+    return (
+      <button type="button" className="lab-chip lab-chip--solid" data-chip="navigate" onClick={() => void copilot.guide(action.url)}>
+        <Compass {...ICON} />
+        {action.label}
+      </button>
     );
   }
   const external = /^(https?:|mailto:)/.test(action.url);
   return (
     <a
       className="lab-chip lab-chip--solid"
+      data-chip="navigate"
       href={action.url}
       target={external && !action.url.startsWith('mailto:') ? '_blank' : undefined}
       rel="noopener noreferrer"

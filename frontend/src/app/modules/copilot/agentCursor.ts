@@ -4,15 +4,24 @@
  * that jumps. This file holds its state; AgentCursor.tsx draws it.
  */
 import { useSyncExternalStore } from 'react';
-import { perchSpot } from './citeRoute';
+import { nearestEdge, perchSpot } from './citeRoute';
 
-type State = { visible: boolean; x: number; y: number; presses: number; scroll: 'up' | 'down' | null; moonOut: boolean; moonReturning: boolean; caption: string };
+type State = { visible: boolean; x: number; y: number; presses: number; scroll: 'up' | 'down' | null; moonOut: boolean; moonReturning: boolean; caption: string;
+  /** The moon is a visitor on a text chat's errand, not the call's mascot: it flies in, guides, and flies out. */
+  guest: boolean; leaving: boolean; entry: { x: number; y: number } | null; onCall: boolean };
 
-let state: State = { visible: false, x: -100, y: -100, presses: 0, scroll: null, moonOut: false, moonReturning: false, caption: '' };
+let state: State = { visible: false, x: -100, y: -100, presses: 0, scroll: null, moonOut: false, moonReturning: false, caption: '', guest: false, leaving: false, entry: null, onCall: false };
 let scrollTimer: ReturnType<typeof setTimeout> | undefined;
 const listeners = new Set<() => void>();
 let hideTimer: ReturnType<typeof setTimeout> | undefined;
 let perchTimer: ReturnType<typeof setInterval> | undefined;
+let guestTimer: ReturnType<typeof setTimeout> | undefined;
+let leaveTimer: ReturnType<typeof setTimeout> | undefined;
+/** However a journey ends or fails, a guest moon is gone by then. */
+const GUEST_MAX_MS = 70_000;
+const LEAVE_MAX_MS = 3000;
+/** The moon's size on screen (MoonCursor's SIZE). */
+const MOON = 46;
 
 const set = (patch: Partial<State>) => {
   state = { ...state, ...patch };
@@ -44,6 +53,21 @@ function clearHover() {
   document.querySelectorAll('[data-agent-hover]').forEach((element) => element.removeAttribute('data-agent-hover'));
 }
 
+/**
+ * Called before the cursor is shown. Off a call, the moon is a guest: it starts just outside the screen edge nearest the
+ * place it is going and comes in from there. Already on screen (or on a call, where it is the call's own moon), nothing changes.
+ */
+function appear(toward: { x: number; y: number }) {
+  clearTimeout(leaveTimer);
+  if (state.visible) {
+    if (state.leaving) set({ leaving: false });
+  } else if (!state.onCall) {
+    set({ guest: true, leaving: false, entry: nearestEdge(toward, { width: window.innerWidth, height: window.innerHeight }, MOON) });
+  }
+  clearTimeout(guestTimer);
+  if (state.guest) guestTimer = setTimeout(() => agentCursor.finishGuest(), GUEST_MAX_MS);
+}
+
 const GLIDE_MS = 800;
 const PRESS_MS = 280;
 
@@ -68,6 +92,8 @@ export const agentCursor = {
   async pointAtLinkFor(path: string) {
     clearTimeout(hideTimer);
     const link = visibleLinkFor(path);
+    const rect0 = link?.getBoundingClientRect();
+    appear(rect0 ? { x: rect0.left + rect0.width / 2, y: rect0.top + rect0.height / 2 } : { x: window.innerWidth * 0.62, y: window.innerHeight * 0.5 });
     if (!state.visible) set({ x: window.innerWidth * 0.72, y: window.innerHeight * 0.62 });
     set({ visible: true });
     if (!link) {
@@ -94,6 +120,7 @@ export const agentCursor = {
     const rect = element.getBoundingClientRect();
     if (rect.bottom < 0 || rect.top > window.innerHeight) return;
     clearTimeout(hideTimer);
+    appear({ x: rect.left + 40, y: rect.top + 20 });
     set({
       visible: true,
       scroll: null,
@@ -111,6 +138,7 @@ export const agentCursor = {
     if (!element) return;
     agentCursor.unperch();
     clearTimeout(hideTimer);
+    appear({ x: element.getBoundingClientRect().left, y: element.getBoundingClientRect().top });
     const spot = () => perchSpot(element.getBoundingClientRect(), { width: window.innerWidth, height: window.innerHeight });
     set({ visible: true, scroll: null, ...spot() });
     await wait(GLIDE_MS);
@@ -132,6 +160,7 @@ export const agentCursor = {
   startScroll(direction: 'up' | 'down', ms: number) {
     clearTimeout(hideTimer);
     clearTimeout(scrollTimer);
+    appear({ x: window.innerWidth * 0.62, y: window.innerHeight * 0.5 });
     if (!state.visible) set({ x: window.innerWidth * 0.62, y: window.innerHeight * 0.5 });
     set({ visible: true, scroll: direction });
     scrollTimer = setTimeout(() => set({ scroll: null }), ms);
@@ -142,14 +171,44 @@ export const agentCursor = {
     hideTimer = setTimeout(() => {
       agentCursor.unperch();
       clearHover();
-      set({ visible: false });
+      if (state.guest) agentCursor.leave();
+      else set({ visible: false });
     }, afterMs);
   },
   hide() {
     agentCursor.unperch();
     clearTimeout(hideTimer);
     clearHover();
-    set({ visible: false });
+    if (state.guest) agentCursor.finishGuest();
+    else set({ visible: false });
+  },
+  /** A guest moon heads for the nearest edge (MoonCursor flies it there and calls finishGuest); if it never does, it is removed anyway. */
+  leave() {
+    if (!state.guest || state.leaving) return;
+    agentCursor.unperch();
+    clearHover();
+    set({ leaving: true, scroll: null, caption: '' });
+    clearTimeout(leaveTimer);
+    leaveTimer = setTimeout(() => agentCursor.finishGuest(), LEAVE_MAX_MS);
+  },
+  /** The guest is gone: nothing of it is left on screen. */
+  finishGuest() {
+    clearTimeout(guestTimer);
+    clearTimeout(leaveTimer);
+    clearTimeout(hideTimer);
+    clearTimeout(scrollTimer);
+    agentCursor.unperch();
+    clearHover();
+    set({ visible: false, guest: false, leaving: false, entry: null, scroll: null, caption: '' });
+  },
+  /** MoonCursor tells us when a voice call is on: on a call the moon is the call's own and never a guest. */
+  setOnCall(onCall: boolean) {
+    if (state.onCall === onCall) return;
+    set({ onCall, ...(onCall ? { guest: false, leaving: false, entry: null } : {}) });
+    if (onCall) {
+      clearTimeout(guestTimer);
+      clearTimeout(leaveTimer);
+    }
   },
 };
 
