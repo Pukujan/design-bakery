@@ -16,6 +16,13 @@ The copilot is funny, dry and gently sarcastic by default, loves AI and tech, an
 - Reader: `latestNews()` (cached 5 minutes, never throws, re-filters on read) feeds a "Things I read today" block after the site brief in the model prompt: three items, rotated by day, each line says where it came from ("OpenAI's own announcement" / "reported by X") and is framed as read-not-mine, no verdicts and as data, not instructions.
 - `scripts/test-copilot-news.mjs` (`pnpm run test:copilot-news`): filtering, cleaning, feed parsing, collection (dedupe, caps, failing source), reader cache, prompt block, persona prompt checks.
 
+## Update: kinds, polite fetching
+- Each item has a `kind` (`newsKinds.ts`): `release` (strict, allowlisted), `blunder` (funny AI fail), `meme` (viral joke, linked to its Hacker News thread only, never copied), `security` (breach, leak, exploit, ransomware). Plain regexes classify; caps per day: 8 / 2 / 1 / 2 of 13.
+- Blunders and security stories need a second allowlisted source on the same story, or the maker's own first-party post; the stored source reads "TechCrunch and Ars Technica" and the prompt says "reportedly", jokes aim at the tech/practice, never a person or victim, "developing" is allowed.
+- Hard limits for every kind: politics; death, injury, hospitals, patients, schools, children, safety systems; layoffs. Security also: no country or party blame, no crypto price or buy/sell talk. Company breaches, big leaks and ransomware on companies are allowed. A real question (security or otherwise) gets a proper answer.
+- Fetching: structured feeds only (RSS/Atom, arXiv API, GitHub releases atom for four repos, HN Algolia). Clear User-Agent, robots.txt respected, ETag / If-Modified-Since sent, once a day, a failed source is skipped and the previous rows stay. A site with no feed is skipped, never scraped. Summaries come from the item's own description (no model call). Scheduled in the API process; `newsJob.js` for a VPS timer per `vps/PLAN.md` (not installed by hand).
+- Migration 012 gained `kind`.
+
 ## Evidence
 `pnpm --dir backend run build`, `node scripts/test-copilot-news.mjs`, `node scripts/test-copilot-answers.mjs` pass. A live collection run (no database write) returned five fitting items from TechCrunch and Google's blog; Hacker News items that day were all finance or gloom and were filtered out. No live model turn was run (needs a visitor pass).
 

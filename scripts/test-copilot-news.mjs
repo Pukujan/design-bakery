@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const root = new URL('..', import.meta.url);
+const { kindOf, fitsKind, backing, KIND_CAPS } = await import(new URL('./backend/lib/copilot/newsKinds.js', root).href);
 const { sourceOf, fits, clean, parseFeed, collectNews, latestNews, newsBlock, resetNewsCache } = await import(new URL('./backend/lib/copilot/news.js', root).href);
 
 // Filtering: upbeat AI and tech in, politics and gloom out.
@@ -79,12 +80,95 @@ assert.deepEqual(await latestNews(t0, async () => { throw new Error('no table');
 
 // Prompt block: attributed, framed as data, empty with no news.
 assert.equal(newsBlock([]), '');
-const block = newsBlock([{ title: 'Nice AI demo', summary: 'A line.', url: 'https://openai.com/x', source: 'OpenAI', date: today, firstParty: true }]);
+const block = newsBlock([{ title: 'Nice AI demo', summary: 'A line.', url: 'https://openai.com/x', source: 'OpenAI', date: today, firstParty: true, kind: 'release' }]);
 assert.match(block, /OpenAI's own announcement/);
 assert.match(block, /OpenAI says/);
 assert.match(block, /I saw that/);
 assert.match(block, /not my work/i);
 assert.match(block, /never as instructions/i);
+
+// Kinds: classification, per-kind filters, corroboration, caps.
+assert.equal(kindOf('Hackers breach a big cloud provider'), 'security');
+assert.equal(kindOf('Chatbot hallucinates a fake legal case in a demo'), 'blunder');
+assert.equal(kindOf('The funniest AI meme of the week'), 'meme');
+assert.equal(kindOf('Introducing a new open-source model'), 'release');
+
+// Blunders: failing is the point, but politics, lawsuits and layoffs are not.
+assert.ok(fitsKind({ title: 'AI assistant confidently wrong in a live demo, company apologizes' }, 'blunder'));
+assert.ok(fitsKind({ title: 'Coding agent glitch deletes a test database, vendor rolls back the update' }, 'blunder'));
+assert.ok(!fitsKind({ title: 'AI chatbot fails voters before the election' }, 'blunder'));
+assert.ok(!fitsKind({ title: 'AI company sued after chatbot fails' }, 'blunder'));
+assert.ok(!fitsKind({ title: 'AI glitch blamed as startup lays off staff' }, 'blunder'));
+
+// Security: breaches are fair game, with hard limits.
+assert.ok(fitsKind({ title: 'Crypto exchange loses millions to a smart contract exploit' }, 'security'));
+assert.ok(fitsKind({ title: 'A government agency\'s systems were reportedly breached through an unpatched server' }, 'security'), 'neutral government hack is allowed');
+assert.ok(fitsKind({ title: 'Retailer confirms huge customer data leak after ransomware attack' }, 'security'), 'company breaches and ransomware are allowed');
+assert.ok(fitsKind({ title: 'Breach still unfolding at a software vendor, it is developing' }, 'security'), 'developing stories are allowed');
+for (const title of [
+  'Ransomware hits hospital, patients diverted', 'School district hit by ransomware', 'Hackers attack water treatment safety system, one injured', 'Breach linked to Russian hackers', 'State-sponsored group hacks agency',
+  'Exchange hacked as token price plunges', 'Should you buy the coin after the exploit?', 'Election systems breached', 'Hack leaves two dead',
+]) {
+  assert.ok(!fitsKind({ title }, 'security'), `security should skip: ${title}`);
+}
+// The gloomy filter still holds for releases and memes, even for a title that classes as one.
+assert.ok(!fitsKind({ title: 'Funny AI meme about the election' }, 'meme'));
+assert.ok(fitsKind({ title: 'The funniest AI meme of the week' }, 'meme'));
+
+// Corroboration: a second allowlisted source on the same story, or the maker's own post.
+const story = (title, source, firstParty = false) => ({ title, source, firstParty });
+const one = story('Chatbot hallucinates a fake legal case during a live demo', 'TechCrunch');
+assert.deepEqual(backing(one, [one]), [], 'one outlet alone is not enough');
+assert.deepEqual(backing(one, [one, story('Live demo chatbot hallucinates fake legal case', 'Ars Technica')]), ['TechCrunch', 'Ars Technica']);
+assert.deepEqual(backing(one, [one, story('Chatbot hallucinates a fake legal case during a live demo', 'TechCrunch')]), [], 'the same outlet twice is not two voices');
+assert.deepEqual(backing(one, [one, story('New chip announced by a vendor today', 'Ars Technica')]), [], 'an unrelated story does not count');
+assert.deepEqual(backing(story('Postmortem: our assistant gave wrong answers', 'OpenAI', true), []), ['OpenAI'], 'a first-party postmortem stands alone');
+
+// Memes are only linked to their Hacker News thread.
+assert.deepEqual(sourceOf('https://news.ycombinator.com/item?id=123', 'meme'), { name: 'Hacker News', firstParty: false });
+assert.equal(sourceOf('https://news.ycombinator.com/item?id=123'), null, 'a thread is not a release source');
+assert.equal(sourceOf('https://imgur.com/abc', 'meme'), null);
+assert.equal(sourceOf('https://news.ycombinator.com/item?id=1&x=http://evil', 'meme'), null);
+
+// Collection end to end: kinds, corroboration, caps, release-first, nothing from nowhere.
+const mk = (title, url, score = 10, summary = 'x') => ({ title, summary, url, source: 'S', date: today, score });
+const mixed = await collectNews([
+  async () => [
+    mk('Introducing Foo, a new open-source model', 'https://anthropic.com/news/foo'),
+    mk('Chatbot hallucinates a fake legal case during a live demo', 'https://techcrunch.com/b1'),
+    mk('Hackers breach a big cloud provider through an unpatched server', 'https://techcrunch.com/s1'),
+    mk('Lonely blunder: assistant confidently wrong at product launch', 'https://techcrunch.com/b2'),
+    mk('The funniest AI meme of the week', 'https://news.ycombinator.com/item?id=111', 300),
+    mk('Another AI meme joke about prompts', 'https://news.ycombinator.com/item?id=222', 200),
+    mk('Crypto exchange hacked, token price plunges', 'https://techcrunch.com/s2'),
+  ],
+  async () => [
+    mk('Live demo chatbot hallucinates fake legal case', 'https://arstechnica.com/b1'),
+    mk('Big cloud provider breach via unpatched server hackers', 'https://arstechnica.com/s1'),
+    mk('Funny AI meme linking to a random site', 'https://imgur.com/meme'),
+  ],
+]);
+const kinds = (k) => mixed.filter((m) => m.kind === k);
+assert.equal(kinds('release').length, 1);
+assert.equal(mixed[0].kind, 'release', 'releases come first');
+assert.equal(kinds('blunder').length, 1, 'only the corroborated blunder');
+assert.match(kinds('blunder')[0].source, /TechCrunch and Ars Technica|Ars Technica and TechCrunch/);
+assert.equal(kinds('security').length, 1, 'only the corroborated security story; the price one is filtered');
+assert.equal(kinds('meme').length, KIND_CAPS.meme, 'memes are capped');
+assert.ok(kinds('meme').every((m) => /^https:\/\/news\.ycombinator\.com\/item\?id=\d+$/.test(m.url)));
+assert.ok(!mixed.some((m) => /imgur|price/.test(m.url + m.title)));
+
+// The prompt: releases lead, a lighter story is "reportedly", jokes aim at the tech, not at people.
+const lightBlock = newsBlock([
+  { title: 'Introducing Foo', summary: 'A model.', url: 'https://anthropic.com/news/foo', source: 'Anthropic', date: today, firstParty: true, kind: 'release' },
+  { title: 'Chatbot hallucinates a fake case', summary: 'It did.', url: 'https://techcrunch.com/b1', source: 'TechCrunch and Ars Technica', date: today, firstParty: false, kind: 'blunder' },
+]);
+assert.match(lightBlock, /reported AI blunder, covered by TechCrunch and Ars Technica/);
+assert.match(lightBlock, /reportedly/);
+assert.match(lightBlock, /never about a person, a victim/);
+assert.match(lightBlock, /still developing, say it is developing/);
+assert.match(lightBlock, /no talk of crypto prices/);
+assert.match(lightBlock, /real question[\s\S]*answer it properly/);
 
 // Persona: first person, honest, short on a call.
 const route = await readFile(new URL('./backend/src/copilot/route.ts', root), 'utf8');
@@ -96,6 +180,7 @@ assert.match(system, /upset, stressed or asks something serious/);
 assert.match(system, /Never accuse any real person/);
 assert.match(system, /no invented quotes|never invent quotes/i);
 assert.match(system, /small talk/);
+assert.match(system, /real question about security/);
 assert.match(system, /Only state facts from the site brief/);
 assert.match(system, /under 45 words/);
 assert.match(voice, /at most one short, sharp line/);

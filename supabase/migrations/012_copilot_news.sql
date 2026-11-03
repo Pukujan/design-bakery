@@ -10,6 +10,7 @@ create table if not exists public.copilot_news (
   url text not null check (url ~ '^https?://'),
   source text not null check (char_length(source) <= 60),
   first_party boolean not null default false,
+  kind text not null default 'release' check (kind in ('release', 'blunder', 'meme', 'security')),
   item_date date not null,
   fetched_at timestamptz not null default now()
 );
