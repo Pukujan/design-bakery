@@ -138,3 +138,14 @@ for (const question of buttonQuestions) {
 }
 
 console.log(`copilot instant answers: ${firstTurn.length} intents, ${followUps.length} follow-ups routed to the model`);
+
+// Every greeting wording has a pre-recorded clip keyed by its exact text (holdAudio.ts SPOKEN_REPLIES).
+{
+  const hold = await readFile(new URL('./frontend/src/app/modules/copilot/holdAudio.ts', root), 'utf8');
+  const clips = hold.slice(hold.indexOf('const SPOKEN_REPLIES'));
+  for (const firstTurn of [true, false]) {
+    const seen = new Set();
+    for (let i = 0; i < 80; i++) seen.add((await cachedAnswer('hi', firstTurn)).text);
+    for (const text of seen) assert.ok(clips.includes(text), `greeting needs a clip: ${text}`);
+  }
+}
