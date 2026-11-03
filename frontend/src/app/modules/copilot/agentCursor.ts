@@ -37,6 +37,11 @@ function visibleLinkFor(path: string): HTMLElement | null {
   return onScreen ? link : null;
 }
 
+/** Takes the agent's hover look off every link it was on. */
+function clearHover() {
+  document.querySelectorAll('[data-agent-hover]').forEach((element) => element.removeAttribute('data-agent-hover'));
+}
+
 const GLIDE_MS = 800;
 const PRESS_MS = 280;
 
@@ -58,6 +63,10 @@ export const agentCursor = {
     const rect = link.getBoundingClientRect();
     set({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
     await wait(GLIDE_MS);
+    // The cursor is over the link: it lights up the way it does under a real pointer (CSS :hover cannot be set from a script).
+    clearHover();
+    link.setAttribute('data-agent-hover', '');
+    await wait(220);
     set({ presses: state.presses + 1 });
     await wait(PRESS_MS);
   },
@@ -93,10 +102,14 @@ export const agentCursor = {
   /** Let the cursor fade away after the move it is part of has had time to play. */
   release(afterMs: number) {
     clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => set({ visible: false }), afterMs);
+    hideTimer = setTimeout(() => {
+      clearHover();
+      set({ visible: false });
+    }, afterMs);
   },
   hide() {
     clearTimeout(hideTimer);
+    clearHover();
     set({ visible: false });
   },
 };

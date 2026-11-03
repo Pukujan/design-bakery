@@ -106,7 +106,8 @@
   margin: -0.8rem -0.6rem;
 }
 
-.lab-nav a:hover {
+.lab-nav a:hover,
+.lab-nav a[data-agent-hover] {
   color: var(--lab-accent);
 }
 
@@ -533,7 +534,8 @@
 }
 
 button.lab-chip:hover,
-a.lab-chip:hover {
+a.lab-chip:hover,
+a.lab-chip[data-agent-hover] {
   border-color: var(--lab-accent);
   color: var(--lab-accent);
 }
@@ -546,7 +548,8 @@ a.lab-chip:hover {
 }
 
 a.lab-chip--solid:hover,
-button.lab-chip--solid:hover {
+button.lab-chip--solid:hover,
+a.lab-chip--solid[data-agent-hover] {
   color: var(--lab-ink);
   background: var(--lab-paper);
   border-color: var(--lab-paper);
@@ -628,6 +631,7 @@ button.lab-chip--solid:hover {
 }
 
 .lab-tile:hover .lab-tile-inner img,
+.lab-tile[data-agent-hover] .lab-tile-inner img,
 .lab-tile:focus-visible .lab-tile-inner img {
   transform: scale(1.05);
 }
@@ -661,6 +665,7 @@ button.lab-chip--solid:hover {
 }
 
 .lab-tile:hover .lab-poster-word,
+.lab-tile[data-agent-hover] .lab-poster-word,
 .lab-tile:focus-visible .lab-poster-word {
   color: var(--tile-accent);
   transform: scale(1.04);
@@ -737,7 +742,8 @@ button.lab-chip--solid:hover {
   color: var(--lab-muted);
 }
 
-.lab-footer a:hover {
+.lab-footer a:hover,
+.lab-footer a[data-agent-hover] {
   color: var(--lab-accent);
 }
 
@@ -875,6 +881,7 @@ button.lab-chip--solid:hover {
 }
 
 .lab-tile:hover .lab-tile-media::after,
+.lab-tile[data-agent-hover] .lab-tile-media::after,
 .lab-tile:focus-visible .lab-tile-media::after {
   transform: translateX(120%);
   transition: transform 1.1s cubic-bezier(0.2, 0.7, 0.1, 1);
@@ -960,7 +967,8 @@ button.lab-chip--solid:hover {
   color: inherit;
 }
 
-:where(.lab-stage) a:hover {
+:where(.lab-stage) a:hover,
+:where(.lab-stage) a[data-agent-hover] {
   color: var(--lab-accent);
 }
 
