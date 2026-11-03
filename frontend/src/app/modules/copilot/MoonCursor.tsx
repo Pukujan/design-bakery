@@ -39,8 +39,9 @@ export default function MoonCursor() {
 
   useEffect(() => {
     if (!active) return;
-    const root = rootRef.current;
-    const body = bodyRef.current;
+    // The element is remounted now and then (to restart the spin), so the loop re-reads it every frame.
+    let root = rootRef.current;
+    let body = bodyRef.current;
     if (!root || !body) return;
 
     const pos = { x: window.innerWidth * 0.82, y: window.innerHeight * 0.7 };
@@ -187,10 +188,25 @@ export default function MoonCursor() {
       raf = requestAnimationFrame(frame);
       const dt = Math.min(0.05, (now - lastTick) / 1000);
       lastTick = now;
+      root = rootRef.current ?? root;
+      body = bodyRef.current ?? body;
       const a = agentRef.current;
       // Lazy and unhurried by default; quicker only to run from the pointer, and when the agent is going somewhere.
       let stiffness = 7;
-      const hole = reduceMotion ? undefined : flowField.obstacles.find((o) => o.kind === 'disc' && o.r > 14);
+      const hole = reduceMotion ? undefined : flowField.obstacles.find((o) => o.kind === 'disc' && o.r > 14 && Number.isFinite(o.x) && Number.isFinite(o.y) && Number.isFinite(o.r));
+      if (!Number.isFinite(pos.x + pos.y + vel.x + vel.y + target.x + target.y)) {
+        // A bad number must never strand the moon (the browser drops a NaN transform and leaves it in the corner): start over.
+        pos.x = window.innerWidth * 0.5;
+        pos.y = window.innerHeight * 0.6;
+        vel.x = 0;
+        vel.y = 0;
+        target = { ...pos };
+        anchor = { ...pos };
+        spinRoll = 0;
+        swirl = 0;
+        fall = 'none';
+        root.style.opacity = '1';
+      }
 
       if (fall === 'gone') {
         if (now < goneUntil) return;
