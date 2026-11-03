@@ -87,6 +87,7 @@ export default function MoonCursor() {
     let goneUntil = 0;
     let popAt = 0;
     let spinRoll = 0;
+    let bubbleSide: 'left' | 'right' = 'right';
     let pullAt = performance.now() + rand(60000, 150000);
     if (import.meta.env.DEV) (window as unknown as { __moonPull?: () => void }).__moonPull = () => { pullAt = 0; };
 
@@ -377,6 +378,15 @@ export default function MoonCursor() {
       }
 
       if (fall !== 'pulled') spinRoll *= 0.9;
+      // The bubble opens toward the side with room, and swings over gracefully (the CSS eases it) when the moon nears an edge.
+      const bubbleW = Math.min(240, window.innerWidth * 0.6) + 12;
+      const roomRight = window.innerWidth - pos.x;
+      const flipLeft = bubbleSide === 'right' ? roomRight < bubbleW && pos.x + SIZE > roomRight : !(roomRight > bubbleW + 90);
+      const side = flipLeft ? 'left' : 'right';
+      if (side !== bubbleSide) {
+        bubbleSide = side;
+        root.dataset.side = side;
+      }
       lean *= 0.92;
       tilt *= 0.92;
       const roll = clamp(vel.x * 0.05, -28, 28) + lean + tilt * 0.4 + spinRoll;
@@ -436,7 +446,6 @@ export default function MoonCursor() {
           ? { kind: 'text', text: quip }
           : null;
   talkingRef.current = bubble !== null;
-  const bubbleRight = typeof window !== 'undefined' && agent.x + 220 > window.innerWidth;
   if (!active) return null;
   const scroll = agent.scroll;
   const sign = scroll === 'up' ? -1 : 1;
@@ -503,11 +512,12 @@ export default function MoonCursor() {
             </motion.div>
           )}
         </AnimatePresence>
+        <div className="moon-bubble-anchor">
         <AnimatePresence>
           {bubble && (
             <motion.div
               key={bubble.kind === 'dots' ? 'dots' : bubble.text}
-              className={`moon-bubble${bubbleRight ? ' moon-bubble-left' : ''}`}
+              className="moon-bubble"
               initial={{ opacity: 0, scale: 0.6, y: 6 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8 }}
@@ -525,6 +535,7 @@ export default function MoonCursor() {
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
         {agent.visible && <span className="moon-label">AI Pujan</span>}
         <AnimatePresence>
           {agent.presses > 0 && agent.visible && (

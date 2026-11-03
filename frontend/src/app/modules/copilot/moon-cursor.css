@@ -136,12 +136,22 @@
 }
 
 /* The moon's speech bubble: what it is saying, or three dots while it thinks. */
-.moon-bubble {
+/* The anchor holds the bubble's place above the moon and swings it to the other side near an edge. */
+.moon-bubble-anchor {
   position: absolute;
   bottom: 52px;
   left: -6px;
   width: max-content;
   max-width: min(240px, 60vw);
+  pointer-events: none;
+  transition: transform 0.6s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.moon[data-side='left'] .moon-bubble-anchor {
+  transform: translateX(calc(-100% + 46px));
+}
+
+.moon-bubble {
   padding: 8px 12px;
   border-radius: 16px 16px 16px 4px;
   background: var(--lab-paper, #f2efe8);
@@ -149,11 +159,10 @@
   font: 500 13px/1.35 var(--lab-display, system-ui, sans-serif);
   box-shadow: 0 6px 20px rgb(0 0 0 / 0.4);
   transform-origin: bottom left;
+  transition: border-radius 0.6s;
 }
 
-.moon-bubble-left {
-  left: auto;
-  right: -6px;
+.moon[data-side='left'] .moon-bubble {
   border-radius: 16px 16px 4px 16px;
   transform-origin: bottom right;
 }
