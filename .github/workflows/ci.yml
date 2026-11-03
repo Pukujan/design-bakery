@@ -69,6 +69,9 @@ jobs:
       - name: Check the copilot's instant answers
         run: pnpm test:copilot-answers
 
+      - name: Check the copilot's session memory
+        run: pnpm test:copilot-memory
+
       - name: Check the copilot's streaming text filter
         run: pnpm test:copilot-stream
 
