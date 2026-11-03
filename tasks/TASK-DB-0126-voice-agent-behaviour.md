@@ -35,3 +35,9 @@ Cached answers are logged: each is a `copilot.turn` span (1 to 174 ms). They wer
 - The clips were rendered but never heard by me; the owner is reviewing six sample recordings.
 - Voice calls can echo a filler back through the speakers into the mic; echo cancellation is on, headphones avoid it.
 - The TASK-DB-0124 service answers (Contact page buttons) will want the same Contact move on a call once both are merged.
+
+## Update: moon polish, slower fillers, phone pill
+
+- The moon has a speech bubble (the hold line, thinking dots, or the start of the reply). It moves slowly by default, reacts to pointer, taps, swipes and scroll with wide smooth swirls, and while its bubble is up it floats near one place so the words can be read. Long trips come 4 to 28 s apart at random; short floats are frequent.
+- Filler clips were re-rendered fragment by fragment with long and short silences ("Hmmmmmm... I... see... Lemme think here, for a sec."); the gap between clips is 700 ms. Wording in `holdAudio.ts` matches the clips.
+- The call pill's label no longer wraps in a narrow column on phones.

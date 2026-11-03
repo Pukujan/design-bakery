@@ -14,10 +14,12 @@ type VoiceState = {
   muted: boolean;
   /** The pre-recorded line being spoken while the call connects, or ''. */
   hold: string;
+  /** An answer is being worked out for the visitor's last question. */
+  thinking: boolean;
   /** Where this call seems to come from, picked when it starts. */
   origin: SkyOrigin | null;
 };
-let state: VoiceState = { status: 'idle', error: '', audioBlocked: false, speaking: 'none', muted: false, hold: '', origin: null };
+let state: VoiceState = { status: 'idle', error: '', audioBlocked: false, speaking: 'none', muted: false, hold: '', thinking: false, origin: null };
 
 /** A level meter on one audio stream: the visitor's mic or the agent's voice. */
 type Meter = { source: MediaStreamAudioSourceNode; analyser: AnalyserNode; samples: Float32Array<ArrayBuffer> };
@@ -196,6 +198,7 @@ export const voice = {
         if (!question || generation !== run) return JSON.stringify({ say: 'Could you say that again?' });
         // Nothing is quiet while an answer is worked out: the reminders hold off, and fillers fill the wait.
         pauseNudges();
+        set({ thinking: true });
         const waiting = startThinking((hold) => set({ hold }));
         thinking = waiting;
         thinkingSince = Date.now();
@@ -206,6 +209,7 @@ export const voice = {
           // A clip in progress ends first, then a closer ("Ahh, here it is"), so the answer is never cut across.
           await waiting.finish();
           if (thinking === waiting) thinking = null;
+          set({ thinking: false });
           resumeNudges();
         }
         if (generation !== run) return JSON.stringify({ say: '' });
@@ -276,3 +280,6 @@ export const voice = {
     }
   },
 };
+
+// Development only: pretend a call is on, to try the moon and its bubbles from the console.
+if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as { __voiceSet?: typeof set }).__voiceSet = set;

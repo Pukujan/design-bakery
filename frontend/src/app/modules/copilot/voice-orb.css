@@ -211,15 +211,25 @@
 
   .vo-meta {
     min-width: 0;
-    max-width: 128px;
+    max-width: none;
+    flex: 1;
   }
+
+  .vo-label {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    line-height: 1.25;
+  }
+
+  .vo-warm { min-height: 0; }
 
   .vo-sub { display: none; }
 
   .vo-warm { font-size: 10.5px; }
 
   .vo-btn {
-    width: 36px;
+    width: 34px;
+    height: 34px;
     padding: 0;
     justify-content: center;
   }

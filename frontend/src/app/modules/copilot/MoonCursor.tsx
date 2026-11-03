@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useAgentCursor } from './agentCursor';
+import { useCopilot } from './store';
 import { useVoice } from './voice';
 import './moon-cursor.css';
 
@@ -23,12 +24,14 @@ const rand = (min: number, max: number) => min + Math.random() * (max - min);
 export default function MoonCursor() {
   const voice = useVoice();
   const agent = useAgentCursor();
+  const { messages } = useCopilot();
   const reduceMotion = useReducedMotion() ?? false;
   const active = voice.status !== 'idle' || agent.visible;
   const rootRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const eyesRef = useRef<SVGGElement>(null);
   const agentRef = useRef(agent);
+  const talkingRef = useRef(false);
   agentRef.current = agent;
   const [mood, setMood] = useState<Mood>('happy');
   const [spinning, setSpinning] = useState(0);
@@ -43,8 +46,23 @@ export default function MoonCursor() {
     const vel = { x: 0, y: 0 };
     let target = { ...pos };
     const pointer = { x: -999, y: -999, at: -Infinity };
-    let phase: 'perch' | 'wander' = 'wander';
-    let phaseUntil = performance.now() + rand(4000, 7000);
+    // The pointer's drift from the middle of the screen, which nudges the moon the way the sky parallaxes.
+    const parallax = { x: 0, y: 0 };
+    const centre = () => ({ x: pos.x + SIZE / 2, y: pos.y + SIZE / 2 });
+    // Swirl: the pointer, the wheel, scrolling and swipes stir it up, and a stirred moon loops around its spot in wide,
+    // smooth circles that slow down and settle as it calms.
+    let swirl = 0;
+    let swirlAngle = 0;
+    let swirlDir = 1;
+    const stir = (amount: number, direction?: number) => {
+      swirl = clamp(swirl + amount, 0, 1);
+      if (direction) swirlDir = Math.sign(direction) || swirlDir;
+    };
+    let anchor = { ...pos };
+    let perched = false;
+    let floatOffset = { x: 0, y: 0 };
+    let floatAt = 0;
+    let phaseUntil = performance.now() + rand(4000, 12000);
     let fleeUntil = 0;
     let moodNow: Mood = 'happy';
     let moodUntil = 0;
@@ -64,14 +82,56 @@ export default function MoonCursor() {
     };
 
     const onPointer = (event: PointerEvent) => {
+      const now = performance.now();
+      const gap = now - pointer.at;
+      if (!reduceMotion && !agentRef.current.visible && gap > 0 && gap < 200) {
+        // A gust: moving the pointer near the moon pushes it the way the pointer is going, harder the closer it is.
+        const c = centre();
+        const near = clamp(1 - Math.hypot(c.x - event.clientX, c.y - event.clientY) / 380, 0, 1);
+        vel.x += ((event.clientX - pointer.x) / gap) * 1000 * 0.008 * near;
+        vel.y += ((event.clientY - pointer.y) / gap) * 1000 * 0.008 * near;
+        if (near > 0.5) lean = clamp(lean + (event.clientX - pointer.x) * 0.3, -35, 35);
+      }
+      if (!reduceMotion && !agentRef.current.visible && gap > 0 && gap < 200) {
+        // Any pointer movement, near or far, stirs the moon up, spinning the way the pointer sweeps.
+        const speed = Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y) / gap * 1000;
+        stir(clamp(speed / 22000, 0, 0.05), event.clientX - pointer.x);
+      }
       pointer.x = event.clientX;
       pointer.y = event.clientY;
-      pointer.at = performance.now();
+      pointer.at = now;
+    };
+    // A tap or click anywhere: a hop; right beside the moon, a startled jump away from it.
+    const onTap = (event: PointerEvent) => {
+      if (reduceMotion || agentRef.current.visible) return;
+      const c = centre();
+      const dist = Math.hypot(c.x - event.clientX, c.y - event.clientY);
+      if (dist < 120) {
+        const ux = dist > 1 ? (c.x - event.clientX) / dist : 1;
+        const uy = dist > 1 ? (c.y - event.clientY) / dist : -1;
+        vel.x += ux * 420;
+        vel.y += uy * 420 - 120;
+        say('scared', 900);
+      } else {
+        vel.y -= 170;
+        say('whee', 600);
+      }
+    };
+    const onWheel = (event: WheelEvent) => {
+      if (reduceMotion || agentRef.current.visible) return;
+      // Scrolling the page blows the moon along like everything else on the page.
+      vel.y -= clamp(event.deltaY, -120, 120) * 1.0;
+      tilt = clamp(tilt + Math.sign(event.deltaY) * 8, -40, 40);
+      stir(Math.min(0.3, Math.abs(event.deltaY) / 500), event.deltaY);
     };
     const onScroll = () => {
       const dy = window.scrollY - scrollY;
       scrollY = window.scrollY;
       if (Math.abs(dy) < 2) return;
+      if (!reduceMotion && !agentRef.current.visible) {
+        vel.y -= clamp(dy, -80, 80) * 1.6;
+        stir(Math.min(0.3, Math.abs(dy) / 180), dy);
+      }
       tilt = clamp(tilt + Math.sign(dy) * 14, -40, 40);
       say('whee', 700);
     };
@@ -90,11 +150,19 @@ export default function MoonCursor() {
         // A swipe: the moon leans into it.
         lean = clamp(lean + (touch.clientX - lastTouch.x) * 0.5, -45, 45);
         tilt = clamp(tilt + (touch.clientY - lastTouch.y) * 0.25, -40, 40);
+        if (!reduceMotion && !agentRef.current.visible) {
+          // The swipe carries the moon with it.
+          vel.x = clamp(vel.x + (touch.clientX - lastTouch.x) * 9, -700, 700);
+          vel.y = clamp(vel.y + (touch.clientY - lastTouch.y) * 9, -700, 700);
+          stir(Math.min(0.35, (Math.abs(touch.clientX - lastTouch.x) + Math.abs(touch.clientY - lastTouch.y)) / 120), touch.clientX - lastTouch.x);
+        }
         say('whee', 600);
       }
       lastTouch = { x: touch.clientX, y: touch.clientY };
     };
     window.addEventListener('pointermove', onPointer, { passive: true });
+    window.addEventListener('pointerdown', onTap, { passive: true });
+    window.addEventListener('wheel', onWheel, { passive: true });
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('touchstart', onTouchStart, { passive: true });
     window.addEventListener('touchmove', onTouchMove, { passive: true });
@@ -109,56 +177,79 @@ export default function MoonCursor() {
       const dt = Math.min(0.05, (now - lastTick) / 1000);
       lastTick = now;
       const a = agentRef.current;
-      let stiffness = 28;
+      // Lazy and unhurried by default; quicker only to run from the pointer, and when the agent is going somewhere.
+      let stiffness = 7;
 
       if (a.visible) {
         // The agent is working: roll to where it points.
         target = place({ x: a.x - SIZE / 2 + 6, y: a.y - SIZE / 2 + 6 });
-        stiffness = 46;
+        stiffness = 40;
       } else {
         const cx = pos.x + SIZE / 2;
         const cy = pos.y + SIZE / 2;
         const dist = Math.hypot(cx - pointer.x, cy - pointer.y);
-        if (!reduceMotion && now - pointer.at < 5000 && dist < FLEE_RADIUS) {
+        const talking = talkingRef.current;
+        if (!talking && !reduceMotion && now - pointer.at < 5000 && dist < FLEE_RADIUS) {
           // The visitor's pointer is too close: run the other way.
           const ux = dist > 1 ? (cx - pointer.x) / dist : 1;
           const uy = dist > 1 ? (cy - pointer.y) / dist : 0;
           target = place({ x: pos.x + ux * 260, y: pos.y + uy * 260 });
           fleeUntil = now + 900;
-          stiffness = 90;
+          stiffness = 26;
           say('scared', 900);
         } else if (now < fleeUntil) {
-          stiffness = 60;
+          stiffness = 18;
         } else {
-          if (now > phaseUntil) {
-            phase = phase === 'perch' ? 'wander' : 'perch';
-            phaseUntil = now + (phase === 'perch' ? rand(12000, 22000) : rand(6000, 11000));
-            if (phase === 'wander') target = place({ x: rand(0, window.innerWidth), y: rand(0, window.innerHeight) });
-          }
           const pill = document.querySelector<HTMLElement>('.cp-pill');
-          if (phase === 'perch' && pill) {
-            // Sit on top of the Continue chat button.
-            const rect = pill.getBoundingClientRect();
-            target = place({ x: rect.left + rect.width * 0.7 - SIZE / 2, y: rect.top - SIZE + 12 });
-            if (Math.hypot(pos.x - target.x, pos.y - target.y) < 6 && moodNow === 'happy') say('sleepy', 9000);
-          } else if (phase === 'perch') {
-            phase = 'wander';
-            phaseUntil = now + rand(4000, 7000);
-          } else if (Math.hypot(pos.x - target.x, pos.y - target.y) < 12) {
-            // Drift to a new spot now and then.
-            if (now > phaseUntil - 3000 && !reduceMotion) target = place({ x: rand(0, window.innerWidth), y: rand(0, window.innerHeight) });
+          if (now > phaseUntil && !talking) {
+            // A long trip now and then, 4 to 28 seconds apart; the Continue chat button is one of the places.
+            phaseUntil = now + rand(4000, 28000);
+            if (pill && Math.random() < 0.35) {
+              const rect = pill.getBoundingClientRect();
+              anchor = place({ x: rect.left + rect.width * 0.7 - SIZE / 2, y: rect.top - SIZE + 12 });
+              perched = true;
+            } else {
+              anchor = place({ x: rand(0, window.innerWidth), y: rand(0, window.innerHeight) });
+              perched = false;
+            }
           }
+          if (now > floatAt) {
+            // Short floats, often: a small drift around where it is. While it speaks it stays near one place, so the words can be read.
+            const reach = talking ? 16 : perched ? 8 : 46;
+            floatAt = now + (talking ? rand(2500, 4500) : rand(1200, 3200));
+            floatOffset = { x: rand(-reach, reach), y: rand(-reach, reach) };
+          }
+          target = place({ x: anchor.x + floatOffset.x, y: anchor.y + floatOffset.y });
+          if (talking) stiffness = 4;
+          else if (perched && Math.hypot(pos.x - target.x, pos.y - target.y) < 10 && moodNow === 'happy') say('sleepy', 9000);
         }
       }
 
+      if (!a.visible && !reduceMotion && !talkingRef.current && now - pointer.at < 8000) {
+        // The moon floats a little against the pointer, the way the sky behind the page does.
+        parallax.x += ((pointer.x - window.innerWidth / 2) * -0.05 - parallax.x) * 0.04;
+        parallax.y += ((pointer.y - window.innerHeight / 2) * -0.05 - parallax.y) * 0.04;
+      } else {
+        parallax.x *= 0.96;
+        parallax.y *= 0.96;
+      }
+      // Stirred up, it loops around its spot: faster and wider the more it is stirred, settling as it calms.
+      if (talkingRef.current) swirl *= 0.1;
+      swirl *= Math.pow(0.55, dt);
+      swirlAngle += (0.9 + 2.6 * swirl) * swirlDir * dt;
+      const loopX = a.visible || reduceMotion ? 0 : Math.cos(swirlAngle) * 190 * swirl;
+      const loopY = a.visible || reduceMotion ? 0 : Math.sin(swirlAngle) * 120 * swirl;
+      // The spot it heads for, with the pointer's parallax and the swirl laid over the plan (the plan itself is untouched).
+      const goal = place({ x: target.x + (a.visible ? 0 : parallax.x) + loopX, y: target.y + (a.visible ? 0 : parallax.y) + loopY });
       if (reduceMotion) {
         pos.x = target.x;
         pos.y = target.y;
       } else {
+        stiffness += 16 * swirl;
         // A damped spring toward the target.
         const damping = 2 * Math.sqrt(stiffness) * 0.8;
-        vel.x += ((target.x - pos.x) * stiffness - vel.x * damping) * dt;
-        vel.y += ((target.y - pos.y) * stiffness - vel.y * damping) * dt;
+        vel.x += ((goal.x - pos.x) * stiffness - vel.x * damping) * dt;
+        vel.y += ((goal.y - pos.y) * stiffness - vel.y * damping) * dt;
         pos.x += vel.x * dt;
         pos.y += vel.y * dt;
       }
@@ -191,12 +282,27 @@ export default function MoonCursor() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('pointermove', onPointer);
+      window.removeEventListener('pointerdown', onTap);
+      window.removeEventListener('wheel', onWheel);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('touchstart', onTouchStart);
       window.removeEventListener('touchmove', onTouchMove);
     };
   }, [active, reduceMotion]);
 
+  // What the moon says: the line being spoken while it connects or reminds, dots while it thinks, and the start of the
+  // answer while it speaks.
+  const lastReply = [...messages].reverse().find((m) => m.role === 'assistant' && m.text)?.text ?? '';
+  const excerpt = lastReply.length > 120 ? `${lastReply.slice(0, 117).trimEnd()}...` : lastReply;
+  const bubble: { kind: 'text' | 'dots'; text: string } | null = voice.hold
+    ? { kind: 'text', text: voice.hold }
+    : voice.thinking
+      ? { kind: 'dots', text: '' }
+      : voice.speaking === 'agent' && excerpt
+        ? { kind: 'text', text: excerpt }
+        : null;
+  talkingRef.current = bubble !== null;
+  const bubbleRight = typeof window !== 'undefined' && agent.x + 220 > window.innerWidth;
   if (!active) return null;
   const scroll = agent.scroll;
   const sign = scroll === 'up' ? -1 : 1;
@@ -256,6 +362,28 @@ export default function MoonCursor() {
                   </motion.span>
                 ))}
               </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {bubble && (
+            <motion.div
+              key={bubble.kind === 'dots' ? 'dots' : bubble.text}
+              className={`moon-bubble${bubbleRight ? ' moon-bubble-left' : ''}`}
+              initial={{ opacity: 0, scale: 0.6, y: 6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.2 }}
+            >
+              {bubble.kind === 'dots' ? (
+                <span className="moon-dots">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              ) : (
+                bubble.text
+              )}
             </motion.div>
           )}
         </AnimatePresence>

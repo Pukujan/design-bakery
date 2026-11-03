@@ -36,29 +36,29 @@ const MUTED: Line = { src: '/voice/nudge-muted.m4a', text: "I can't hear you rig
  * of separate phrases.
  */
 const OPENERS: Line[] = [
-  { src: '/voice/think-open-1.m4a', text: 'Hmmm... let me see...' },
-  { src: '/voice/think-open-2.m4a', text: 'Mmm, okay... I see...' },
-  { src: '/voice/think-open-3.m4a', text: 'Hmmmm... right, let me think about that...' },
-  { src: '/voice/think-open-4.m4a', text: 'Okay... let me have a look...' },
+  { src: '/voice/think-open-1.m4a', text: 'Hmmmmmm... I... see... Lemme think here, for a sec.' },
+  { src: '/voice/think-open-2.m4a', text: 'Mmmm. Okay... Lemme see here...' },
+  { src: '/voice/think-open-3.m4a', text: 'Hmmmmm... Right. Let me think about that...' },
+  { src: '/voice/think-open-4.m4a', text: 'Ahhh. Okay... Let me have a look...' },
 ];
 const MIDDLES: Line[] = [
-  { src: '/voice/think-mid-1.m4a', text: '...and now, let me find the right part...' },
-  { src: '/voice/think-mid-2.m4a', text: '...okay, give me just a second...' },
-  { src: '/voice/think-mid-3.m4a', text: "...one moment, I'm pulling that up..." },
+  { src: '/voice/think-mid-1.m4a', text: 'Hmmm... Let me find the right part...' },
+  { src: '/voice/think-mid-2.m4a', text: 'Mmmmm. Give me just a sec...' },
+  { src: '/voice/think-mid-3.m4a', text: 'Okay... One moment... Pulling that up...' },
 ];
-const LONG_WAIT: Line = { src: '/voice/think-long.m4a', text: "...this is taking a little while. I'm getting into it..." };
+const LONG_WAIT: Line = { src: '/voice/think-long.m4a', text: "Sorry... This is taking a little while. I'm really getting into it..." };
 /** Played when the answer arrives after fillers, so they flow into it. */
 const CLOSERS: Line[] = [
-  { src: '/voice/think-close-1.m4a', text: '...ahh, here it is.' },
-  { src: '/voice/think-close-2.m4a', text: '...okay, got it.' },
-  { src: '/voice/think-close-3.m4a', text: '...right, here we go.' },
+  { src: '/voice/think-close-1.m4a', text: 'Ahhh... here it is.' },
+  { src: '/voice/think-close-2.m4a', text: 'Okay... got it.' },
+  { src: '/voice/think-close-3.m4a', text: 'Right... here we go.' },
 ];
 
 const GAP_MS = 2200;
 /** Fillers start only if the answer is not back by then, so an instant answer is never preceded by one. */
 const THINK_DELAY_MS = 700;
 /** Barely a breath between clips: they are recorded to run on from one another. */
-const THINK_GAP_MS = 120;
+const THINK_GAP_MS = 700;
 const THINK_LONG_AFTER_MS = 9000;
 const SLOW_AFTER_MS = 12_000;
 const FADE_MS = 200;
