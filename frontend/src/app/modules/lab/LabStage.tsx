@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useLocation, useOutlet } from 'react-router-dom';
 import Lenis from 'lenis';
@@ -6,6 +6,7 @@ import 'lenis/dist/lenis.css';
 import { LabBackdrop, type BackdropVariant } from './LabBackdrop';
 import { LabCursor } from './LabCursor';
 import { LabBar } from './LabHeader';
+import { scrollStageToTop, setStageLenis } from './stageScroll';
 import { PortfolioProvider } from '../../portfolios/PortfolioContext';
 import './lab.css';
 
@@ -35,7 +36,11 @@ function useLenis() {
   useEffect(() => {
     if (reduceMotion) return;
     const lenis = new Lenis({ autoRaf: true, anchors: true });
-    return () => lenis.destroy();
+    setStageLenis(lenis);
+    return () => {
+      setStageLenis(null);
+      lenis.destroy();
+    };
   }, [reduceMotion]);
 }
 
@@ -51,8 +56,17 @@ export function LabStage() {
   const outlet = useOutlet();
   const reduceMotion = useReducedMotion();
   useLenis();
+  const lastPath = useRef(location.pathname);
   const [cursorActive, setCursorActive] = useState(false);
   const handleCursorActive = useCallback((active: boolean) => setCursorActive(active), []);
+
+  // Opening another page scrolls the new one to the top, smoothly. A link to a section (#hash) or a
+  // change of query on the same page leaves the scroll alone.
+  useEffect(() => {
+    if (lastPath.current === location.pathname) return;
+    lastPath.current = location.pathname;
+    if (!location.hash) scrollStageToTop();
+  }, [location.pathname, location.hash]);
 
   // The stage is always dark, so the dark variants of the paper figures and styles apply here.
   useEffect(() => {
