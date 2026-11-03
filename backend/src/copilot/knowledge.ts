@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getBlogByNumericId, listBlogPosts } from '../../services/lib/content/blogPosts.js';
 import { sectionsOfMarkdown, sectionsOfProject, type Section } from './sections.js';
+import { slugifyHeading } from './headingAnchors.js';
 import { getCmsArray, getCmsObject } from '../../services/lib/content/cmsDocuments.js';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -48,6 +49,7 @@ export type Project = {
   stats?: Array<{ label: string }>;
 };
 type Experience = {
+  id?: number | string;
   company: string;
   role: string;
   period: string;
@@ -55,8 +57,9 @@ type Experience = {
   expandedSummary?: string;
   collapsedSummary?: string;
   highlights?: string[];
+  tags?: string[];
 };
-type About = { roleTitle?: string; paragraphs?: string[]; highlights?: unknown };
+type About = { roleTitle?: string; paragraphs?: string[]; highlights?: unknown; callout?: string };
 type Hero = { titleLine1?: string; titleLine2?: string; description?: string; badge?: string };
 type SkillCategory = { title: string; skills: string[] };
 
@@ -234,7 +237,63 @@ export async function siteBrief(): Promise<string> {
   return lines.join('\n');
 }
 
-/** Where a path's sections come from: a blog post, a research paper or a project, read live. Null for any other page. */
+export const loadAbout = () => json<About>('about.json');
+export const loadHero = () => json<Hero>('hero.json');
+export const loadSkills = () => json<SkillCategory[]>('skill-categories.json');
+
+const squash = (text: string) => text.replace(/\s+/g, ' ').trim();
+
+/**
+ * The home page's sections as LabStory.tsx renders them (TASK-DB-0142): About under its h2 (`story-about`), and one
+ * section per role under its h3, which the page finds by its text (store.ts headingFor). `blocks` hold only text that
+ * is visible on the page, because a quote is highlighted only if the page shows it; a role's Details are folded away.
+ */
+export async function homeSections(): Promise<Section[]> {
+  const [about, experience] = await Promise.all([loadAbout(), loadExperience()]);
+  const sections: Section[] = [];
+  const focus = (Array.isArray(about.highlights) ? about.highlights : []) as Array<{ title?: string; desc?: string }>;
+  if (about.roleTitle) {
+    sections.push({
+      id: 'story-about',
+      heading: squash(about.roleTitle),
+      level: 2,
+      blocks: [...(about.paragraphs ?? []), about.callout ?? '', ...focus.map((f) => [f.title, f.desc].filter(Boolean).join(' '))].map(squash).filter(Boolean),
+    });
+  }
+  for (const job of experience.experiences) {
+    sections.push({
+      id: `role-${slugifyHeading(`${job.company} ${job.role}`)}`,
+      heading: squash(job.role),
+      level: 3,
+      blocks: [`${job.company}${job.location ? ` · ${job.location}` : ''}`, job.collapsedSummary ?? ''].map(squash).filter(Boolean),
+    });
+  }
+  return sections;
+}
+
+/**
+ * What the prompt keeps when retrieval supplies the facts (TASK-DB-0142): every page that exists, by kind, with its
+ * title and path, so "what projects do you have" is complete and navigate / show_projects name real pages. The
+ * content itself comes from the passages retrieved for each turn.
+ */
+export async function siteIndex(): Promise<string> {
+  const [hero, experience, projects, papers, blogs] = await Promise.all([loadHero(), loadExperience(), loadProjects(), loadPapers(), loadBlogs()]);
+  const lines: string[] = [];
+  lines.push('## Who', clip([[hero.titleLine1, hero.titleLine2].filter(Boolean).join(' '), hero.description ?? ''].filter(Boolean).join('. '), 240));
+  lines.push('', '## Work history (role | company | period); details at /#experience');
+  for (const job of experience.experiences) lines.push(`- ${job.role} | ${job.company} | ${job.period}`);
+  lines.push('', '## Projects (slug | title | category | status); page /work/<slug>');
+  for (const p of projects) lines.push(`- ${p.slug} | ${p.title} | ${p.category ?? ''} | ${p.status ?? ''}`);
+  lines.push('', '## Research papers (id | title | status); page /research/papers/<id>. All are working papers unless status is approved.');
+  for (const paper of papers) lines.push(`- ${paper.id} | ${paper.title} | ${paper.status}`);
+  lines.push('', '## Blog posts, newest first (id | date | title); page /blogs/<id>');
+  for (const post of blogs) lines.push(`- ${post.id} | ${post.date} | ${post.title}`);
+  lines.push('', '## Links', ...SOCIAL_LINKS.map((link) => `- ${link.label}: ${link.url}`));
+  lines.push('', '## Site pages', ...SITE_PAGES.map((page) => `- ${page.path} (${page.label})`));
+  return lines.join('\n');
+}
+
+/** Where a path's sections come from: a blog post, a research paper, a project or the home page, read live. Null for any other page. */
 export async function sectionsForPath(pagePath: string): Promise<Section[] | null> {
   const clean = pagePath.split('#')[0];
   const blog = /^\/blogs\/(\d+)$/.exec(clean);
@@ -247,6 +306,7 @@ export async function sectionsForPath(pagePath: string): Promise<Section[] | nul
     const body = await readPaper(paper[1]);
     return body ? sectionsOfMarkdown(body, { levels: [1, 2, 3] }) : null;
   }
+  if (clean === '/') return homeSections();
   if (/^\/work\/[^/]+$/.test(clean)) {
     const project = (await loadProjects()).find((p) => projectPath(p) === clean);
     return project ? sectionsOfProject(project) : null;
