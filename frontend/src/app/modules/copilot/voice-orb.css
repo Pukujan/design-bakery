@@ -197,7 +197,7 @@
 }
 
 /* Mid-width windows: the centred call pill would run into the Continue chat pill at the right, so it rides above it. */
-@media (min-width: 761px) and (max-width: 1020px) {
+@media (min-width: 761px) and (max-width: 1280px) {
   .vo {
     bottom: calc(max(16px, env(safe-area-inset-bottom)) + 72px);
   }
