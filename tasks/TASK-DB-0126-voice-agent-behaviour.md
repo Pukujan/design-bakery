@@ -41,3 +41,7 @@ Cached answers are logged: each is a `copilot.turn` span (1 to 174 ms). They wer
 - The moon has a speech bubble (the hold line, thinking dots, or the start of the reply). It moves slowly by default, reacts to pointer, taps, swipes and scroll with wide smooth swirls, and while its bubble is up it floats near one place so the words can be read. Long trips come 4 to 28 s apart at random; short floats are frequent.
 - Filler clips were re-rendered fragment by fragment with long and short silences ("Hmmmmmm... I... see... Lemme think here, for a sec."); the gap between clips is 700 ms. Wording in `holdAudio.ts` matches the clips.
 - The call pill's label no longer wraps in a narrow column on phones.
+
+## Update: expressions and talking mouth
+
+The moon now has a wink, heart eyes and a gasp (one at random every 6 to 14 s while idle), a mouth that opens and closes in an uneven rhythm while it speaks or shows a hold line, and a wobbly mouth with eyes looking up while it thinks.

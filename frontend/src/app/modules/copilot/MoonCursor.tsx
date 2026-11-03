@@ -5,7 +5,7 @@ import { useCopilot } from './store';
 import { useVoice } from './voice';
 import './moon-cursor.css';
 
-type Mood = 'happy' | 'scared' | 'whee' | 'sleepy';
+type Mood = 'happy' | 'scared' | 'whee' | 'sleepy' | 'wink' | 'love' | 'wow';
 
 const SIZE = 46;
 const MARGIN = 10;
@@ -66,6 +66,7 @@ export default function MoonCursor() {
     let fleeUntil = 0;
     let moodNow: Mood = 'happy';
     let moodUntil = 0;
+    let nextFace = performance.now() + rand(5000, 9000);
     let lean = 0;
     let tilt = 0;
     let scrollY = window.scrollY;
@@ -272,6 +273,12 @@ export default function MoonCursor() {
         moodNow = 'happy';
         setMood('happy');
       }
+      if (now > nextFace && moodNow === 'happy') {
+        // An odd little face now and then, so it is never just smiling.
+        nextFace = now + rand(6000, 14000);
+        const faces: Mood[] = ['wink', 'love', 'wow'];
+        say(faces[Math.floor(Math.random() * faces.length)], 1500);
+      }
       if (now > nextSpin) {
         nextSpin = now + rand(25000, 40000);
         setSpinning((n) => n + 1);
@@ -307,7 +314,7 @@ export default function MoonCursor() {
   const scroll = agent.scroll;
   const sign = scroll === 'up' ? -1 : 1;
   return (
-    <div ref={rootRef} className={`moon${spinning ? ' moon-spin' : ''}`} key={spinning % 2} data-mood={mood} aria-hidden="true">
+    <div ref={rootRef} className={`moon${spinning ? ' moon-spin' : ''}`} key={spinning % 2} data-mood={mood} data-act={voice.thinking ? 'thinking' : voice.speaking === 'agent' || voice.hold ? 'talking' : undefined} aria-hidden="true">
       <div ref={bodyRef} className="moon-body">
         <svg viewBox="0 0 48 48" width={SIZE} height={SIZE}>
           <defs>
@@ -332,6 +339,10 @@ export default function MoonCursor() {
           <path className="moon-mouth-happy" d="M20.5 30 Q24 33.5 27.5 30" fill="none" stroke="#2a2418" strokeWidth="1.7" strokeLinecap="round" />
           <circle className="moon-mouth-scared" cx="24" cy="31.5" r="2.4" fill="#2a2418" />
           <path className="moon-mouth-whee" d="M19.5 29.5 Q24 36 28.5 29.5 Z" fill="#2a2418" />
+          <ellipse className="moon-mouth-talk" cx="24" cy="31.5" rx="3.1" ry="2.6" fill="#2a2418" />
+          <path className="moon-mouth-think" d="M20.5 31.5 q1.75 -2 3.5 0 t3.5 0" fill="none" stroke="#2a2418" strokeWidth="1.6" strokeLinecap="round" />
+          <path className="moon-eye-wink" d="M27 24.5 h5" fill="none" stroke="#2a2418" strokeWidth="1.8" strokeLinecap="round" />
+          <path className="moon-eye-love" d="M18.5 27 c-4 -2.6 -3.4 -6.2 -0.9 -5.8 c0.7 0.1 0.9 0.6 0.9 0.9 c0 -0.3 0.2 -0.8 0.9 -0.9 c2.5 -0.4 3.1 3.2 -0.9 5.8 Z M29.5 27 c-4 -2.6 -3.4 -6.2 -0.9 -5.8 c0.7 0.1 0.9 0.6 0.9 0.9 c0 -0.3 0.2 -0.8 0.9 -0.9 c2.5 -0.4 3.1 3.2 -0.9 5.8 Z" fill="#ff5f7e" />
         </svg>
         <span className="moon-zzz">z z</span>
         <AnimatePresence>
