@@ -5,6 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { useProjectRecords } from '../../lib/portfolioDocs';
 import { PLACEHOLDER_QUESTIONS, SUGGESTIONS } from '../lab/copilotAnswers';
 import { chipKindOf, openLabel } from './chips';
+import { previewOf } from './replyPeek';
 import { copilot, useCopilot, type CopilotAction, type CopilotMessage } from './store';
 import { useVoice, voice } from './voice';
 import './chat-core.css';
@@ -213,8 +214,10 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
   const [focused, setFocused] = useState(false);
   // The hero's thread is open only while the visitor is working in it. It folds away on a click elsewhere or when
   // the hero scrolls off screen, and the conversation stays in the store, so the side panel still has all of it.
+  // Folded, a one- or two-line peek above the box shows that it is working and then the start of the reply.
   const [engaged, setEngaged] = useState(false);
-  const showThread = messages.length > 0 && (variant === 'dock' || ((engaged || busy) && heroVisible));
+  const showThread = messages.length > 0 && (variant === 'dock' || (engaged && heroVisible));
+  const showPeek = variant === 'hero' && messages.length > 0 && !showThread;
   const threadRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const placeholder = useTypedPlaceholder(!focused && draft === '' && messages.length === 0);
@@ -311,6 +314,30 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
             ),
           )}
         </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence initial={false}>
+        {showPeek && (
+          <motion.button
+            key="peek"
+            type="button"
+            className="cp-peek"
+            aria-label="Open the conversation"
+            onClick={() => inputRef.current?.focus()}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: EASE }}
+          >
+            <span className={`cp-peek-dot${busy ? ' is-busy' : ''}`} aria-hidden="true" />
+            <span className="cp-peek-text" aria-live="polite">
+              {previewOf(messages)}
+            </span>
+            <span className="cp-peek-open lab-mono" aria-hidden="true">
+              {busy ? 'Replying' : 'Read'}
+            </span>
+          </motion.button>
         )}
       </AnimatePresence>
 

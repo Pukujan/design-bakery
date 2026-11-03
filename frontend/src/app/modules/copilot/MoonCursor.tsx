@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { flowField } from '../lab/flow';
 import { useAgentCursor } from './agentCursor';
+import type { ReplyPeek } from './replyPeek';
 import { nearestEdge } from './citeRoute';
 import { useCopilot } from './store';
 import { audioLevel, useVoice } from './voice';
@@ -24,7 +25,7 @@ const rand = (min: number, max: number) => min + Math.random() * (max - min);
  * scrolled or swiped. When the agent acts it rolls over to the link, presses it, and holds up a little scroll wheel
  * while the page glides.
  */
-export default function MoonCursor() {
+export default function MoonCursor({ peek = null }: { peek?: ReplyPeek | null }) {
   const voice = useVoice();
   const agent = useAgentCursor();
   const { messages, open: chatOpen } = useCopilot();
@@ -543,7 +544,7 @@ export default function MoonCursor() {
   }, [active, reduceMotion]);
 
   // What the moon says: the line being spoken while it connects or reminds, dots while it thinks, and the start of the
-  // answer while it speaks.
+  // answer while it speaks. In a text chat it carries the reply for a visitor who has scrolled away from the chat (peek).
   const lastReply = [...messages].reverse().find((m) => m.role === 'assistant' && m.text)?.text ?? '';
   const excerpt = lastReply.length > 120 ? `${lastReply.slice(0, 117).trimEnd()}...` : lastReply;
   const bubble: { kind: 'text' | 'dots'; text: string } | null = voice.hold
@@ -554,9 +555,11 @@ export default function MoonCursor() {
       ? { kind: 'dots', text: '' }
       : voice.speaking === 'agent' && excerpt
         ? { kind: 'text', text: excerpt }
-        : quip
-          ? { kind: 'text', text: quip }
-          : null;
+        : peek
+          ? peek
+          : quip
+            ? { kind: 'text', text: quip }
+            : null;
   talkingRef.current = bubble !== null;
   if (!active) return null;
   return (

@@ -38,6 +38,31 @@
   outline-offset: 3px;
 }
 
+/* A reply for a visitor who has scrolled away from the chat: dots while it works, then its first words, over the pill.
+   The moon's bubble says it instead when the moon is out (replyPeek.ts). */
+.cp-pill-bubble {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 62px);
+  z-index: 2147482000;
+  max-width: min(300px, calc(100vw - 32px));
+  padding: 0.6rem 0.85rem;
+  border: 0;
+  border-radius: 16px 16px 4px 16px;
+  background: var(--lab-paper, #f2efe8);
+  color: var(--lab-ink, #0b0b0a);
+  font: 500 0.85rem/1.4 var(--lab-display);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.4);
+  transform-origin: bottom right;
+}
+
+.cp-pill-bubble:focus-visible {
+  outline: 2px solid var(--lab-accent);
+  outline-offset: 3px;
+}
+
 .cp-kbd {
   font: 500 0.65rem var(--lab-mono);
   color: var(--lab-muted);

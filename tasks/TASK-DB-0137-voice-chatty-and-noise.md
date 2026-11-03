@@ -88,3 +88,11 @@ Reproduced on `/research/papers/db-r-2026-010` with a three-cite summary (1280×
 - **Now** (`citeRoute.ts`, `store.ts`): the page holds still while a passage is spoken and moves in one 1.1 s leg that ends as the next sentence starts; no drift; a swipe needs 40 characters between moves; a missing heading keeps the page where it is. Measured: each of the three headings sat at exactly 169 px from its sentence start until the next leg.
 - **Faster voice-call scrolls** (`stageScroll.ts`): page, section and card scrolls take 1.2 to 2.4 s instead of 2.5 to 7 s.
 - Checks: `test-copilot-cite-route.mjs` (new paper case), frontend `tsc`, eslint.
+
+## The chat shows it replied (fifth commit)
+
+The owner found that the hero chat looked as if nothing happened once it lost focus: the thread folds away and only "Ask a follow-up…" is left.
+
+- **Hero peek** (`CopilotChat.tsx`, `chat-core.css`): folded, the hero shows one or two lines above the box, a pulsing dot with "Thinking…" while it works, then the start of the reply. Clicking it or the box opens the whole conversation. The thread no longer opens on its own while a reply is working.
+- **A bubble when scrolled away** (`replyPeek.ts`, `CopilotDock.tsx`): with the hero off screen and the panel shut, a bubble over the pill shows dots, then the reply's first words for 12 s, and the pill says "New reply" until the chat is opened. A click opens the chat. If the moon is out, its own bubble carries the reply instead, so there is only ever one.
+- Checked in the local site: hero peek while working and after the reply, a click opens the thread; scrolled away, dots then the reply, "New reply", and the pill back to "Continue chat" after opening. A saved reply (no working state) also shows. The moon carrying it was not seen live (the moon is out only on a call or while it guides).

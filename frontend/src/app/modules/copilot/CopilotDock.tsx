@@ -17,6 +17,8 @@ import { CopilotChat } from './CopilotChat';
 import { MiniCopilot } from './MiniCopilot';
 import VoiceOrb from './VoiceOrb';
 import MoonCursor from './MoonCursor';
+import { useAgentCursor } from './agentCursor';
+import { useReplyPeek } from './replyPeek';
 import { copilot, useCopilot } from './store';
 import { useVoice } from './voice';
 
@@ -87,6 +89,10 @@ const keepFocus = (event: MouseEvent) => event.preventDefault();
 export default function CopilotDock() {
   const { open, heroVisible, messages } = useCopilot();
   const call = useVoice();
+  const agent = useAgentCursor();
+  const { peek, unseen } = useReplyPeek();
+  // There is one bubble: the moon's when it is out, else one over the pill.
+  const moonOut = agent.visible || agent.moonReturning;
   const reduceMotion = useReducedMotion();
   const mobile = useMobile();
   const { pathname } = useLocation();
@@ -171,7 +177,32 @@ export default function CopilotDock() {
       onBlur={onBlur}
     >
       <VoiceOrb />
-      <MoonCursor />
+      <MoonCursor peek={moonOut ? peek : null} />
+      <AnimatePresence>
+        {showPill && peek && !moonOut && (
+          <motion.button
+            key={peek.kind === 'dots' ? 'dots' : 'text'}
+            type="button"
+            className="cp-pill-bubble"
+            onClick={() => copilot.setOpen(true)}
+            initial={reduceMotion ? false : { opacity: 0, y: 10, scale: 0.85 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.9 }}
+            transition={{ duration: 0.25, ease: EASE }}
+            aria-label="Open the reply"
+          >
+            {peek.kind === 'dots' ? (
+              <span className="moon-dots">
+                <i />
+                <i />
+                <i />
+              </span>
+            ) : (
+              peek.text
+            )}
+          </motion.button>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {showPill && (
           <motion.button
@@ -186,7 +217,7 @@ export default function CopilotDock() {
             aria-label="Open the copilot"
           >
             <span className="lab-live-dot" aria-hidden="true" />
-            {messages.length ? 'Continue chat' : 'Ask me anything'}
+            {unseen ? 'New reply' : messages.length ? 'Continue chat' : 'Ask me anything'}
             <kbd className="cp-kbd">⌘K</kbd>
           </motion.button>
         )}
