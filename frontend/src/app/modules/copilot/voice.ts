@@ -220,6 +220,10 @@ export const voice = {
         for (const step of copilot.takeSteps()) {
           stepTimers.push(setTimeout(() => copilot.go(step.path, { slow: true, agent: true }), SPEECH_LEAD_MS + (step.at / SPEECH_CHARS_PER_S) * 1000));
         }
+        // Further citations: walked to as he speaks each one, in order.
+        for (const { action, at } of copilot.takeCites(answer)) {
+          stepTimers.push(setTimeout(() => void copilot.cite(action), SPEECH_LEAD_MS + (at / SPEECH_CHARS_PER_S) * 1000));
+        }
         return JSON.stringify({ say: answer || 'Please try that again.' });
       });
       call.on(lk.RoomEvent.TrackSubscribed, (track) => {

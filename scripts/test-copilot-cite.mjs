@@ -97,4 +97,28 @@ assert.equal(noQuote.quoteShown, false, 'an invented quote still scrolls but is 
 assert.equal('quote' in emitted.at(-1), false);
 assert.equal(emitted.length, before + 1, 'refusals emit nothing');
 
+// 6. The citation guard: a post or paper may be cited only after a tool retrieved it this turn.
+const { createCitations } = await import(new URL('./backend/lib/copilot/citations.js', root).href);
+const guarded = createCitations();
+const emittedG = [];
+const g = tools.makeTools((action) => emittedG.push(action), { canNavigate: false, citations: guarded });
+const runG = (input) => g.cite_section.execute(input, { toolCallId: 't', messages: [] });
+const papers = (await readFile(new URL('./backend/src/copilot/knowledge.ts', root), 'utf8')) && (await import(new URL('./backend/lib/copilot/knowledge.js', root).href)).loadPapers;
+const paperId = (await papers())[0].id;
+const unread = await runG({ path: `/research/papers/${paperId}`, heading: 'Abstract' });
+assert.equal(unread.ok, false, 'a paper that was not read this turn cannot be cited');
+assert.equal(emittedG.length, 0);
+await g.read_paper.execute({ id: paperId }, { toolCallId: 't', messages: [] });
+const read = await runG({ path: `/research/papers/${paperId}`, heading: 'Abstract' });
+assert.equal(read.ok, true, 'after read_paper the same cite goes through');
+assert.equal(emittedG.at(-1).kind, 'cite');
+assert.equal((await runG({ path: `/work/${slug}`, heading: 'What it is' })).ok, true, 'projects are in the brief, so they need no read');
+assert.equal((await runG({ path: `/research/papers/${paperId}`, heading: 'Pricing' })).ok, false);
+const trace = guarded.summary();
+assert.equal(trace.length, 4);
+assert.match(trace[0], /!not retrieved/);
+assert.match(trace[1], new RegExp(`^/research/papers/${paperId}#`));
+assert.match(trace[3], /!no such section/);
+assert.equal(guarded.log()[1].ok, true);
+
 console.log('copilot cite: ok');

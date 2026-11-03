@@ -17,3 +17,9 @@ Backend build, frontend tsc and the copilot test scripts pass. In the browser wi
 ## Next
 - Not tried on a live voice call (needs the voice agent); the move is queued the same way navigation is.
 - `ResearchPaperPage.tsx` (the old `rp-*` renderer) is not routed and was left alone.
+
+## Update: citation guard, ordered walk, trace record
+- Guard (`backend/src/copilot/citations.ts`, plain code): `read_blog`, `read_paper` and `search_site` mark what they retrieved this turn; `cite_section` refuses a post or paper that was not (projects are in the brief). Every attempt is recorded (path, anchor, quote, ok, reason) and sent to the trace as `copilot.citations` (`path#anchor` or `path!reason`).
+- Walk: `citeRoute.ts` `planRoute(current, target, anchor)` gives the ordered steps (page via its list, then heading); `walkTo` in `store.ts` plays the page step with the existing `journey()` through `go()`. Cites are serialized in a queue so several never overlap.
+- Several cites in one answer: on a call the first happens before he speaks; the rest are timed to where the answer names each (`citeAt`, never earlier than the previous one) through `takeCites` in `voice.ts`. In chat the chips come in the order cited.
+- Tests: guard cases added to `test-copilot-cite.mjs`; `test-copilot-cite-route.mjs` for the route and timing.

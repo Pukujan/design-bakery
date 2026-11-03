@@ -20,6 +20,7 @@ import { checkPass, clientIp, issuePass, turnstileSiteKey } from './guard.js';
 import { createDailyBudget, createLimiter, limitConfigFromEnv } from './fairUse.js';
 import { siteBrief } from './knowledge.js';
 import { devProvider, pickProfile, routeFor, smartProviders, type Provider } from './providers.js';
+import { createCitations } from './citations.js';
 import { makeTools, type CopilotAction } from './tools.js';
 import { TurnTrace } from './tracing.js';
 import { takeDurableCopilotLimit, durableLimitConfigured } from './durableLimit.js';
@@ -241,6 +242,7 @@ copilotRouter.post('/chat', async (req, res) => {
     const history: ModelMessage[] = messages.map((m, index) =>
       index === messages.length - 1 && m.role === 'user' ? { role: 'user', content: `${m.content}${where}` } : { role: m.role, content: m.content },
     );
+    const citations = createCitations();
     const result = streamText({
       model,
       system: `${voice ? `${SYSTEM}\n\n${VOICE_NOTE}` : SYSTEM}\n\n# Site brief\n${brief}`,
@@ -251,7 +253,7 @@ copilotRouter.post('/chat', async (req, res) => {
           if (voice && action.kind !== 'navigate' && action.kind !== 'cite') return;
           send({ type: 'action', action });
         },
-        { canNavigate: voice || visitorSaidYes(messages) },
+        { canNavigate: voice || visitorSaidYes(messages), citations },
       ),
       stopWhen: stepCountIs(6),
       maxOutputTokens: 240,
@@ -284,6 +286,7 @@ copilotRouter.post('/chat', async (req, res) => {
         budget.record(turn.inputTokens + turn.outputTokens);
       }
     }
+    turn.citations = citations.summary();
     turn.output = filter.flush();
     // A model that only called tools and said nothing must not leave the visitor (or a call) in silence.
     if (!turn.output.trim()) {

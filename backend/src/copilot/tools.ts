@@ -5,6 +5,7 @@
  */
 import { tool } from 'ai';
 import { z } from 'zod';
+import type { Citations } from './citations.js';
 import { checkQuote, findSection, QUOTE_MAX } from './sections.js';
 import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, sectionsForPath, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
 
@@ -45,7 +46,8 @@ export function bookingUrl(base: string, who: { name?: string; email?: string; t
  * `canNavigate` is true only when the visitor has just said yes to an offer to open a
  * page (route.ts decides that). Without it, navigate refuses and the model must ask.
  */
-export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean }) {
+export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean; citations?: Citations }) {
+  const citations = options.citations;
   return {
     search_site: tool({
       description: 'Search projects, research papers and blog posts by keywords. Use it when the brief is not enough.',
@@ -63,6 +65,7 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
           .filter((hit) => hit.score > 0)
           .sort((a, b) => b.score - a.score)
           .slice(0, 6);
+        for (const hit of hits) citations?.retrieve(hit.ref);
         return hits.map(({ kind, ref, title, text }) => ({ kind, ref, title, summary: clip(text, 300) }));
       },
     }),
@@ -73,6 +76,7 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
       execute: async ({ id }) => {
         const post = await readBlog(id);
         if (!post) return { error: 'not found' };
+        citations?.retrieve(`/blogs/${id}`);
         const sections = (await sectionsForPath(`/blogs/${id}`)) ?? [];
         return { title: post.title, sections: sections.map((s) => s.heading), text: clip(post.content, 6000) };
       },
@@ -84,6 +88,7 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
       execute: async ({ id }) => {
         const body = await readPaper(id);
         if (!body) return { error: 'not found' };
+        citations?.retrieve(`/research/papers/${id}`);
         const sections = (await sectionsForPath(`/research/papers/${id}`)) ?? [];
         return { sections: sections.map((s) => s.heading), text: clip(body, 8000) };
       },
@@ -104,16 +109,31 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
     }),
 
     cite_section: tool({
-      description: `Point at a section of a blog post, research paper or project while you talk about it: the page scrolls to that heading, the cursor taps it, and a short passage is highlighted. path is /blogs/<id>, /research/papers/<id> or /work/<slug>. heading must be a heading you saw in the "sections" list of read_blog or read_paper (a project page has What it is, Highlights, Built with, Go deeper). quote is optional: a passage of at most ${QUOTE_MAX} characters copied word for word from that section. If it returns ok false, do not retry with a made-up heading; just keep talking.`,
+      description: `Point at a section of a blog post, research paper or project while you talk about it: the page scrolls to that heading, the cursor taps it, and a short passage is highlighted. path is /blogs/<id>, /research/papers/<id> or /work/<slug>. you must have read the post or paper this turn (read_blog or read_paper), or it is refused. heading must be a heading you saw in its "sections" list (a project page has What it is, Highlights, Built with, Go deeper). quote is optional: a passage of at most ${QUOTE_MAX} characters copied word for word from that section. If it returns ok false, do not retry with a made-up heading; just keep talking.`,
       inputSchema: z.object({ path: z.string().max(200), heading: z.string().min(1).max(200), quote: z.string().max(400).optional() }),
       execute: async ({ path, heading, quote }) => {
         const clean = path.split('#')[0];
-        if (!(await knownPath(clean))) return { ok: false, error: 'not a page on this site' };
+        if (!(await knownPath(clean))) {
+          citations?.record({ path: clean, ok: false, reason: 'not a page on this site' });
+          return { ok: false, error: 'not a page on this site' };
+        }
+        // Projects are all in the brief; a post or paper must have been read this turn.
+        if (citations && !/^\/work\//.test(clean)) {
+          const verdict = citations.check(clean);
+          if (!verdict.ok) {
+            citations.record({ path: clean, ok: false, reason: verdict.reason });
+            return { ok: false, error: verdict.reason };
+          }
+        }
         const sections = await sectionsForPath(clean);
         if (!sections?.length) return { ok: false, error: 'this page has no sections to point at' };
         const section = findSection(sections, heading);
-        if (!section) return { ok: false, error: 'no such section', sections: sections.map((s) => s.heading).slice(0, 20) };
+        if (!section) {
+          citations?.record({ path: clean, ok: false, reason: 'no such section' });
+          return { ok: false, error: 'no such section', sections: sections.map((s) => s.heading).slice(0, 20) };
+        }
         const checked = checkQuote(section, quote);
+        citations?.record({ path: clean, anchor: section.id, quote: checked, ok: true });
         emit({ kind: 'cite', path: clean, anchor: section.id, heading: section.heading, ...(checked ? { quote: checked } : {}) });
         return { ok: true, heading: section.heading, quoteShown: Boolean(checked) };
       },

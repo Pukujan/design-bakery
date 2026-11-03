@@ -10,6 +10,7 @@ import { answer as localAnswer, type CopilotProject } from '../lab/copilotAnswer
 import { getTurnstileToken } from './turnstile';
 import { scrollStageToElement, scrollStageToTop } from '../lab/stageScroll';
 import { agentCursor } from './agentCursor';
+import { citeAt, planRoute } from './citeRoute';
 import { clearQuote, highlightQuote } from './quoteHighlight';
 
 export type CopilotAction =
@@ -70,6 +71,9 @@ let pendingMoves: Promise<void>[] = [];
 /** Set by voice.ts: called with a finished typed reply, so a call can speak the ones it has a recording for. */
 export const typedReply: { hook?: (text: string) => void } = {};
 let pendingSteps: Array<{ path: string; at: number }> = [];
+/** The citations of a call's answer after the first: each is walked to as the answer reaches it. */
+let pendingCites: Array<Extract<CopilotAction, { kind: 'cite' }>> = [];
+let citesThisTurn = 0;
 /** How long a reply may go without a single event before the chat stops waiting for it. */
 const STALL_MS = 25_000;
 
@@ -283,8 +287,18 @@ function headingFor(anchor: string, heading: string): HTMLElement | null {
  * there), scroll slowly to the heading, tap it, then mark the quoted passage. If the heading is not on the page it
  * stays where it is and says nothing more.
  */
-async function cite(action: Extract<CopilotAction, { kind: 'cite' }>) {
-  if (window.location.pathname !== action.path) await copilot.go(action.path, { slow: true, agent: true });
+let citeQueue: Promise<void> = Promise.resolve();
+/** Several citations in one answer are walked to one after the other, never at once. */
+function cite(action: Extract<CopilotAction, { kind: 'cite' }>): Promise<void> {
+  const run = citeQueue.then(() => walkTo(action)).catch(() => undefined);
+  citeQueue = run;
+  return run;
+}
+
+async function walkTo(action: Extract<CopilotAction, { kind: 'cite' }>) {
+  for (const step of planRoute(window.location.pathname, action.path, action.anchor)) {
+    if (step.kind === 'page') await copilot.go(step.path, { slow: true, agent: true });
+  }
   // The post or paper may still be loading from the API.
   let heading: HTMLElement | null = null;
   for (let waited = 0; waited <= 6000 && !heading; waited += 150) {
@@ -384,6 +398,16 @@ export const copilot = {
     pendingMoves = [];
     return Promise.all(moves).then(() => undefined);
   },
+  /** The later citations of the answer just given, each with the character where it is spoken, in order. */
+  takeCites(answer: string) {
+    const cites = pendingCites;
+    pendingCites = [];
+    let after = 0;
+    return cites.map((action, index) => {
+      after = citeAt(answer, action, index + 1, cites.length + 1, after);
+      return { action, at: after };
+    });
+  },
   /** The scroll steps of the voice answer just given, to run as it is spoken. */
   takeSteps() {
     const steps = pendingSteps;
@@ -422,6 +446,8 @@ export const copilot = {
     revealFor(replyId, options.typed === false || voice);
     if (voice) voiceReplies.add(replyId);
     pendingSteps = [];
+    pendingCites = [];
+    citesThisTurn = 0;
     abort = new AbortController();
     try {
       await stream([...history, { role: 'user', content: question }], page, replyId, abort.signal, false, voice);
@@ -556,9 +582,13 @@ function handle(event: Event, replyId: number) {
     }
     if (event.action.kind === 'cite' && voiceReplies.has(replyId)) {
       // On a call it happens before the answer is spoken, after any page move this answer made (the pages load in turn).
+      // The first happens before the answer is spoken; later ones as he reaches them (takeCites).
       const action = event.action;
-      const before = Promise.all(pendingMoves);
-      pendingMoves.push(before.then(() => cite(action)).catch(() => undefined));
+      citesThisTurn += 1;
+      if (citesThisTurn === 1) {
+        const before = Promise.all(pendingMoves);
+        pendingMoves.push(before.then(() => cite(action)).catch(() => undefined));
+      } else pendingCites.push(action);
       return;
     }
     // Chips appear once the text has been typed. On a call there are no chips: the page moves instead.
