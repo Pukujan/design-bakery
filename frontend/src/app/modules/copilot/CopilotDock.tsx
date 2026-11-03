@@ -103,7 +103,7 @@ export default function CopilotDock() {
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
-      if (target.closest('.cp-dock, .cp-chat, [data-copilot-open]')) return;
+      if (target.closest('.cp-dock, .cp-chat, .vo, [data-copilot-open]')) return;
       copilot.setOpen(false);
     };
     document.addEventListener('pointerdown', onPointerDown);
