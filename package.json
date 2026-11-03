@@ -23,6 +23,7 @@
     "test:homepage-content": "node scripts/test-homepage-content-stability.mjs",
     "test:copilot-answers": "node scripts/test-copilot-answers.mjs",
     "test:copilot-router": "node scripts/test-copilot-router.mjs",
+    "test:copilot-memory": "node scripts/test-copilot-memory.mjs",
     "test:copilot-news": "node scripts/test-copilot-news.mjs",
     "test:copilot-stream": "node scripts/test-copilot-stream.mjs",
     "test:copilot-truncation": "node scripts/test-copilot-truncation.mjs",

@@ -46,6 +46,12 @@ export class TurnTrace {
   actions: string[] = [];
   /** What cite_section was asked to cite: path#anchor when the guard let it through, path!reason when it did not. */
   citations: string[] = [];
+  /** Estimated size of the prompt sent (persona, brief, news, summary, history), and what was left out of it. */
+  contextTokens = 0;
+  summaryUsed = false;
+  /** Turns not sent verbatim: cut by the token budget plus those the browser's summary stands for. */
+  historyDropped = 0;
+  historyKept = 0;
   inputTokens = 0;
   outputTokens = 0;
   /** Why the model stopped (stop, length, tool-calls...), and whether the reply was cut off and trimmed to a whole sentence. */
@@ -88,6 +94,10 @@ export class TurnTrace {
       'copilot.channel': this.channel,
       'copilot.actions': this.actions.join(' '),
       'copilot.citations': this.citations.join(' | '),
+      'copilot.context_tokens': this.contextTokens,
+      'copilot.summary_used': this.summaryUsed,
+      'copilot.history_dropped': this.historyDropped,
+      'copilot.history_kept': this.historyKept,
     });
     const llm = open(
       'llm',
