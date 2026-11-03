@@ -243,12 +243,12 @@ function compose(
         // The texts are also pre-recorded (public/voice/hello-*.m4a, matched by text in holdAudio.ts): change both together.
         text: firstTurn
           ? vary('greeting', [
-              "Hey, I'm AI Pujan. Yes, another AI assistant. I promise to be less tiresome than most. Want a tour?",
-              "Hi, AI Pujan here. I can show you my work, my writing and my research. Say the word, or just admire the typography.",
+              "Hey, I'm AI Pujan. Yes, another AI assistant, but I will try to be a good one. Want a tour?",
+              "Hi, AI Pujan here. I can show you my work, my writing and my research. Take your time, nothing here is going anywhere.",
               "Hello! I'm AI Pujan, possibly the only chatbot with a portfolio. Ask about my projects, my writing or my research.",
-              'Oh good, a visitor. I am AI Pujan. What would you like to see first?',
+              'Welcome, and thanks for dropping in. I am AI Pujan. What would you like to see first?',
             ])
-          : vary('greeting-again', ['Hi again. Still here, still an AI. What shall we look at?', 'Back already? Good. Ask me about a project, a paper, or my work history.', 'Hello again. Where should we wander next?']),
+          : vary('greeting-again', ['Hi again. Still here, still an AI. What shall we look at?', 'Good to see you again. Ask me about a project, a paper, or my work history.', 'Hello again. Where should we wander next?']),
         actions: [navigate('/#work', 'See the work')],
       };
 
