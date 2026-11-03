@@ -23,6 +23,7 @@
     "test:railway-build": "node scripts/test-railway-build.mjs",
     "test:homepage-content": "node scripts/test-homepage-content-stability.mjs",
     "test:copilot-answers": "node scripts/test-copilot-answers.mjs",
+    "test:copilot-news": "node scripts/test-copilot-news.mjs",
     "test:copilot-stream": "node scripts/test-copilot-stream.mjs",
     "test:copilot-cite": "node scripts/test-copilot-cite.mjs && node scripts/test-copilot-cite-route.mjs",
     "test:icon-coverage": "node scripts/test-icon-coverage.mjs",
