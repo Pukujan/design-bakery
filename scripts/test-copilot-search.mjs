@@ -21,7 +21,7 @@ try {
 } catch {
   throw new Error('copilot search: build the backend first (pnpm --dir backend run build)');
 }
-const { mapMatches, octoConfig, parseTitle, retrieve, searchSite, keywordSearch, turnQueries, passagesBlock, siteDocuments, RERANK_FLOOR } = search;
+const { mapMatches, octoConfig, parseTitle, retrieve, searchSite, keywordSearch, turnQueries, passagesBlock, siteDocuments, RERANK_FLOOR, RERANK_SPREAD } = search;
 const { groundCite, sourceOf, quoteFor } = cite;
 
 const env = { OCTO_API_KEY: 'test-key', OCTO_WORKSPACE_ID: 'ws-test', OCTO_API_BASE: 'http://octo.test/api/' };
@@ -41,15 +41,15 @@ assert.deepEqual(parseTitle('site:/contact'), { ref: '/contact', path: '/contact
 assert.equal(parseTitle('db-public-ekagajpatra-english-subtitles.vtt'), null);
 assert.equal(parseTitle('site:/elsewhere#x'), null);
 
-// 2. Mapping: site: sections of pages that exist, above the floor, best chunk per section, heading from the context line.
+// 2. Mapping: site: sections of pages that exist, within the spread of the best, best chunk per section, heading from the context line.
 const titles = new Map([[projectRef, project.title], [paperRef, paper.title]]);
 const mapped = mapMatches(
   [
     { title: `site:${projectRef}#built-with`, content: `${project.title}: Built with\n\nTypeScript, Postgres`, rerankScore: 2.1 },
     { title: 'db-public-ekagajpatra-english-subtitles.vtt', content: 'not a site page', rerankScore: 5 },
     { title: `site:${projectRef}#built-with`, content: 'a weaker chunk of the same section', rerankScore: 1 },
-    { title: `site:${paperRef}#results`, content: 'a later chunk, no context line', rerankScore: -1 },
-    { title: `site:${paperRef}#method`, content: 'below the floor', rerankScore: RERANK_FLOOR - 1 },
+    { title: `site:${paperRef}#results`, content: 'a later chunk, no context line', rerankScore: 2.1 - RERANK_SPREAD + 0.5 },
+    { title: `site:${paperRef}#method`, content: 'too far below the best', rerankScore: 2.1 - RERANK_SPREAD - 0.5 },
     { title: 'site:/work/deleted-project#what-it-is', content: 'a page that no longer exists', rerankScore: 3 },
   ],
   titles,
@@ -59,6 +59,9 @@ assert.deepEqual(mapped.map((p) => [p.ref, p.heading, p.text, p.kind]), [
   [`${projectRef}#built-with`, 'Built with', 'TypeScript, Postgres', 'project'],
   [`${paperRef}#results`, undefined, 'a later chunk, no context line', 'paper'],
 ]);
+// The scale moves with the question: a weak best match still counts, unless even the best is below the floor.
+assert.equal(mapMatches([{ title: `site:${paperRef}#a`, content: 'x', rerankScore: RERANK_FLOOR + 0.5 }], titles, true).length, 1);
+assert.equal(mapMatches([{ title: `site:${paperRef}#a`, content: 'x', rerankScore: RERANK_FLOOR - 0.5 }], titles, true).length, 0);
 // Without the reranker, vector similarity is the score.
 assert.equal(mapMatches([{ title: `site:${paperRef}#a`, content: 'x', similarity: 0.3 }], titles, false).length, 0);
 assert.equal(mapMatches([{ title: `site:${paperRef}#a`, content: 'x', similarity: 0.7 }], titles, false).length, 1);
@@ -74,6 +77,12 @@ const follow = turnQueries([
 assert.equal(follow.length, 2);
 assert.equal(follow[0], 'how is it built?');
 assert.match(follow[1], /^how is it built\? \(context: what's the Precedent project\? Precedent drafts/);
+// "this project": the content page the visitor is on joins the query; the home page does not.
+assert.deepEqual(turnQueries([{ role: 'user', content: 'what did Arize have to do with this?' }], { path: '/work/precedent', title: 'Precedent' }), [
+  'what did Arize have to do with this?',
+  'what did Arize have to do with this? (context: on the page "Precedent")',
+]);
+assert.deepEqual(turnQueries([{ role: 'user', content: 'hello' }], { path: '/', title: 'Home' }), ['hello']);
 
 // 4. The request, and the reranker's fallback: a reranked query that fails is asked again without it.
 const sent = [];
@@ -146,12 +155,14 @@ assert.ok(!quoteFor(reply, project.tagline, what), 'a sentence not under this he
 
 const load = async (path) => (path === projectRef ? projectSections : null);
 const citations = citationsMod.createCitations();
-const action = await groundCite(reply, [passageBuilt, passageWhat], citations, load);
+const action = await groundCite(reply, [passageBuilt, passageWhat], citations, 'what is it?', load);
 assert.deepEqual({ ...action, quote: undefined }, { kind: 'cite', path: projectRef, anchor: 'what-it-is', heading: 'What it is', quote: undefined, mode: 'perch' });
 assert.equal(action.quote, quote);
 assert.equal(citations.check(projectRef).ok, true, 'the citation guard accepts it');
-assert.equal(await groundCite(reply, [passageWhat], citations, load), null, 'one move per answer: not when something was already cited');
-assert.equal(await groundCite(reply, [{ ...passageWhat, anchor: 'gone' }], citationsMod.createCitations(), load), null, 'a section no longer on the page is not cited');
+assert.equal(await groundCite(reply, [passageWhat], citations, undefined, load), null, 'one move per answer: not when something was already cited');
+assert.equal(await groundCite(reply, [passageWhat], citationsMod.createCitations(), 'how are you?', load), null, 'small talk does not move the page, even when the reply talks shop');
+assert.ok(await groundCite(reply, [passageWhat], citationsMod.createCitations(), 'and what is it?', load), 'a follow-up with no content words still does');
+assert.equal(await groundCite(reply, [{ ...passageWhat, anchor: 'gone' }], citationsMod.createCitations(), undefined, load), null, 'a section no longer on the page is not cited');
 
 // 7. Every indexed section of a few real pages resolves to a live section with the same heading, and the quote a
 //    reply could get from it is shown under that heading (sections.ts is the render source the page and test-copilot-cite share).

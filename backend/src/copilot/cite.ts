@@ -32,6 +32,9 @@ export function contentWords(text: string): Set<string> {
   );
 }
 
+/** A message with no content words that still asks about the thing being discussed. */
+const FOLLOW_UP = /\b(it|its|this|that|these|those|they|them|more|else)\b/i;
+
 const shared = (a: Set<string>, b: Set<string>) => [...a].filter((w) => b.has(w)).length;
 
 /** A reply drew on a passage when it shares at least this many content words with it, and this share of its own. */
@@ -51,11 +54,14 @@ export function sourceOf(reply: string, passages: Passage[]): Passage | null {
   return best?.passage ?? null;
 }
 
-/** Sentences of a chunk, each cut to a quotable length at a word boundary. */
+/** Sentences of a chunk, each cut to a quotable length at a word boundary. A line break ends one: blocks on the page
+ *  are separate elements, and a quote that ran across two would not be found there. Table rows are skipped: the page
+ *  shows them as cells, without the pipes. */
 function sentences(text: string): string[] {
   return text
-    .replace(/\s+/g, ' ')
-    .split(/(?<=[.!?])\s+(?=[A-Z0-9"“(])/)
+    .split(/\n+/)
+    .filter((line) => !/^\s*\|/.test(line))
+    .flatMap((line) => line.replace(/\s+/g, ' ').split(/(?<=[.!?])\s+(?=[A-Z0-9"“(])/))
     .map((s) => s.trim())
     .filter((s) => s.length >= 20)
     .map((s) => (s.length > QUOTE_MAX ? s.slice(0, QUOTE_MAX).replace(/\s+\S*$/, '') : s));
@@ -75,11 +81,14 @@ export function quoteFor(reply: string, chunk: string, section: Section): string
 }
 
 /**
- * The cite for this reply, or null: none when the model already pointed at something, when no passage clearly
- * sourced the reply, or when its section is not on the page any more. Records it in the turn's citation log.
+ * The cite for this reply, or null: none when the model already pointed at something, when the visitor's message
+ * asks about nothing ("how are you", "thanks": a reply that talks about my work anyway is not a reason to move the
+ * page; "what is it?" points back at the conversation, so it counts), when no passage clearly sourced the reply, or when its section is not on the page any more. Records it in
+ * the turn's citation log.
  */
-export async function groundCite(reply: string, passages: Passage[], citations: Citations, load = sectionsForPath): Promise<CiteAction | null> {
+export async function groundCite(reply: string, passages: Passage[], citations: Citations, question?: string, load = sectionsForPath): Promise<CiteAction | null> {
   if (citations.log().some((c) => c.ok)) return null;
+  if (question !== undefined && !contentWords(question).size && !FOLLOW_UP.test(question)) return null;
   const source = sourceOf(reply, passages);
   if (!source?.anchor) return null;
   const sections = await load(source.path);

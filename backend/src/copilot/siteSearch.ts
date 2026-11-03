@@ -9,7 +9,7 @@
  * When Octo is not configured, errors or is slow, search_site falls back to the old keyword count, and the turn
  * falls back to the full site brief (route.ts), so the copilot never loses its facts.
  */
-import { homeSections, loadBlogs, loadExperience, loadHero, loadPapers, loadProjects, loadSkills, projectPath, readBlog, readPaper, SOCIAL_LINKS } from './knowledge.js';
+import { homeSections, loadBlogs, loadHero, loadPapers, loadProjects, loadShownExperience, loadSkills, projectPath, readBlog, readPaper, SOCIAL_LINKS } from './knowledge.js';
 import { sectionsOfMarkdown, sectionsOfProject } from './sections.js';
 
 export type SiteKind = 'project' | 'paper' | 'blog' | 'home' | 'contact';
@@ -29,13 +29,16 @@ export const RAG_TIMEOUT_MS = 2500;
 /** Without the reranker a query takes ~0.35–0.45 s. */
 export const RAG_FAST_TIMEOUT_MS = 1500;
 /**
- * Below these a chunk is not passed on. The reranker's score is a logit: an answering section scores around 0 and
- * above, unrelated ones -4 to -8. Without it, cosine similarity: an answering section ~0.6, noise ~0.3–0.45.
- * Neither tells small talk apart reliably ("hello" reranks a page that greets visitors at 0.37), so the prompt, not
- * this floor, decides whether a passage is used.
+ * Which chunks are passed on. The reranker's score is a logit and not comparable across questions: the answering
+ * section of "What stack is Precedent built with?" scores 2.4, of "What experience do you have?" -6, while "hello"
+ * reranks the About section at -0.4. So the cut is relative: the best chunk must clear RERANK_FLOOR (a misheard name
+ * with no match tops out around -7), and the rest must be within RERANK_SPREAD of it. Without the reranker, cosine
+ * similarity: an answering section ~0.5–0.65, noise ~0.3–0.45. Neither tells small talk apart, so the prompt, not
+ * this cut, decides whether a passage is used, and the cite needs the reply to share the passage's words.
  */
-export const RERANK_FLOOR = -3;
-export const SIMILARITY_FLOOR = 0.5;
+export const RERANK_FLOOR = -6.5;
+export const RERANK_SPREAD = 3;
+export const SIMILARITY_FLOOR = 0.45;
 /** Chunks asked of Octo: a long section returns several, and only the best per section is kept. */
 const RAG_CHUNKS = 15;
 
@@ -113,12 +116,18 @@ const CONTEXT_LINE = /^[^\n]*\n+/;
 export function mapMatches(matches: OctoMatch[], titles: Map<string, string>, reranked: boolean): Passage[] {
   const out: Passage[] = [];
   const seen = new Set<string>();
-  for (const match of matches) {
+  const onSite = matches.filter((m) => {
+    const address = parseTitle(m.title);
+    return address && titles.has(address.path);
+  });
+  const top = Math.max(...onSite.map((m) => m.rerankScore ?? -Infinity));
+  const floor = reranked ? (top < RERANK_FLOOR ? Infinity : top - RERANK_SPREAD) : SIMILARITY_FLOOR;
+  for (const match of onSite) {
     const address = parseTitle(match.title);
     const pageTitle = address && titles.get(address.path);
     if (!address || !pageTitle || seen.has(address.ref)) continue;
     const score = reranked ? (match.rerankScore ?? -Infinity) : (match.similarity ?? 0);
-    if (score < (reranked ? RERANK_FLOOR : SIMILARITY_FLOOR)) continue;
+    if (score < floor) continue;
     seen.add(address.ref);
     const content = match.content ?? '';
     // The first chunk of a section starts with its context line "<page>: <heading>"; that names the heading.
@@ -182,16 +191,18 @@ export async function retrieve(queries: string[], options: RetrieveOptions = {})
 }
 
 /**
- * The queries for a turn: the message itself, and the message with the conversation just before it, so a follow-up
- * ("how is it built?", "what else?") finds the thing being talked about. Both run at once and their results merge.
+ * The queries for a turn: the message itself, and the message with the conversation just before it and the content
+ * page the visitor is on, so a follow-up ("how is it built?", "what else?") or "this project" finds the thing being
+ * talked about. Both run at once and their results merge.
  */
-export function turnQueries(messages: Array<{ role: string; content: string }>): string[] {
+export function turnQueries(messages: Array<{ role: string; content: string }>, page?: { path: string; title: string }): string[] {
   const question = messages.at(-1)?.content.trim() ?? '';
   if (!question) return [];
   const earlier = messages.slice(0, -1);
   const lastUser = [...earlier].reverse().find((m) => m.role === 'user')?.content ?? '';
   const lastReply = earlier.at(-1)?.role === 'assistant' ? (earlier.at(-1)?.content ?? '') : '';
-  const context = squash(`${clip(lastUser, 200)} ${clip(lastReply, 300)}`);
+  const onPage = page && ['project', 'paper', 'blog'].includes(kindOf(page.path) ?? '') ? `on the page "${clip(page.title, 100)}"` : '';
+  const context = squash(`${onPage} ${clip(lastUser, 200)} ${clip(lastReply, 300)}`);
   return context ? [question, `${question} (context: ${context})`] : [question];
 }
 
@@ -226,7 +237,7 @@ const body = (pageTitle: string, heading: string, parts: string[]) => [`${pageTi
 /** Every section the index should hold, from the live content: the sync script's input. */
 export async function siteDocuments(): Promise<SiteDocument[]> {
   const [projects, papers, blogs, home, hero, skills, experience] = await Promise.all([
-    loadProjects(), loadPapers(), loadBlogs(), homeSections(), loadHero(), loadSkills(), loadExperience(),
+    loadProjects(), loadPapers(), loadBlogs(), homeSections(), loadHero(), loadSkills(), loadShownExperience(),
   ]);
   const docs: SiteDocument[] = [];
   const add = (path: string, kind: SiteKind, pageTitle: string, anchor: string | undefined, heading: string, text: string) =>

@@ -77,7 +77,8 @@ export function sectionsOfProject(project: Project & { stats?: Array<{ label: st
   const links = (project.links ?? []).filter((link) => link.url && link.url !== '#');
   const sections: Section[] = [{ id: 'what-it-is', heading: 'What it is', level: 2, blocks: [squash(project.description)] }];
   if (project.stats?.length) sections.push({ id: 'highlights', heading: 'Highlights', level: 2, blocks: project.stats.map((s) => squash(s.label)) });
-  sections.push({ id: 'built-with', heading: 'Built with', level: 2, blocks: [squash(project.tech.join(', '))] });
+  // One block per chip: the page shows each technology as its own element, so a quote cannot span two.
+  sections.push({ id: 'built-with', heading: 'Built with', level: 2, blocks: project.tech.map(squash) });
   if (links.length) sections.push({ id: 'go-deeper', heading: 'Go deeper', level: 2, blocks: links.map((l) => squash(l.label)) });
   return sections;
 }

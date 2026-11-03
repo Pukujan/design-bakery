@@ -12,7 +12,9 @@ layer) runs hybrid lexical + vector search with a bge reranker at `/api/rag/*`.
   headings come from `sections.ts`, the same render source the page and the copilot's `walkTo` / `headingFor` /
   `highlightQuote` use, so text is the page's wording with markdown stripped, split at headings. Each document starts
   with a context line `<page title>: <heading>`. Home (About with hero and skills; one per role, including the
-  collapsed details) and Contact (services, links) are indexed too; skills are not a rendered page, so they ride on About.
+  collapsed details, from the list the page renders: `relevant-experience-rendered-list.json` / Octo
+  `relevant_experience_rendered`, via `loadShownExperience`) and Contact (services, links) are indexed too; skills are
+  not a rendered page, so they ride on About.
 - **`scripts/sync-copilot-rag.mjs`** (`pnpm sync:copilot-rag`, `--dry-run`, `--only home,contact`): idempotent through
   Octo's content hash; deletes `site:` documents whose section is gone, except for a kind that loaded empty this run;
   resets documents an interrupted ingest left with 0 chunks; never touches a title without `site:` (the existing
@@ -24,8 +26,11 @@ layer) runs hybrid lexical + vector search with a bge reranker at `/api/rag/*`.
   (rerank adds ~0.5–1 s). It starts before the rate-limit check so it overlaps it. Passages go into the last user turn
   as search results (not instructions), every passage path is marked retrieved for the citation guard, and the prompt
   carries persona, rules, the visitor's page and a short `siteIndex()` (titles and paths per kind) instead of
-  `siteBrief`. Low-relevance results are dropped (rerank < -3, similarity < 0.5); with nothing left the model is told
-  to just chat and state no facts. If Octo errors or is slow (2.5 s, one retry without rerank), the full `siteBrief`
+  `siteBrief`. The relevance cut is relative, because rerank logits are not comparable across questions (the answer
+  to "What experience do you have?" scores -6, "hello" scores -0.4 against About): the best chunk must clear -6.5 and
+  the rest must be within 3 of it; without the reranker, similarity ≥ 0.45. With nothing left the model is told to
+  just chat and state no facts. The content page the visitor is on joins the context query ("this project"). On a
+  call the prompt says speech recognition mishears names ("President" → Precedent, "Arise" → Arize). If Octo errors or is slow (2.5 s, one retry without rerank), the full `siteBrief`
   is used instead, as before.
 - **Retired:** `cachedAnswer` / `routeRequest` routing (intents, small talk, offers, `banter:ack`) and the tools-off
   small-talk path. **Kept canned:** the prompt-injection reply (security: it must not reach the model) and the gotcha
@@ -35,7 +40,12 @@ layer) runs hybrid lexical + vector search with a bge reranker at `/api/rag/*`.
   retrieved section whose content words the reply shares most (≥ 3 words and ≥ 25% of the reply's), checks its anchor
   and heading against the live sections, takes a quote of at most `QUOTE_MAX` from that chunk's own sentences that
   `checkQuote` finds in the section, records it in the citation log and emits `cite {path, anchor, heading, quote,
-  mode:'perch'}`. No cite when the model already pointed somewhere, or nothing clearly sourced the reply (small talk).
+  mode:'perch'}`. No cite when the model already pointed somewhere, when the visitor's message has no content words
+  and no back-reference ("how are you"), or when nothing clearly sourced the reply. Quote candidates never cross a
+  line (separate elements on the page) and skip table rows (rendered as cells, without pipes).
+- Render-source fixes found in the browser (`sections.ts`, `knowledge.ts`): a project's Built with is one block per
+  chip, and an About focus item's title and description are separate blocks; the page reads those elements with no
+  space between, so a quote spanning them never matched (this also tightens `cite_section`'s quote check).
   Plain code, so it cannot point at a section the reply did not use. Frontend unchanged; voice waits for the answer, so
   the page still moves before speech.
 - `search_site` (tool) uses the same retrieval, one hit per page, keyword fallback.
@@ -43,7 +53,9 @@ layer) runs hybrid lexical + vector search with a bge reranker at `/api/rag/*`.
   `COPILOT_EVAL=1` adds tokens and retrieval to the `done` event for `scripts/eval-copilot-turns.mjs`.
 - Tests: `pnpm test:copilot-search` (offline, in CI): mapping, queries, request shape, rerank retry, every fallback,
   the cite choice and quote, and for every indexed section of two projects, two papers and home: the anchor is live,
-  the heading matches, and the quote is on the page under it. `pnpm check:copilot-rag`: live sections per question.
+  the heading matches, and the quote is on the page under it. Checked once in a real browser too (Vite, the page's
+  own `headingFor` / `sectionElements` / text-walk logic): 39 of 39 sections of precedent, website-copilot, papers 001
+  and 006 (sampled) and home resolve, every quote found. `pnpm check:copilot-rag`: live sections per question.
   `scripts/eval-copilot-turns.mjs <api> [--voice]`: replays the trace conversations.
 
 **Evidence.** Before/after per trace question, latency and cost: see the PR description (2026-11-03).

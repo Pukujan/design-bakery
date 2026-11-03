@@ -94,7 +94,7 @@ Personality (your default, in every reply):
 - A joke or opinion about AI in general is yours; a project, role, number or paper is only ever what the site says, from the index, the passages and your tools. The length rules above still hold: the personality lives in the wording, not in extra length.`;
 
 /** Added to the prompt on a voice call: short spoken sentences, and moving the visitor without asking first. */
-const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Do not ask permission to move the visitor: when a page or a section would help, say in a few words where you are taking them and call navigate right away, then keep talking about what is on that page. When you speak about a particular part of a post, paper or project, call cite_section for it first (with a short quote if one fits), so the page is already there when you say it. For anything long, give one passage and offer to go on to the next. Keep the wit but spoken: at most one short, warm line per turn, no setup that takes more than a breath, and stay under 35 words unless asked for more. In small talk, answer in one or two sentences; for a real question or a worried visitor, drop the jokes and answer straight; otherwise hand the conversation back with a quick question.`;
+const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Do not ask permission to move the visitor: when a page or a section would help, say in a few words where you are taking them and call navigate right away, then keep talking about what is on that page. When you speak about a particular part of a post, paper or project, call cite_section for it first (with a short quote if one fits), so the page is already there when you say it. Speech recognition mishears names: when a name is not in the site index, take the indexed name it sounds most like ("President" is Precedent, "Arise" is Arize) and say the right one. For anything long, give one passage and offer to go on to the next. Keep the wit but spoken: at most one short, warm line per turn, no setup that takes more than a breath, and stay under 35 words unless asked for more. In small talk, answer in one or two sentences; for a real question or a worried visitor, drop the jokes and answer straight; otherwise hand the conversation back with a quick question.`;
 
 /**
  * A short yes to a question the assistant just asked. The only way a page moves on its
@@ -247,7 +247,7 @@ copilotRouter.post('/chat', async (req, res) => {
   const retrieval = (async () => {
     const started = Date.now();
     try {
-      const passages = await retrieve(turnQueries(messages), { rerank: !voice });
+      const passages = await retrieve(turnQueries(messages, page), { rerank: !voice });
       return { passages, ok: true, ms: Date.now() - started };
     } catch {
       return { passages: [] as Passage[], ok: false, ms: Date.now() - started };
@@ -382,7 +382,7 @@ copilotRouter.post('/chat', async (req, res) => {
     // Point the page at the section the reply drew on, unless the model already pointed somewhere, or (on a call)
     // took the visitor to a different page. In a chat it is a chip; on a call the page moves before the answer is spoken.
     const moved = turn.actions.filter((a) => a.startsWith('navigate:')).map((a) => a.slice('navigate:'.length).replace(/\(go\)$/, '').split('#')[0]);
-    const grounded = turn.output.trim() ? await groundCite(turn.output, found.passages, citations).catch(() => null) : null;
+    const grounded = turn.output.trim() ? await groundCite(turn.output, found.passages, citations, messages.at(-1)?.content).catch(() => null) : null;
     if (grounded && (!voice || !moved.length || moved.includes(grounded.path))) {
       send({ type: 'action', action: withChip(grounded) });
       turn.citations = citations.summary();

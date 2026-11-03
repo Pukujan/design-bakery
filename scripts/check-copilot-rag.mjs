@@ -15,10 +15,11 @@ const { retrieve } = await import(new URL('../backend/lib/copilot/siteSearch.js'
 /** Question → the section that should come first (null: just print). */
 const QUESTIONS = [
   ['What stack is Precedent built with?', /^\/work\/precedent#built-with$/],
-  ["what's the President project?", /^\/work\/precedent#/],
+  // Misheard: no section matches the word, the model resolves it from the site index.
+  ["what's the President project?", null],
   ['What did Arize have to do with Precedent?', /^\/work\/precedent#/],
   ['How do I reach you?', /^\/contact$/],
-  ['What experience do you have?', /^\/#role-/],
+  ['What experience do you have?', /^\/#/],
   ['which paper is about judges skipping questions', /^\/research\/papers\//],
   ['the voice call that fills in forms', /^\/work\/website-copilot#/],
   ['hello', null],

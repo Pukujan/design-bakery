@@ -96,6 +96,7 @@ const OCTO_DOCS: Record<string, { collection: string; wrapper: 'item' | 'items' 
   'skill-categories.json': { collection: 'engineering_skills', wrapper: 'items' },
   'skills-meta.json': { collection: 'engineering_skills_meta', wrapper: 'item' },
   'relevant-experience.json': { collection: 'relevant_experience_content', wrapper: 'item' },
+  'relevant-experience-rendered-list.json': { collection: 'relevant_experience_rendered', wrapper: 'item' },
 };
 const octoCache = new Map<string, { at: number; value: unknown }>();
 
@@ -125,6 +126,8 @@ const json = async <T>(name: string): Promise<T> => {
 export const loadProjects = () => json<Project[]>('projects.json');
 
 export const loadExperience = () => json<{ experiences: Experience[] }>('relevant-experience.json');
+/** The roles the home page shows (useRelevantExperienceContent renders this list, not the one above). */
+export const loadShownExperience = () => json<{ experiences: Experience[] }>('relevant-experience-rendered-list.json');
 
 /** Paper metadata from researchPapers.ts, read as text: id, title, status, date and abstract. */
 export async function loadPapers(): Promise<Paper[]> {
@@ -249,7 +252,7 @@ const squash = (text: string) => text.replace(/\s+/g, ' ').trim();
  * is visible on the page, because a quote is highlighted only if the page shows it; a role's Details are folded away.
  */
 export async function homeSections(): Promise<Section[]> {
-  const [about, experience] = await Promise.all([loadAbout(), loadExperience()]);
+  const [about, experience] = await Promise.all([loadAbout(), loadShownExperience()]);
   const sections: Section[] = [];
   const focus = (Array.isArray(about.highlights) ? about.highlights : []) as Array<{ title?: string; desc?: string }>;
   if (about.roleTitle) {
@@ -257,7 +260,9 @@ export async function homeSections(): Promise<Section[]> {
       id: 'story-about',
       heading: squash(about.roleTitle),
       level: 2,
-      blocks: [...(about.paragraphs ?? []), about.callout ?? '', ...focus.map((f) => [f.title, f.desc].filter(Boolean).join(' '))].map(squash).filter(Boolean),
+      // A focus item's title and description are separate spans on the page, read with no space between, so a quote
+      // must not run from one into the other: each is its own block.
+      blocks: [...(about.paragraphs ?? []), about.callout ?? '', ...focus.flatMap((f) => [f.title ?? '', f.desc ?? ''])].map(squash).filter(Boolean),
     });
   }
   for (const job of experience.experiences) {
@@ -277,7 +282,7 @@ export async function homeSections(): Promise<Section[]> {
  * content itself comes from the passages retrieved for each turn.
  */
 export async function siteIndex(): Promise<string> {
-  const [hero, experience, projects, papers, blogs] = await Promise.all([loadHero(), loadExperience(), loadProjects(), loadPapers(), loadBlogs()]);
+  const [hero, experience, projects, papers, blogs] = await Promise.all([loadHero(), loadShownExperience(), loadProjects(), loadPapers(), loadBlogs()]);
   const lines: string[] = [];
   lines.push('## Who', clip([[hero.titleLine1, hero.titleLine2].filter(Boolean).join(' '), hero.description ?? ''].filter(Boolean).join('. '), 240));
   lines.push('', '## Work history (role | company | period); details at /#experience');
