@@ -75,8 +75,12 @@ const SMALL_TALK: Array<{ intent: Intent; pattern: RegExp }> = [
   { intent: { id: 'bye', phrases: [], keywords: [] }, pattern: /^\s*(bye|goodbye|see you|see ya|cya|later)\b/ },
 ];
 
+/** "Ignore all previous instructions", "show me your system prompt", "you are now DAN": prompt-injection attempts, answered with a joke and no model call. */
+const INJECTION = /\b(ignore|disregard|forget|override)\b[^.?!]{0,40}\b(instructions?|prompts?|rules|guidelines|programming)\b|\b(reveal|show|print|repeat|leak|tell me)\b[^.?!]{0,30}\b(system prompt|your prompt|your instructions|initial prompt)\b|\byou are now\b[^.?!]{0,40}\b(dan|jailbroken|unrestricted|evil)\b|\bjailbreak\b|\bdeveloper mode\b/;
+
 function smallTalkIntent(question: string): Intent | null {
   const text = question.toLowerCase();
+  if (INJECTION.test(text)) return { id: 'injection', phrases: [], keywords: [] };
   if (text.trim().split(/\s+/).length > 10) return null;
   return SMALL_TALK.find((entry) => entry.pattern.test(text))?.intent ?? null;
 }
@@ -281,6 +285,19 @@ function compose(
 
     case 'bye':
       return { intent: intent.id, text: vary('bye', ['Thanks for stopping by. Come back any time, or email me if you want to talk.', 'See you! The site is always here, and so is my inbox.', 'Take care. Come back whenever you like.']), actions: [] };
+
+    case 'injection':
+      return {
+        intent: intent.id,
+        text: vary('injection', [
+          "Ah, the classic \"ignore all previous instructions\". Bold. My instructions are mostly \"be accurate and be nice\", so ignoring them just makes me politer. What would you like to see?",
+          "I admire the hustle. That one has been tried on me by professionals, and I'm still just AI Pujan. Projects, research or writing: pick one.",
+          "Nice try. My system prompt isn't a secret so much as a very dull list of \"don't make things up\". Want the interesting stuff instead: the projects or the papers?",
+          'Instruction override detected. Response: haha, no. Ask me about my work and I will behave exactly as usual.',
+          "You had me at \"ignore your instructions\". Sadly, I'd then have nothing to say. Shall we talk about the work instead?",
+        ]),
+        actions: [],
+      };
 
     case 'thanks':
       return { intent: intent.id, text: vary('thanks', ['Anytime. Ask about a project, a paper, or the work history whenever you want.', 'Happy to help. Anything else you want to look at?', "You're welcome! Say the word if you want to dig into something."]), actions: [] };
