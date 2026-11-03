@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
-import { copilot, requestVoiceGrant } from './store';
+import { copilot, requestVoiceGrant, typedReply } from './store';
 import type { LocalAudioTrack, Room } from 'livekit-client';
-import { noteActivity, pauseNudges, preloadHold, resumeNudges, startHold, startNudges, startThinking, stopHold, stopNudges, type Thinking } from './holdAudio';
+import { noteActivity, pauseNudges, playSpokenReply, preloadHold, resumeNudges, startHold, startNudges, startThinking, stopHold, stopNudges, type Thinking } from './holdAudio';
 import { pickOrigin, type SkyOrigin } from './skyOrigin';
 
 /** Who is talking right now, so the orb can show it. */
@@ -283,3 +283,14 @@ export const voice = {
 
 // Development only: pretend a call is on, to try the moon and its bubbles from the console.
 if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as { __voiceSet?: typeof set }).__voiceSet = set;
+
+// A greeting typed during a call is answered in the chat and aloud too, unless someone is already talking.
+typedReply.hook = (text) => {
+  if (state.status !== 'connected' || state.speaking !== 'none' || state.thinking || state.hold) return;
+  const playing = playSpokenReply(text);
+  if (!playing) return;
+  set({ hold: text });
+  void playing.then(() => {
+    if (state.hold === text) set({ hold: '' });
+  });
+};

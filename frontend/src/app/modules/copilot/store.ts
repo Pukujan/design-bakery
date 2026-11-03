@@ -63,6 +63,8 @@ const askKey = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').
 let lastAsk: { key: string; at: number } | null = null;
 /** Replies that belong to a voice call: they never open the side panel, and they may move the page on their own. */
 const voiceReplies = new Set<number>();
+/** Set by voice.ts: called with a finished typed reply, so a call can speak the ones it has a recording for. */
+export const typedReply: { hook?: (text: string) => void } = {};
 let pendingSteps: Array<{ path: string; at: number }> = [];
 /** How long a reply may go without a single event before the chat stops waiting for it. */
 const STALL_MS = 25_000;
@@ -433,6 +435,10 @@ function handle(event: Event, replyId: number) {
     patchMessage(replyId, (m) => ({ text: m.text || event.message, error: !m.text }));
   } else if (event.type === 'done') {
     patchMessage(replyId, () => ({ model: event.model || 'live model' }));
+    if (!voiceReplies.has(replyId)) {
+      const text = state.messages.find((m) => m.id === replyId)?.text;
+      if (text) typedReply.hook?.(text);
+    }
   }
 }
 
