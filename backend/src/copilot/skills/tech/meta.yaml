@@ -1,0 +1,18 @@
+name: tech
+version: 1
+description: List the projects that use a technology named in the question, as cards.
+when_it_applies: "which projects used <tech>" where the tech is in a project record.
+domain: engineering
+code: ../../routines.ts (runner), registered in ROUTINES
+created_by:
+  model: Claude Sonnet 5.5 (claude-sonnet-5-5)
+  harness: Claude Code (desktop)
+  date: 2026-11-02
+  versions: [1]
+tested_on:
+  - model: none (no model call; deterministic)
+    harness: node scripts/test-copilot-router.mjs
+    date: 2026-11-02
+    version: 1
+    result: cases in examples/inputs/cases.json pass against the compiled backend
+    output: examples/inputs/cases.json

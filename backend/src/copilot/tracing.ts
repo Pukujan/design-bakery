@@ -36,6 +36,8 @@ type Step = { name: string; start: number; end?: number; ok?: boolean; input?: s
 export class TurnTrace {
   readonly start = Date.now();
   model = 'none';
+  /** Which routine answered (routines.ts), or 'model' when none did: hit rate and latency by routine read from this. */
+  routine = 'model';
   input = '';
   output = '';
   /** 'text' or 'voice'. */
@@ -74,6 +76,8 @@ export class TurnTrace {
       // Where the answer came from: a saved answer (cache:<intent>) or a model, and over text or a call.
       'copilot.model': this.model,
       'copilot.source': this.model.startsWith('cache:') ? 'cache' : 'model',
+      'copilot.routine': this.routine,
+      'copilot.latency_ms': end - this.start,
       'copilot.channel': this.channel,
       'copilot.actions': this.actions.join(' '),
     });

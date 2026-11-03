@@ -23,7 +23,8 @@ import { devProvider, pickProfile, routeFor, smartProviders, type Provider } fro
 import { makeTools, type CopilotAction } from './tools.js';
 import { TurnTrace } from './tracing.js';
 import { takeDurableCopilotLimit, durableLimitConfigured } from './durableLimit.js';
-import { cachedAnswer, FOLLOW_ON_CALL } from './answers.js';
+import { FOLLOW_ON_CALL } from './answers.js';
+import { routeRequest } from './routines.js';
 import { latestNews, newsBlock } from './news.js';
 import { createTextFilter } from './textFilter.js';
 
@@ -183,14 +184,15 @@ copilotRouter.post('/chat', async (req, res) => {
   // answered from the site's own data with no model call, so they cost nothing to serve
   // and keep working when the database holding the rate budget is down. A follow-up
   // carries context, so only a near-exact match counts after the first turn.
-  const cached = await cachedAnswer(question, messages.length === 1, voice);
+  const cached = await routeRequest(question, messages.length === 1, voice, messages.at(-2)?.role === 'assistant' ? messages.at(-2)?.content : undefined);
   if (cached) {
     turn.model = `cache:${cached.intent}`;
+    turn.routine = cached.routine;
     turn.output = cached.text;
     send({ type: 'text', text: cached.text });
     // In a chat an instant answer offers its pages as chips the visitor clicks. On a call, when the visitor asked to be
     // shown something, the call takes them there, and a tour scrolls section by section as it is spoken.
-    const follow = voice && FOLLOW_ON_CALL.has(cached.intent);
+    const follow = cached.go ?? (voice && FOLLOW_ON_CALL.has(cached.intent));
     for (const action of cached.actions) {
       // On a call there are no buttons: only a page move the call makes itself.
       if (voice && !(follow && action.kind === 'navigate')) continue;
