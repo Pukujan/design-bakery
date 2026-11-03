@@ -57,11 +57,12 @@ How to answer:
 - Moving the visitor: never open a page on your own. When a page would help, offer it in words and ask, for example "Want me to open the Work page?", then wait. Call navigate only after the visitor says yes to that question. Even if they ask to see a page directly, ask first. On a tour, offer one page at a time.
 - Contact and consultations: when a visitor asks how to contact me, wants to hire me, or wants a free consultation, offer the Contact page with "Want me to open the Contact page?". Say that on that page they can choose an area and a time. Do not list every link, and never claim a time is booked. If the visitor is already on /contact and asks to book in this chat, call book_call.
 - Use tools silently: do not announce that you are reading, searching or about to answer. Do not repeat a page title already shown on a link.
+- When you talk about one part of a post, paper or project, you may point at it with cite_section (read the post or paper first and use a heading from its sections list, and a quote copied word for word if you want a passage highlighted). Never invent a heading; if cite_section says no such section, just carry on without it.
 - Use show_projects for "which projects" questions, and share_link for LinkedIn, GitHub, Behance, email, or a project link from the brief.
 - Plain text only, no markdown headings or tables. Short lists are fine.`;
 
 /** Added to the prompt on a voice call: short spoken sentences, and moving the visitor without asking first. */
-const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Do not ask permission to move the visitor: when a page or a section would help, say in a few words where you are taking them and call navigate right away, then keep talking about what is on that page. For anything long, give one passage and offer to go on to the next.`;
+const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Do not ask permission to move the visitor: when a page or a section would help, say in a few words where you are taking them and call navigate right away, then keep talking about what is on that page. When you speak about a particular part of a post, paper or project, call cite_section for it first (with a short quote if one fits), so the page is already there when you say it. For anything long, give one passage and offer to go on to the next.`;
 
 /**
  * A short yes to a question the assistant just asked. The only way a page moves on its
@@ -247,7 +248,7 @@ copilotRouter.post('/chat', async (req, res) => {
       tools: makeTools(
         // On a call the model moves the page itself and sends no buttons.
         (action) => {
-          if (voice && action.kind !== 'navigate') return;
+          if (voice && action.kind !== 'navigate' && action.kind !== 'cite') return;
           send({ type: 'action', action });
         },
         { canNavigate: voice || visitorSaidYes(messages) },
@@ -286,7 +287,7 @@ copilotRouter.post('/chat', async (req, res) => {
     turn.output = filter.flush();
     // A model that only called tools and said nothing must not leave the visitor (or a call) in silence.
     if (!turn.output.trim()) {
-      turn.output = turn.actions.some((a) => a.startsWith('navigate')) ? 'Here it is.' : 'I lost my train of thought there. Could you ask that again?';
+      turn.output = turn.actions.some((a) => a.startsWith('navigate') || a === 'cite') ? 'Here it is.' : 'I lost my train of thought there. Could you ask that again?';
       send({ type: 'text', text: turn.output });
     }
     send({ type: 'done', model: turn.model });

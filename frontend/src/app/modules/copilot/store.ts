@@ -10,6 +10,7 @@ import { answer as localAnswer, type CopilotProject } from '../lab/copilotAnswer
 import { getTurnstileToken } from './turnstile';
 import { scrollStageToElement, scrollStageToTop } from '../lab/stageScroll';
 import { agentCursor } from './agentCursor';
+import { clearQuote, highlightQuote } from './quoteHighlight';
 
 export type CopilotAction =
   /** `go` is set only when the visitor has just confirmed the move; otherwise it is a chip. */
@@ -18,7 +19,9 @@ export type CopilotAction =
   | { kind: 'link'; label: string; url: string }
   | { kind: 'book'; url: string; name?: string; email?: string; topic?: string }
   /** Voice calls only: scroll to a section when the spoken answer reaches character `at` (never shown as a chip). */
-  | { kind: 'scrollstep'; path: string; at: number };
+  | { kind: 'scrollstep'; path: string; at: number }
+  /** Point at a section of a post, paper or project: scroll to its heading, tap it, highlight `quote`. Checked against the live content by the server. */
+  | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string };
 
 export type CopilotMessage = {
   id: number;
@@ -223,6 +226,7 @@ async function journey(path: string) {
   const list = detailParent(path);
   if (!list) return;
   agentCursor.release(25_000);
+  agentCursor.say(['Let me find that one...', 'One sec, finding it...', 'Heading over there...']);
   let card = document.querySelector<HTMLElement>(`a[href="${path.replace(/"/g, '')}"]`);
   if (!card) {
     // Not on this page: go to the list page first, by pressing its link.
@@ -246,10 +250,12 @@ async function journey(path: string) {
     const down = rect.top > 0;
     const seconds = scrollStageToElement(card, { slow: true });
     if (seconds > 0) {
+      agentCursor.say(['Somewhere in here...', 'Scrolling a bit...', 'Hold on, it is further down...'], seconds * 1000);
       agentCursor.startScroll(down ? 'down' : 'up', seconds * 1000);
       await pause(seconds * 1000 + 250);
     }
   }
+  agentCursor.say(['Ah, there it is.', 'Found it.', 'That one.']);
   await agentCursor.pointAtLinkFor(path);
   card.click();
   // On the new page: back to the top, and the cursor taps its title.
@@ -259,6 +265,57 @@ async function journey(path: string) {
   await pause(500);
   await agentCursor.pointAtElement(document.querySelector('main h1, h1'));
   agentCursor.release(6000);
+}
+
+/** The heading a cite points at: by its anchor, else by its text (a heading the page numbers or styles differently). */
+function headingFor(anchor: string, heading: string): HTMLElement | null {
+  const byId = document.getElementById(anchor);
+  if (byId) return byId;
+  const wanted = heading.replace(/\s+/g, ' ').trim().toLowerCase();
+  for (const candidate of document.querySelectorAll<HTMLElement>('main h2, main h3, h2, h3')) {
+    if ((candidate.textContent ?? '').replace(/\s+/g, ' ').trim().toLowerCase() === wanted) return candidate;
+  }
+  return null;
+}
+
+/**
+ * Cites a section the way a person would show it: get to the page (through its list, with the cursor, if it is not
+ * there), scroll slowly to the heading, tap it, then mark the quoted passage. If the heading is not on the page it
+ * stays where it is and says nothing more.
+ */
+async function cite(action: Extract<CopilotAction, { kind: 'cite' }>) {
+  if (window.location.pathname !== action.path) await copilot.go(action.path, { slow: true, agent: true });
+  // The post or paper may still be loading from the API.
+  let heading: HTMLElement | null = null;
+  for (let waited = 0; waited <= 6000 && !heading; waited += 150) {
+    heading = headingFor(action.anchor, action.heading);
+    if (!heading) await pause(150);
+  }
+  if (!heading) {
+    agentCursor.release(2500);
+    return;
+  }
+  clearQuote();
+  agentCursor.release(25_000);
+  const rect = heading.getBoundingClientRect();
+  const inView = rect.top >= 110 && rect.bottom <= window.innerHeight * 0.6;
+  if (!inView) {
+    const down = rect.top > 0;
+    const seconds = scrollStageToElement(heading, { slow: true, offset: -Math.round(window.innerHeight * 0.22) });
+    if (seconds > 0) {
+      agentCursor.startScroll(down ? 'down' : 'up', seconds * 1000);
+      await pause(seconds * 1000 + 250);
+    }
+  }
+  await agentCursor.pointAtElement(heading);
+  if (action.quote) {
+    const block = highlightQuote(heading, action.quote);
+    if (block) {
+      await pause(500);
+      await agentCursor.pointAtElement(block);
+    }
+  }
+  agentCursor.release(7000);
 }
 
 export const copilot = {
@@ -319,6 +376,8 @@ export const copilot = {
     // On a call the agent's cursor glides to the link and presses it first, then the page moves.
     return options.agent ? agentCursor.pointAtLinkFor(path).then(run) : run();
   },
+  /** Point at a section of the page cited by the copilot (a chip click in text chat, a move on a call). */
+  cite,
   /** On a call, the moves the answer just given has started: the answer is spoken only once they are done. */
   takeMoves(): Promise<void> {
     const moves = pendingMoves;
@@ -493,6 +552,13 @@ function handle(event: Event, replyId: number) {
   } else if (event.type === 'action') {
     if (event.action.kind === 'scrollstep') {
       pendingSteps.push({ path: event.action.path, at: event.action.at });
+      return;
+    }
+    if (event.action.kind === 'cite' && voiceReplies.has(replyId)) {
+      // On a call it happens before the answer is spoken, after any page move this answer made (the pages load in turn).
+      const action = event.action;
+      const before = Promise.all(pendingMoves);
+      pendingMoves.push(before.then(() => cite(action)).catch(() => undefined));
       return;
     }
     // Chips appear once the text has been typed. On a call there are no chips: the page moves instead.

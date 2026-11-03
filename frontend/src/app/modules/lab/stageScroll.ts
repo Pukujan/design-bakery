@@ -28,18 +28,18 @@ export function scrollStageToTop(options: { slow?: boolean } = {}): number {
  * Smoothly scroll an element to the top of the viewport. `slow` is for a voice call: the page glides there in a long,
  * even scroll, longer the further it has to go (2.5 to 7 seconds), while the agent talks about what it is showing.
  */
-export function scrollStageToElement(element: HTMLElement | null, options: { slow?: boolean } = {}): number {
+export function scrollStageToElement(element: HTMLElement | null, options: { slow?: boolean; offset?: number } = {}): number {
   if (!element) return 0;
   if (!lenis) {
     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     return 0;
   }
   if (!options.slow) {
-    lenis.scrollTo(element, { duration: 1.1 });
+    lenis.scrollTo(element, { duration: 1.1, offset: options.offset ?? 0 });
     return 1.1;
   }
   const distance = Math.abs(element.getBoundingClientRect().top);
   const duration = Math.min(7, Math.max(2.5, distance / 800));
-  lenis.scrollTo(element, { duration, easing: easeInOut });
+  lenis.scrollTo(element, { duration, easing: easeInOut, offset: options.offset ?? 0 });
   return duration;
 }

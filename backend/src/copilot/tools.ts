@@ -5,7 +5,8 @@
  */
 import { tool } from 'ai';
 import { z } from 'zod';
-import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
+import { checkQuote, findSection, QUOTE_MAX } from './sections.js';
+import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, sectionsForPath, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
 
 export const CONSULT_SERVICES = ['AI engineering', 'Product design', 'Marketing', 'Full-stack development'] as const;
 
@@ -15,7 +16,9 @@ export type CopilotAction =
   | { kind: 'link'; label: string; url: string }
   | { kind: 'book'; url: string; name?: string; email?: string; topic?: string }
   /** Voice calls only: scroll to a section when the spoken answer reaches character `at`. */
-  | { kind: 'scrollstep'; path: string; at: number };
+  | { kind: 'scrollstep'; path: string; at: number }
+  /** Point at a real section of a post, paper or project: scroll to `anchor`, tap it, and highlight `quote` if one was checked. */
+  | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string };
 
 const clip = (text: string, max: number) => (text.length > max ? `${text.slice(0, max)}…` : text);
 
@@ -69,7 +72,9 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
       inputSchema: z.object({ id: z.number().int().positive() }),
       execute: async ({ id }) => {
         const post = await readBlog(id);
-        return post ? { title: post.title, text: clip(post.content, 6000) } : { error: 'not found' };
+        if (!post) return { error: 'not found' };
+        const sections = (await sectionsForPath(`/blogs/${id}`)) ?? [];
+        return { title: post.title, sections: sections.map((s) => s.heading), text: clip(post.content, 6000) };
       },
     }),
 
@@ -78,7 +83,9 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
       inputSchema: z.object({ id: z.string() }),
       execute: async ({ id }) => {
         const body = await readPaper(id);
-        return body ? { text: clip(body, 8000) } : { error: 'not found' };
+        if (!body) return { error: 'not found' };
+        const sections = (await sectionsForPath(`/research/papers/${id}`)) ?? [];
+        return { sections: sections.map((s) => s.heading), text: clip(body, 8000) };
       },
     }),
 
@@ -93,6 +100,22 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
         if (!(await knownPath(path))) return { ok: false, error: 'not a page on this site' };
         emit({ kind: 'navigate', path, label, go: true });
         return { ok: true };
+      },
+    }),
+
+    cite_section: tool({
+      description: `Point at a section of a blog post, research paper or project while you talk about it: the page scrolls to that heading, the cursor taps it, and a short passage is highlighted. path is /blogs/<id>, /research/papers/<id> or /work/<slug>. heading must be a heading you saw in the "sections" list of read_blog or read_paper (a project page has What it is, Highlights, Built with, Go deeper). quote is optional: a passage of at most ${QUOTE_MAX} characters copied word for word from that section. If it returns ok false, do not retry with a made-up heading; just keep talking.`,
+      inputSchema: z.object({ path: z.string().max(200), heading: z.string().min(1).max(200), quote: z.string().max(400).optional() }),
+      execute: async ({ path, heading, quote }) => {
+        const clean = path.split('#')[0];
+        if (!(await knownPath(clean))) return { ok: false, error: 'not a page on this site' };
+        const sections = await sectionsForPath(clean);
+        if (!sections?.length) return { ok: false, error: 'this page has no sections to point at' };
+        const section = findSection(sections, heading);
+        if (!section) return { ok: false, error: 'no such section', sections: sections.map((s) => s.heading).slice(0, 20) };
+        const checked = checkQuote(section, quote);
+        emit({ kind: 'cite', path: clean, anchor: section.id, heading: section.heading, ...(checked ? { quote: checked } : {}) });
+        return { ok: true, heading: section.heading, quoteShown: Boolean(checked) };
       },
     }),
 

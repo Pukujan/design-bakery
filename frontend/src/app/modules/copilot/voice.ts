@@ -207,7 +207,7 @@ export const voice = {
           answer = await copilot.send(question, { path: window.location.pathname, title: document.title }, { voice: true });
           // If the answer is taking the visitor somewhere, the cursor does that first (thinking dots all the while); the answer is
           // spoken, and its bubble shown, only once the page is there.
-          await Promise.race([copilot.takeMoves(), new Promise((resolve) => setTimeout(resolve, 15_000))]);
+          await Promise.race([copilot.takeMoves(), new Promise((resolve) => setTimeout(resolve, 30_000))]);
         } finally {
           // A clip in progress ends first, then a closer ("Ahh, here it is"), so the answer is never cut across.
           await waiting.finish();
