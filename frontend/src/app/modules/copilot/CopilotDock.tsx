@@ -18,6 +18,7 @@ import { MiniCopilot } from './MiniCopilot';
 import VoiceOrb from './VoiceOrb';
 import MoonCursor from './MoonCursor';
 import { copilot, useCopilot } from './store';
+import { useVoice } from './voice';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
 /** Phones: the chat is a bottom sheet that can fold into a strip. Matches the CSS breakpoint. */
@@ -85,6 +86,7 @@ const keepFocus = (event: MouseEvent) => event.preventDefault();
  */
 export default function CopilotDock() {
   const { open, heroVisible, messages } = useCopilot();
+  const call = useVoice();
   const reduceMotion = useReducedMotion();
   const mobile = useMobile();
   const { pathname } = useLocation();
@@ -154,7 +156,8 @@ export default function CopilotDock() {
     if (isField(event.target)) setTyping(false);
   };
 
-  const showPill = !open && !heroVisible;
+  // On a call, the call card is what opens the chat, so the Continue chat pill steps aside (the shortcut still works).
+  const showPill = !open && !heroVisible && call.status === 'idle';
   const vars = view
     ? ({ '--cp-kb': `${view.bottom}px`, '--cp-vvh': `${view.height}px` } as CSSProperties)
     : undefined;

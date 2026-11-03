@@ -102,7 +102,7 @@ export default function MoonCursor() {
 
     // Little reactions: mostly a word in the bubble, now and then aloud. Never while it speaks, while the chat is open (it is
     // paying attention then), or while someone is talking.
-    let nextQuip = performance.now() + 8000;
+    let nextQuip = performance.now() + 30_000;
     let quipTimer: ReturnType<typeof setTimeout> | undefined;
     const QUIPS: Partial<Record<Mood, Array<[string, string?]>>> = {
       whee: [['wheee!', 'whee'], ['hehe', 'hehe'], ['haha!', 'haha']],
@@ -115,14 +115,14 @@ export default function MoonCursor() {
       const now = performance.now();
       const options = QUIPS[next];
       const v = voiceRef.current;
-      if (!options || now < nextQuip || talkingRef.current || chatOpenRef.current || v.thinking || v.speaking !== 'none' || Math.random() > 0.55) return;
-      nextQuip = now + rand(9000, 20000);
+      if (!options || now < nextQuip || talkingRef.current || chatOpenRef.current || v.thinking || v.speaking !== 'none' || Math.random() > 0.35) return;
+      nextQuip = now + rand(45_000, 110_000);
       const [text, clipName] = options[Math.floor(Math.random() * options.length)];
       setQuip(text);
       clearTimeout(quipTimer);
       quipTimer = setTimeout(() => setQuip(''), 1600);
       // Aloud only rarely, and only when the call is quiet.
-      if (clipName && Math.random() < 0.18 && v.status === 'connected') {
+      if (clipName && Math.random() < 0.12 && v.status === 'connected') {
         const audio = new Audio(`/voice/quip-${clipName}.m4a`);
         audio.volume = 0.8;
         void audio.play().catch(() => undefined);
