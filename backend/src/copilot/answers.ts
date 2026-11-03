@@ -25,7 +25,14 @@ export type CachedAction =
   | { kind: 'book'; url: string; name?: string; email?: string; topic?: string };
 
 /** `steps` are for a voice call only: scroll to a section when the spoken answer reaches character `at`. */
-export type CachedAnswer = { intent: string; text: string; actions: CachedAction[]; steps?: Array<{ path: string; at: number }> };
+export type CachedAnswer = {
+  intent: string;
+  text: string;
+  actions: CachedAction[];
+  steps?: Array<{ path: string; at: number }>;
+  /** Set by a routine (routines.ts) when the visitor explicitly asked to be taken somewhere: the page moves, in chat and on a call. */
+  go?: boolean;
+};
 
 /**
  * Answers whose page move a voice call makes on its own: the visitor asked to be shown something, so the call takes
@@ -79,7 +86,7 @@ const STOP = new Set(
 );
 
 /** Content words, crudely stemmed so "experiences" and "experience" meet. */
-function words(text: string): string[] {
+export function words(text: string): string[] {
   return text
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
@@ -161,7 +168,7 @@ function serviceAnswer(question: string, projects: Project[]): CachedAnswer | nu
 }
 
 /** The first sentences of a description, up to a short limit, so an answer stays a few lines. */
-function lead(text: string, limit = 280): string {
+export function lead(text: string, limit = 280): string {
   const sentences = text.replace(/\s+/g, ' ').trim().split(/(?<=[.!?])\s+/);
   let out = '';
   for (const sentence of sentences) {
@@ -172,7 +179,7 @@ function lead(text: string, limit = 280): string {
   return out;
 }
 
-const norm = (text: string) => text.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+export const norm = (text: string) => text.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
 
 /**
  * "Tell me about Cortex", "what is Orbitgraph", or just a project's name: answered from that project's record
@@ -206,7 +213,7 @@ function projectAbout(question: string, projects: Project[]): CachedAnswer | nul
 
 /** One of several wordings, never the one used last for this key, so the same question twice does not read the same twice. */
 const lastPick = new Map<string, number>();
-function vary<T>(key: string, options: readonly T[]): T {
+export function vary<T>(key: string, options: readonly T[]): T {
   if (options.length === 1) return options[0];
   let index = Math.floor(Math.random() * options.length);
   if (index === lastPick.get(key)) index = (index + 1 + Math.floor(Math.random() * (options.length - 1))) % options.length;
@@ -214,13 +221,13 @@ function vary<T>(key: string, options: readonly T[]): T {
   return options[index];
 }
 
-const list = (items: string[]) => (items.length <= 1 ? (items[0] ?? '') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`);
+export const list = (items: string[]) => (items.length <= 1 ? (items[0] ?? '') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`);
 
-const navigate = (path: string, label: string): CachedAction => ({ kind: 'navigate', path, label });
+export const navigate = (path: string, label: string): CachedAction => ({ kind: 'navigate', path, label });
 
 /** Most recent blog and paper, by date, for the pointers that name one. */
-const latestBlog = (blogs: BlogSummary[]) => [...blogs].sort((a, b) => b.date.localeCompare(a.date))[0];
-const latestPaper = (papers: Paper[]) => [...papers].sort((a, b) => b.submitted.localeCompare(a.submitted))[0];
+export const latestBlog = (blogs: BlogSummary[]) => [...blogs].sort((a, b) => b.date.localeCompare(a.date))[0];
+export const latestPaper = (papers: Paper[]) => [...papers].sort((a, b) => b.submitted.localeCompare(a.submitted))[0];
 
 function compose(
   intent: Intent,
