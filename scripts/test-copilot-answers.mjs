@@ -118,4 +118,23 @@ assert.equal((await cachedAnswer('give me a tour', true, false)).steps, undefine
 const generic = await cachedAnswer('Show me your project.', false);
 assert.notEqual(generic?.intent, 'project', '"show me your project" must not pick one project by its generic first word');
 
+// Every question a button sends must be answered from the cache, never by a model: the Contact page's four areas
+// and the sample questions in the chat box.
+const buttonQuestions = [
+  'How can you help with AI engineering?',
+  'How can you help with product design?',
+  'How can you help with marketing?',
+  'How can you help with full-stack development?',
+  'Who are you?',
+  'What experience do you have?',
+  'Can I book a consultation?',
+  'What do you build?',
+  'Give me a tour',
+  'Show me your projects',
+  'What is Cortex?',
+];
+for (const question of buttonQuestions) {
+  assert.ok(await cachedAnswer(question, false), `the button question "${question}" must be answered from the cache`);
+}
+
 console.log(`copilot instant answers: ${firstTurn.length} intents, ${followUps.length} follow-ups routed to the model`);

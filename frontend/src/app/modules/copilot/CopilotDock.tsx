@@ -96,6 +96,20 @@ export default function CopilotDock() {
 
   const strip = mobile && open && minimized;
 
+  // A click outside the panel closes it. Clicks on the chat itself, the call orb, or any control that opens the chat
+  // (marked data-copilot-open) are not "outside", so those buttons keep working.
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('.cp-dock, .cp-chat, [data-copilot-open]')) return;
+      copilot.setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [open]);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') copilot.setOpen(false);

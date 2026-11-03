@@ -102,7 +102,7 @@ export function WorkPage() {
           >
             <h2 className="lab-mono">What it is</h2>
             <FlowText className="work-lede" text={project.description}>{project.description}</FlowText>
-            <button type="button" className="lab-chip lab-chip--solid work-ask" onClick={ask} data-cursor="Ask">
+            <button type="button" className="lab-chip lab-chip--solid work-ask" data-copilot-open onClick={ask} data-cursor="Ask">
               Ask the copilot about {project.title} →
             </button>
           </motion.div>
