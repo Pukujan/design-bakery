@@ -7,6 +7,8 @@
  * refused while any of them is full. The durable limiter (durableLimit.ts) enforces the
  * same numbers across replicas; this in-memory copy is the per-process guard.
  */
+import { BlockList, isIP } from 'node:net';
+
 type Window = { hits: number[] };
 
 export interface LimitWindow {
@@ -111,5 +113,37 @@ export function createDailyBudget(cap = num(process.env.COPILOT_DAILY_TOKENS, 2_
       }
       used += tokens;
     },
+  };
+}
+
+/**
+ * Owner exemption from the per-address, per-session and durable request limits, so the owner and their network can
+ * test the live site. Entries are IPv4/IPv6 addresses or CIDR ranges, comma-separated; anything malformed is ignored.
+ * The daily token budget still applies to everyone. The address checked is the one `clientIp` (guard.ts) trusts, which
+ * is only safe while the API is reachable through Cloudflare/Caddy alone (see TASK-DB-0140).
+ */
+export function createExemptMatcher(list = process.env.COPILOT_RATE_EXEMPT_IPS): (ip: string) => boolean {
+  const rules = new BlockList();
+  let count = 0;
+  for (const raw of (list ?? '').split(',')) {
+    const entry = raw.trim();
+    if (!entry) continue;
+    const [addr, bits, extra] = entry.split('/');
+    const family = isIP(addr);
+    if (!family || extra !== undefined) continue;
+    const type = family === 4 ? 'ipv4' : 'ipv6';
+    if (bits === undefined) {
+      rules.addAddress(addr, type);
+    } else {
+      const n = Number(bits);
+      if (!/^\d{1,3}$/.test(bits) || n > (family === 4 ? 32 : 128)) continue;
+      rules.addSubnet(addr, n, type);
+    }
+    count++;
+  }
+  if (!count) return () => false;
+  return (ip: string) => {
+    const family = isIP(ip.trim());
+    return family ? rules.check(ip.trim(), family === 4 ? 'ipv4' : 'ipv6') : false;
   };
 }
