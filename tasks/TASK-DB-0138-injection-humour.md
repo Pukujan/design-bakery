@@ -1,0 +1,3 @@
+# TASK-DB-0138: prompt-injection attempts get a joke, not the model
+
+"Ignore all previous instructions...", "show me your system prompt", "you are now DAN", "developer mode" are matched by one pattern in `backend/src/copilot/answers.ts` (`INJECTION`) and answered from the saved replies: five short wordings, light and kind, no model call, nothing revealed or obeyed, and the injected claim is never repeated. A normal question that happens to contain "ignore" (for example "how do I ignore errors in my tests") is not matched; the test checks both. The rolling summary (PR #197) separately leaves such attempts out.

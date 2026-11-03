@@ -17,7 +17,7 @@ import { z } from 'zod';
 import { byHealth, healthReport, startWatcher } from './health.js';
 import { fallbackFetch } from './model-fallback.js';
 import { checkPass, clientIp, issuePass, turnstileSiteKey } from './guard.js';
-import { createDailyBudget, createLimiter, limitConfigFromEnv } from './fairUse.js';
+import { createDailyBudget, createExemptMatcher, createLimiter, limitConfigFromEnv } from './fairUse.js';
 import { siteBrief } from './knowledge.js';
 import { devProvider, pickProfile, routeFor, smartProviders, type Provider } from './providers.js';
 import { createCitations } from './citations.js';
@@ -113,6 +113,9 @@ function chain(voice = false): Provider[] {
 }
 
 const ipOf = (req: Request) => clientIp(req.headers, req.socket.remoteAddress ?? '');
+// Read once at start. Exempt requests skip the request limits but never the daily token budget.
+const isExempt = createExemptMatcher();
+const exemptReq = (req: Request) => isExempt(ipOf(req));
 
 export const copilotRouter = Router();
 
@@ -150,7 +153,7 @@ copilotRouter.get('/health', (_req, res) => {
 copilotRouter.post('/voice', async (req, res) => {
   const session = await checkPass(req.get('x-copilot-pass'));
   if (!session) { res.status(401).json({ ok: false, code: 'NO_PASS' }); return; }
-  if (!limiter.take(`voice:${session}`).ok || !limiter.take(`voice-ip:${ipOf(req)}`).ok) {
+  if (!exemptReq(req) && (!limiter.take(`voice:${session}`).ok || !limiter.take(`voice-ip:${ipOf(req)}`).ok)) {
     res.status(429).json({ ok: false, code: 'RATE_LIMITED' }); return;
   }
   try {
@@ -174,7 +177,7 @@ copilotRouter.post('/summarize', async (req, res) => {
   if (!session) { res.status(401).json({ ok: false, code: 'NO_PASS' }); return; }
   const parsed = summaryBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ ok: false, code: 'VALIDATION' }); return; }
-  if (!summaryLimiter.take(`sum:${session}`).ok || !summaryLimiter.take(`sum-ip:${ipOf(req)}`).ok) {
+  if (!exemptReq(req) && (!summaryLimiter.take(`sum:${session}`).ok || !summaryLimiter.take(`sum-ip:${ipOf(req)}`).ok)) {
     res.status(429).json({ ok: false, code: 'RATE_LIMITED' }); return;
   }
   const providers = chain();
@@ -197,8 +200,9 @@ copilotRouter.post('/chat', async (req, res) => {
   }
   // Both the address and the pass are limited, so neither a new pass nor a new address resets it.
   const ip = ipOf(req);
-  const byIp = limiter.take(`ip:${ip}`);
-  const bySession = byIp.ok ? limiter.take(`session:${session}`) : byIp;
+  const exempt = isExempt(ip);
+  const byIp = exempt ? { ok: true as const } : limiter.take(`ip:${ip}`);
+  const bySession = !exempt && byIp.ok ? limiter.take(`session:${session}`) : byIp;
   if (!bySession.ok) {
     res.status(429).set('retry-after', String(Math.ceil((bySession.retryAt - Date.now()) / 1000))).json({ ok: false, code: 'RATE_LIMITED' });
     return;
@@ -209,6 +213,7 @@ copilotRouter.post('/chat', async (req, res) => {
   const turn = new TurnTrace(session);
   turn.input = question;
   turn.channel = voice ? 'voice' : 'text';
+  turn.exempt = exempt;
 
   res.status(200).set({ 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-store', 'x-accel-buffering': 'no' });
   res.flushHeaders();
@@ -249,7 +254,7 @@ copilotRouter.post('/chat', async (req, res) => {
   }
 
   try {
-    const limit = await takeDurableCopilotLimit(ip, session);
+    const limit = exempt ? { ok: true as const } : await takeDurableCopilotLimit(ip, session);
     if (!limit.ok) {
       res.status(429).set('retry-after', String(Math.max(1, Math.ceil((limit.retryAt - Date.now()) / 1000)))).json({ ok: false, code: 'RATE_LIMITED' });
       return;
