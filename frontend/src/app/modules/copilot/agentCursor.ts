@@ -4,13 +4,15 @@
  * that jumps. This file holds its state; AgentCursor.tsx draws it.
  */
 import { useSyncExternalStore } from 'react';
+import { perchSpot } from './citeRoute';
 
-type State = { visible: boolean; x: number; y: number; presses: number; scroll: 'up' | 'down' | null; moonOut: boolean; moonReturning: boolean };
+type State = { visible: boolean; x: number; y: number; presses: number; scroll: 'up' | 'down' | null; moonOut: boolean; moonReturning: boolean; caption: string };
 
-let state: State = { visible: false, x: -100, y: -100, presses: 0, scroll: null, moonOut: false, moonReturning: false };
+let state: State = { visible: false, x: -100, y: -100, presses: 0, scroll: null, moonOut: false, moonReturning: false, caption: '' };
 let scrollTimer: ReturnType<typeof setTimeout> | undefined;
 const listeners = new Set<() => void>();
 let hideTimer: ReturnType<typeof setTimeout> | undefined;
+let perchTimer: ReturnType<typeof setInterval> | undefined;
 
 const set = (patch: Partial<State>) => {
   state = { ...state, ...patch };
@@ -45,7 +47,16 @@ function clearHover() {
 const GLIDE_MS = 800;
 const PRESS_MS = 280;
 
+let captionTimer: ReturnType<typeof setTimeout> | undefined;
+const jitter = (min: number, max: number) => min + Math.random() * (max - min);
+
 export const agentCursor = {
+  /** A few words in the moon's bubble about what it is doing right now, one of several wordings. */
+  say(options: readonly string[], ms = 1900) {
+    clearTimeout(captionTimer);
+    set({ caption: options[Math.floor(Math.random() * options.length)] });
+    captionTimer = setTimeout(() => set({ caption: '' }), ms);
+  },
   /** The moon is out of the call card (it leaves when a call connects) and is on its way back when the call ends. */
   setMoon(patch: { out?: boolean; returning?: boolean }) {
     set({ ...(patch.out === undefined ? {} : { moonOut: patch.out }), ...(patch.returning === undefined ? {} : { moonReturning: patch.returning }) });
@@ -66,11 +77,11 @@ export const agentCursor = {
     }
     const rect = link.getBoundingClientRect();
     set({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
-    await wait(GLIDE_MS);
+    await wait(jitter(650, 1000));
     // The cursor is over the link: it lights up the way it does under a real pointer (CSS :hover cannot be set from a script).
     clearHover();
     link.setAttribute('data-agent-hover', '');
-    await wait(220);
+    await wait(jitter(160, 380));
     set({ presses: state.presses + 1 });
     await wait(PRESS_MS);
   },
@@ -93,6 +104,28 @@ export const agentCursor = {
     set({ presses: state.presses + 1 });
   },
   /**
+   * Sit beside a heading and stay there: glide to its margin, tap it, then follow its position as the page settles (the
+   * moon is anchored to the heading, not to a spot on the screen) until the next move or release.
+   */
+  async perch(element: HTMLElement | null) {
+    if (!element) return;
+    agentCursor.unperch();
+    clearTimeout(hideTimer);
+    const spot = () => perchSpot(element.getBoundingClientRect(), { width: window.innerWidth, height: window.innerHeight });
+    set({ visible: true, scroll: null, ...spot() });
+    await wait(GLIDE_MS);
+    set({ presses: state.presses + 1 });
+    perchTimer = setInterval(() => {
+      if (!element.isConnected) return;
+      const next = spot();
+      if (Math.abs(next.x - state.x) > 2 || Math.abs(next.y - state.y) > 2) set(next);
+    }, 120);
+  },
+  unperch() {
+    clearInterval(perchTimer);
+    perchTimer = undefined;
+  },
+  /**
    * Show the cursor scrolling: it rests mid-page with a wheel and arrows moving up or down for as long as the page takes
    * to scroll, so the visitor sees the agent doing it.
    */
@@ -107,11 +140,13 @@ export const agentCursor = {
   release(afterMs: number) {
     clearTimeout(hideTimer);
     hideTimer = setTimeout(() => {
+      agentCursor.unperch();
       clearHover();
       set({ visible: false });
     }, afterMs);
   },
   hide() {
+    agentCursor.unperch();
     clearTimeout(hideTimer);
     clearHover();
     set({ visible: false });

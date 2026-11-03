@@ -9,6 +9,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getBlogByNumericId, listBlogPosts } from '../../services/lib/content/blogPosts.js';
+import { sectionsOfMarkdown, sectionsOfProject, type Section } from './sections.js';
 import { getCmsArray, getCmsObject } from '../../services/lib/content/cmsDocuments.js';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -44,6 +45,7 @@ export type Project = {
   tech: string[];
   status?: string;
   links?: ProjectLink[];
+  stats?: Array<{ label: string }>;
 };
 type Experience = {
   company: string;
@@ -220,4 +222,24 @@ export async function siteBrief(): Promise<string> {
   lines.push('', '## Links', ...SOCIAL_LINKS.map((link) => `- ${link.label}: ${link.url}`));
   lines.push('', '## Site pages', ...SITE_PAGES.map((page) => `- ${page.path} (${page.label})`), '- /work/<slug> (one presentation page per project)', '- /blogs/<id>', '- /research/papers/<id>');
   return lines.join('\n');
+}
+
+/** Where a path's sections come from: a blog post, a research paper or a project, read live. Null for any other page. */
+export async function sectionsForPath(pagePath: string): Promise<Section[] | null> {
+  const clean = pagePath.split('#')[0];
+  const blog = /^\/blogs\/(\d+)$/.exec(clean);
+  if (blog) {
+    const post = await readBlog(Number(blog[1]));
+    return post ? sectionsOfMarkdown(post.content, { levels: [1, 2, 3] }) : null;
+  }
+  const paper = /^\/research\/papers\/(db-r-\d{4}-\d{3})$/.exec(clean);
+  if (paper) {
+    const body = await readPaper(paper[1]);
+    return body ? sectionsOfMarkdown(body, { levels: [1, 2, 3] }) : null;
+  }
+  if (/^\/work\/[^/]+$/.test(clean)) {
+    const project = (await loadProjects()).find((p) => projectPath(p) === clean);
+    return project ? sectionsOfProject(project) : null;
+  }
+  return null;
 }

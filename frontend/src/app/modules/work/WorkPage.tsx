@@ -100,7 +100,7 @@ export function WorkPage() {
             viewport={{ once: true, margin: '-10% 0px' }}
             transition={{ duration: 0.9, ease: EASE }}
           >
-            <h2 className="lab-mono">What it is</h2>
+            <h2 className="lab-mono" id="what-it-is">What it is</h2>
             <FlowText className="work-lede" text={project.description}>{project.description}</FlowText>
             <button type="button" className="lab-chip lab-chip--solid work-ask" data-copilot-open onClick={ask} data-cursor="Ask">
               Ask the copilot about {project.title} →
@@ -116,7 +116,7 @@ export function WorkPage() {
           >
             {project.stats?.length ? (
               <div>
-                <h2 className="lab-mono">Highlights</h2>
+                <h2 className="lab-mono" id="highlights">Highlights</h2>
                 <ul role="list" className="work-list">
                   {project.stats.map((stat) => (
                     <li key={stat.label}>{stat.label}</li>
@@ -125,7 +125,7 @@ export function WorkPage() {
               </div>
             ) : null}
             <div>
-              <h2 className="lab-mono">Built with</h2>
+              <h2 className="lab-mono" id="built-with">Built with</h2>
               <ul role="list" className="work-tags">
                 {project.tech.map((item) => (
                   <li key={item} className="lab-chip">
@@ -136,7 +136,7 @@ export function WorkPage() {
             </div>
             {links.length > 0 && (
               <div>
-                <h2 className="lab-mono">Go deeper</h2>
+                <h2 className="lab-mono" id="go-deeper">Go deeper</h2>
                 <ul role="list" className="work-links">
                   {links.map((link) => (
                     <li key={link.url}>

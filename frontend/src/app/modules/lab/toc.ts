@@ -1,30 +1,14 @@
 /** Headings that the contents lists: the level-2 and level-3 headings of an article, in order. */
 export type TocEntry = { id: string; text: string; level: 2 | 3 };
 
-/** The anchor for a heading, the same on the page and in the contents. */
-export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s-]/gu, '')
-    .trim()
-    .replace(/\s+/g, '-');
-}
+import { headingAnchors } from '../../lib/headingAnchors';
+
+export { slugifyHeading as slugify } from '../../lib/headingAnchors';
 
 /** The main headings of a markdown article (level two only), skipping anything inside a code block. */
 export function tocFrom(source: string): TocEntry[] {
-  const entries: TocEntry[] = [];
-  let inFence = false;
-  for (const line of source.split('\n')) {
-    if (/^\s*(```|~~~)/.test(line)) {
-      inFence = !inFence;
-      continue;
-    }
-    if (inFence) continue;
-    const match = /^##\s+(.+?)\s*#*\s*$/.exec(line);
-    if (match) {
-      const text = match[1].replace(/[*_`]/g, '').trim();
-      entries.push({ id: slugify(text), text, level: 2 });
-    }
-  }
-  return entries;
+  // Anchors are handed out across every heading the article renders with an id (a # renders as a ##), so a repeat gets -2.
+  return headingAnchors(source, { levels: [1, 2, 3] })
+    .filter((heading) => heading.level === 2)
+    .map(({ id, text }) => ({ id, text, level: 2 as const }));
 }
