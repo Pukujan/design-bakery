@@ -119,10 +119,21 @@ function bestIntent(question: string, threshold: number): Intent | null {
 
   // An unambiguous word settles it, and keeps the behaviour predictable: "how do i
   // contact pujan" is a contact question however the rest of the sentence is phrased.
+  // A greeting or a thanks is only that when it is all there is: "hey there, tell me about your projects" is a projects
+  // question that happens to start with "hey", so those two only count for a very short message.
+  const social = (intent: Intent) => intent.id === 'greeting' || intent.id === 'thanks';
   let byKeyword: { intent: Intent; hits: number } | null = null;
   for (const intent of INTENTS) {
+    if (social(intent)) continue;
     const hits = asked.filter((word) => intent.keywords.includes(word)).length;
     if (hits > (byKeyword?.hits ?? 0)) byKeyword = { intent, hits };
+  }
+  if (!byKeyword && asked.length <= 3) {
+    for (const intent of INTENTS) {
+      if (!social(intent)) continue;
+      const hits = asked.filter((word) => intent.keywords.includes(word)).length;
+      if (hits > (byKeyword?.hits ?? 0)) byKeyword = { intent, hits };
+    }
   }
   if (byKeyword) return byKeyword.intent;
 

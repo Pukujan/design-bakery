@@ -43,7 +43,8 @@ const ROOTS = [
   },
   {
     dir: 'backend/src',
-    entries: ['backend/src/server.ts'],
+    // newsJob.ts is a CLI entry for a timer (node backend/lib/copilot/newsJob.js), not imported.
+    entries: ['backend/src/server.ts', 'backend/src/copilot/newsJob.ts'],
   },
   {
     dir: 'backend/services/src',

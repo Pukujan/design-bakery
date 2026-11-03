@@ -9,6 +9,7 @@ import { mediaLibraryRouter } from './api/mediaLibrary.js';
 import { ogPreviewRouter } from './api/ogPreview.js';
 import { publishKitRouter } from './api/publishKit.js';
 import { copilotRouter } from './copilot/route.js';
+import { startNewsScheduler } from './copilot/news.js';
 import { isOriginAllowed, loadServerEnv } from './config/env.js';
 import { requireAgentToken } from './middleware/agentAuth.js';
 import { requireAdmin } from './middleware/auth.js';
@@ -71,6 +72,7 @@ app.use(
 );
 
 app.listen(port, () => {
+  startNewsScheduler();
   console.log(`[api] design-bakery-api http://localhost:${port}`);
   console.log('[api] content=octo  POST /api/auth/login  GET /api/public/blogs  GET /api/public/assets/:fileId  /api/content/*');
   console.log('[api] POST /api/agent/posts  PUT /api/agent/posts/:numericId  POST /api/publish-kit  /api/media-library/*  /api/cover-studio-library/*  GET /health');
