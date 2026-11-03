@@ -1,0 +1,17 @@
+[
+  {
+    "utterance": "what's your latest paper",
+    "firstTurn": true,
+    "routine": "latest",
+    "navigate_prefix": "/research/papers/",
+    "go": true
+  },
+  {
+    "utterance": "open the latest post",
+    "firstTurn": true,
+    "routine": "latest",
+    "navigate_prefix": "/blogs/",
+    "go": true,
+    "needs": "blogs"
+  }
+]

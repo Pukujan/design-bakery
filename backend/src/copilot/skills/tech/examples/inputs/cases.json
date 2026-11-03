@@ -1,0 +1,16 @@
+[
+  {
+    "utterance": "which projects used React?",
+    "firstTurn": true,
+    "routine": "tech"
+  },
+  {
+    "utterance": "which projects used Fortran?",
+    "firstTurn": true,
+    "routine_not": "tech"
+  },
+  {
+    "utterance": "which one uses React",
+    "routine": null
+  }
+]

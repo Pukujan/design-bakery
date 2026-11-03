@@ -83,6 +83,26 @@ for (const q of ['show me your projects', 'show me your research', 'show me your
   assert.notEqual(answer?.routine, 'open', `"${q}" must not be an open request`);
 }
 
+// The routine folders (backend/src/copilot/skills/<name>/examples/inputs/cases.json) are the regression cases.
+import { readdir } from 'node:fs/promises';
+const skillsDir = new URL('./backend/src/copilot/skills/', root);
+let caseCount = 0;
+for (const name of await readdir(skillsDir)) {
+  const cases = JSON.parse(await readFile(new URL(`${name}/examples/inputs/cases.json`, skillsDir), 'utf8'));
+  for (const c of cases) {
+    if (c.needs === 'blogs' && !blogs.length) continue;
+    const answer = await routeRequest(c.utterance, c.firstTurn ?? false);
+    const label = `${name}: "${c.utterance}"`;
+    if ('routine' in c) assert.equal(c.routine === null ? (answer && ['open', 'latest', 'tech', 'role'].includes(answer.routine) ? answer.routine : null) : answer?.routine, c.routine, label);
+    if (c.routine_not) assert.notEqual(answer?.routine, c.routine_not, label);
+    if (c.navigate) assert.equal(nav(answer)?.path, c.navigate, label);
+    if (c.navigate_prefix) assert.ok(nav(answer)?.path.startsWith(c.navigate_prefix), label);
+    if (c.go) assert.equal(answer.go, true, label);
+    caseCount += 1;
+  }
+}
+assert.ok(caseCount >= 10, 'the routine folders hold the regression cases');
+
 // Never hijack a follow-up, a long or a reasoning question: these reach the model.
 const toModel = [
   'open it', 'open the second one', 'show me more', 'show me that again', 'open the other paper', 'which one uses React',

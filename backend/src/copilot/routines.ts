@@ -22,7 +22,19 @@ import {
 } from './answers.js';
 import { loadBlogs, loadExperience, loadPapers, loadProjects, projectPath, type BlogSummary, type Paper, type Project } from './knowledge.js';
 
-export type RoutedAnswer = CachedAnswer & { routine: string };
+/**
+ * `captions` are the moon's bubble lines while the cursor moves the page, one wording picked per step, in order
+ * (for agentCursor.say). Not sent to the browser yet: that is wired when `say` lands.
+ */
+export type RoutedAnswer = CachedAnswer & { routine: string; captions?: string[] };
+
+const CAPTIONS = {
+  list: ['Heading to the list.', 'Let me find the right page.', 'First, the list.'],
+  find: ['Looking for it.', 'Scrolling to find it.', 'It should be around here.'],
+  there: ['There it is.', 'Found it.', 'Here we go.'],
+} as const;
+/** Three human-paced lines for a journey to one page. */
+const journey = () => [vary('cap-list', CAPTIONS.list), vary('cap-find', CAPTIONS.find), vary('cap-there', CAPTIONS.there)];
 
 type Site = {
   projects: Project[];
@@ -123,6 +135,7 @@ const open: Routine = {
       ]),
       actions: [navigate(hit.path, `Open ${hit.title}`)],
       go: true,
+      captions: journey(),
     };
   },
 };
@@ -146,6 +159,7 @@ const latest: Routine = {
       ]),
       actions: [navigate(path, `Open ${hit.title}`)],
       go: true,
+      captions: journey(),
     };
   },
 };

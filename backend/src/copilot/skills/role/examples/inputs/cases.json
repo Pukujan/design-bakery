@@ -1,0 +1,13 @@
+[
+  {
+    "utterance": "what did you do at Nepasoft?",
+    "firstTurn": true,
+    "routine": "role",
+    "navigate": "/#experience"
+  },
+  {
+    "utterance": "what did you do at Initech?",
+    "firstTurn": true,
+    "routine_not": "role"
+  }
+]
