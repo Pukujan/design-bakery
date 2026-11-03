@@ -23,6 +23,9 @@ export const CONVERSATIONS = [
   { page: '/', turns: ['How do I reach you?'] },
   { page: '/', turns: ['What experience do you have?'] },
   { page: '/', turns: ['hello', 'how are you'] },
+  { page: '/', turns: ['President'] },
+  // Lists and counts (site_catalog), not search.
+  { page: '/', turns: ['How many research papers do you have?', 'Which projects are shipped?', "What's your latest blog post?"] },
 ];
 
 const pass = await fetch(`${base}/api/copilot/pass`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"token":"local"}' }).then((r) => r.json());
@@ -39,6 +42,7 @@ async function turn(messages, page, title = 'Home') {
   let text = '';
   let first = 0;
   const actions = [];
+  const tools = [];
   let done = null;
   for (const line of (await res.text()).split('\n').filter(Boolean)) {
     const event = JSON.parse(line);
@@ -46,6 +50,7 @@ async function turn(messages, page, title = 'Home') {
       first ||= Date.now() - started;
       text = event.replace ? event.text : text + event.text;
     } else if (event.type === 'action') actions.push(event.action);
+    else if (event.type === 'step' && event.status === 'start') tools.push(event.name);
     else if (event.type === 'done') done = event;
     else if (event.type === 'error') text ||= `[error] ${event.message}`;
   }
@@ -54,7 +59,7 @@ async function turn(messages, page, title = 'Home') {
     action.headingOk = Boolean(section && section.heading === action.heading);
     action.quoteOk = action.quote ? Boolean(section && checkQuote(section, action.quote) === action.quote) : null;
   }
-  return { text, actions, model: done?.model, eval: done?.eval, ms: Date.now() - started, firstTextMs: first };
+  return { text, actions, tools, model: done?.model, eval: done?.eval, ms: Date.now() - started, firstTextMs: first };
 }
 
 const results = [];
@@ -67,6 +72,7 @@ for (const conversation of CONVERSATIONS) {
     if (out.text) messages.push({ role: 'assistant', content: out.text });
     const cites = out.actions?.filter((a) => a.kind === 'cite').map((a) => `${a.path}#${a.anchor} heading:${a.headingOk ? 'ok' : 'NO'} quote:${a.quoteOk === null ? 'none' : a.quoteOk ? 'ok' : 'NO'}${a.quote ? ` "${a.quote.slice(0, 60)}"` : ''}`);
     const other = out.actions?.filter((a) => a.kind !== 'cite').map((a) => (a.kind === 'navigate' ? `navigate:${a.path}` : a.kind === 'projects' ? `projects:${a.slugs.join(',')}` : a.kind));
+    if (out.tools?.length) other.push(`tools:${out.tools.join(',')}`);
     console.log(`\n> ${question}${voice ? ' (voice)' : ''}`);
     console.log(`  ${out.text ?? out.error}`);
     console.log(`  model=${out.model} ms=${out.ms} in=${out.eval?.inputTokens ?? '-'} out=${out.eval?.outputTokens ?? '-'} ctx=${out.eval?.contextTokens ?? '-'}${out.eval?.retrieval ? ` retrieval=${out.eval.retrieval} ${out.eval.retrievalMs}ms` : ''}`);

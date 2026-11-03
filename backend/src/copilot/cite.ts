@@ -17,7 +17,7 @@ import type { Passage } from './siteSearch.js';
 export type CiteAction = { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string; mode?: 'swipe' | 'perch' };
 
 const STOP = new Set(
-  'about above after again also been before being below between both could does doing down during each from further have having here into itself just more most much need only other over same should some such than that their theirs them then there these they this those through under until very want what when where which while whom with would your yours mine ours really thing things like well yeah sure into onto using used uses make makes made built build work works worked page post paper project site want'.split(' '),
+  'about above after again also been before being below between both could does doing down during each from further have having here into itself just more most much need only other over same should some such than that their theirs them then there these they this those through under until very want what when where which while whom with would your yours mine ours really thing things like well yeah sure into onto using used uses make makes made built build work works worked page post paper project site want hello hiya thanks thank please okay cool great nice morning evening afternoon cheers'.split(' '),
 );
 
 /** The content words of a text: lower case, four letters or more, no stop words. */
@@ -31,6 +31,9 @@ export function contentWords(text: string): Set<string> {
       .filter((w) => w.length >= 4 && !STOP.has(w)),
   );
 }
+
+/** Lists and counts are answered from the catalog or the index, not from one section, so they move the page nowhere. */
+const LIST_QUESTION = /\b(how many|list|latest|newest|most recent|which (projects|papers|posts|ones|roles)|what (projects|papers|posts|roles))\b/i;
 
 /** A message with no content words that still asks about the thing being discussed. */
 const FOLLOW_UP = /\b(it|its|this|that|these|those|they|them|more|else)\b/i;
@@ -83,12 +86,13 @@ export function quoteFor(reply: string, chunk: string, section: Section): string
 /**
  * The cite for this reply, or null: none when the model already pointed at something, when the visitor's message
  * asks about nothing ("how are you", "thanks": a reply that talks about my work anyway is not a reason to move the
- * page; "what is it?" points back at the conversation, so it counts), when no passage clearly sourced the reply, or when its section is not on the page any more. Records it in
+ * page; "what is it?" points back at the conversation, so it counts), when it asks for a list or a count (answered
+ * from the catalog, not a section), when no passage clearly sourced the reply, or when its section is not on the page any more. Records it in
  * the turn's citation log.
  */
 export async function groundCite(reply: string, passages: Passage[], citations: Citations, question?: string, load = sectionsForPath): Promise<CiteAction | null> {
   if (citations.log().some((c) => c.ok)) return null;
-  if (question !== undefined && !contentWords(question).size && !FOLLOW_UP.test(question)) return null;
+  if (question !== undefined && ((!contentWords(question).size && !FOLLOW_UP.test(question)) || LIST_QUESTION.test(question))) return null;
   const source = sourceOf(reply, passages);
   if (!source?.anchor) return null;
   const sections = await load(source.path);

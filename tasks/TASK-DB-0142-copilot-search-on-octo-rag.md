@@ -11,12 +11,21 @@ layer) runs hybrid lexical + vector search with a bge reranker at `/api/rag/*`.
   `site:/blogs/34#<heading-id>`, `site:/#story-about`, `site:/#role-<company-role>`, `site:/contact`. Anchors and
   headings come from `sections.ts`, the same render source the page and the copilot's `walkTo` / `headingFor` /
   `highlightQuote` use, so text is the page's wording with markdown stripped, split at headings. Each document starts
-  with a context line `<page title>: <heading>`. Home (About with hero and skills; one per role, including the
+  with a context header `<item title>: <heading>` (`Precedent: Built with`, `Arize: <role>`), so a chunk carries what
+  it is about; the header is stripped before a passage reaches the model or the cite, so a quote always comes from
+  the body. Home (About with hero and skills; one per role, including the
   collapsed details, from the list the page renders: `relevant-experience-rendered-list.json` / Octo
   `relevant_experience_rendered`, via `loadShownExperience`) and Contact (services, links) are indexed too; skills are
   not a rendered page, so they ride on About.
-- **`scripts/sync-copilot-rag.mjs`** (`pnpm sync:copilot-rag`, `--dry-run`, `--only home,contact`): idempotent through
-  Octo's content hash; deletes `site:` documents whose section is gone, except for a kind that loaded empty this run;
+- **Table `site_sections`** in the workspace's Octo Postgres (`supabase/migrations/013_site_sections.sql`, applied):
+  path, anchor, heading, kind (project | paper | post | experience | about | skills | contact), item_title,
+  content_hash, octo_document_id, updated_at; primary key (path, anchor). A search hit maps by document id to
+  {path, anchor, heading} (`sectionRows()`, 60 s cache; title parsing is the fallback), and the sync diffs against it.
+  The `site:` titles stay, for title-prefix scoping. Octo ingest is per document (same text: `created:false`, same id;
+  changed text: a new version, same id) and `DELETE /api/rag/documents/<id>` exists.
+- **`scripts/sync-copilot-rag.mjs`** (`pnpm sync:copilot-rag`, `--dry-run`, `--only home,contact`): diffs against
+  `site_sections` (unchanged hash and document: no Octo call; a repeat run takes ~3 s); deletes rows and documents
+  whose section is gone, then orphan `site:` documents, except for a kind that loaded empty this run;
   resets documents an interrupted ingest left with 0 chunks; never touches a title without `site:` (the existing
   `db-public-ekagajpatra-english-subtitles.vtt` is untouched). Small pages go first, the blog tail last. Runs after
   every API deploy (`deploy/gravebuster/deploy.sh` `sync_copilot_rag`, 600 s cap, never fails a deploy,
@@ -41,7 +50,7 @@ layer) runs hybrid lexical + vector search with a bge reranker at `/api/rag/*`.
   and heading against the live sections, takes a quote of at most `QUOTE_MAX` from that chunk's own sentences that
   `checkQuote` finds in the section, records it in the citation log and emits `cite {path, anchor, heading, quote,
   mode:'perch'}`. No cite when the model already pointed somewhere, when the visitor's message has no content words
-  and no back-reference ("how are you"), or when nothing clearly sourced the reply. Quote candidates never cross a
+  and no back-reference ("how are you", "hello"), when it asks for a list or a count, or when nothing clearly sourced the reply. Quote candidates never cross a
   line (separate elements on the page) and skip table rows (rendered as cells, without pipes).
 - Render-source fixes found in the browser (`sections.ts`, `knowledge.ts`): a project's Built with is one block per
   chip, and an About focus item's title and description are separate blocks; the page reads those elements with no
@@ -49,6 +58,15 @@ layer) runs hybrid lexical + vector search with a bge reranker at `/api/rag/*`.
   Plain code, so it cannot point at a section the reply did not use. Frontend unchanged; voice waits for the answer, so
   the page still moves before speech.
 - `search_site` (tool) uses the same retrieval, one hit per page, keyword fallback.
+- **Lists and counts from data, not search** (`tools.ts` `site_catalog`): "how many papers", "latest post", "list your
+  projects", "which projects are shipped" read the project, paper, post and role lists (filter by status or
+  category, newest first). This is the one exception to "every answer from RAG": search returns the top few
+  sections, so it cannot count or rank. Such questions get no section cite.
+- **Misheard names** (`names.ts`): before the search, each word of the message of five letters or more is compared
+  with the known names (project titles, Built with tools, companies, coined words in paper titles) by Double Metaphone
+  and edit distance (≤1, ≤2 from seven letters; not a prefix or inflection; not itself a known name). A match is
+  added to the context query (`probably Precedent`) and told to the model as a likelihood ("President" probably
+  means Precedent); the visitor's words are never rewritten.
 - Trace attributes `copilot.retrieval` (`rag` / `rerank-off` / `brief`), `copilot.retrieval_ms`, `copilot.retrieved`.
   `COPILOT_EVAL=1` adds tokens and retrieval to the `done` event for `scripts/eval-copilot-turns.mjs`.
 - Tests: `pnpm test:copilot-search` (offline, in CI): mapping, queries, request shape, rerank retry, every fallback,

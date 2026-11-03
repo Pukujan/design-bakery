@@ -11,13 +11,15 @@ import assert from 'node:assert/strict';
 const root = new URL('..', import.meta.url);
 // AbortSignal.timeout's timer does not hold the process open; this does, so the timeout case can fire.
 setInterval(() => {}, 1000);
-let search, knowledge, cite, citationsMod, sections;
+let search, knowledge, cite, citationsMod, sections, names, tools;
 try {
   search = await import(new URL('./backend/lib/copilot/siteSearch.js', root).href);
   knowledge = await import(new URL('./backend/lib/copilot/knowledge.js', root).href);
   cite = await import(new URL('./backend/lib/copilot/cite.js', root).href);
   citationsMod = await import(new URL('./backend/lib/copilot/citations.js', root).href);
   sections = await import(new URL('./backend/lib/copilot/sections.js', root).href);
+  names = await import(new URL('./backend/lib/copilot/names.js', root).href);
+  tools = await import(new URL('./backend/lib/copilot/tools.js', root).href);
 } catch {
   throw new Error('copilot search: build the backend first (pnpm --dir backend run build)');
 }
@@ -59,6 +61,14 @@ assert.deepEqual(mapped.map((p) => [p.ref, p.heading, p.text, p.kind]), [
   [`${projectRef}#built-with`, 'Built with', 'TypeScript, Postgres', 'project'],
   [`${paperRef}#results`, undefined, 'a later chunk, no context line', 'paper'],
 ]);
+// With a site_sections row, the hit maps by document id (whatever its title), the heading comes from the row and the
+// header "<item title>: <heading>" is cut from the passage, so a role's company header is never shown as text.
+const rows = new Map([['doc-role', { path: '/', anchor: 'role-x', heading: 'AI/ML Engineer', kind: 'experience', item_title: 'Nepasoft LLC', octo_document_id: 'doc-role' }]]);
+const homeTitles = new Map([['/', 'Home']]);
+const byRow = mapMatches([{ documentId: 'doc-role', title: 'renamed', content: 'Nepasoft LLC: AI/ML Engineer\n\nBuilt OCR pipelines.', chunkIndex: 0, rerankScore: 1 }], homeTitles, true, rows);
+assert.deepEqual(byRow.map((p) => [p.ref, p.heading, p.text]), [['/#role-x', 'AI/ML Engineer', 'Built OCR pipelines.']]);
+// Without a row, the first chunk's header line is still cut, even when it does not name the page.
+assert.equal(mapMatches([{ title: 'site:/#role-x', content: 'Nepasoft LLC: AI/ML Engineer\nBuilt OCR.', chunkIndex: 0, rerankScore: 1 }], homeTitles, true)[0].text, 'Built OCR.');
 // The scale moves with the question: a weak best match still counts, unless even the best is below the floor.
 assert.equal(mapMatches([{ title: `site:${paperRef}#a`, content: 'x', rerankScore: RERANK_FLOOR + 0.5 }], titles, true).length, 1);
 assert.equal(mapMatches([{ title: `site:${paperRef}#a`, content: 'x', rerankScore: RERANK_FLOOR - 0.5 }], titles, true).length, 0);
@@ -83,6 +93,11 @@ assert.deepEqual(turnQueries([{ role: 'user', content: 'what did Arize have to d
   'what did Arize have to do with this? (context: on the page "Precedent")',
 ]);
 assert.deepEqual(turnQueries([{ role: 'user', content: 'hello' }], { path: '/', title: 'Home' }), ['hello']);
+// A name the message sounds like joins the search, next to the visitor's own words.
+assert.deepEqual(turnQueries([{ role: 'user', content: "what's the President project?" }], undefined, ['Precedent']), [
+  "what's the President project?",
+  "what's the President project? (context: probably Precedent)",
+]);
 
 // 4. The request, and the reranker's fallback: a reranked query that fails is asked again without it.
 const sent = [];
@@ -162,6 +177,9 @@ assert.equal(citations.check(projectRef).ok, true, 'the citation guard accepts i
 assert.equal(await groundCite(reply, [passageWhat], citations, undefined, load), null, 'one move per answer: not when something was already cited');
 assert.equal(await groundCite(reply, [passageWhat], citationsMod.createCitations(), 'how are you?', load), null, 'small talk does not move the page, even when the reply talks shop');
 assert.ok(await groundCite(reply, [passageWhat], citationsMod.createCitations(), 'and what is it?', load), 'a follow-up with no content words still does');
+assert.equal(await groundCite(reply, [passageWhat], citationsMod.createCitations(), 'hello!', load), null, 'a greeting does not');
+assert.equal(await groundCite(reply, [passageWhat], citationsMod.createCitations(), 'How many research papers do you have?', load), null, 'a count does not');
+assert.equal(await groundCite(reply, [passageWhat], citationsMod.createCitations(), 'Which projects are shipped?', load), null, 'a list does not');
 assert.equal(await groundCite(reply, [{ ...passageWhat, anchor: 'gone' }], citationsMod.createCitations(), undefined, load), null, 'a section no longer on the page is not cited');
 
 // 7. Every indexed section of a few real pages resolves to a live section with the same heading, and the quote a
@@ -176,7 +194,10 @@ for (const doc of sample) {
   assert.ok(section, `${doc.title}: anchor is a live section`);
   assert.equal(section.heading, doc.heading, `${doc.title}: heading`);
   const firstLine = doc.text.split('\n')[0];
-  assert.equal(firstLine, `${doc.pageTitle}: ${doc.heading}`, `${doc.title}: context line`);
+  assert.equal(firstLine, `${doc.itemTitle}: ${doc.heading}`, `${doc.title}: context header`);
+  // The header is never quoted, even from the whole text: it is not on the page under the heading.
+  const fromAll = quoteFor(doc.text, doc.text, section);
+  assert.ok(!fromAll || !fromAll.includes(firstLine), `${doc.title}: header not quoted`);
   // A reply that repeats the section's own words gets a quote from it, and that quote is on the page.
   const text = doc.text.slice(firstLine.length);
   const q = quoteFor(text, text, section);
@@ -187,5 +208,35 @@ for (const doc of sample) {
 }
 assert.ok(quoted >= sample.length * 0.6, `most sections give a quote (${quoted}/${sample.length})`);
 
-console.log(`copilot search: mapping, queries, fallbacks and server cite ok; ${sample.length} real sections, ${quoted} quoted`);
+// 8. Context headers name what a section belongs to: a project's short Built with list says it is Precedent's.
+const built = docs.find((d) => d.title === `site:${projectRef}#built-with`);
+assert.ok(built.text.startsWith(`${project.title}: Built with\n`));
+const role = docs.find((d) => d.sectionKind === 'experience');
+assert.ok(role && !role.text.startsWith('Work history:'), 'a role is headed by its company');
+assert.deepEqual([...new Set(docs.map((d) => d.sectionKind))].sort(), ['about', 'contact', 'experience', 'paper', 'project'].sort());
+
+// 9. Names that sound alike (the trace lines), and words that must not match.
+const known = await names.knownNames();
+const heard = (text) => names.soundAlikes(text, known).map((m) => m.word);
+assert.deepEqual(heard('President'), ['Precedent']);
+assert.deepEqual(heard("what's the President project?"), ['Precedent']);
+assert.deepEqual(heard('What did Arise have to do with this project?'), ['Arize']);
+for (const text of ['hello', 'how are you', 'What stack is Precedent built with?', 'tell me about precedents', 'can you note that', 'What experience do you have?', 'which paper is about judges skipping questions']) {
+  assert.deepEqual(heard(text), [], text);
+}
+assert.match(names.soundAlikeNote(names.soundAlikes('what did Arise do', known)), /"Arise" probably means Arize \(Arize Evals\)/);
+assert.equal(names.soundAlikeNote([]), '');
+
+// 10. Lists and counts come from the content, complete, not from search.
+const allProjects = await tools.siteCatalog({ kind: 'projects' });
+assert.equal(allProjects.count, projects.length);
+const shipped = await tools.siteCatalog({ kind: 'projects', filter: 'Shipped' });
+assert.ok(shipped.count > 0 && shipped.count < projects.length, 'shipped is a category');
+assert.equal(shipped.count, projects.filter((p) => [p.status, p.category].some((v) => (v ?? '').toLowerCase().includes('shipped'))).length);
+assert.ok(shipped.items.every((i) => i.path.startsWith('/work/')));
+assert.equal((await tools.siteCatalog({ kind: 'papers' })).count, papers.length);
+assert.equal((await tools.siteCatalog({ kind: 'papers', newest: 2 })).items.length, Math.min(2, papers.length));
+assert.ok((await tools.siteCatalog({ kind: 'roles' })).count >= 1);
+
+console.log(`copilot search: mapping, queries, fallbacks, server cite, names and catalog ok; ${sample.length} real sections, ${quoted} quoted`);
 process.exit(0);

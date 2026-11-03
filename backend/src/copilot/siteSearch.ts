@@ -10,11 +10,30 @@
  * falls back to the full site brief (route.ts), so the copilot never loses its facts.
  */
 import { homeSections, loadBlogs, loadHero, loadPapers, loadProjects, loadShownExperience, loadSkills, projectPath, readBlog, readPaper, SOCIAL_LINKS } from './knowledge.js';
+import { dbQueryAll, isDataLayerConfigured } from '../../services/lib/db.js';
 import { sectionsOfMarkdown, sectionsOfProject } from './sections.js';
 
 export type SiteKind = 'project' | 'paper' | 'blog' | 'home' | 'contact';
-/** One indexed section: what the sync script sends to Octo. */
-export type SiteDocument = { title: string; path: string; anchor?: string; heading?: string; kind: SiteKind; pageTitle: string; text: string };
+/** A section's kind in the site_sections table (supabase/migrations/013_site_sections.sql). */
+export type SectionKind = 'project' | 'paper' | 'post' | 'experience' | 'about' | 'skills' | 'contact';
+/**
+ * One indexed section: what the sync script sends to Octo. `text` starts with the context header
+ * "<itemTitle>: <heading>" (the project, paper or post title, or the company of a role), so a short section such as
+ * a Built with list still names what it belongs to; quotes are only ever taken from the text after it.
+ */
+export type SiteDocument = {
+  title: string;
+  path: string;
+  anchor?: string;
+  heading?: string;
+  kind: SiteKind;
+  sectionKind: SectionKind;
+  pageTitle: string;
+  itemTitle: string;
+  text: string;
+};
+/** A site_sections row, as the API reads it to map a search hit to its page move. */
+export type SectionRow = { path: string; anchor: string; heading: string; kind: SectionKind; item_title: string; octo_document_id: string | null };
 /** One retrieved section: the best chunk Octo returned for it. `score` is the reranker's, or the vector similarity without it. */
 export type Passage = { ref: string; path: string; anchor?: string; heading?: string; kind: SiteKind; pageTitle: string; text: string; score: number };
 /** search_site's output: one per page. */
@@ -93,9 +112,17 @@ export async function keywordSearch(query: string): Promise<SiteHit[]> {
     .map(({ kind, ref, title, text }) => ({ kind, ref, title, summary: clip(text, 300) }));
 }
 
-type OctoMatch = { title?: string; content?: string; similarity?: number | null; rerankScore?: number };
+type OctoMatch = { title?: string; documentId?: string; chunkIndex?: number; content?: string; similarity?: number | null; rerankScore?: number };
 export type OctoConfig = { base: string; workspaceId: string; key: string };
-export type RetrieveOptions = { fetch?: typeof fetch; timeoutMs?: number; env?: NodeJS.ProcessEnv; rerank?: boolean; limit?: number };
+export type RetrieveOptions = {
+  fetch?: typeof fetch;
+  timeoutMs?: number;
+  env?: NodeJS.ProcessEnv;
+  rerank?: boolean;
+  limit?: number;
+  /** The site_sections rows by Octo document id; read from the workspace database when not given. */
+  sections?: Promise<Map<string, SectionRow>> | Map<string, SectionRow>;
+};
 
 /** Octo's address and key from the environment, or null when RAG is off or not set up. */
 export function octoConfig(env: NodeJS.ProcessEnv = process.env): OctoConfig | null {
@@ -113,29 +140,54 @@ const CONTEXT_LINE = /^[^\n]*\n+/;
  * Matches in rank order, mapped to sections: only `site:` documents whose page still exists, above the relevance
  * floor, the best chunk per section.
  */
-export function mapMatches(matches: OctoMatch[], titles: Map<string, string>, reranked: boolean): Passage[] {
+export function mapMatches(matches: OctoMatch[], titles: Map<string, string>, reranked: boolean, sections: Map<string, SectionRow> = new Map()): Passage[] {
   const out: Passage[] = [];
   const seen = new Set<string>();
-  const onSite = matches.filter((m) => {
-    const address = parseTitle(m.title);
-    return address && titles.has(address.path);
-  });
-  const top = Math.max(...onSite.map((m) => m.rerankScore ?? -Infinity));
-  const floor = reranked ? (top < RERANK_FLOOR ? Infinity : top - RERANK_SPREAD) : SIMILARITY_FLOOR;
-  for (const match of onSite) {
-    const address = parseTitle(match.title);
+  // A hit maps to its page move by document id through site_sections; the `site:` title is the fallback when the
+  // table cannot be read or the row is not there yet.
+  const located = matches.flatMap((match) => {
+    const row = match.documentId ? sections.get(match.documentId) : undefined;
+    const address = row ? { ref: row.anchor ? `${row.path}#${row.anchor}` : row.path, path: row.path, anchor: row.anchor || undefined } : parseTitle(match.title);
     const pageTitle = address && titles.get(address.path);
-    if (!address || !pageTitle || seen.has(address.ref)) continue;
+    return address && pageTitle ? [{ match, row, address, pageTitle }] : [];
+  });
+  const top = Math.max(...located.map((l) => l.match.rerankScore ?? -Infinity));
+  const floor = reranked ? (top < RERANK_FLOOR ? Infinity : top - RERANK_SPREAD) : SIMILARITY_FLOOR;
+  for (const { match, row, address, pageTitle } of located) {
+    if (seen.has(address.ref)) continue;
     const score = reranked ? (match.rerankScore ?? -Infinity) : (match.similarity ?? 0);
     if (score < floor) continue;
     seen.add(address.ref);
     const content = match.content ?? '';
-    // The first chunk of a section starts with its context line "<page>: <heading>"; that names the heading.
-    const head = /^([^\n]*?): ([^\n]+)\n/.exec(content);
-    const heading = head && head[1] === pageTitle ? head[2].trim() : undefined;
-    out.push({ ...address, kind: kindOf(address.path)!, pageTitle, heading, text: heading ? content.replace(CONTEXT_LINE, '') : content, score });
+    let heading: string | undefined;
+    let text = content;
+    if (row) {
+      // The first chunk starts with the context header; the passage is the body after it.
+      heading = row.heading || undefined;
+      const header = `${row.item_title}: ${row.heading}`;
+      if (content.startsWith(header)) text = content.slice(header.length).replace(/^\s+/, '');
+    } else {
+      // No row: the header names the heading when its item is the page's own title (projects, papers, posts).
+      const head = /^([^\n]*?): ([^\n]+)\n/.exec(content);
+      if (head && head[1] === pageTitle) heading = head[2].trim();
+      if (heading || (match.chunkIndex === 0 && head)) text = content.replace(CONTEXT_LINE, '');
+    }
+    out.push({ ...address, kind: kindOf(address.path)!, pageTitle, heading, text, score });
   }
   return out;
+}
+
+const SECTIONS_TTL_MS = 60_000;
+let sectionsCache: { at: number; rows: Promise<Map<string, SectionRow>> } | null = null;
+
+/** site_sections by Octo document id, cached for a minute. Empty when the table cannot be read (the titles still map). */
+export function sectionRows(): Promise<Map<string, SectionRow>> {
+  if (sectionsCache && Date.now() - sectionsCache.at < SECTIONS_TTL_MS) return sectionsCache.rows;
+  const rows = dbQueryAll<SectionRow>('select path, anchor, heading, kind, item_title, octo_document_id from public.site_sections where octo_document_id is not null')
+    .then((list) => new Map(list.map((r) => [r.octo_document_id!, r])))
+    .catch(() => new Map<string, SectionRow>());
+  sectionsCache = { at: Date.now(), rows };
+  return rows;
 }
 
 async function queryOcto(query: string, config: OctoConfig, rerank: boolean, options: RetrieveOptions): Promise<{ matches: OctoMatch[]; reranked: boolean }> {
@@ -166,6 +218,7 @@ export async function retrieve(queries: string[], options: RetrieveOptions = {})
   if (!config) throw new Error('octo rag: not configured');
   const rerank = options.rerank ?? true;
   const titles = pageTitles();
+  const sections = options.sections ?? (isDataLayerConfigured() ? sectionRows() : new Map<string, SectionRow>());
   const one = async (query: string) => {
     try {
       return await queryOcto(query, config, rerank, options);
@@ -177,11 +230,11 @@ export async function retrieve(queries: string[], options: RetrieveOptions = {})
   const settled = await Promise.allSettled(queries.filter((q) => q.trim()).map(one));
   const answered = settled.flatMap((s) => (s.status === 'fulfilled' ? [s.value] : []));
   if (!answered.length) throw new Error('octo rag: no query answered');
-  const map = await titles;
+  const [map, rows] = await Promise.all([titles, sections]);
   const best = new Map<string, Passage>();
   for (const { matches, reranked } of answered) {
     // Scores from the reranker and from the vector arm are not comparable; a fallback query ranks below reranked ones.
-    for (const passage of mapMatches(matches, map, reranked)) {
+    for (const passage of mapMatches(matches, map, reranked, rows)) {
       const ranked = reranked ? passage : { ...passage, score: passage.score - 100 };
       const held = best.get(passage.ref);
       if (!held || ranked.score > held.score) best.set(passage.ref, ranked);
@@ -192,17 +245,19 @@ export async function retrieve(queries: string[], options: RetrieveOptions = {})
 
 /**
  * The queries for a turn: the message itself, and the message with the conversation just before it and the content
- * page the visitor is on, so a follow-up ("how is it built?", "what else?") or "this project" finds the thing being
- * talked about. Both run at once and their results merge.
+ * page the visitor is on and any known name the message sounds like, so a follow-up ("how is it built?", "what else?"),
+ * "this project" or a misheard "President" finds the thing being talked about. Both run at once and their results merge.
  */
-export function turnQueries(messages: Array<{ role: string; content: string }>, page?: { path: string; title: string }): string[] {
+export function turnQueries(messages: Array<{ role: string; content: string }>, page?: { path: string; title: string }, names: string[] = []): string[] {
   const question = messages.at(-1)?.content.trim() ?? '';
   if (!question) return [];
   const earlier = messages.slice(0, -1);
   const lastUser = [...earlier].reverse().find((m) => m.role === 'user')?.content ?? '';
   const lastReply = earlier.at(-1)?.role === 'assistant' ? (earlier.at(-1)?.content ?? '') : '';
   const onPage = page && ['project', 'paper', 'blog'].includes(kindOf(page.path) ?? '') ? `on the page "${clip(page.title, 100)}"` : '';
-  const context = squash(`${onPage} ${clip(lastUser, 200)} ${clip(lastReply, 300)}`);
+  // Names the message sounds like (names.ts) go in with the context, never in place of the visitor's words.
+  const alike = names.length ? `probably ${names.join(', ')}` : '';
+  const context = squash(`${alike} ${onPage} ${clip(lastUser, 200)} ${clip(lastReply, 300)}`);
   return context ? [question, `${question} (context: ${context})`] : [question];
 }
 
@@ -232,7 +287,7 @@ export async function searchSite(query: string, options: RetrieveOptions = {}): 
 }
 
 /** Section text for the index: the context line, then the page's own text. */
-const body = (pageTitle: string, heading: string, parts: string[]) => [`${pageTitle}: ${heading}`, ...parts.map(squash).filter(Boolean)].join('\n\n');
+const body = (itemTitle: string, heading: string, parts: string[]) => [`${itemTitle}: ${heading}`, ...parts.map(squash).filter(Boolean)].join('\n\n');
 
 /** Every section the index should hold, from the live content: the sync script's input. */
 export async function siteDocuments(): Promise<SiteDocument[]> {
@@ -240,15 +295,15 @@ export async function siteDocuments(): Promise<SiteDocument[]> {
     loadProjects(), loadPapers(), loadBlogs(), homeSections(), loadHero(), loadSkills(), loadShownExperience(),
   ]);
   const docs: SiteDocument[] = [];
-  const add = (path: string, kind: SiteKind, pageTitle: string, anchor: string | undefined, heading: string, text: string) =>
-    docs.push({ title: `${SITE_PREFIX}${anchor ? `${path}#${anchor}` : path}`, path, anchor, heading, kind, pageTitle, text });
+  const add = (path: string, kind: SiteKind, sectionKind: SectionKind, pageTitle: string, itemTitle: string, anchor: string | undefined, heading: string, parts: string[]) =>
+    docs.push({ title: `${SITE_PREFIX}${anchor ? `${path}#${anchor}` : path}`, path, anchor, heading, kind, sectionKind, pageTitle, itemTitle, text: body(itemTitle, heading, parts) });
 
   for (const p of projects) {
     for (const s of sectionsOfProject(p)) {
       // The tagline sits above What it is; Go deeper shows link labels, and the model needs their addresses for share_link.
       const lead = s.id === 'what-it-is' ? [p.tagline] : [];
       const links = s.id === 'go-deeper' ? (p.links ?? []).filter((l) => l.url && l.url !== '#').map((l) => `${l.label}: ${l.url}`) : [];
-      add(projectPath(p), 'project', p.title, s.id, s.heading, body(p.title, s.heading, [...lead, ...s.blocks, ...links]));
+      add(projectPath(p), 'project', 'project', p.title, p.title, s.id, s.heading, [...lead, ...s.blocks, ...links]);
     }
   }
   for (const paper of papers) {
@@ -257,14 +312,14 @@ export async function siteDocuments(): Promise<SiteDocument[]> {
     const path = `/research/papers/${paper.id}`;
     const status = paper.status === 'approved' ? [] : ['A working paper, awaiting my approval.'];
     for (const s of sectionsOfMarkdown(markdown, { levels: [1, 2, 3] })) {
-      if (s.blocks.length) add(path, 'paper', paper.title, s.id, s.heading, body(paper.title, s.heading, [...status, ...s.blocks]));
+      if (s.blocks.length) add(path, 'paper', 'paper', paper.title, paper.title, s.id, s.heading, [...status, ...s.blocks]);
     }
   }
   for (const blog of blogs) {
     const post = await readBlog(blog.id);
     if (!post) continue;
     for (const s of sectionsOfMarkdown(post.content, { levels: [1, 2, 3] })) {
-      if (s.blocks.length) add(`/blogs/${blog.id}`, 'blog', blog.title, s.id, s.heading, body(blog.title, s.heading, s.blocks));
+      if (s.blocks.length) add(`/blogs/${blog.id}`, 'blog', 'post', blog.title, blog.title, s.id, s.heading, s.blocks);
     }
   }
   // The home page. About also carries the hero line and the skills, which the page does not show under that heading:
@@ -277,13 +332,14 @@ export async function siteDocuments(): Promise<SiteDocument[]> {
         : job
           ? [`${job.role} at ${job.company}, ${job.period}.`, job.expandedSummary ?? '', ...(job.highlights ?? []), (job.tags ?? []).join(', ')]
           : [];
-    add('/', 'home', s.id === 'story-about' ? 'About me' : 'Work history', s.id, s.heading, body(s.id === 'story-about' ? 'About me' : 'Work history', s.heading, [...s.blocks, ...extra]));
+    if (s.id === 'story-about') add('/', 'home', 'about', 'About me', 'About me', s.id, s.heading, [...s.blocks, ...extra]);
+    else add('/', 'home', 'experience', 'Work history', job?.company ?? 'Work history', s.id, s.heading, [...s.blocks, ...extra]);
   }
   const contact = [
     'To reach me, open the Contact page: pick an area and a time for a free 30-minute consultation call.',
     'I consult on AI engineering, product design, marketing, and full-stack development.',
     ...SOCIAL_LINKS.map((l) => `${l.label}: ${l.url.replace(/^mailto:/, '')}`),
   ];
-  add('/contact', 'contact', 'Contact', undefined, 'Contact and consultations', body('Contact', 'Contact and consultations', contact));
+  add('/contact', 'contact', 'contact', 'Contact', 'Contact', undefined, 'Contact and consultations', contact);
   return docs;
 }
