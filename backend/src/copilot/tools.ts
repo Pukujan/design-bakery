@@ -13,7 +13,9 @@ export type CopilotAction =
   | { kind: 'navigate'; path: string; label: string; go?: boolean }
   | { kind: 'projects'; slugs: string[] }
   | { kind: 'link'; label: string; url: string }
-  | { kind: 'book'; url: string; name?: string; email?: string; topic?: string };
+  | { kind: 'book'; url: string; name?: string; email?: string; topic?: string }
+  /** Voice calls only: scroll to a section when the spoken answer reaches character `at`. */
+  | { kind: 'scrollstep'; path: string; at: number };
 
 const clip = (text: string, max: number) => (text.length > max ? `${text.slice(0, max)}…` : text);
 
@@ -82,7 +84,7 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
 
     navigate: tool({
       description:
-        'Open a page on this site for the visitor, while the conversation stays open: a section (/#about, /#experience, /#work), /contact, /work/<slug>, /blogs, /blogs/<id>, /research, /research/papers/<id>. Only call it after the visitor has said yes to your question "Want me to open the <page> page?". Never call it unasked, even for a tour or a direct request.',
+        'Open a page on this site for the visitor, while the conversation stays open: a section (/#about, /#experience, /#work), /contact, /work/<slug>, /blogs, /blogs/<id>, /research, /research/papers/<id>. In a text chat, only call it after the visitor has said yes to your question "Want me to open the <page> page?", and never unasked. On a voice call you may call it directly.',
       inputSchema: z.object({ path: z.string(), label: z.string().max(60) }),
       execute: async ({ path, label }) => {
         if (!options.canNavigate) {

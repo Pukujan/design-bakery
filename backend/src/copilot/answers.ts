@@ -24,7 +24,14 @@ export type CachedAction =
   | { kind: 'link'; label: string; url: string }
   | { kind: 'book'; url: string; name?: string; email?: string; topic?: string };
 
-export type CachedAnswer = { intent: string; text: string; actions: CachedAction[] };
+/** `steps` are for a voice call only: scroll to a section when the spoken answer reaches character `at`. */
+export type CachedAnswer = { intent: string; text: string; actions: CachedAction[]; steps?: Array<{ path: string; at: number }> };
+
+/**
+ * Answers whose page move a voice call makes on its own: the visitor asked to be shown something, so the call takes
+ * them there. Greetings, thanks and small talk never move the page.
+ */
+export const FOLLOW_ON_CALL = new Set(['tour', 'project', 'projects', 'blog', 'research', 'experience', 'identity', 'contact', 'book', 'service']);
 
 type Intent = { id: string; phrases: string[]; keywords: string[] };
 
@@ -148,7 +155,9 @@ function projectAbout(question: string, projects: Project[]): CachedAnswer | nul
   const asked = /^(please )?(can you |could you )?(tell me (more )?about|what is|what s|what are|explain|describe|about|show me|give me)\b/.test(q);
   let best: { project: Project; length: number } | null = null;
   for (const project of projects) {
-    const names = new Set([norm(project.title), norm(project.slug.replace(/-/g, ' ')), project.slug.split('-')[0]]);
+    // The title, the slug, and a short name for the one project people call by half its name. Never a generic first
+    // word: "show me your project" is not about Project Continuity Modules.
+    const names = new Set([norm(project.title), norm(project.slug.replace(/-/g, ' ')), ...(project.slug === 'oni-architecture' ? ['oni'] : [])]);
     for (const name of names) {
       if (name.length < 3) continue;
       const exact = q === name;
@@ -175,9 +184,9 @@ const latestPaper = (papers: Paper[]) => [...papers].sort((a, b) => b.submitted.
 
 function compose(
   intent: Intent,
-  data: { projects: Project[]; papers: Paper[]; blogs: BlogSummary[]; experiences: Awaited<ReturnType<typeof loadExperience>>['experiences']; booking: string | undefined },
+  data: { projects: Project[]; papers: Paper[]; blogs: BlogSummary[]; experiences: Awaited<ReturnType<typeof loadExperience>>['experiences']; booking: string | undefined; voice: boolean },
 ): CachedAnswer {
-  const { projects, papers, blogs, experiences, booking } = data;
+  const { projects, papers, blogs, experiences, booking, voice } = data;
   const shipped = projects.filter((project) => project.category === 'shipped');
   const named = (shipped.length ? shipped : projects).slice(0, 2).map((project) => project.title);
   const email = SOCIAL_LINKS.find((link) => link.label === 'Email')?.url ?? 'mailto:pujan3645@gmail.com';
@@ -226,12 +235,29 @@ function compose(
         actions: [...book, navigate('/contact', 'Contact page')],
       };
 
-    case 'tour':
+    case 'tour': {
+      if (voice) {
+        // Passage by passage: one spoken passage per section, and the page scrolls to each as it is spoken.
+        const passages: Array<[string, string]> = [
+          ['/#about', 'Let me walk you through it, starting with who I am.'],
+          ['/#work', 'Next is my work. The big tiles are shipped products, then systems, research and experiments.'],
+          ['/#experience', 'And here is my experience, role by role.'],
+        ];
+        const closing = "Ask me about any of it and I'll go deeper.";
+        let text = '';
+        const steps: Array<{ path: string; at: number }> = [];
+        for (const [path, passage] of passages) {
+          steps.push({ path, at: text.length });
+          text += `${text ? ' ' : ''}${passage}`;
+        }
+        return { intent: intent.id, text: `${text} ${closing}`, actions: [], steps };
+      }
       return {
         intent: intent.id,
         text: `Short version: the work first, then research and writing. Ask about any of them and I will go deeper.`,
         actions: [navigate('/#work', 'Start with the work')],
       };
+    }
 
     case 'blog': {
       const newest = latestBlog(blogs);
@@ -277,7 +303,7 @@ function compose(
       return {
         intent: intent.id,
         text: `I offer free 30-minute consultations in AI engineering, product design, marketing and full-stack development. Pick a time, and say what it is about.`,
-        actions: booking ? [{ kind: 'book', url: booking }] : [{ kind: 'link', label: 'Email me', url: email }],
+        actions: [...(booking ? [{ kind: 'book' as const, url: booking }] : [{ kind: 'link' as const, label: 'Email me', url: email }]), navigate('/contact', 'Contact page')],
       };
 
     default:
@@ -289,7 +315,7 @@ function compose(
  * The instant answer for this question, or null when it needs the model.
  * `firstTurn` lowers the bar, because a first message carries no context to lose.
  */
-export async function cachedAnswer(question: string, firstTurn: boolean): Promise<CachedAnswer | null> {
+export async function cachedAnswer(question: string, firstTurn: boolean, voice = false): Promise<CachedAnswer | null> {
   // "Tell me about Cortex": the Ask button on every project page, and the most common project question. Answered
   // from the project's own record, so it never waits on a model.
   const projectAnswer = projectAbout(question, await loadProjects());
@@ -303,6 +329,7 @@ export async function cachedAnswer(question: string, firstTurn: boolean): Promis
     blogs,
     experiences: experience.experiences,
     booking: process.env.COPILOT_BOOKING_URL?.trim(),
+    voice,
   });
   return answer.text ? answer : null;
 }

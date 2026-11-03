@@ -105,4 +105,17 @@ assert.equal(
   'a long project question must still reach the model',
 );
 
+// A voice call's tour goes passage by passage: one scroll step per section, in order, the first at once. The same
+// tour in a chat has no steps.
+const voiceTour = await cachedAnswer('give me a tour', true, true);
+assert.deepEqual(voiceTour.steps.map((step) => step.path), ['/#about', '/#work', '/#experience'], 'the voice tour visits about, work, experience');
+assert.equal(voiceTour.steps[0].at, 0, 'the voice tour starts scrolling at once');
+assert.ok(voiceTour.steps.every((step, index) => index === 0 || step.at > voiceTour.steps[index - 1].at), 'tour steps must be in order');
+assert.ok(voiceTour.steps.every((step) => step.at < voiceTour.text.length), 'every step falls inside the spoken text');
+assert.equal((await cachedAnswer('give me a tour', true, false)).steps, undefined, 'a chat tour has no scroll steps');
+
+// "Show me your project" is not a question about the project whose slug starts with "project".
+const generic = await cachedAnswer('Show me your project.', false);
+assert.notEqual(generic?.intent, 'project', '"show me your project" must not pick one project by its generic first word');
+
 console.log(`copilot instant answers: ${firstTurn.length} intents, ${followUps.length} follow-ups routed to the model`);
