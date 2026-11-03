@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { copilot, requestVoiceGrant, typedReply } from './store';
 import type { LocalAudioTrack, Room } from 'livekit-client';
-import { noteActivity, pauseNudges, playSpokenReply, preloadHold, resumeNudges, startHold, startNudges, startThinking, stopHold, stopNudges, type Thinking } from './holdAudio';
+import { noteActivity, pauseNudges, playSpokenReply, preloadHold, isNudge, resumeNudges, startHold, startNudges, startThinking, stopHold, stopNudges, type Thinking } from './holdAudio';
 import { pickOrigin, type SkyOrigin } from './skyOrigin';
 
 /** Who is talking right now, so the orb can show it. */
@@ -49,7 +49,7 @@ const set = (patch: Partial<VoiceState>) => {
   }
   // A connected call that goes quiet is nudged with saved lines; they stop when the call ends or fails.
   if (patch.status === 'connected' && state.status !== 'connected') {
-    startNudges((hold) => set({ hold }), () => state.muted);
+    startNudges((hold) => { set({ hold }); if (isNudge(hold)) copilot.noteSaid(hold); }, () => state.muted);
   } else if (patch.status === 'idle') {
     stopNudges();
   }

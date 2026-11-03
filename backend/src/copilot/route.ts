@@ -175,7 +175,7 @@ copilotRouter.post('/chat', async (req, res) => {
   // answered from the site's own data with no model call, so they cost nothing to serve
   // and keep working when the database holding the rate budget is down. A follow-up
   // carries context, so only a near-exact match counts after the first turn.
-  const cached = await routeRequest(question, messages.length === 1, voice);
+  const cached = await routeRequest(question, messages.length === 1, voice, messages.at(-2)?.role === 'assistant' ? messages.at(-2)?.content : undefined);
   if (cached) {
     turn.model = `cache:${cached.intent}`;
     turn.routine = cached.routine;

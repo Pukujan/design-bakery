@@ -34,6 +34,8 @@ export type CopilotMessage = {
   model?: string;
   /** Set for an error line, so it is not sent back to the model as history. */
   error?: boolean;
+  /** A line said aloud on a quiet call (holdAudio NUDGES), kept so a following "yes" has its question. */
+  nudge?: boolean;
 };
 
 export type CopilotState = {
@@ -269,6 +271,14 @@ export const copilot = {
   setDraft: (draft: string) => set({ draft }),
   setHeroVisible: (heroVisible: boolean) => {
     if (state.heroVisible !== heroVisible) set({ heroVisible });
+  },
+  /** A saved line the call said aloud enters the conversation, so the server sees the offer when the visitor says yes. */
+  noteSaid(text: string) {
+    if (!text || state.busy) return;
+    const last = state.messages.at(-1);
+    // Two nudges in a row are one pending offer: the newest replaces the older one.
+    const kept = last?.nudge ? state.messages.slice(0, -1) : state.messages;
+    set({ messages: [...kept, { id: nextId++, role: 'assistant', text, steps: [], actions: [], streaming: false, nudge: true }] });
   },
   clear() {
     abort?.abort();

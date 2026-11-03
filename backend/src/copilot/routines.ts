@@ -226,11 +226,55 @@ const role: Routine = {
 export const ROUTINES: readonly Routine[] = [latest, tech, role, open];
 
 /**
+ * Offers AI Pujan makes out loud while a call is idle (the NUDGES in frontend holdAudio.ts: change both together; the
+ * router test reads that file and fails on a line missing here). The browser records each one in the conversation, so
+ * the next short "yes" or "not now" can be read against it. `ask` is the saved request a yes runs.
+ */
+const OFFERS: Array<{ id: string; said: string; ask?: string }> = [
+  { id: 'projects', said: 'Want me to walk you through my projects?', ask: 'show me your projects' },
+  { id: 'consultation', said: 'I can also help you book a free consultation.', ask: 'book a free consultation' },
+  { id: 'anything', said: "I'm still here if you want to ask anything." },
+  { id: 'areas', said: 'Ask me about my research, my work history, or anything on the site.' },
+];
+const YES = /^(yes|yeah|yep|yup|sure|ok|okay|please|go ahead|do it|sounds good|absolutely|definitely|why not|let s do it|go for it|sure thing|yes please|yes sure|yeah sure|okay sure|ok sure|that sounds good|i d like that|that would be great|sure why not|(yes|yeah|ok|okay|sure) (do it|go ahead|please))$/;
+const NO = /^(no|nope|nah|not now|not really|maybe later|later|no thanks|no thank you|i m good|i m fine|not today|not right now|no i m good|no i m fine|nah i m good)$/;
+
+/** A short yes or no to an offer the assistant just made. Anything else, or no known offer in view, is not mine. */
+async function answerToOffer(ask: Ask, previous: string | undefined): Promise<RoutedAnswer | null> {
+  if (!previous || ask.q.split(' ').length > 6) return null;
+  const said = norm(previous);
+  const offer = OFFERS.find((entry) => norm(entry.said) === said);
+  if (!offer) return null;
+  if (NO.test(ask.q)) {
+    return {
+      routine: 'offer:decline',
+      intent: 'offer-decline',
+      text: vary('offer-decline', ['No problem. I am here if you change your mind.', 'Fair enough. Say the word whenever you want something.', 'Of course. I will keep quiet. Mostly.']),
+      actions: [],
+    };
+  }
+  if (!YES.test(ask.q)) return null;
+  if (!offer.ask) {
+    return {
+      routine: 'offer:open-ended',
+      intent: 'offer-open-ended',
+      text: vary('offer-open-ended', ['Great. What would you like to know? My projects, my research, my work history, anything.', 'Go ahead, ask me anything. I will try to be useful.', 'Lovely. What is on your mind: the work, the writing, the research?']),
+      actions: [],
+    };
+  }
+  const saved = await cachedAnswer(offer.ask, false, ask.voice);
+  if (!saved) return null;
+  return { ...saved, routine: `offer:${offer.id}`, go: true, captions: journey() };
+}
+
+/**
  * The routine's answer for this question, or null when it belongs to the model. `routine` names which one ran: the
  * routines above, or `intent:<id>` for the saved intents in answers.ts. It is what the trace labels the turn with.
  */
-export async function routeRequest(question: string, firstTurn: boolean, voice = false): Promise<RoutedAnswer | null> {
+export async function routeRequest(question: string, firstTurn: boolean, voice = false, previous?: string): Promise<RoutedAnswer | null> {
   const ask: Ask = { question, q: norm(question), voice, firstTurn };
+  const replied = await answerToOffer(ask, previous);
+  if (replied) return replied;
   if (ask.q && selfContained(ask.q)) {
     const due = ROUTINES.filter((routine) => routine.test(ask));
     if (due.length) {

@@ -91,7 +91,7 @@ for (const name of await readdir(skillsDir)) {
   const cases = JSON.parse(await readFile(new URL(`${name}/examples/inputs/cases.json`, skillsDir), 'utf8'));
   for (const c of cases) {
     if (c.needs === 'blogs' && !blogs.length) continue;
-    const answer = await routeRequest(c.utterance, c.firstTurn ?? false);
+    const answer = await routeRequest(c.utterance, c.firstTurn ?? false, false, c.previous);
     const label = `${name}: "${c.utterance}"`;
     if ('routine' in c) assert.equal(c.routine === null ? (answer && ['open', 'latest', 'tech', 'role'].includes(answer.routine) ? answer.routine : null) : answer?.routine, c.routine, label);
     if (c.routine_not) assert.notEqual(answer?.routine, c.routine_not, label);
@@ -102,6 +102,16 @@ for (const name of await readdir(skillsDir)) {
   }
 }
 assert.ok(caseCount >= 10, 'the routine folders hold the regression cases');
+
+// Every offer the call's idle nudges make is known to the router (drift guard against holdAudio.ts NUDGES).
+const nudges = [...(await readFile(new URL('./frontend/src/app/modules/copilot/holdAudio.ts', root), 'utf8')).matchAll(/src: '\/voice\/nudge-\d\.m4a', text: ("[^"]+"|'[^']+')/g)].map((m) => m[1].slice(1, -1));
+assert.ok(nudges.length >= 4, 'found the nudge lines');
+for (const line of nudges) {
+  const reply = await routeRequest('no', false, false, line);
+  assert.equal(reply?.routine, 'offer:decline', `the nudge "${line}" is not in the router's OFFERS`);
+}
+// "yes" after a model question, or with no offer, is not the router's.
+assert.ok(!(await routeRequest('yes', false, false, 'Which project would you like?'))?.routine?.startsWith('offer'));
 
 // Never hijack a follow-up, a long or a reasoning question: these reach the model.
 const toModel = [
