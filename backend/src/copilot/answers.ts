@@ -39,7 +39,7 @@ type Intent = { id: string; phrases: string[]; keywords: string[] };
 const INTENTS: Intent[] = [
   { id: 'greeting', phrases: ['hi', 'hello', 'hey', 'yo', 'good morning', 'good afternoon', 'howdy'], keywords: ['hi', 'hello', 'hey', 'howdy'] },
   { id: 'thanks', phrases: ['thanks', 'thank you', 'cheers', 'nice one', 'got it'], keywords: ['thanks', 'thank', 'cheers'] },
-  { id: 'identity', phrases: ['what kind of ai do you build', 'what do you do', 'who is pujan', 'tell me about pujan', 'what is this site', 'what does he work on', 'who are you'], keywords: [] },
+  { id: 'identity', phrases: ['what kind of ai do you build', 'what do you do', 'who is pujan', 'tell me about pujan', 'what is this site', 'what does he work on', 'who are you', 'what do you build', 'what do you make'], keywords: [] },
   { id: 'contact', phrases: ['contact', 'how do i reach him', 'email', 'get in touch', 'hire him', 'is he available for work'], keywords: ['contact', 'email', 'reach', 'hire', 'touch'] },
   { id: 'tour', phrases: ['give me a tour', 'show me around', 'walk me through', 'where do i start', 'show me your work'], keywords: ['tour', 'around'] },
   { id: 'blog', phrases: ['blog', 'writing', 'posts', 'articles'], keywords: ['blog', 'post', 'writing', 'article'] },
@@ -121,6 +121,32 @@ function bestIntent(question: string, threshold: number): Intent | null {
     }
   }
   return best && best.score >= threshold ? best.intent : null;
+}
+
+/** The four areas I consult on, with the projects that show each one. The questions come from the Contact page's buttons. */
+const SERVICES: Array<{ match: RegExp; label: string; slugs: string[] }> = [
+  { match: /\bai engineering\b/, label: 'AI engineering', slugs: ['precedent', 'eval-lab', 'website-copilot'] },
+  { match: /\bproduct design\b/, label: 'product design', slugs: ['ekagajpatra', 'study-os'] },
+  { match: /\bmarketing\b/, label: 'marketing', slugs: ['fluffy-v4'] },
+  { match: /\bfull ?stack\b/, label: 'full-stack development', slugs: ['orbitgraph', 'voidfeed', 'ekagajpatra'] },
+];
+
+/** "How can you help with product design?": answered from a fixed line, the booking link and the related projects. */
+function serviceAnswer(question: string, projects: Project[]): CachedAnswer | null {
+  const q = norm(question);
+  if (!/^(how can you help|how do you help|what can you do|can you help) (me )?(with|for)\b/.test(q)) return null;
+  const service = SERVICES.find((entry) => entry.match.test(q));
+  if (!service) return null;
+  const slugs = service.slugs.filter((slug) => projects.some((project) => project.slug === slug));
+  const booking = process.env.COPILOT_BOOKING_URL?.trim();
+  return {
+    intent: 'service',
+    text: `I offer free 30-minute consultations on ${service.label}. Tell me what you are working on and pick a time, and I will come with ideas. Some related work is below.`,
+    actions: [
+      ...(slugs.length ? [{ kind: 'projects' as const, slugs }] : []),
+      booking ? { kind: 'book' as const, url: booking } : { kind: 'link' as const, label: 'Email me', url: 'mailto:pujan3645@gmail.com' },
+    ],
+  };
 }
 
 /** The first sentences of a description, up to a short limit, so an answer stays a few lines. */
@@ -290,6 +316,9 @@ function compose(
  * `firstTurn` lowers the bar, because a first message carries no context to lose.
  */
 export async function cachedAnswer(question: string, firstTurn: boolean): Promise<CachedAnswer | null> {
+  // The Contact page's "Ask the AI right now" sends "How can you help with <area>?": one fixed answer per area.
+  const service = serviceAnswer(question, await loadProjects());
+  if (service) return service;
   // "Tell me about Cortex": the Ask button on every project page, and the most common project question. Answered
   // from the project's own record, so it never waits on a model.
   const projectAnswer = projectAbout(question, await loadProjects());
