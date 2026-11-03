@@ -65,3 +65,35 @@
   opacity: 0.5;
   cursor: default;
 }
+
+/* A line heard on a call that got no reply: struck through and faded, with a way to have it answered after all. */
+.cp-ignored {
+  margin: 0;
+}
+.cp-ignored-text {
+  margin: 0;
+  color: var(--lab-muted, var(--lab-paper));
+  opacity: 0.6;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+.cp-ignored-why {
+  margin: 0.2rem 0 0;
+  color: var(--lab-muted, var(--lab-paper));
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+.cp-ignored-answer {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--lab-accent, var(--lab-paper));
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.cp-ignored-answer:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

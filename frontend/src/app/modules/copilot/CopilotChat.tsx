@@ -152,6 +152,28 @@ function ActionView({ action }: { action: CopilotAction }) {
   );
 }
 
+/** A line heard on a call that got no reply (someone else in the room, or my own voice heard back): greyed, and answerable. */
+function IgnoredLine({ message }: { message: CopilotMessage }) {
+  const { busy } = useCopilot();
+  const why = message.ignored === 'another voice' ? 'Not your voice, so I let it pass.' : message.ignored?.startsWith('said to ') ? `Sounded like it was for ${message.ignored.slice(8)}.` : 'I was not sure that was for me.';
+  return (
+    <motion.div
+      className="lab-msg lab-msg--user cp-ignored"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: EASE }}
+    >
+      <p className="cp-ignored-text">{message.text}</p>
+      <p className="cp-ignored-why">
+        {why}{' '}
+        <button type="button" className="cp-ignored-answer" disabled={busy} onClick={() => void copilot.answerIgnored(message.id)}>
+          Answer this
+        </button>
+      </p>
+    </motion.div>
+  );
+}
+
 function AssistantMessage({ message }: { message: CopilotMessage }) {
   const waiting = message.streaming && !message.text && message.steps.length === 0;
   return (
@@ -272,7 +294,9 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
           transition={{ duration: 0.3, ease: EASE }}
         >
           {messages.map((message) =>
-            message.role === 'user' ? (
+            message.role === 'user' && message.ignored ? (
+              <IgnoredLine key={message.id} message={message} />
+            ) : message.role === 'user' ? (
               <motion.p
                 key={message.id}
                 className="lab-msg lab-msg--user"

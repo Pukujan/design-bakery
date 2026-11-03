@@ -22,6 +22,7 @@
     "test:railway-build": "node scripts/test-railway-build.mjs",
     "test:homepage-content": "node scripts/test-homepage-content-stability.mjs",
     "test:copilot-answers": "node scripts/test-copilot-answers.mjs",
+    "test:copilot-addressee": "node scripts/test-copilot-addressee.mjs",
     "test:copilot-router": "node scripts/test-copilot-router.mjs",
     "test:copilot-memory": "node scripts/test-copilot-memory.mjs",
     "test:copilot-news": "node scripts/test-copilot-news.mjs",

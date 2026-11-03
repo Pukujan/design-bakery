@@ -112,6 +112,7 @@ export function audioLevel(side: 'user' | 'agent'): number {
 }
 
 function close(error = '') {
+  copilot.setIgnoredAnswerer(null);
   generation += 1;
   pending?.abort();
   pending = null;
@@ -188,18 +189,8 @@ export const voice = {
       const call = new lk.Room({ adaptiveStream: false, dynacast: false });
       room = call;
       const isAgent = (identity: string) => call.remoteParticipants.get(identity)?.isAgent === true;
-      call.registerRpcMethod('copilot.greet', async (data) => {
-        if (!isAgent(data.callerIdentity)) throw new Error('Unrecognized voice participant');
-        return JSON.stringify({ say: "Hi, I'm AI Pujan. Ask me about my work, my writing, or my research." });
-      });
-      call.registerRpcMethod('copilot.turn', async (data) => {
-        if (!isAgent(data.callerIdentity)) throw new Error('Unrecognized voice participant');
-        let question = '';
-        try { question = String(JSON.parse(data.payload || '{}').text ?? '').slice(0, 2000); } catch { /* invalid speech payload */ }
-        if (!question || generation !== run) return JSON.stringify({ say: 'Could you say that again?' });
-        // My own filler or closer heard back through the speakers is not part of the question; if that is all it was, no turn.
-        question = withoutEcho(question);
-        if (!question) return JSON.stringify({ say: '' });
+      /** The copilot's answer to a line heard on the call, with the page moves it makes as it is spoken. '' for no reply. */
+      const answerAloud = async (question: string, toMe = false): Promise<string> => {
         // Nothing is quiet while an answer is worked out: the reminders hold off, and fillers fill the wait.
         pauseNudges();
         set({ thinking: true });
@@ -208,20 +199,20 @@ export const voice = {
         thinkingSince = Date.now();
         let answer = '';
         try {
-          answer = await copilot.send(question, { path: window.location.pathname, title: document.title }, { voice: true });
+          answer = await copilot.send(question, { path: window.location.pathname, title: document.title }, { voice: true, toMe });
           // If the answer is taking the visitor somewhere, the cursor does that first (thinking dots all the while); the answer is
           // spoken, and its bubble shown, only once the page is there.
           await Promise.race([copilot.takeMoves(), new Promise((resolve) => setTimeout(resolve, 30_000))]);
         } finally {
           // A clip in progress stops on its next pause, and a closer ("Ahh, here it is") follows only a filler heard in full.
-          // No answer (the words were for someone else in the room) means no closer either: the filler just stops.
+          // No answer (the line was said to someone else in the room) means no closer either: the filler just stops.
           if (answer) await waiting.finish();
           else waiting.cancel();
           if (thinking === waiting) thinking = null;
           set({ thinking: false });
           resumeNudges();
         }
-        if (generation !== run) return JSON.stringify({ say: '' });
+        if (generation !== run) return '';
         // Passage by passage: each scroll fires as the spoken answer reaches that part.
         for (const step of copilot.takeSteps()) {
           stepTimers.push(setTimeout(() => copilot.go(step.path, { slow: true, agent: true }), SPEECH_LEAD_MS + (step.at / SPEECH_CHARS_PER_S) * 1000));
@@ -233,8 +224,44 @@ export const voice = {
         for (const { cite, at, hold } of copilot.takeCites(answer)) {
           stepTimers.push(setTimeout(() => void copilot.citeFor(cite, (hold / SPEECH_CHARS_PER_S) * 1000), SPEECH_LEAD_MS + (at / SPEECH_CHARS_PER_S) * 1000));
         }
-        // An empty answer is the copilot staying quiet on purpose (background talk): the agent says nothing.
-        return JSON.stringify({ say: answer });
+        // An empty answer is a line said to someone else in the visitor's room (addressee.ts): the agent says nothing.
+        return answer;
+      };
+      call.registerRpcMethod('copilot.greet', async (data) => {
+        if (!isAgent(data.callerIdentity)) throw new Error('Unrecognized voice participant');
+        // `call` (the visitor's session) files the agent's spans under the same Phoenix session as this page's turns.
+        return JSON.stringify({ say: "Hi, I'm AI Pujan. Ask me about my work, my writing, or my research.", call: grant.call ?? '' });
+      });
+      call.registerRpcMethod('copilot.turn', async (data) => {
+        if (!isAgent(data.callerIdentity)) throw new Error('Unrecognized voice participant');
+        let question = '';
+        try { question = String(JSON.parse(data.payload || '{}').text ?? '').slice(0, 2000); } catch { /* invalid speech payload */ }
+        if (!question || generation !== run) return JSON.stringify({ say: 'Could you say that again?' });
+        // My own filler or closer heard back through the speakers is not part of the question; if that is all it was, no turn.
+        question = withoutEcho(question);
+        if (!question) return JSON.stringify({ say: '', call: grant.call ?? '' });
+        return JSON.stringify({ say: await answerAloud(question), call: grant.call ?? '' });
+      });
+      // A line the agent heard and dropped (another voice, my own voice heard back, an unsure mumble): shown greyed on the thread.
+      call.registerRpcMethod('copilot.ignored', async (data) => {
+        if (!isAgent(data.callerIdentity)) throw new Error('Unrecognized voice participant');
+        try {
+          const heard = JSON.parse(data.payload || '{}') as { id?: unknown; text?: unknown; reason?: unknown };
+          if (generation === run) copilot.noteIgnored(String(heard.text ?? '').slice(0, 2000), String(heard.reason ?? 'not for me'), String(heard.id ?? ''));
+        } catch { /* invalid payload */ }
+        return '{}';
+      });
+      // "Answer this" on a greyed line: the agent learns the voice was the caller's after all, and the answer is spoken.
+      copilot.setIgnoredAnswerer(async (message) => {
+        const agent = [...call.remoteParticipants.values()].find((p) => p.isAgent)?.identity;
+        if (!agent || generation !== run) return;
+        if (message.heardId) {
+          void call.localParticipant.performRpc({ destinationIdentity: agent, method: 'agent.claim', payload: JSON.stringify({ id: message.heardId }) }).catch(() => undefined);
+        }
+        const say = await answerAloud(message.text, true);
+        if (say && generation === run) {
+          await call.localParticipant.performRpc({ destinationIdentity: agent, method: 'agent.say', payload: JSON.stringify({ text: say }) }).catch(() => undefined);
+        }
       });
       call.on(lk.RoomEvent.TrackSubscribed, (track) => {
         if (track.kind !== lk.Track.Kind.Audio || generation !== run) return;

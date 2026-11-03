@@ -114,6 +114,9 @@ function coverage(a: string[], b: string[]): number {
   return a.filter((word) => setB.has(word)).length / a.length;
 }
 
+/** The words a greeting to me can be made of; any other word names someone else ("hey campos"). */
+const GREETED = new Set(['hi', 'hello', 'hey', 'yo', 'good', 'morning', 'afternoon', 'evening', 'howdy', 'hiya', 'there', 'pujan', 'ai', 'again', 'you', 'all', 'everyone', 'buddy', 'friend', 'man', 'bro', 'dude', 'mate', 'folks', 'guys']);
+
 function bestIntent(question: string, threshold: number): Intent | null {
   const asked = words(question);
 
@@ -400,6 +403,8 @@ export async function cachedAnswer(question: string, firstTurn: boolean, voice =
   // Mid-conversation, "hello??" means "are you there", not a new visitor: the canned
   // introduction would drop the thread.
   if (!firstTurn && intent.id === 'greeting') return null;
+  // "Hey, Campos!" greets someone else (on a call, someone in the visitor's room): the model decides, and may stay quiet.
+  if (intent.id === 'greeting' && words(question).some((word) => !GREETED.has(word))) return null;
   const [projects, papers, blogs, experience] = await Promise.all([loadProjects(), loadPapers(), loadBlogs(), loadExperience()]);
   const answer = compose(intent, {
     projects,

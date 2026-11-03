@@ -43,6 +43,12 @@ export type CopilotMessage = {
   error?: boolean;
   /** A line said aloud on a quiet call (holdAudio NUDGES), kept so a following "yes" has its question. */
   nudge?: boolean;
+  /**
+   * A line heard on a call that got no reply, and why ("another voice", "said to Campos"): shown greyed with "Answer this",
+   * and never sent back as history. `heardId` is the voice agent's id for it (agent.claim), when the agent dropped it.
+   */
+  ignored?: string;
+  heardId?: string;
 };
 
 export type CopilotState = {
@@ -61,7 +67,7 @@ type Event =
   | { type: 'action'; action: CopilotAction }
   | { type: 'step'; name: string; status: 'start' | 'done' | 'error' }
   | { type: 'done'; model: string }
-  | { type: 'quiet' }
+  | { type: 'ignored'; reason: string }
   | { type: 'error'; message: string };
 
 const STORAGE_KEY = 'db-copilot-v1';
@@ -71,6 +77,8 @@ const SUMMARY_KEY = 'db-copilot-summary-v1';
 const DUPLICATE_MS = 30_000;
 const askKey = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 let lastAsk: { key: string; at: number } | null = null;
+/** Set by voice.ts while a call is up: answers a greyed line aloud (copilot.answerIgnored). */
+let ignoredAnswerer: ((message: CopilotMessage) => Promise<void>) | null = null;
 /** Replies that belong to a voice call: they never open the side panel, and they may move the page on their own. */
 const voiceReplies = new Set<number>();
 let pendingMoves: Promise<void>[] = [];
@@ -536,7 +544,24 @@ export const copilot = {
     pendingSteps = [];
     return steps;
   },
-  async send(text: string, page: { path: string; title: string }, options: { typed?: boolean; voice?: boolean } = {}) {
+  /** A line the voice agent heard and dropped (another voice, an unsure mumble): on the thread, greyed, to answer anyway. */
+  noteIgnored(text: string, reason: string, heardId: string) {
+    if (!text.trim()) return;
+    set({ messages: capPage([...state.messages, { id: nextId++, role: 'user', text: text.trim(), steps: [], actions: [], streaming: false, ignored: reason, heardId }]) });
+  },
+  /** While a call is up, voice.ts answers a greyed line aloud; with no call, it is asked as typed. */
+  setIgnoredAnswerer(answerer: ((message: CopilotMessage) => Promise<void>) | null) {
+    ignoredAnswerer = answerer;
+  },
+  /** "Answer this" on a greyed line: it was for the copilot after all. */
+  async answerIgnored(id: number) {
+    const message = state.messages.find((m) => m.id === id && m.ignored);
+    if (!message || state.busy) return;
+    set({ messages: state.messages.filter((m) => m.id !== id) });
+    if (ignoredAnswerer) await ignoredAnswerer(message);
+    else await copilot.send(message.text, { path: window.location.pathname, title: document.title }, { toMe: true });
+  },
+  async send(text: string, page: { path: string; title: string }, options: { typed?: boolean; voice?: boolean; toMe?: boolean } = {}) {
     const question = text.trim().slice(0, 2000);
     if (!question || state.busy) return '';
     // Pressing a button again ("Ask the copilot about X") must not send the same request over and over: while its
@@ -572,7 +597,7 @@ export const copilot = {
     firstCiteKey = '';
     abort = new AbortController();
     try {
-      await stream([...history, { role: 'user', content: question }], page, replyId, abort.signal, false, voice, summary);
+      await stream([...history, { role: 'user', content: question }], page, replyId, abort.signal, false, voice, summary, options.toMe === true);
     } catch (error) {
       if (abort.signal.aborted) {
         flushText(replyId);
@@ -656,7 +681,7 @@ async function getPass(force = false, signal?: AbortSignal): Promise<string> {
 }
 
 /** Obtain a short-lived room grant using the same visitor pass as text chat. */
-export async function requestVoiceGrant(signal?: AbortSignal): Promise<{ url: string; token: string }> {
+export async function requestVoiceGrant(signal?: AbortSignal): Promise<{ url: string; token: string; call?: string }> {
   const request = async () => fetch(`${base()}/api/copilot/voice`, {
     method: 'POST', headers: { 'x-copilot-pass': await getPass(false, signal) },
     signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15_000)]) : AbortSignal.timeout(15_000),
@@ -667,7 +692,7 @@ export async function requestVoiceGrant(signal?: AbortSignal): Promise<{ url: st
     response = await request();
   }
   if (!response.ok) throw new ApiError(response.status);
-  return response.json() as Promise<{ url: string; token: string }>;
+  return response.json() as Promise<{ url: string; token: string; call?: string }>;
 }
 
 async function stream(
@@ -678,16 +703,18 @@ async function stream(
   retried = false,
   voice = false,
   notes: Summary | null = null,
+  toMe = false,
 ): Promise<void> {
   const res = await fetch(`${base()}/api/copilot/chat`, {
     method: 'POST',
     signal,
     headers: { 'content-type': 'application/json', 'x-copilot-pass': await getPass(false, signal) },
-    body: JSON.stringify({ messages, page, voice, ...(notes ? { summary: notes.text, covered: notes.covers } : {}) }),
+    // `toMe`: the visitor said this line was for the copilot ("Answer this"), so the server does not ask whether it was.
+    body: JSON.stringify({ messages, page, voice, ...(toMe ? { toMe } : {}), ...(notes ? { summary: notes.text, covered: notes.covers } : {}) }),
   });
   if (res.status === 401 && !retried) {
     pass = null;
-    return stream(messages, page, replyId, signal, true, voice, notes);
+    return stream(messages, page, replyId, signal, true, voice, notes, toMe);
   }
   if (!res.ok || !res.body) throw new ApiError(res.status);
 
@@ -772,9 +799,9 @@ function handle(event: Event, replyId: number) {
       const move = onCall ? copilot.go(event.action.path, { slow: true, agent: true }) : copilot.guide(event.action.path);
       if (onCall) pendingMoves.push(move);
     }
-  } else if (event.type === 'quiet') {
-    // On a call the words heard were not for the copilot (someone else in the room): the turn leaves the chat, with no reply.
-    set({ messages: state.messages.filter((m) => m.id !== replyId && m.id !== replyId - 1) });
+  } else if (event.type === 'ignored') {
+    // On a call the line was said to someone else in the visitor's room: no reply, and the line stays, greyed, to answer anyway.
+    set({ messages: state.messages.filter((m) => m.id !== replyId).map((m) => (m.id === replyId - 1 ? { ...m, ignored: event.reason } : m)) });
   } else if (event.type === 'error') {
     patchMessage(replyId, (m) => ({ text: m.text || event.message, error: !m.text }));
   } else if (event.type === 'done') {
