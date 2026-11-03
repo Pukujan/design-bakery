@@ -11,6 +11,8 @@ export function createCitations() {
   const log: CitationRecord[] = [];
   /** Moves allowed in this answer: 3 for a summary, 4 only when the visitor asked for the whole post (outline_passages depth full). */
   let limit = 3;
+  /** How the page shows them: a summary swipes through the post while he talks; a cite or the whole-post walk perches at each heading. */
+  let mode: 'swipe' | 'perch' = 'perch';
   const clean = (path: string) => path.split('#')[0];
   return {
     /** A tool returned this page's content (a post or paper read, a search hit, a project). */
@@ -26,6 +28,10 @@ export function createCitations() {
       limit = Math.min(4, Math.max(1, n));
     },
     limit: () => limit,
+    setMode(m: 'swipe' | 'perch') {
+      mode = m;
+    },
+    mode: () => mode,
     record(entry: CitationRecord) {
       log.push(entry);
     },

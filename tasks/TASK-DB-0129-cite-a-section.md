@@ -30,3 +30,10 @@ Backend build, frontend tsc and the copilot test scripts pass. In the browser wi
 - Timing (`passageSchedule` in `citeRoute.ts`, used by `takeCites`/`voice.ts`): later moves start on sentence starts, in order, at least 70 characters after the previous one, at most 4 per answer, no repeats; each passage's hold is the speech between its start and the next. The first move still happens before he speaks (its hold is fixed at 14 s until the next move takes over).
 - Chat: no cursor; the cite chips come in the order cited.
 - Tests: passage builder, tool cap/repeat, schedule and perch in `test-copilot-cite.mjs` / `test-copilot-cite-route.mjs`.
+
+## Update: summary swipes, cite perches
+- A normal summary is 3 passages (`SUMMARY_PASSAGES`, 15 to 20 s of speech); 4 (`MAX_PASSAGES`, about 35 s) only for `outline_passages` depth `full` (whole-post walk, go deeper). `cite_section` follows that limit.
+- Two modes, set by the server on each cite action (`mode`): summary = `swipe`; a single cite or the whole-post walk = `perch` (anchor and dwell, as before).
+- Swipe (`swipeThrough` in `store.ts`): the call first goes to the page; once he speaks, one continuous swipe (the moon's existing stroke, staying mid-right) drives the scroll every frame with `swipeY`. `swipePlan` puts each heading in the upper third as its sentence starts (`at / SPEECH_CHARS_PER_S`, never closer than 1.4 s), each leg eases out so the page slows into the heading, then drifts on to the end; total length is the estimated speech length. The heading's quote is lit while it is spoken; positions are read live; wheel or touch from the visitor ends it. Chat chips unchanged.
+- Tests: offset-to-scroll mapping (`swipePlan`, `swipeY`) in `test-copilot-cite-route.mjs`.
+- Known: the swipe speed is set by how far apart the headings are; a first heading several screens down is reached quickly.

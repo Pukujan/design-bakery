@@ -19,7 +19,7 @@ export type CopilotAction =
   /** Voice calls only: scroll to a section when the spoken answer reaches character `at`. */
   | { kind: 'scrollstep'; path: string; at: number }
   /** Point at a real section of a post, paper or project: scroll to `anchor`, tap it, and highlight `quote` if one was checked. */
-  | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string };
+  | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string; mode?: 'swipe' | 'perch' };
 
 const clip = (text: string, max: number) => (text.length > max ? `${text.slice(0, max)}…` : text);
 
@@ -140,7 +140,7 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
         }
         const checked = checkQuote(section, quote);
         citations?.record({ path: clean, anchor: section.id, quote: checked, ok: true });
-        emit({ kind: 'cite', path: clean, anchor: section.id, heading: section.heading, ...(checked ? { quote: checked } : {}) });
+        emit({ kind: 'cite', path: clean, anchor: section.id, heading: section.heading, ...(checked ? { quote: checked } : {}), ...(citations ? { mode: citations.mode() } : {}) });
         return { ok: true, heading: section.heading, quoteShown: Boolean(checked) };
       },
     }),
@@ -159,6 +159,7 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
         if (!sections?.length) return { ok: false, error: 'this page has no sections' };
         const max = depth === 'full' ? MAX_PASSAGES : SUMMARY_PASSAGES;
         citations?.setLimit(max);
+        citations?.setMode(depth === 'full' ? 'perch' : 'swipe');
         return { ok: true, path: clean, passages: buildPassages(sections, max) };
       },
     }),

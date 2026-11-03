@@ -95,3 +95,41 @@ export function perchSpot(rect: { left: number; right: number; top: number; heig
   if (view.width - rect.right >= 90) return { x: rect.right + 46, y };
   return { x: Math.min(view.width - 50, Math.max(40, rect.left + 24)), y: clampY(rect.top - 34) };
 }
+
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+/**
+ * When, in seconds from the start of speech, each heading is to be in place for a swipe summary: just as its sentence
+ * starts (`at` characters in, at `cps` characters a second), never sooner than `minGap` after the one before, so the page
+ * has time to travel. `end` is the estimated length of the speech.
+ */
+export function swipePlan(answerLength: number, ats: number[], cps: number, minGap = 1.4): { times: number[]; end: number } {
+  const times: number[] = [];
+  for (const at of ats) times.push(Math.max(at / cps, (times.at(-1) ?? 0) + (times.length ? minGap : 1.4)));
+  const end = Math.max(answerLength / cps, (times.at(-1) ?? 0) + 2);
+  return { times, end };
+}
+
+/**
+ * The page's scroll position `t` seconds into the speech: from where it started to the first heading (the given target
+ * y), on to each next one, then a slow drift on through the last passage until the speech ends. Each leg to a heading
+ * eases out, so the page slows as the heading settles into place; the final drift is even. `targets` are the live scroll
+ * positions that put each heading in the upper third, so the page is followed as it settles.
+ */
+export function swipeY(t: number, plan: { times: number[]; end: number }, targets: number[], startY: number, drift = 240): number {
+  const points: Array<{ t: number; y: number; ease: (x: number) => number }> = [{ t: 0, y: startY, ease: easeInOut }];
+  plan.times.forEach((time, i) => points.push({ t: time, y: targets[i], ease: easeOutCubic }));
+  const last = points.at(-1)!;
+  points.push({ t: plan.end, y: last.y + drift, ease: easeInOut });
+  if (t <= 0) return startY;
+  for (let i = 1; i < points.length; i += 1) {
+    if (t <= points[i].t) {
+      const from = points[i - 1];
+      const span = points[i].t - from.t;
+      const x = span > 0 ? (t - from.t) / span : 1;
+      return from.y + (points[i].y - from.y) * points[i].ease(x);
+    }
+  }
+  return points.at(-1)!.y;
+}

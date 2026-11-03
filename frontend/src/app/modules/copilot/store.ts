@@ -8,9 +8,9 @@ import { useSyncExternalStore } from 'react';
 import { getAuthApiBaseUrl } from '../../lib/adminToken';
 import { answer as localAnswer, type CopilotProject } from '../lab/copilotAnswers';
 import { getTurnstileToken } from './turnstile';
-import { scrollStageToElement, scrollStageToTop } from '../lab/stageScroll';
+import { scrollStageToElement, scrollStageToTop, setStageScroll } from '../lab/stageScroll';
 import { agentCursor } from './agentCursor';
-import { MAX_CITES, passageSchedule, planRoute } from './citeRoute';
+import { citeAt, MAX_CITES, passageSchedule, planRoute, sentenceStart, swipePlan, swipeY } from './citeRoute';
 import { clearQuote, highlightQuote } from './quoteHighlight';
 
 export type CopilotAction =
@@ -22,7 +22,7 @@ export type CopilotAction =
   /** Voice calls only: scroll to a section when the spoken answer reaches character `at` (never shown as a chip). */
   | { kind: 'scrollstep'; path: string; at: number }
   /** Point at a section of a post, paper or project: scroll to its heading, tap it, highlight `quote`. Checked against the live content by the server. */
-  | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string };
+  | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string; mode?: 'swipe' | 'perch' };
 
 export type CopilotMessage = {
   id: number;
@@ -333,6 +333,65 @@ async function walkTo(action: Extract<CopilotAction, { kind: 'cite' }>, holdMs =
   agentCursor.release(Math.max(0, holdMs - 1500) + 1500);
 }
 
+/** The citations of a summary: one continuous swipe through the post while he talks (takeSwipe). */
+let pendingSwipe: Array<Extract<CopilotAction, { kind: 'cite' }>> = [];
+let stopSwipe: (() => void) | null = null;
+
+/**
+ * Speaks a summary by swiping: the page glides slowly through the post in step with the speech, easing each heading into
+ * the upper third just as its sentence starts, with that heading lit while it is spoken. The moon stays under the swipe.
+ * Length and pace follow the estimated speech (`cps` characters a second), and any wheel or touch from the visitor ends it.
+ */
+function swipeThrough(answer: string, cites: Array<Extract<CopilotAction, { kind: 'cite' }>>, cps: number) {
+  stopSwipe?.();
+  // Each passage is in place on the sentence where it is spoken, the first included.
+  const later = passageSchedule(answer, cites.slice(1), { seen: new Set([`${cites[0].path}#${cites[0].anchor}`]) });
+  const items = [{ cite: cites[0], el: null as HTMLElement | null }, ...later.map((p) => ({ cite: p.cite, el: null as HTMLElement | null }))];
+  const firstAt = sentenceStart(answer, citeAt(answer, cites[0], 0, cites.length));
+  const plan = swipePlan(answer.length, [firstAt, ...later.map((p) => Math.max(p.at, firstAt))], cps);
+  const startY = window.scrollY;
+  const started = performance.now();
+  let frame = 0;
+  let active = -1;
+  agentCursor.release(plan.end * 1000 + 3000);
+  agentCursor.startScroll('down', plan.end * 1000);
+  const cancel = () => {
+    cancelAnimationFrame(frame);
+    window.removeEventListener('wheel', cancel);
+    window.removeEventListener('touchstart', cancel);
+    agentCursor.startScroll('down', 0);
+    clearQuote();
+    document.querySelectorAll('[data-agent-quote]').forEach((el) => el.removeAttribute('data-agent-quote'));
+    if (stopSwipe === cancel) stopSwipe = null;
+  };
+  stopSwipe = cancel;
+  window.addEventListener('wheel', cancel, { passive: true });
+  window.addEventListener('touchstart', cancel, { passive: true });
+  const tick = () => {
+    const t = (performance.now() - started) / 1000;
+    for (const item of items) item.el ??= headingFor(item.cite.anchor, item.cite.heading);
+    // The scroll position that puts each heading a fifth of the way down, read live so the page is followed as it settles.
+    const targets = items.map((item, i) => (item.el ? item.el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.22 : (i ? 0 : startY)));
+    setStageScroll(swipeY(t, plan, targets, startY));
+    let now = -1;
+    plan.times.forEach((time, i) => {
+      if (t >= time - 0.3) now = i;
+    });
+    if (now !== active && now >= 0) {
+      active = now;
+      clearQuote();
+      const { el, cite } = items[now];
+      if (el) {
+        if (cite.quote) highlightQuote(el, cite.quote, ((plan.times[now + 1] ?? plan.end) - plan.times[now]) * 1000);
+        el.setAttribute('data-agent-quote', '');
+      }
+    }
+    if (t < plan.end + 0.3) frame = requestAnimationFrame(tick);
+    else cancel();
+  };
+  frame = requestAnimationFrame(tick);
+}
+
 export const copilot = {
   setNavigate(fn: ((path: string) => void) | null) {
     navigateFn = fn;
@@ -402,6 +461,14 @@ export const copilot = {
     return Promise.all(moves).then(() => undefined);
   },
   /** The later citations of the answer just given, each with the character where it is spoken, in order. */
+  /** The summary's passages for the answer just given, to be swiped through as it is spoken (swipe). */
+  takeSwipe() {
+    const cites = pendingSwipe;
+    pendingSwipe = [];
+    return cites;
+  },
+  swipe: swipeThrough,
+  stopSwipe: () => stopSwipe?.(),
   takeCites(answer: string) {
     const cites = pendingCites;
     pendingCites = [];
@@ -448,6 +515,7 @@ export const copilot = {
     pendingCites = [];
     citesThisTurn = 0;
     citedKeys.clear();
+    pendingSwipe = [];
     firstCiteKey = '';
     abort = new AbortController();
     try {
@@ -590,6 +658,15 @@ function handle(event: Event, replyId: number) {
       if (citesThisTurn >= MAX_CITES || citedKeys.has(key)) return;
       citedKeys.add(key);
       citesThisTurn += 1;
+      if (action.mode === 'swipe') {
+        // A summary: only get to the page now; the swiping happens as he speaks (takeSwipe).
+        if (citesThisTurn === 1) {
+          const before = Promise.all(pendingMoves);
+          pendingMoves.push(before.then(() => (window.location.pathname === action.path ? undefined : copilot.go(action.path, { slow: true, agent: true }))).catch(() => undefined));
+        }
+        pendingSwipe.push(action);
+        return;
+      }
       if (citesThisTurn === 1) {
         firstCiteKey = key;
         const before = Promise.all(pendingMoves);

@@ -47,3 +47,28 @@ assert.deepEqual(perchSpot({ ...rect, left: 20, right: 300 }, { width: 1280, hei
 assert.equal(perchSpot({ left: 16, right: 360, top: 200, height: 40 }, { width: 390, height: 800 }).y, 166, 'phone: above the heading');
 assert.equal(perchSpot({ left: 300, right: 700, top: 10, height: 40 }, { width: 1280, height: 800 }).y, 70, 'kept below the nav');
 console.log('copilot cite dwell: ok');
+
+// Swipe summary: offset to scroll mapping.
+const { swipePlan, swipeY } = await import(new URL('../frontend/src/app/modules/copilot/citeRoute.ts', import.meta.url).href);
+const CPS = 14;
+const sp = swipePlan(280, [0, 98, 196], CPS);
+assert.deepEqual(sp.times.map((x) => Math.round(x * 10) / 10), [1.4, 7, 14], 'each heading lands as its sentence starts (the first after a short ease-in)');
+assert.equal(sp.end, 280 / CPS, 'the swipe lasts as long as the estimated speech');
+assert.ok(swipePlan(280, [0, 5], CPS).times[1] - swipePlan(280, [0, 5], CPS).times[0] >= 1.4, 'headings are never closer than the travel time');
+const targets = [600, 1800, 3400];
+assert.equal(swipeY(0, sp, targets, 0), 0, 'starts where the page was');
+assert.equal(swipeY(sp.times[0], sp, targets, 0), 600);
+assert.equal(swipeY(sp.times[1], sp, targets, 0), 1800, 'in place exactly as the sentence starts');
+assert.equal(swipeY(sp.times[2], sp, targets, 0), 3400);
+assert.equal(Math.round(swipeY(sp.end, sp, targets, 0)), 3640, 'drifts on through the last passage');
+assert.equal(swipeY(sp.end + 50, sp, targets, 0), swipeY(sp.end, sp, targets, 0), 'holds after the end');
+let prev = -1;
+for (let t = 0; t <= sp.end; t += 0.25) {
+  const y = swipeY(t, sp, targets, 0);
+  assert.ok(y >= prev, 'only ever moves down');
+  prev = y;
+}
+// Ease-out into a heading: the last second of a leg covers less than the first second.
+const leg = (a, b) => swipeY(b, sp, targets, 0) - swipeY(a, sp, targets, 0);
+assert.ok(leg(sp.times[1] - 1, sp.times[1]) < leg(sp.times[0], sp.times[0] + 1), 'the page slows as the heading settles');
+console.log('copilot cite swipe: ok');

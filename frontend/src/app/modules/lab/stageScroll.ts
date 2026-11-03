@@ -43,3 +43,9 @@ export function scrollStageToElement(element: HTMLElement | null, options: { slo
   lenis.scrollTo(element, { duration, easing: easeInOut, offset: options.offset ?? 0 });
   return duration;
 }
+
+/** Put the page at a scroll position at once. Called every frame by a scripted glide that sets its own easing. */
+export function setStageScroll(y: number) {
+  if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
+  else window.scrollTo({ top: y, behavior: 'auto' });
+}

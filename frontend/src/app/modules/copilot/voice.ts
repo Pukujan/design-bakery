@@ -120,6 +120,7 @@ function close(error = '') {
   thinking?.cancel();
   thinking = null;
   for (const timer of stepTimers) clearTimeout(timer);
+  copilot.stopSwipe();
   stepTimers = [];
   microphone?.stop();
   microphone = null;
@@ -220,6 +221,9 @@ export const voice = {
         for (const step of copilot.takeSteps()) {
           stepTimers.push(setTimeout(() => copilot.go(step.path, { slow: true, agent: true }), SPEECH_LEAD_MS + (step.at / SPEECH_CHARS_PER_S) * 1000));
         }
+        // A summary: one swipe through the post, paced by the speech.
+        const swiped = copilot.takeSwipe();
+        if (swiped.length) stepTimers.push(setTimeout(() => copilot.swipe(answer, swiped, SPEECH_CHARS_PER_S), SPEECH_LEAD_MS));
         // Further citations: walked to as he speaks each one, in order.
         for (const { cite, at, hold } of copilot.takeCites(answer)) {
           stepTimers.push(setTimeout(() => void copilot.citeFor(cite, (hold / SPEECH_CHARS_PER_S) * 1000), SPEECH_LEAD_MS + (at / SPEECH_CHARS_PER_S) * 1000));
