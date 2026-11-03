@@ -8,8 +8,10 @@ import { useSyncExternalStore } from 'react';
 import { getAuthApiBaseUrl } from '../../lib/adminToken';
 import { answer as localAnswer, type CopilotProject } from '../lab/copilotAnswers';
 import { getTurnstileToken } from './turnstile';
-import { scrollStageToElement, scrollStageToTop } from '../lab/stageScroll';
+import { scrollStageToElement, scrollStageToTop, setStageScroll } from '../lab/stageScroll';
 import { agentCursor } from './agentCursor';
+import { citeAt, MAX_CITES, passageSchedule, planRoute, sentenceStart, swipePlan, swipeY } from './citeRoute';
+import { clearQuote, highlightQuote } from './quoteHighlight';
 
 export type CopilotAction =
   /** `go` is set only when the visitor has just confirmed the move; otherwise it is a chip. */
@@ -18,7 +20,9 @@ export type CopilotAction =
   | { kind: 'link'; label: string; url: string }
   | { kind: 'book'; url: string; name?: string; email?: string; topic?: string }
   /** Voice calls only: scroll to a section when the spoken answer reaches character `at` (never shown as a chip). */
-  | { kind: 'scrollstep'; path: string; at: number };
+  | { kind: 'scrollstep'; path: string; at: number }
+  /** Point at a section of a post, paper or project: scroll to its heading, tap it, highlight `quote`. Checked against the live content by the server. */
+  | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string; mode?: 'swipe' | 'perch' };
 
 export type CopilotMessage = {
   id: number;
@@ -69,6 +73,12 @@ let pendingMoves: Promise<void>[] = [];
 /** Set by voice.ts: called with a finished typed reply, so a call can speak the ones it has a recording for. */
 export const typedReply: { hook?: (text: string) => void } = {};
 let pendingSteps: Array<{ path: string; at: number }> = [];
+/** The citations of a call's answer after the first: each is walked to as the answer reaches it. */
+let pendingCites: Array<Extract<CopilotAction, { kind: 'cite' }>> = [];
+let citesThisTurn = 0;
+const citedKeys = new Set<string>();
+/** The citation made before the answer is spoken; the later ones are scheduled after it. */
+let firstCiteKey = '';
 /** How long a reply may go without a single event before the chat stops waiting for it. */
 const STALL_MS = 25_000;
 
@@ -225,6 +235,7 @@ async function journey(path: string) {
   const list = detailParent(path);
   if (!list) return;
   agentCursor.release(25_000);
+  agentCursor.say(['Let me find that one...', 'One sec, finding it...', 'Heading over there...']);
   let card = document.querySelector<HTMLElement>(`a[href="${path.replace(/"/g, '')}"]`);
   if (!card) {
     // Not on this page: go to the list page first, by pressing its link.
@@ -248,10 +259,12 @@ async function journey(path: string) {
     const down = rect.top > 0;
     const seconds = scrollStageToElement(card, { slow: true });
     if (seconds > 0) {
+      agentCursor.say(['Somewhere in here...', 'Scrolling a bit...', 'Hold on, it is further down...'], seconds * 1000);
       agentCursor.startScroll(down ? 'down' : 'up', seconds * 1000);
       await pause(seconds * 1000 + 250);
     }
   }
+  agentCursor.say(['Ah, there it is.', 'Found it.', 'That one.']);
   await agentCursor.pointAtLinkFor(path);
   card.click();
   // On the new page: back to the top, and the cursor taps its title.
@@ -261,6 +274,124 @@ async function journey(path: string) {
   await pause(500);
   await agentCursor.pointAtElement(document.querySelector('main h1, h1'));
   agentCursor.release(6000);
+}
+
+/** The heading a cite points at: by its anchor, else by its text (a heading the page numbers or styles differently). */
+function headingFor(anchor: string, heading: string): HTMLElement | null {
+  const byId = document.getElementById(anchor);
+  if (byId) return byId;
+  const wanted = heading.replace(/\s+/g, ' ').trim().toLowerCase();
+  for (const candidate of document.querySelectorAll<HTMLElement>('main h2, main h3, h2, h3')) {
+    if ((candidate.textContent ?? '').replace(/\s+/g, ' ').trim().toLowerCase() === wanted) return candidate;
+  }
+  return null;
+}
+
+/**
+ * Cites a section the way a person would show it: get to the page (through its list, with the cursor, if it is not
+ * there), scroll slowly to the heading, tap it, then mark the quoted passage. If the heading is not on the page it
+ * stays where it is and says nothing more.
+ */
+let citeQueue: Promise<void> = Promise.resolve();
+/** Several citations in one answer are walked to one after the other, never at once. */
+function cite(action: Extract<CopilotAction, { kind: 'cite' }>, holdMs?: number): Promise<void> {
+  const run = citeQueue.then(() => walkTo(action, holdMs)).catch(() => undefined);
+  citeQueue = run;
+  return run;
+}
+
+/** `holdMs` is how long the passage takes to speak: the moon stays at the heading and the quote stays lit for that long. */
+async function walkTo(action: Extract<CopilotAction, { kind: 'cite' }>, holdMs = 14_000) {
+  for (const step of planRoute(window.location.pathname, action.path, action.anchor)) {
+    if (step.kind === 'page') await copilot.go(step.path, { slow: true, agent: true });
+  }
+  // The post or paper may still be loading from the API.
+  let heading: HTMLElement | null = null;
+  for (let waited = 0; waited <= 6000 && !heading; waited += 150) {
+    heading = headingFor(action.anchor, action.heading);
+    if (!heading) await pause(150);
+  }
+  if (!heading) {
+    agentCursor.release(2500);
+    return;
+  }
+  clearQuote();
+  agentCursor.release(holdMs + 4000);
+  // The heading sits in the upper third of the screen; if it already does, the page does not move.
+  const rect = heading.getBoundingClientRect();
+  const inView = rect.top >= 90 && rect.top <= window.innerHeight * 0.38;
+  if (!inView) {
+    const down = rect.top > 0;
+    const seconds = scrollStageToElement(heading, { slow: true, offset: -Math.round(window.innerHeight * 0.22) });
+    if (seconds > 0) {
+      agentCursor.startScroll(down ? 'down' : 'up', seconds * 1000);
+      await pause(seconds * 1000 + 250);
+    }
+  }
+  // Tap the heading from the margin beside it and stay there while the passage is spoken.
+  await agentCursor.perch(heading);
+  if (action.quote) highlightQuote(heading, action.quote, holdMs);
+  await pause(Math.min(holdMs, 1500));
+  agentCursor.release(Math.max(0, holdMs - 1500) + 1500);
+}
+
+/** The citations of a summary: one continuous swipe through the post while he talks (takeSwipe). */
+let pendingSwipe: Array<Extract<CopilotAction, { kind: 'cite' }>> = [];
+let stopSwipe: (() => void) | null = null;
+
+/**
+ * Speaks a summary by swiping: the page glides slowly through the post in step with the speech, easing each heading into
+ * the upper third just as its sentence starts, with that heading lit while it is spoken. The moon stays under the swipe.
+ * Length and pace follow the estimated speech (`cps` characters a second), and any wheel or touch from the visitor ends it.
+ */
+function swipeThrough(answer: string, cites: Array<Extract<CopilotAction, { kind: 'cite' }>>, cps: number) {
+  stopSwipe?.();
+  // Each passage is in place on the sentence where it is spoken, the first included.
+  const later = passageSchedule(answer, cites.slice(1), { seen: new Set([`${cites[0].path}#${cites[0].anchor}`]) });
+  const items = [{ cite: cites[0], el: null as HTMLElement | null }, ...later.map((p) => ({ cite: p.cite, el: null as HTMLElement | null }))];
+  const firstAt = sentenceStart(answer, citeAt(answer, cites[0], 0, cites.length));
+  const plan = swipePlan(answer.length, [firstAt, ...later.map((p) => Math.max(p.at, firstAt))], cps);
+  const startY = window.scrollY;
+  const started = performance.now();
+  let frame = 0;
+  let active = -1;
+  agentCursor.release(plan.end * 1000 + 3000);
+  agentCursor.startScroll('down', plan.end * 1000);
+  const cancel = () => {
+    cancelAnimationFrame(frame);
+    window.removeEventListener('wheel', cancel);
+    window.removeEventListener('touchstart', cancel);
+    agentCursor.startScroll('down', 0);
+    clearQuote();
+    document.querySelectorAll('[data-agent-quote]').forEach((el) => el.removeAttribute('data-agent-quote'));
+    if (stopSwipe === cancel) stopSwipe = null;
+  };
+  stopSwipe = cancel;
+  window.addEventListener('wheel', cancel, { passive: true });
+  window.addEventListener('touchstart', cancel, { passive: true });
+  const tick = () => {
+    const t = (performance.now() - started) / 1000;
+    for (const item of items) item.el ??= headingFor(item.cite.anchor, item.cite.heading);
+    // The scroll position that puts each heading a fifth of the way down, read live so the page is followed as it settles.
+    const targets = items.map((item, i) => (item.el ? item.el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.22 : (i ? 0 : startY)));
+    setStageScroll(swipeY(t, plan, targets, startY));
+    let now = -1;
+    plan.times.forEach((time, i) => {
+      if (t >= time - 0.3) now = i;
+    });
+    if (now !== active && now >= 0) {
+      active = now;
+      clearQuote();
+      const { el, cite } = items[now];
+      if (el) {
+        if (cite.quote) highlightQuote(el, cite.quote, ((plan.times[now + 1] ?? plan.end) - plan.times[now]) * 1000);
+        el.setAttribute('data-agent-quote', '');
+      }
+    }
+    if (t < plan.end + 0.3) frame = requestAnimationFrame(tick);
+    else cancel();
+  };
+  frame = requestAnimationFrame(tick);
 }
 
 export const copilot = {
@@ -329,11 +460,29 @@ export const copilot = {
     // On a call the agent's cursor glides to the link and presses it first, then the page moves.
     return options.agent ? agentCursor.pointAtLinkFor(path).then(run) : run();
   },
+  /** Point at a section of the page cited by the copilot (a chip click in text chat, a move on a call). */
+  cite: (action: Extract<CopilotAction, { kind: 'cite' }>) => cite(action),
+  /** The same, with how long its passage takes to speak (a call). */
+  citeFor: cite,
   /** On a call, the moves the answer just given has started: the answer is spoken only once they are done. */
   takeMoves(): Promise<void> {
     const moves = pendingMoves;
     pendingMoves = [];
     return Promise.all(moves).then(() => undefined);
+  },
+  /** The later citations of the answer just given, each with the character where it is spoken, in order. */
+  /** The summary's passages for the answer just given, to be swiped through as it is spoken (swipe). */
+  takeSwipe() {
+    const cites = pendingSwipe;
+    pendingSwipe = [];
+    return cites;
+  },
+  swipe: swipeThrough,
+  stopSwipe: () => stopSwipe?.(),
+  takeCites(answer: string) {
+    const cites = pendingCites;
+    pendingCites = [];
+    return passageSchedule(answer, cites, { seen: new Set(firstCiteKey ? [firstCiteKey] : []) });
   },
   /** The scroll steps of the voice answer just given, to run as it is spoken. */
   takeSteps() {
@@ -373,6 +522,11 @@ export const copilot = {
     revealFor(replyId, options.typed === false || voice);
     if (voice) voiceReplies.add(replyId);
     pendingSteps = [];
+    pendingCites = [];
+    citesThisTurn = 0;
+    citedKeys.clear();
+    pendingSwipe = [];
+    firstCiteKey = '';
     abort = new AbortController();
     try {
       await stream([...history, { role: 'user', content: question }], page, replyId, abort.signal, false, voice);
@@ -503,6 +657,31 @@ function handle(event: Event, replyId: number) {
   } else if (event.type === 'action') {
     if (event.action.kind === 'scrollstep') {
       pendingSteps.push({ path: event.action.path, at: event.action.at });
+      return;
+    }
+    if (event.action.kind === 'cite' && voiceReplies.has(replyId)) {
+      // On a call it happens before the answer is spoken, after any page move this answer made (the pages load in turn).
+      // The first happens before the answer is spoken; later ones as he reaches them (takeCites).
+      const action = event.action;
+      // At most MAX_CITES moves in one answer, and a section is never visited twice.
+      const key = `${action.path}#${action.anchor}`;
+      if (citesThisTurn >= MAX_CITES || citedKeys.has(key)) return;
+      citedKeys.add(key);
+      citesThisTurn += 1;
+      if (action.mode === 'swipe') {
+        // A summary: only get to the page now; the swiping happens as he speaks (takeSwipe).
+        if (citesThisTurn === 1) {
+          const before = Promise.all(pendingMoves);
+          pendingMoves.push(before.then(() => (window.location.pathname === action.path ? undefined : copilot.go(action.path, { slow: true, agent: true }))).catch(() => undefined));
+        }
+        pendingSwipe.push(action);
+        return;
+      }
+      if (citesThisTurn === 1) {
+        firstCiteKey = key;
+        const before = Promise.all(pendingMoves);
+        pendingMoves.push(before.then(() => cite(action)).catch(() => undefined));
+      } else pendingCites.push(action);
       return;
     }
     // Chips appear once the text has been typed. On a call there are no chips: the page moves instead.

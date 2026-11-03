@@ -1,10 +1,10 @@
-import { Children, isValidElement, useMemo, type ReactNode } from 'react';
+import { Children, isValidElement, useLayoutEffect, useMemo, useRef, type ReactNode } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { LabDiagram } from './Diagram';
 import { FlowText } from './FlowText';
-import { slugify } from './toc';
+import { applyHeadingIds } from '../../lib/applyHeadingIds';
 import { remarkGithubAlerts } from '../research/render/remarkGithubAlerts';
 import './article.css';
 
@@ -75,9 +75,9 @@ function componentsFor(flow: boolean): Components {
       }
       return <p>{children}</p>;
     },
-    h1: ({ children }) => <h2 id={slugify(textOf(children))} className="article-h2">{run(children)}</h2>,
-    h2: ({ children }) => <h2 id={slugify(textOf(children))} className="article-h2">{run(children)}</h2>,
-    h3: ({ children }) => <h3 id={slugify(textOf(children))} className="article-h3">{run(children)}</h3>,
+    h1: ({ children }) => <h2 className="article-h2">{run(children)}</h2>,
+    h2: ({ children }) => <h2 className="article-h2">{run(children)}</h2>,
+    h3: ({ children }) => <h3 className="article-h3">{run(children)}</h3>,
     h4: ({ children }) => <h4 className="article-h4">{run(children)}</h4>,
     li: ({ children }) => <li>{run(children)}</li>,
     a: ({ href, children }) => {
@@ -125,8 +125,11 @@ function componentsFor(flow: boolean): Components {
 /** Markdown in the lab's type and colours. Text flows round the bodies unless `flow` is off. */
 export function Article({ source, flow = true }: { source: string; flow?: boolean }) {
   const components = useMemo(() => componentsFor(flow), [flow]);
+  const root = useRef<HTMLDivElement>(null);
+  // Anchors come from the heading text in reading order (repeats get -2, -3), the same rule the copilot uses to cite a section.
+  useLayoutEffect(() => applyHeadingIds(root.current), [source, flow]);
   return (
-    <div className="article">
+    <div className="article" ref={root}>
       <ReactMarkdown remarkPlugins={[remarkGfm, remarkGithubAlerts]} rehypePlugins={[rehypeRaw]} components={components}>
         {source}
       </ReactMarkdown>

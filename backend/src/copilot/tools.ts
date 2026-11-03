@@ -5,7 +5,9 @@
  */
 import { tool } from 'ai';
 import { z } from 'zod';
-import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
+import type { Citations } from './citations.js';
+import { buildPassages, checkQuote, findSection, MAX_PASSAGES, QUOTE_MAX, SUMMARY_PASSAGES } from './sections.js';
+import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, sectionsForPath, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
 
 export const CONSULT_SERVICES = ['AI engineering', 'Product design', 'Marketing', 'Full-stack development'] as const;
 
@@ -15,7 +17,9 @@ export type CopilotAction =
   | { kind: 'link'; label: string; url: string }
   | { kind: 'book'; url: string; name?: string; email?: string; topic?: string }
   /** Voice calls only: scroll to a section when the spoken answer reaches character `at`. */
-  | { kind: 'scrollstep'; path: string; at: number };
+  | { kind: 'scrollstep'; path: string; at: number }
+  /** Point at a real section of a post, paper or project: scroll to `anchor`, tap it, and highlight `quote` if one was checked. */
+  | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string; mode?: 'swipe' | 'perch' };
 
 const clip = (text: string, max: number) => (text.length > max ? `${text.slice(0, max)}…` : text);
 
@@ -42,7 +46,8 @@ export function bookingUrl(base: string, who: { name?: string; email?: string; t
  * `canNavigate` is true only when the visitor has just said yes to an offer to open a
  * page (route.ts decides that). Without it, navigate refuses and the model must ask.
  */
-export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean }) {
+export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean; citations?: Citations }) {
+  const citations = options.citations;
   return {
     search_site: tool({
       description: 'Search projects, research papers and blog posts by keywords. Use it when the brief is not enough.',
@@ -60,6 +65,7 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
           .filter((hit) => hit.score > 0)
           .sort((a, b) => b.score - a.score)
           .slice(0, 6);
+        for (const hit of hits) citations?.retrieve(hit.ref);
         return hits.map(({ kind, ref, title, text }) => ({ kind, ref, title, summary: clip(text, 300) }));
       },
     }),
@@ -69,7 +75,10 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
       inputSchema: z.object({ id: z.number().int().positive() }),
       execute: async ({ id }) => {
         const post = await readBlog(id);
-        return post ? { title: post.title, text: clip(post.content, 6000) } : { error: 'not found' };
+        if (!post) return { error: 'not found' };
+        citations?.retrieve(`/blogs/${id}`);
+        const sections = (await sectionsForPath(`/blogs/${id}`)) ?? [];
+        return { title: post.title, sections: sections.map((s) => s.heading), text: clip(post.content, 6000) };
       },
     }),
 
@@ -78,7 +87,10 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
       inputSchema: z.object({ id: z.string() }),
       execute: async ({ id }) => {
         const body = await readPaper(id);
-        return body ? { text: clip(body, 8000) } : { error: 'not found' };
+        if (!body) return { error: 'not found' };
+        citations?.retrieve(`/research/papers/${id}`);
+        const sections = (await sectionsForPath(`/research/papers/${id}`)) ?? [];
+        return { sections: sections.map((s) => s.heading), text: clip(body, 8000) };
       },
     }),
 
@@ -93,6 +105,62 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
         if (!(await knownPath(path))) return { ok: false, error: 'not a page on this site' };
         emit({ kind: 'navigate', path, label, go: true });
         return { ok: true };
+      },
+    }),
+
+    cite_section: tool({
+      description: `Point at a section of a blog post, research paper or project while you talk about it: the page scrolls to that heading, the cursor taps it, and a short passage is highlighted. path is /blogs/<id>, /research/papers/<id> or /work/<slug>. you must have read the post or paper this turn (read_blog or read_paper), or it is refused. heading must be a heading you saw in its "sections" list (a project page has What it is, Highlights, Built with, Go deeper). quote is optional: a passage of at most ${QUOTE_MAX} characters copied word for word from that section. If it returns ok false, do not retry with a made-up heading; just keep talking.`,
+      inputSchema: z.object({ path: z.string().max(200), heading: z.string().min(1).max(200), quote: z.string().max(400).optional() }),
+      execute: async ({ path, heading, quote }) => {
+        const clean = path.split('#')[0];
+        if (!(await knownPath(clean))) {
+          citations?.record({ path: clean, ok: false, reason: 'not a page on this site' });
+          return { ok: false, error: 'not a page on this site' };
+        }
+        // Projects are all in the brief; a post or paper must have been read this turn.
+        if (citations && !/^\/work\//.test(clean)) {
+          const verdict = citations.check(clean);
+          if (!verdict.ok) {
+            citations.record({ path: clean, ok: false, reason: verdict.reason });
+            return { ok: false, error: verdict.reason };
+          }
+        }
+        const sections = await sectionsForPath(clean);
+        if (!sections?.length) return { ok: false, error: 'this page has no sections to point at' };
+        const section = findSection(sections, heading);
+        if (!section) {
+          citations?.record({ path: clean, ok: false, reason: 'no such section' });
+          return { ok: false, error: 'no such section', sections: sections.map((s) => s.heading).slice(0, 20) };
+        }
+        // At most MAX_PASSAGES moves in one answer, and a section is never pointed at twice.
+        if (citations) {
+          const done = citations.log().filter((c) => c.ok);
+          if (done.length >= citations.limit()) return { ok: false, error: `already pointed at ${citations.limit()} sections; just talk now` };
+          if (done.some((c) => c.path === clean && c.anchor === section.id)) return { ok: false, error: 'already pointed at that section this answer' };
+        }
+        const checked = checkQuote(section, quote);
+        citations?.record({ path: clean, anchor: section.id, quote: checked, ok: true });
+        emit({ kind: 'cite', path: clean, anchor: section.id, heading: section.heading, ...(checked ? { quote: checked } : {}), ...(citations ? { mode: citations.mode() } : {}) });
+        return { ok: true, heading: section.heading, quoteShown: Boolean(checked) };
+      },
+    }),
+
+    outline_passages: tool({
+      description: `For a summary of one post, paper or project: the passages to talk about, in order, each with its heading and a first sentence you may quote. A normal "summarise it" gets ${SUMMARY_PASSAGES} passages: one short sentence each (15 to 20 seconds in all), then a short offer to go deeper into one part. Only when the visitor asks to be walked through the whole post, or to go deeper, pass depth "full" for up to ${MAX_PASSAGES} passages (about 35 seconds). Call cite_section for each passage in order as you reach it. Reading the page first (read_blog or read_paper) is required for a post or paper.`,
+      inputSchema: z.object({ path: z.string().max(200), depth: z.enum(['summary', 'full']).optional() }),
+      execute: async ({ path, depth }) => {
+        const clean = path.split('#')[0];
+        if (!(await knownPath(clean))) return { ok: false, error: 'not a page on this site' };
+        if (citations && !/^\/work\//.test(clean)) {
+          const verdict = citations.check(clean);
+          if (!verdict.ok) return { ok: false, error: verdict.reason };
+        }
+        const sections = await sectionsForPath(clean);
+        if (!sections?.length) return { ok: false, error: 'this page has no sections' };
+        const max = depth === 'full' ? MAX_PASSAGES : SUMMARY_PASSAGES;
+        citations?.setLimit(max);
+        citations?.setMode(depth === 'full' ? 'perch' : 'swipe');
+        return { ok: true, path: clean, passages: buildPassages(sections, max) };
       },
     }),
 

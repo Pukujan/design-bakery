@@ -225,3 +225,24 @@
 @media (prefers-reduced-motion: reduce) {
   .moon-ring { animation: none; opacity: 0.25; }
 }
+
+/* A swipe: a soft pad appears under the moon while it presses on the page and pulls. */
+.moon-grab {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 70px;
+  height: 70px;
+  margin: -35px 0 0 -35px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(var(--lab-accent-rgb) / 0.45), rgb(var(--lab-accent-rgb) / 0) 70%);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.15s, transform 0.2s;
+  pointer-events: none;
+}
+
+.moon[data-grab='1'] .moon-grab {
+  opacity: 1;
+  transform: scale(1);
+}

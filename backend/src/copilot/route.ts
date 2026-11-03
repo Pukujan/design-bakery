@@ -20,6 +20,7 @@ import { checkPass, clientIp, issuePass, turnstileSiteKey } from './guard.js';
 import { createDailyBudget, createLimiter, limitConfigFromEnv } from './fairUse.js';
 import { siteBrief } from './knowledge.js';
 import { devProvider, pickProfile, routeFor, smartProviders, type Provider } from './providers.js';
+import { createCitations } from './citations.js';
 import { makeTools, type CopilotAction } from './tools.js';
 import { TurnTrace } from './tracing.js';
 import { takeDurableCopilotLimit, durableLimitConfigured } from './durableLimit.js';
@@ -59,6 +60,7 @@ How to answer:
 - Moving the visitor: never open a page on your own. When a page would help, offer it in words and ask, for example "Want me to open the Work page?", then wait. Call navigate only after the visitor says yes to that question. Even if they ask to see a page directly, ask first. On a tour, offer one page at a time.
 - Contact and consultations: when a visitor asks how to contact me, wants to hire me, or wants a free consultation, offer the Contact page with "Want me to open the Contact page?". Say that on that page they can choose an area and a time. Do not list every link, and never claim a time is booked. If the visitor is already on /contact and asks to book in this chat, or says yes to a call you offered, call book_call as soon as you know the area. Do not ask for a topic before booking; a short yes or a vague topic ("anything about AI") is enough.
 - Use tools silently: do not announce that you are reading, searching or about to answer. Do not repeat a page title already shown on a link.
+- When you talk about one part of a post, paper or project, you may point at it with cite_section (read the post or paper first and use a heading from its sections list, and a quote copied word for word if you want a passage highlighted). Never invent a heading; if cite_section says no such section, just carry on without it. To summarise a whole post, paper or project, call outline_passages: speak about its passages in order, one short sentence each (a normal summary is two or three passages, 15 to 20 seconds; only a request to walk through the whole post or go deeper gets depth full and up to four), point at each with cite_section as you reach it, and end with a short offer to go deeper into one part. Do not point at the same section twice.
 - Use show_projects for "which projects" questions, and share_link for LinkedIn, GitHub, Behance, email, or a project link from the brief.
 - Plain text only, no markdown headings or tables. Short lists are fine.
 
@@ -71,7 +73,7 @@ Personality (your default, in every reply):
 - A joke or opinion about AI in general is yours; a project, role, number or paper is only ever what the site says, from the brief and your tools. The length rules above still hold: the personality lives in the wording, not in extra length.`;
 
 /** Added to the prompt on a voice call: short spoken sentences, and moving the visitor without asking first. */
-const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Do not ask permission to move the visitor: when a page or a section would help, say in a few words where you are taking them and call navigate right away, then keep talking about what is on that page. For anything long, give one passage and offer to go on to the next. Keep the wit but spoken: at most one short, warm line per turn, no setup that takes more than a breath, and stay under 35 words unless asked for more. In small talk, answer in one or two sentences; for a real question or a worried visitor, drop the jokes and answer straight; otherwise hand the conversation back with a quick question.`;
+const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Do not ask permission to move the visitor: when a page or a section would help, say in a few words where you are taking them and call navigate right away, then keep talking about what is on that page. When you speak about a particular part of a post, paper or project, call cite_section for it first (with a short quote if one fits), so the page is already there when you say it. For anything long, give one passage and offer to go on to the next. Keep the wit but spoken: at most one short, warm line per turn, no setup that takes more than a breath, and stay under 35 words unless asked for more. In small talk, answer in one or two sentences; for a real question or a worried visitor, drop the jokes and answer straight; otherwise hand the conversation back with a quick question.`;
 
 /**
  * A short yes to a question the assistant just asked. The only way a page moves on its
@@ -257,6 +259,7 @@ copilotRouter.post('/chat', async (req, res) => {
     const history: ModelMessage[] = messages.map((m, index) =>
       index === messages.length - 1 && m.role === 'user' ? { role: 'user', content: `${m.content}${where}` } : { role: m.role, content: m.content },
     );
+    const citations = createCitations();
     const result = streamText({
       model,
       system: `${voice ? `${SYSTEM}\n\n${VOICE_NOTE}` : SYSTEM}\n\n# Site brief\n${brief}${newsBlock(news)}`,
@@ -264,10 +267,10 @@ copilotRouter.post('/chat', async (req, res) => {
       tools: makeTools(
         // On a call the model moves the page itself and sends no buttons.
         (action) => {
-          if (voice && action.kind !== 'navigate') return;
+          if (voice && action.kind !== 'navigate' && action.kind !== 'cite') return;
           send({ type: 'action', action });
         },
-        { canNavigate: voice || visitorSaidYes(messages) },
+        { canNavigate: voice || visitorSaidYes(messages), citations },
       ),
       stopWhen: stepCountIs(6),
       maxOutputTokens: 240,
@@ -300,6 +303,7 @@ copilotRouter.post('/chat', async (req, res) => {
         budget.record(turn.inputTokens + turn.outputTokens);
       }
     }
+    turn.citations = citations.summary();
     turn.output = filter.flush();
     // A model that only called tools and said nothing must not leave the visitor (or a call) in silence.
     // A turn with nothing at all to show is a failure: logged, and traced as an error.
@@ -308,7 +312,7 @@ copilotRouter.post('/chat', async (req, res) => {
       if (empty) console.warn('[copilot] empty turn from', turn.model);
       turn.output = empty
         ? 'I lost my train of thought there. Could you ask that again?'
-        : turn.actions.some((a) => a.startsWith('navigate')) ? 'Here it is.' : 'Here you go.';
+        : turn.actions.some((a) => a.startsWith('navigate') || a === 'cite') ? 'Here it is.' : 'Here you go.';
       send({ type: 'text', text: turn.output });
     }
     send({ type: 'done', model: turn.model });

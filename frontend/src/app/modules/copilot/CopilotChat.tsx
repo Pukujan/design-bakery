@@ -58,6 +58,14 @@ function ActionView({ action }: { action: CopilotAction }) {
   const records = useProjectRecords();
   const projectBySlug = new Map(records.map((p) => [p.slug, p]));
   if (action.kind === 'scrollstep') return null;
+  if (action.kind === 'cite') {
+    return (
+      <button type="button" className="lab-chip" onClick={() => void copilot.cite(action)}>
+        <Rocket className="cp-rocket" size={14} aria-hidden="true" focusable="false" />
+        Show: {action.heading}
+      </button>
+    );
+  }
   if (action.kind === 'navigate') {
     return (
       <button type="button" className="lab-chip lab-chip--solid" onClick={() => copilot.go(action.path)}>

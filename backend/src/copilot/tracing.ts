@@ -44,6 +44,8 @@ export class TurnTrace {
   channel = 'text';
   /** The page moves and chips this turn sent, one word each, so a trace shows what the visitor was shown. */
   actions: string[] = [];
+  /** What cite_section was asked to cite: path#anchor when the guard let it through, path!reason when it did not. */
+  citations: string[] = [];
   inputTokens = 0;
   outputTokens = 0;
   private steps = new Map<string, Step>();
@@ -80,6 +82,7 @@ export class TurnTrace {
       'copilot.latency_ms': end - this.start,
       'copilot.channel': this.channel,
       'copilot.actions': this.actions.join(' '),
+      'copilot.citations': this.citations.join(' | '),
     });
     const llm = open(
       'llm',

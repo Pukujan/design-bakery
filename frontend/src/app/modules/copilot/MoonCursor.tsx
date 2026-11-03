@@ -66,6 +66,8 @@ export default function MoonCursor() {
     };
     const pos = { x: window.innerWidth * 0.82, y: window.innerHeight * 0.7 };
     let launched = false;
+    let swiping = false;
+    let swipeStart = 0;
     let returnStart = 0;
     let level = 0;
     const vel = { x: 0, y: 0 };
@@ -247,6 +249,10 @@ export default function MoonCursor() {
       root = rootRef.current ?? root;
       body = bodyRef.current ?? body;
       const a = agentRef.current;
+      if (!a.scroll && swiping) {
+        swiping = false;
+        root.dataset.grab = '';
+      }
       if (!launched && !a.moonReturning) {
         const home = orbCentre();
         if (voiceRef.current.status === 'connecting' && home) {
@@ -355,6 +361,21 @@ export default function MoonCursor() {
             return;
           }
         }
+      } else if (a.visible && a.scroll) {
+        // The agent swipes the page: the moon presses on it and pulls it along (up to scroll down, down to scroll up), lifts,
+        // and goes back for another stroke while the page glides.
+        if (!swiping) {
+          swiping = true;
+          swipeStart = now;
+        }
+        const cycle = ((now - swipeStart) % 1200) / 1200;
+        const pressing = cycle < 0.72;
+        const along = pressing ? 1 - Math.pow(1 - cycle / 0.72, 3) : 1 - (cycle - 0.72) / 0.28;
+        const dir = a.scroll === 'down' ? -1 : 1;
+        const stroke = Math.min(220, window.innerHeight * 0.28);
+        target = place({ x: window.innerWidth * (window.innerWidth < 700 ? 0.6 : 0.62), y: window.innerHeight * 0.5 - dir * stroke * 0.5 + dir * stroke * along - SIZE / 2 });
+        stiffness = pressing ? 70 : 90;
+        root.dataset.grab = pressing ? '1' : '';
       } else if (a.visible) {
         // The agent is working: roll to where it points.
         target = place({ x: a.x - SIZE / 2 + 6, y: a.y - SIZE / 2 + 6 });
@@ -501,7 +522,9 @@ export default function MoonCursor() {
   const excerpt = lastReply.length > 120 ? `${lastReply.slice(0, 117).trimEnd()}...` : lastReply;
   const bubble: { kind: 'text' | 'dots'; text: string } | null = voice.hold
     ? { kind: 'text', text: voice.hold }
-    : voice.thinking
+    : agent.caption
+      ? { kind: 'text', text: agent.caption }
+      : voice.thinking
       ? { kind: 'dots', text: '' }
       : voice.speaking === 'agent' && excerpt
         ? { kind: 'text', text: excerpt }
@@ -510,8 +533,6 @@ export default function MoonCursor() {
           : null;
   talkingRef.current = bubble !== null;
   if (!active) return null;
-  const scroll = agent.scroll;
-  const sign = scroll === 'up' ? -1 : 1;
   return (
     <div ref={rootRef} className={`moon${spinning ? ' moon-spin' : ''}`} key={spinning % 2} data-mood={mood} data-act={voice.thinking ? 'thinking' : voice.speaking === 'agent' || voice.hold || quip ? 'talking' : undefined} aria-hidden="true">
       <span className="moon-ring moon-ring-1" />
@@ -546,37 +567,7 @@ export default function MoonCursor() {
           <path className="moon-eye-love" d="M18.5 27 c-4 -2.6 -3.4 -6.2 -0.9 -5.8 c0.7 0.1 0.9 0.6 0.9 0.9 c0 -0.3 0.2 -0.8 0.9 -0.9 c2.5 -0.4 3.1 3.2 -0.9 5.8 Z M29.5 27 c-4 -2.6 -3.4 -6.2 -0.9 -5.8 c0.7 0.1 0.9 0.6 0.9 0.9 c0 -0.3 0.2 -0.8 0.9 -0.9 c2.5 -0.4 3.1 3.2 -0.9 5.8 Z" fill="#ff5f7e" />
         </svg>
         <span className="moon-zzz">z z</span>
-        <AnimatePresence>
-          {scroll && (
-            <motion.div
-              key="wheel"
-              initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.7 }}
-              style={{ position: 'absolute', left: -26, top: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}
-            >
-              <span style={{ position: 'relative', display: 'block', width: 14, height: 22, borderRadius: 8, border: '2px solid var(--lab-accent, #c6f432)', background: 'rgb(11 11 10 / 0.55)' }}>
-                <motion.span
-                  animate={reduceMotion ? undefined : { y: scroll === 'down' ? [0, 9, 0] : [9, 0, 9] }}
-                  transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }}
-                  style={{ position: 'absolute', left: 3, top: 3, width: 4, height: 4, borderRadius: 4, background: 'var(--lab-accent, #c6f432)' }}
-                />
-              </span>
-              <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 0.8 }}>
-                {[0, 1, 2].map((i) => (
-                  <motion.span
-                    key={i}
-                    animate={reduceMotion ? undefined : { opacity: [0.2, 1, 0.2], y: [0, 3 * sign, 0] }}
-                    transition={{ duration: 0.9, repeat: Infinity, delay: (scroll === 'down' ? i : 2 - i) * 0.15 }}
-                    style={{ color: 'var(--lab-accent, #c6f432)', font: '700 10px/1 var(--lab-mono, monospace)' }}
-                  >
-                    {scroll === 'down' ? '▼' : '▲'}
-                  </motion.span>
-                ))}
-              </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <span className="moon-grab" />
         <div className="moon-bubble-anchor">
         <AnimatePresence>
           {bubble && (
