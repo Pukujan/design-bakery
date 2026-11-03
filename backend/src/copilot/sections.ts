@@ -104,6 +104,9 @@ export function checkQuote(section: Section, quote: string | undefined): string 
   return squash(block).slice(at, at + wanted.length);
 }
 
+/** A normal summary: 2 to 3 passages, about 15 to 20 seconds of speech. */
+export const SUMMARY_PASSAGES = 3;
+/** The cap, for "walk me through the whole post" or "go deeper" (about 35 seconds). */
 export const MAX_PASSAGES = 4;
 const SKIP_HEADINGS = /^(table of contents|contents|references|bibliography|appendix\b.*|acknowledg(e)?ments?)$/i;
 
@@ -118,11 +121,11 @@ function firstSentence(section: Section): string | undefined {
 }
 
 /**
- * The passages of a whole-post summary: at most MAX_PASSAGES headings, in reading order, never the same one twice, taken
+ * The passages of a whole-post summary: SUMMARY_PASSAGES headings by default (MAX_PASSAGES when asked for the whole post), in reading order, never the same one twice, taken
  * evenly across the post (skipping contents and references), each with a quotable first sentence. Built from the live
  * headings, so a post's summary follows its edits.
  */
-export function buildPassages(sections: Section[], max = MAX_PASSAGES): Passage[] {
+export function buildPassages(sections: Section[], max = SUMMARY_PASSAGES): Passage[] {
   const limit = Math.min(Math.max(1, max), MAX_PASSAGES);
   const usable: Section[] = [];
   const seen = new Set<string>();

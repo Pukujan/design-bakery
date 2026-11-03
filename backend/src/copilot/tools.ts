@@ -6,7 +6,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { Citations } from './citations.js';
-import { buildPassages, checkQuote, findSection, MAX_PASSAGES, QUOTE_MAX } from './sections.js';
+import { buildPassages, checkQuote, findSection, MAX_PASSAGES, QUOTE_MAX, SUMMARY_PASSAGES } from './sections.js';
 import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, sectionsForPath, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
 
 export const CONSULT_SERVICES = ['AI engineering', 'Product design', 'Marketing', 'Full-stack development'] as const;
@@ -135,7 +135,7 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
         // At most MAX_PASSAGES moves in one answer, and a section is never pointed at twice.
         if (citations) {
           const done = citations.log().filter((c) => c.ok);
-          if (done.length >= MAX_PASSAGES) return { ok: false, error: `already pointed at ${MAX_PASSAGES} sections; just talk now` };
+          if (done.length >= citations.limit()) return { ok: false, error: `already pointed at ${citations.limit()} sections; just talk now` };
           if (done.some((c) => c.path === clean && c.anchor === section.id)) return { ok: false, error: 'already pointed at that section this answer' };
         }
         const checked = checkQuote(section, quote);
@@ -146,9 +146,9 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
     }),
 
     outline_passages: tool({
-      description: `For a summary of one post, paper or project: the (at most ${MAX_PASSAGES}) passages to talk about, in order, each with its heading and a first sentence you may quote. Say one or two short sentences per passage (about 35 seconds in all on a call), call cite_section for each in that order, and end with a short offer to go deeper into one part. Reading the page first (read_blog or read_paper) is required for a post or paper.`,
-      inputSchema: z.object({ path: z.string().max(200) }),
-      execute: async ({ path }) => {
+      description: `For a summary of one post, paper or project: the passages to talk about, in order, each with its heading and a first sentence you may quote. A normal "summarise it" gets ${SUMMARY_PASSAGES} passages: one short sentence each (15 to 20 seconds in all), then a short offer to go deeper into one part. Only when the visitor asks to be walked through the whole post, or to go deeper, pass depth "full" for up to ${MAX_PASSAGES} passages (about 35 seconds). Call cite_section for each passage in order as you reach it. Reading the page first (read_blog or read_paper) is required for a post or paper.`,
+      inputSchema: z.object({ path: z.string().max(200), depth: z.enum(['summary', 'full']).optional() }),
+      execute: async ({ path, depth }) => {
         const clean = path.split('#')[0];
         if (!(await knownPath(clean))) return { ok: false, error: 'not a page on this site' };
         if (citations && !/^\/work\//.test(clean)) {
@@ -157,7 +157,9 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
         }
         const sections = await sectionsForPath(clean);
         if (!sections?.length) return { ok: false, error: 'this page has no sections' };
-        return { ok: true, path: clean, passages: buildPassages(sections) };
+        const max = depth === 'full' ? MAX_PASSAGES : SUMMARY_PASSAGES;
+        citations?.setLimit(max);
+        return { ok: true, path: clean, passages: buildPassages(sections, max) };
       },
     }),
 

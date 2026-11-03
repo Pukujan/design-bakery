@@ -122,12 +122,16 @@ assert.match(trace[3], /!no such section/);
 assert.equal(guarded.log()[1].ok, true);
 
 // 7. The passage builder: a whole-post summary is at most four headings, in order, no repeats, each quotable.
-const { buildPassages, MAX_PASSAGES } = sections;
+const { buildPassages, MAX_PASSAGES, SUMMARY_PASSAGES } = sections;
+assert.equal(SUMMARY_PASSAGES, 3);
+assert.equal(MAX_PASSAGES, 4);
 const longPost = ['# Big post', '', 'Intro words here that are long enough to quote. More.', '', '## Table of Contents', '', '- a'];
 for (let i = 1; i <= 9; i += 1) longPost.push('', `## Part ${i < 3 ? 'same' : i}`, '', `This is the opening sentence of part ${i}, long enough to quote. And a second one.`);
 longPost.push('', '## References', '', 'A list of sources that we skip entirely.');
-const passages = buildPassages(sectionsOfMarkdown(longPost.join('\n'), { levels: [1, 2, 3] }));
-assert.ok(passages.length <= MAX_PASSAGES && passages.length >= 3, 'three or four passages for a long post');
+const longSections = sectionsOfMarkdown(longPost.join('\n'), { levels: [1, 2, 3] });
+assert.equal(buildPassages(longSections).length, 3, 'a normal summary is three passages');
+assert.equal(buildPassages(longSections, 99).length, 4, 'the whole-post walk is capped at four');
+const passages = buildPassages(longSections, MAX_PASSAGES);
 assert.equal(new Set(passages.map((p) => p.anchor)).size, passages.length, 'no repeats (two headings share a name and still differ)');
 assert.ok(!passages.some((p) => /references|table of contents/i.test(p.heading)), 'contents and references are skipped');
 const order = sectionsOfMarkdown(longPost.join('\n'), { levels: [1, 2, 3] }).map((s) => s.id);
@@ -135,12 +139,23 @@ assert.deepEqual(passages.map((p) => order.indexOf(p.anchor)), [...passages.map(
 assert.ok(passages.every((p) => p.quote && p.quote.length <= 160), 'each has a quotable first sentence');
 assert.equal(buildPassages(sectionsOfMarkdown('## Only\n\nOne section with a sentence long enough.', { levels: [2] })).length, 1);
 assert.equal(buildPassages([]).length, 0);
-// The tool refuses a fifth move and a repeat.
+// outline_passages: three by default, four only for depth full; cite_section follows that limit.
+const lim = createCitations();
+const lt = tools.makeTools(() => {}, { canNavigate: false, citations: lim });
+const call = (t, input) => t.execute(input, { toolCallId: 't', messages: [] });
+const outlined = await call(lt.outline_passages, { path: `/work/${slug}` });
+assert.ok(outlined.ok && outlined.passages.length <= 3);
+assert.equal(lim.limit(), 3);
+await call(lt.outline_passages, { path: `/work/${slug}`, depth: 'full' });
+assert.equal(lim.limit(), 4);
+// The tool refuses a repeat and a move past the limit.
 const capped = createCitations();
 const cap = tools.makeTools(() => {}, { canNavigate: false, citations: capped }).cite_section;
 const runCap = (heading) => cap.execute({ path: `/work/${slug}`, heading }, { toolCallId: 't', messages: [] });
 assert.equal((await runCap('What it is')).ok, true);
 assert.equal((await runCap('What it is')).ok, false, 'a section is never pointed at twice in one answer');
 assert.equal((await runCap('Built with')).ok, true);
+assert.equal((await runCap('Highlights')).ok, true);
+assert.equal((await runCap('Go deeper')).ok, false, 'a fourth move is refused unless the whole post was asked for');
 
 console.log('copilot cite: ok');

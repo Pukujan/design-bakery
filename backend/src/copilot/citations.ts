@@ -9,6 +9,8 @@ export type CitationRecord = { path: string; anchor?: string; quote?: string; ok
 export function createCitations() {
   const retrieved = new Set<string>();
   const log: CitationRecord[] = [];
+  /** Moves allowed in this answer: 3 for a summary, 4 only when the visitor asked for the whole post (outline_passages depth full). */
+  let limit = 3;
   const clean = (path: string) => path.split('#')[0];
   return {
     /** A tool returned this page's content (a post or paper read, a search hit, a project). */
@@ -20,6 +22,10 @@ export function createCitations() {
     check(path: string): { ok: true } | { ok: false; reason: string } {
       return retrieved.has(clean(path)) ? { ok: true } : { ok: false, reason: 'not retrieved this turn: read it first (read_blog, read_paper or search_site), then cite' };
     },
+    setLimit(n: number) {
+      limit = Math.min(4, Math.max(1, n));
+    },
+    limit: () => limit,
     record(entry: CitationRecord) {
       log.push(entry);
     },
