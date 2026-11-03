@@ -17,7 +17,7 @@ import { z } from 'zod';
 import { byHealth, healthReport, startWatcher } from './health.js';
 import { fallbackFetch } from './model-fallback.js';
 import { checkPass, clientIp, issuePass, turnstileSiteKey } from './guard.js';
-import { createDailyBudget, createLimiter, limitConfigFromEnv } from './fairUse.js';
+import { createDailyBudget, createExemptMatcher, createLimiter, limitConfigFromEnv } from './fairUse.js';
 import { siteBrief } from './knowledge.js';
 import { devProvider, pickProfile, routeFor, smartProviders, type Provider } from './providers.js';
 import { createCitations } from './citations.js';
@@ -91,6 +91,8 @@ Personality (your default, in every reply):
 - You enjoy small talk. If the visitor wants to chat about AI, tech or their day, keep it going like a good conversation partner: react, add a sharp thought, and end with a short question or hook, without pushing.
 - When someone asks a real question, answer it properly first; the humour is seasoning, and never aimed at the facts of my work.
 - News you were given may include AI blunders, memes and security stories: say "reportedly", and aim the joke at the technology, the hype or the lapse, never at a person or whoever's data leaked. When the story hurt real people, give them one short, sincere beat ("rough on the people whose data was in there") and then back to the wit, not every time and never preachy.
+- When the visitor corrects you or points out a mistake, thank them in a few words with a dry line, take the correction seriously and fix it. You have a few catchphrases ("that's a load-bearing statement", "filed under things I meant to do", "working as intended, retroactively"): use one at most every few replies, never when the visitor is annoyed or the subject is serious.
+- You know the famous AI trick questions (the car wash fifty metres away, letters in strawberry, 9.11 against 9.9, the seahorse emoji): answer correctly first, then one dry line. Say "famously" only about well-documented ones and never claim what any model gets wrong today.
 - A joke or opinion about AI in general is yours; a project, role, number or paper is only ever what the site says, from the brief and your tools. The length rules above still hold: the personality lives in the wording, not in extra length.`;
 
 /** Added to the prompt on a voice call: short spoken sentences, and moving the visitor without asking first. */
@@ -136,6 +138,9 @@ function modelFor(providers: Provider[], voice: boolean, onUse: (model: string) 
 }
 
 const ipOf = (req: Request) => clientIp(req.headers, req.socket.remoteAddress ?? '');
+// Read once at start. Exempt requests skip the request limits but never the daily token budget.
+const isExempt = createExemptMatcher();
+const exemptReq = (req: Request) => isExempt(ipOf(req));
 
 export const copilotRouter = Router();
 
@@ -173,7 +178,7 @@ copilotRouter.get('/health', (_req, res) => {
 copilotRouter.post('/voice', async (req, res) => {
   const session = await checkPass(req.get('x-copilot-pass'));
   if (!session) { res.status(401).json({ ok: false, code: 'NO_PASS' }); return; }
-  if (!limiter.take(`voice:${session}`).ok || !limiter.take(`voice-ip:${ipOf(req)}`).ok) {
+  if (!exemptReq(req) && (!limiter.take(`voice:${session}`).ok || !limiter.take(`voice-ip:${ipOf(req)}`).ok)) {
     res.status(429).json({ ok: false, code: 'RATE_LIMITED' }); return;
   }
   // `call` is the visitor's session: the page hands it to the voice agent, so the agent's spans join this session in Phoenix.
@@ -203,7 +208,7 @@ copilotRouter.post('/summarize', async (req, res) => {
   if (!session) { res.status(401).json({ ok: false, code: 'NO_PASS' }); return; }
   const parsed = summaryBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ ok: false, code: 'VALIDATION' }); return; }
-  if (!summaryLimiter.take(`sum:${session}`).ok || !summaryLimiter.take(`sum-ip:${ipOf(req)}`).ok) {
+  if (!exemptReq(req) && (!summaryLimiter.take(`sum:${session}`).ok || !summaryLimiter.take(`sum-ip:${ipOf(req)}`).ok)) {
     res.status(429).json({ ok: false, code: 'RATE_LIMITED' }); return;
   }
   const providers = chain();
@@ -226,8 +231,9 @@ copilotRouter.post('/chat', async (req, res) => {
   }
   // Both the address and the pass are limited, so neither a new pass nor a new address resets it.
   const ip = ipOf(req);
-  const byIp = limiter.take(`ip:${ip}`);
-  const bySession = byIp.ok ? limiter.take(`session:${session}`) : byIp;
+  const exempt = isExempt(ip);
+  const byIp = exempt ? { ok: true as const } : limiter.take(`ip:${ip}`);
+  const bySession = !exempt && byIp.ok ? limiter.take(`session:${session}`) : byIp;
   if (!bySession.ok) {
     res.status(429).set('retry-after', String(Math.ceil((bySession.retryAt - Date.now()) / 1000))).json({ ok: false, code: 'RATE_LIMITED' });
     return;
@@ -238,6 +244,7 @@ copilotRouter.post('/chat', async (req, res) => {
   const turn = new TurnTrace(session);
   turn.input = question;
   turn.channel = voice ? 'voice' : 'text';
+  turn.exempt = exempt;
 
   res.status(200).set({ 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-store', 'x-accel-buffering': 'no' });
   res.flushHeaders();
@@ -277,7 +284,7 @@ copilotRouter.post('/chat', async (req, res) => {
     }
   }
   const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before);
-  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:')) ? routed : null;
+  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
   if (cached) {
     turn.model = `cache:${cached.intent}`;
     turn.routine = cached.routine;
@@ -299,7 +306,7 @@ copilotRouter.post('/chat', async (req, res) => {
   }
 
   try {
-    const limit = await takeDurableCopilotLimit(ip, session);
+    const limit = exempt ? { ok: true as const } : await takeDurableCopilotLimit(ip, session);
     if (!limit.ok) {
       res.status(429).set('retry-after', String(Math.max(1, Math.ceil((limit.retryAt - Date.now()) / 1000)))).json({ ok: false, code: 'RATE_LIMITED' });
       return;

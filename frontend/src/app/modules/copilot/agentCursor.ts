@@ -40,11 +40,21 @@ export const useAgentCursor = () =>
   );
 
 /** The link on this page that leads to a path, if it is on screen. */
+/** Where on a link the cursor aims: its middle, or the middle of the part of it that is on screen when it is taller than the window. */
+function aimPoint(rect: DOMRect) {
+  const top = Math.max(rect.top, 110);
+  const bottom = Math.min(rect.bottom, window.innerHeight - 50);
+  const y = top < bottom ? (top + bottom) / 2 : rect.top + rect.height / 2;
+  return { x: rect.left + rect.width / 2, y };
+}
+
 function visibleLinkFor(path: string): HTMLElement | null {
   const link = document.querySelector<HTMLElement>(`a[href="${path.replace(/"/g, '')}"]`);
   if (!link) return null;
   const rect = link.getBoundingClientRect();
-  const onScreen = rect.width > 0 && rect.height > 0 && rect.top >= 0 && rect.bottom <= window.innerHeight && rect.left >= 0 && rect.right <= window.innerWidth;
+  // A tall card counts as on screen when a part of it is where the cursor can aim, not only when all of it fits.
+  const point = aimPoint(rect);
+  const onScreen = rect.width > 0 && rect.height > 0 && point.y >= 70 && point.y <= window.innerHeight - 20 && point.x >= 0 && point.x <= window.innerWidth;
   return onScreen ? link : null;
 }
 
@@ -68,6 +78,28 @@ function appear(toward: { x: number; y: number }) {
   if (state.guest) guestTimer = setTimeout(() => agentCursor.finishGuest(), GUEST_MAX_MS);
 }
 
+/** Waits until an element has stopped moving on screen (a page that is still scrolling or settling), so the cursor aims at where it will stay. */
+async function settle(element: Element, maxMs = 3500) {
+  let last = '';
+  let still = 0;
+  for (let waited = 0; waited < maxMs && still < 4; waited += 60) {
+    const r = element.getBoundingClientRect();
+    const now = `${Math.round(r.left)}:${Math.round(r.top)}:${Math.round(r.width)}`;
+    still = now === last ? still + 1 : 0;
+    last = now;
+    await wait(60);
+  }
+}
+
+/** Keeps the cursor on an element for a while, following it if it still drifts (a late layout shift, a smooth scroll that has not quite ended). */
+async function follow(element: Element, ms: number) {
+  for (let waited = 0; waited < ms; waited += 80) {
+    if (!element.isConnected) return;
+    set(aimPoint(element.getBoundingClientRect()));
+    await wait(80);
+  }
+}
+
 const GLIDE_MS = 800;
 const PRESS_MS = 280;
 
@@ -75,6 +107,8 @@ let captionTimer: ReturnType<typeof setTimeout> | undefined;
 const jitter = (min: number, max: number) => min + Math.random() * (max - min);
 
 export const agentCursor = {
+  /** Resolves once the element has stopped moving on screen. */
+  settle,
   /** A few words in the moon's bubble about what it is doing right now, one of several wordings. */
   say(options: readonly string[], ms = 1900) {
     clearTimeout(captionTimer);
@@ -91,9 +125,12 @@ export const agentCursor = {
    */
   async pointAtLinkFor(path: string) {
     clearTimeout(hideTimer);
+    const found = document.querySelector<HTMLElement>(`a[href="${path.replace(/"/g, '')}"]`);
+    // A page that is still scrolling or laying out moves its links: wait for the one we want to hold still before aiming.
+    if (found) await settle(found);
     const link = visibleLinkFor(path);
     const rect0 = link?.getBoundingClientRect();
-    appear(rect0 ? { x: rect0.left + rect0.width / 2, y: rect0.top + rect0.height / 2 } : { x: window.innerWidth * 0.62, y: window.innerHeight * 0.5 });
+    appear(rect0 ? aimPoint(rect0) : { x: window.innerWidth * 0.62, y: window.innerHeight * 0.5 });
     if (!state.visible) set({ x: window.innerWidth * 0.72, y: window.innerHeight * 0.62 });
     set({ visible: true });
     if (!link) {
@@ -101,13 +138,12 @@ export const agentCursor = {
       await wait(450);
       return;
     }
-    const rect = link.getBoundingClientRect();
-    set({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
-    await wait(jitter(650, 1000));
+    set(aimPoint(link.getBoundingClientRect()));
+    await follow(link, jitter(650, 1000));
     // The cursor is over the link: it lights up the way it does under a real pointer (CSS :hover cannot be set from a script).
     clearHover();
     link.setAttribute('data-agent-hover', '');
-    await wait(jitter(160, 380));
+    await follow(link, jitter(160, 380));
     set({ presses: state.presses + 1 });
     await wait(PRESS_MS);
   },

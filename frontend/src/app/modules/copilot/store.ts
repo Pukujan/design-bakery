@@ -307,15 +307,19 @@ async function journey(path: string) {
   agentCursor.release(6000);
 }
 
-/** Scrolls a card slowly into view, wheel and all, unless the whole card is already on screen. */
+/** Scrolls a card slowly to the middle of the screen, wheel and all, unless it is already where the cursor can reach it. */
 async function scrollToCard(card: HTMLElement) {
   const rect = card.getBoundingClientRect();
-  if (rect.top >= 90 && rect.bottom <= window.innerHeight - 30) return;
-  const seconds = scrollStageToElement(card, { slow: true, offset: -Math.round(window.innerHeight * 0.18) });
+  // The card only has to be where the cursor can reach it: its middle on screen, below the header.
+  const middle = rect.top + rect.height / 2;
+  if (middle >= 130 && middle <= window.innerHeight - 70) return;
+  // Land the card in the middle of the screen (or just under the header when it is taller than the window).
+  const seconds = scrollStageToElement(card, { slow: true, offset: -Math.max(110, (window.innerHeight - rect.height) / 2) });
   if (seconds > 0) {
     agentCursor.say(['Somewhere in here...', 'Scrolling a bit...', 'Hold on, it is further down...'], seconds * 1000);
     agentCursor.startScroll(rect.top > 0 ? 'down' : 'up', seconds * 1000);
-    await pause(seconds * 1000 + 250);
+    await pause(seconds * 1000);
+    await agentCursor.settle(card);
   }
 }
 
