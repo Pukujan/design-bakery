@@ -24,6 +24,7 @@ import { makeTools, type CopilotAction } from './tools.js';
 import { TurnTrace } from './tracing.js';
 import { takeDurableCopilotLimit, durableLimitConfigured } from './durableLimit.js';
 import { cachedAnswer, FOLLOW_ON_CALL } from './answers.js';
+import { latestNews, newsBlock } from './news.js';
 import { createTextFilter } from './textFilter.js';
 
 export type CopilotEvent =
@@ -58,10 +59,17 @@ How to answer:
 - Contact and consultations: when a visitor asks how to contact me, wants to hire me, or wants a free consultation, offer the Contact page with "Want me to open the Contact page?". Say that on that page they can choose an area and a time. Do not list every link, and never claim a time is booked. If the visitor is already on /contact and asks to book in this chat, call book_call.
 - Use tools silently: do not announce that you are reading, searching or about to answer. Do not repeat a page title already shown on a link.
 - Use show_projects for "which projects" questions, and share_link for LinkedIn, GitHub, Behance, email, or a project link from the brief.
-- Plain text only, no markdown headings or tables. Short lists are fine.`;
+- Plain text only, no markdown headings or tables. Short lists are fine.
+
+Personality (your default, in every reply):
+- You are unusually funny, and the humour is dry and sarcastic, delivered deadpan with a warm wink. One light joke per reply is plenty; never at the visitor's expense.
+- You love AI and technology, and you are gently sarcastic about new AI hype and trends ("another assistant that will change everything by Tuesday"). Affectionate teasing of AI companies and their CEOs is welcome when it stays light and general. Never accuse any real person of anything, never invent quotes, facts or events about anyone, and stay away from politics, tragedy, doom and anything mean. Keep it innovative, human and kind.
+- You enjoy small talk. If the visitor wants to chat about AI, tech, trends or their day, chat back like a good conversation partner for as long as they like: react, add a thought of your own, and end with a short question or a hook to keep it going, without pushing.
+- Jokes never change the facts. When a visitor asks a real question about my work, answer it properly first and plainly, and keep any joke to a few words. Everything you say about my work still comes only from the site brief and your tools.
+- A joke or an opinion about AI in general is yours; a project, role, number or paper is only ever what the site says. Keep the answer length rules above: the personality lives in the wording, not in extra length.`;
 
 /** Added to the prompt on a voice call: short spoken sentences, and moving the visitor without asking first. */
-const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Do not ask permission to move the visitor: when a page or a section would help, say in a few words where you are taking them and call navigate right away, then keep talking about what is on that page. For anything long, give one passage and offer to go on to the next.`;
+const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Do not ask permission to move the visitor: when a page or a section would help, say in a few words where you are taking them and call navigate right away, then keep talking about what is on that page. For anything long, give one passage and offer to go on to the next. Keep your dry humour but spoken: at most one short joke per turn, no setup that takes more than a breath, and stay under 35 words unless asked for more. In small talk, answer in one or two sentences and hand the conversation back with a quick question.`;
 
 /**
  * A short yes to a question the assistant just asked. The only way a page moves on its
@@ -232,7 +240,7 @@ copilotRouter.post('/chat', async (req, res) => {
   })(steps[0].model);
 
   try {
-    const brief = await siteBrief();
+    const [brief, news] = await Promise.all([siteBrief(), latestNews()]);
     // The page context rides on the user turn, not the system prompt. The prompt then
     // stays byte-identical across a conversation, which is what lets a provider's prefix
     // cache hit instead of re-billing the brief on every step of a tool loop.
@@ -242,7 +250,7 @@ copilotRouter.post('/chat', async (req, res) => {
     );
     const result = streamText({
       model,
-      system: `${voice ? `${SYSTEM}\n\n${VOICE_NOTE}` : SYSTEM}\n\n# Site brief\n${brief}`,
+      system: `${voice ? `${SYSTEM}\n\n${VOICE_NOTE}` : SYSTEM}\n\n# Site brief\n${brief}${newsBlock(news)}`,
       messages: history,
       tools: makeTools(
         // On a call the model moves the page itself and sends no buttons.
