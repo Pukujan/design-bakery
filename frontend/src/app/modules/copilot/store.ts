@@ -8,6 +8,7 @@ import { useSyncExternalStore } from 'react';
 import { getAuthApiBaseUrl } from '../../lib/adminToken';
 import { answer as localAnswer, type CopilotProject } from '../lab/copilotAnswers';
 import { getTurnstileToken } from './turnstile';
+import { scrollStageToElement, scrollStageToTop } from '../lab/stageScroll';
 
 export type CopilotAction =
   /** `go` is set only when the visitor has just confirmed the move; otherwise it is a chip. */
@@ -202,9 +203,8 @@ export const copilot = {
   go(path: string) {
     const [pathname, hash] = path.split('#');
     const scroll = () => {
-      if (!hash) return window.scrollTo({ top: 0, behavior: 'smooth' });
-      const target = document.getElementById(hash);
-      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (!hash) return scrollStageToTop();
+      scrollStageToElement(document.getElementById(hash));
       return undefined;
     };
     if (!pathname || pathname === window.location.pathname) {
