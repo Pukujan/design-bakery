@@ -3,7 +3,7 @@
 Blog AI: **publish kit** + **promo agent**. Reuses `functions/` handlers.
 
 **Layout:** [additionals/doc/architecture.md](../additionals/doc/architecture.md) (MVC-style layers under `src/`)  
-**Deploy:** [additionals/doc/deploy-vercel-railway.md](../additionals/doc/deploy-vercel-railway.md)  
+**Deploy:** [docs/self-hosting.md](../docs/self-hosting.md)  
 **Env:** `backend/.env` — see [additionals/doc/env.md](../additionals/doc/env.md) and `backend/.env.example`
 
 ## Local
@@ -31,4 +31,4 @@ Deploy from **repo root** (see `railway.toml` at root). Do not set Railway Root 
 | Start | `node backend/lib/server.js` |
 | Health | `/health` |
 
-Variables: see `backend/.env.example` (set in Railway dashboard, not Vercel).
+Variables: see `backend/.env.example` (set in the Railway dashboard).

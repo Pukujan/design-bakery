@@ -27,6 +27,8 @@ const NUDGES: Line[] = [
   { src: '/voice/nudge-3.m4a', text: 'I can also help you book a free consultation.' },
   { src: '/voice/nudge-4.m4a', text: 'Ask me about my research, my work history, or anything on the site.' },
 ];
+/** Is this one of the quiet-call reminders (not the muted notice)? */
+export const isNudge = (text: string) => NUDGES.some((line) => line.text === text);
 const MUTED: Line = { src: '/voice/nudge-muted.m4a', text: "I can't hear you right now. It looks like your mic is muted." };
 
 /**

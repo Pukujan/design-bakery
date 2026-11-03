@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Builds the IRE React dashboard (frontend/ire-app) and copies its output into the
-// site's dist tree at /ire/, where Caddy and Vercel serve it for /ire and /ire/.
+// site's dist tree at /ire/, where Caddy serves it for /ire and /ire/.
 //
 // frontend/ire-app is deliberately NOT a pnpm workspace member: it wants Vite 8 and
 // Tailwind 3, while the root workspace pins Vite 6.3.5 and Tailwind 4. Joining would

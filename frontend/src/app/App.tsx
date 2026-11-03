@@ -134,7 +134,7 @@ function publicRoutes(): ReactElement[] {
       element={<StaticCaseStudyAssetGuard />}
     />,
     // Cortex case study is served as static HTML (public/case-studies/cortex/a/*.html).
-    // vercel.json rewrites every non-.html path to the SPA, so these routes must exist and
+    // The Caddyfile rewrites every non-.html path to the SPA, so these routes must exist and
     // redirect out to the static pages. React versions archived in extras/ 2026-07-25.
     <Route path="/case-studies/cortex" element={<CortexCaseStudyRedirect />} />,
     <Route path="/case-studies/cortex/specs" element={<CortexCaseStudyRedirect />} />,

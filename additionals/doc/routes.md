@@ -1,6 +1,6 @@
 # Routes reference
 
-Complete list of URLs for the Design Bakery app. All paths are client-side routes (SPA); `vercel.json` rewrites unknown paths to `index.html`.
+Complete list of URLs for the Design Bakery app. All paths are client-side routes (SPA); `deploy/gravebuster/Caddyfile` rewrites unknown paths to `index.html`.
 
 Defined in `src/app/App.tsx` and [`src/app/modules/admin/adminRoutes.tsx`](../../frontend/src/app/modules/admin/adminRoutes.tsx).
 

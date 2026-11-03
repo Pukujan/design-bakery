@@ -1,0 +1,18 @@
+name: open
+version: 1
+description: Open a specific project, paper or post for the visitor by name or topic, and move the page.
+when_it_applies: A short, self-contained "open / show me / take me to <thing>" naming one item the site has.
+domain: engineering
+code: ../../routines.ts (runner), registered in ROUTINES
+created_by:
+  model: Claude Sonnet 5.5 (claude-sonnet-5-5)
+  harness: Claude Code (desktop)
+  date: 2026-11-02
+  versions: [1]
+tested_on:
+  - model: none (no model call; deterministic)
+    harness: node scripts/test-copilot-router.mjs
+    date: 2026-11-02
+    version: 1
+    result: cases in examples/inputs/cases.json pass against the compiled backend
+    output: examples/inputs/cases.json

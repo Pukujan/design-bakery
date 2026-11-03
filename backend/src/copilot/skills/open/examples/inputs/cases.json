@@ -1,0 +1,39 @@
+[
+  {
+    "utterance": "open the Cortex project",
+    "firstTurn": true,
+    "routine": "open",
+    "navigate": "/work/cortex",
+    "go": true
+  },
+  {
+    "utterance": "show me Voidfeed",
+    "firstTurn": false,
+    "routine": "open",
+    "navigate": "/work/voidfeed",
+    "go": true
+  },
+  {
+    "utterance": "open the paper about deny-by-default authorization",
+    "firstTurn": true,
+    "routine": "open",
+    "navigate": "/research/papers/db-r-2026-002",
+    "go": true
+  },
+  {
+    "utterance": "open it",
+    "routine": null
+  },
+  {
+    "utterance": "open the second one",
+    "routine": null
+  },
+  {
+    "utterance": "show me more",
+    "routine": null
+  },
+  {
+    "utterance": "compare Cortex and Precedent",
+    "routine": null
+  }
+]
