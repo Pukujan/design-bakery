@@ -8,6 +8,7 @@ import { z } from 'zod';
 import type { Citations } from './citations.js';
 import { buildPassages, checkQuote, findSection, MAX_PASSAGES, QUOTE_MAX, SUMMARY_PASSAGES } from './sections.js';
 import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, sectionsForPath, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
+import { searchSite } from './siteSearch.js';
 
 export const CONSULT_SERVICES = ['AI engineering', 'Product design', 'Marketing', 'Full-stack development'] as const;
 
@@ -52,23 +53,12 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
   const citations = options.citations;
   return {
     search_site: tool({
-      description: 'Search projects, research papers and blog posts by keywords. Use it when the brief is not enough.',
+      description: 'Search the full text of projects, research papers and blog posts; returns the best-matching pages with a passage from each. Use it when the brief is not enough.',
       inputSchema: z.object({ query: z.string().min(1).max(200) }),
       execute: async ({ query }) => {
-        const words = query.toLowerCase().split(/\W+/).filter((w) => w.length > 2);
-        const score = (text: string) => words.reduce((n, w) => n + (text.toLowerCase().includes(w) ? 1 : 0), 0);
-        const [projects, papers, blogs] = await Promise.all([loadProjects(), loadPapers(), loadBlogs()]);
-        const hits = [
-          ...projects.map((p) => ({ kind: 'project', ref: projectPath(p), title: p.title, text: `${p.tagline}. ${p.description} ${p.tech.join(' ')}` })),
-          ...papers.map((p) => ({ kind: 'paper', ref: `/research/papers/${p.id}`, title: p.title, text: p.abstract })),
-          ...blogs.map((b) => ({ kind: 'blog', ref: `/blogs/${b.id}`, title: b.title, text: `${b.excerpt} ${b.tags.join(' ')}` })),
-        ]
-          .map((hit) => ({ ...hit, score: score(`${hit.title} ${hit.text}`) }))
-          .filter((hit) => hit.score > 0)
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 6);
+        const { hits } = await searchSite(query);
         for (const hit of hits) citations?.retrieve(hit.ref);
-        return hits.map(({ kind, ref, title, text }) => ({ kind, ref, title, summary: clip(text, 300) }));
+        return hits;
       },
     }),
 

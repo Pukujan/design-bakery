@@ -318,6 +318,23 @@ api_content_smoke() {
 	esac
 }
 
+# Re-index the site's pages in Octo RAG for the copilot's search_site (TASK-DB-0142). Runs inside
+# the new API container, which has the compiled backend and the Octo secrets from .env.api.
+# Unchanged pages cost nothing (Octo hashes them). Never fails the deploy: search falls back
+# to keywords, and a stale index only means a new page is not found by passage yet.
+sync_copilot_rag() {
+	[ "$WITH_API" = "1" ] || return 0
+	[ "${COPILOT_RAG_SYNC:-1}" = "1" ] || { log "copilot rag sync: skipped (COPILOT_RAG_SYNC=0)"; return 0; }
+	log "copilot rag sync: indexing site content in Octo"
+	local limit=""
+	command -v timeout >/dev/null 2>&1 && limit="timeout 600"
+	if $limit docker exec "$API_CONTAINER" node scripts/sync-copilot-rag.mjs >>"$LOG_FILE" 2>&1; then
+		log "copilot rag sync: ok"
+	else
+		log "  WARN copilot rag sync failed (see $LOG_FILE); search_site keeps working on the keyword fallback"
+	fi
+}
+
 wait_healthy() {
 	local deadline=$((SECONDS + HEALTH_TIMEOUT))
 	while [ "$SECONDS" -lt "$deadline" ]; do
@@ -415,6 +432,7 @@ if [ "$API_HEALTHY" = "1" ] && wait_healthy; then
 	log "health endpoint is up; running smoke test"
 	if smoke; then
 		if api_content_smoke; then
+			sync_copilot_rag
 			state_write "$SHA" "$NEW_IMAGE" "$PREVIOUS_IMAGE" "$(api_state_current "$NEW_API_IMAGE")" "$(api_state_previous "$PREVIOUS_API_IMAGE")"
 			write_tags "$NEW_IMAGE" "$(api_state_current "$NEW_API_IMAGE")"
 			log "deploy OK: $SHORT -> $NEW_IMAGE"

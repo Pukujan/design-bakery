@@ -566,6 +566,15 @@ launchctl bootout gui/$(id -u)/com.designbakery.autodeploy
   Prune old tags deliberately (§4).
 - **Repo checkout:** `~/apps/design-bakery` is managed by `deploy.sh` (detached HEAD).
   Do not develop in it; edits there are overwritten on the next deploy.
+- **Copilot search index (TASK-DB-0142):** after the API swap and smoke checks pass,
+  `deploy.sh` runs `node scripts/sync-copilot-rag.mjs` inside `design-bakery-api`, which
+  indexes every project, research paper and published blog post in Octo RAG (documents
+  titled `site:<path>`) and deletes ones whose page is gone. Unchanged pages are skipped
+  by Octo's content hash. It never fails a deploy (the copilot falls back to keyword
+  search); `COPILOT_RAG_SYNC=0` skips it. A blog post published through the CMS does not
+  deploy, so re-run it by hand after publishing:
+  `docker exec design-bakery-api node scripts/sync-copilot-rag.mjs` (or, from a dev
+  checkout with `backend/.env`, `pnpm --dir backend run build && pnpm sync:copilot-rag`).
 - **Vercel:** removed (TASK-DB-0131). There is no Vercel fallback; rollback is the
   previous image tag (§4).
 
