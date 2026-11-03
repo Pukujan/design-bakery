@@ -25,6 +25,7 @@
     "test:copilot-router": "node scripts/test-copilot-router.mjs",
     "test:copilot-news": "node scripts/test-copilot-news.mjs",
     "test:copilot-stream": "node scripts/test-copilot-stream.mjs",
+    "test:copilot-truncation": "node scripts/test-copilot-truncation.mjs",
     "test:copilot-chips": "node scripts/test-copilot-chips.mjs",
     "test:copilot-cite": "node scripts/test-copilot-cite.mjs && node scripts/test-copilot-cite-route.mjs",
     "test:icon-coverage": "node scripts/test-icon-coverage.mjs",

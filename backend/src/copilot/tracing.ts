@@ -48,6 +48,9 @@ export class TurnTrace {
   citations: string[] = [];
   inputTokens = 0;
   outputTokens = 0;
+  /** Why the model stopped (stop, length, tool-calls...), and whether the reply was cut off and trimmed to a whole sentence. */
+  finishReason = 'unknown';
+  truncated = false;
   private steps = new Map<string, Step>();
 
   constructor(readonly session: string) {}
@@ -80,6 +83,8 @@ export class TurnTrace {
       'copilot.source': this.model.startsWith('cache:') ? 'cache' : 'model',
       'copilot.routine': this.routine,
       'copilot.latency_ms': end - this.start,
+      'copilot.finish_reason': this.finishReason,
+      'copilot.truncated': this.truncated,
       'copilot.channel': this.channel,
       'copilot.actions': this.actions.join(' '),
       'copilot.citations': this.citations.join(' | '),

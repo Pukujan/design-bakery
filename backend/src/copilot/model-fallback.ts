@@ -68,7 +68,11 @@ const SLOW_START_MS = 6000;
 export function withoutThinking(model: string, body: Record<string, unknown>, env = process.env.INFERHUB_THINKING): Record<string, unknown> {
   if (env === "on") return body;
   if (/deepseek/i.test(model)) return { ...body, thinking: { type: "disabled" } };
-  if (/qwen/i.test(model)) return { ...body, enable_thinking: false };
+  // Qwen answers as "yolo" through an auto router, so `model` here is the step name ("qwen:yolo"), not the bare model.
+  // Both switches are sent: the router passes one or the other on to the model (one turn spent 200 of 240 tokens thinking, 2026-11-03).
+  if (/qwen/i.test(model)) return { ...body, enable_thinking: false, chat_template_kwargs: { enable_thinking: false } };
+  // OpenRouter's switch for models that can turn reasoning off.
+  if (/openrouter|nemotron/i.test(model)) return { ...body, reasoning: { enabled: false } };
   // LFM3 on llama.cpp: the chat template's switch. Thinking ran out the output budget before any answer.
   if (/lfm/i.test(model)) return { ...body, chat_template_kwargs: { enable_thinking: false } };
   return body;
@@ -146,7 +150,7 @@ export function fallbackFetch(chain: Array<string | Step>, base: typeof fetch = 
       try {
         let res: Response;
         try {
-          res = await base(to ? to.url : input, { ...init, ...(to ? { headers: { ...headersWithout(init?.headers), ...to.headers } } : {}), signal, body: JSON.stringify(withoutThinking(model, { ...body0, model })) });
+          res = await base(to ? to.url : input, { ...init, ...(to ? { headers: { ...headersWithout(init?.headers), ...to.headers } } : {}), signal, body: JSON.stringify(withoutThinking(step.name, { ...body0, model })) });
         } catch (e) {
           if (ctrl.signal.aborted && !init?.signal?.aborted) return { res: new Response(null, { status: 504 }), msg: "slow", failed: true, busy: false, slow: true };
           throw e;
