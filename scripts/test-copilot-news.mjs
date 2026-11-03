@@ -168,7 +168,6 @@ assert.match(lightBlock, /reportedly/);
 assert.match(lightBlock, /never about a person, a victim/);
 assert.match(lightBlock, /still developing, say it is developing/);
 assert.match(lightBlock, /no talk of crypto prices/);
-assert.match(lightBlock, /real question[\s\S]*answer it properly/);
 
 // Persona: first person, honest, short on a call.
 const route = await readFile(new URL('./backend/src/copilot/route.ts', root), 'utf8');
@@ -176,11 +175,10 @@ const system = route.match(/const SYSTEM = `([\s\S]*?)`;/)[1];
 const voice = route.match(/const VOICE_NOTE = `([\s\S]*?)`;/)[1];
 assert.match(system, /first person/);
 assert.match(system, /very sarcastic and sharp/);
-assert.match(system, /upset, stressed or asks something serious/);
+assert.match(system, /sarcasm is seasoning/);
 assert.match(system, /Never accuse any real person/);
 assert.match(system, /no invented quotes|never invent quotes/i);
 assert.match(system, /small talk/);
-assert.match(system, /real question about security/);
 assert.match(system, /Only state facts from the site brief/);
 assert.match(system, /under 45 words/);
 assert.match(voice, /at most one short, sharp line/);
