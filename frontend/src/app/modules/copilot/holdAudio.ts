@@ -62,10 +62,10 @@ const THINK_GAP_MS = 700;
 const THINK_LONG_AFTER_MS = 9000;
 const SLOW_AFTER_MS = 12_000;
 const FADE_MS = 200;
-/** A quiet call is nudged every 10 to 20 seconds, up to this many times until someone speaks again. */
-const NUDGE_MIN_MS = 10_000;
-const NUDGE_MAX_MS = 20_000;
-const MAX_NUDGES = 4;
+/** A quiet call is nudged every 40 to 60 seconds, up to this many times until someone speaks again. */
+const NUDGE_MIN_MS = 40_000;
+const NUDGE_MAX_MS = 60_000;
+const MAX_NUDGES = 3;
 
 const cache = new Map<string, HTMLAudioElement>();
 
