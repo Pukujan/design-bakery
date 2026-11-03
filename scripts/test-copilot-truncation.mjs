@@ -19,7 +19,7 @@ try {
   ai = await import(need.resolve('ai'));
   oai = await import(need.resolve('@ai-sdk/openai-compatible'));
 } catch (e) {
-  throw new Error(`copilot truncation: build the backend first (pnpm --dir backend run build): ${e.message}`);
+  throw new Error('copilot truncation: build the backend first (pnpm --dir backend run build)', { cause: e });
 }
 
 // 1. Trimming: the real reply, then the edges.
