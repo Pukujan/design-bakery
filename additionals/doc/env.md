@@ -17,7 +17,7 @@ cp backend/.env.example backend/.env
 
 **Blog images:** Octo file API via `OCTO_WORKSPACE_ID` + `OCTO_API_KEY`. A new upload is published to `https://files.design-bakery.com/<fileId>`. `ASSET_PUBLIC_BASE_URL` is only the legacy `/api/public/assets/:fileId` proxy. `SUPABASE_*` remains only so already-published Supabase object URLs can still be deleted.
 
-**Public blog reads (browser):** `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` in `frontend/.env` / Vercel — use the **anon public** key from the dashboard, **not** `SUPABASE_SERVICE_ROLE_KEY`. See [Get the anon key](#get-the-supabase-anon-key) below.
+**Public blog reads (browser):** `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` in `frontend/.env` / the frontend build env — use the **anon public** key from the dashboard, **not** `SUPABASE_SERVICE_ROLE_KEY`. See [Get the anon key](#get-the-supabase-anon-key) below.
 
 **Legacy:** Firebase Storage still works if `IMAGE_STORAGE=firebase` and Firebase Admin creds are set.
 
@@ -36,10 +36,10 @@ pnpm run dev:api      # backend only
 
 | Host | Root directory | Env |
 |------|----------------|-----|
-| **Vercel** | `frontend` | `frontend/.env.example` |
+| **Frontend build** | `frontend` | `frontend/.env.example` |
 | **Railway** | `backend` | `backend/.env.example` |
 
-See [deploy-vercel-railway.md](./deploy-vercel-railway.md).
+See [docs/self-hosting.md](../../docs/self-hosting.md).
 
 ## Get the Supabase anon key
 
@@ -49,7 +49,7 @@ Use the same Supabase project as `backend/.env` (`SUPABASE_URL`).
 2. **Project Settings** (gear) → **API**.
 3. Copy **Project URL** → `VITE_SUPABASE_URL` (same host as `SUPABASE_URL` in backend).
 4. Under **Project API keys**, copy **`anon` `public`** (sometimes labeled “anon key” or “Publishable”).
-5. Paste into `frontend/.env` as `VITE_SUPABASE_ANON_KEY=...` and the same on **Vercel** (Production).
+5. Paste into `frontend/.env` as `VITE_SUPABASE_ANON_KEY=...` and in the frontend build env for production.
 
 Do **not** copy **`service_role`** into the frontend — that key bypasses RLS and must stay in `backend/.env` / Railway only.
 

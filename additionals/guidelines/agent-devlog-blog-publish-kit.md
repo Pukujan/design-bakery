@@ -40,7 +40,7 @@ VITE_ENABLE_BLOG_PUBLISH_KIT=true
 VITE_USE_FUNCTIONS_EMULATOR=true
 ```
 
-On Vercel: leave flags unset (enabled in prod) or set `VITE_ENABLE_BLOG_PUBLISH_KIT=false` to hide. Do **not** set `VITE_USE_FUNCTIONS_EMULATOR=true` in production.
+In production: leave flags unset (enabled in prod) or set `VITE_ENABLE_BLOG_PUBLISH_KIT=false` to hide. Do **not** set `VITE_USE_FUNCTIONS_EMULATOR=true` in production.
 
 **Production deploy (required once):**
 
@@ -53,7 +53,7 @@ firebase functions:secrets:set OPENROUTER_API_KEY --project auth-system-be464
 
 Gen2 callables use `CALLABLE_CORS` for `https://www.design-bakery.com`. A 404 from `cloudfunctions.net` means deploy did not run yet (browser may show CORS instead of 404). **Blaze** billing is required for Gen2 deploy.
 
-**Alternative (no Blaze):** Express API in `backend/` on **Railway** — full steps: [`doc/deploy-vercel-railway.md`](../doc/deploy-vercel-railway.md). Set `VITE_BLOG_API_URL` on Vercel and in `frontend/.env` locally; client routes via `src/app/lib/blogCallables.ts` → `postBlogApi` (`/api/publish-kit`). Railway needs `OPENROUTER_API_KEY`, `SUPABASE_*`, `ADMIN_*`, `ALLOWED_ORIGINS` (no Google service account when `IMAGE_STORAGE=supabase`).
+**Alternative (no Blaze):** Express API in `backend/` on **Railway** — full steps: [`docs/self-hosting.md`](../../docs/self-hosting.md). Set `VITE_BLOG_API_URL` in the frontend build and in `frontend/.env` locally; client routes via `src/app/lib/blogCallables.ts` → `postBlogApi` (`/api/publish-kit`). Railway needs `OPENROUTER_API_KEY`, `SUPABASE_*`, `ADMIN_*`, `ALLOWED_ORIGINS` (no Google service account when `IMAGE_STORAGE=supabase`).
 
 Functions / Express: `OPENROUTER_API_KEY` in **`backend/.env`** (see `doc/env.md`). Frontend flags in **`frontend/.env`** (`VITE_*` only).
 

@@ -130,18 +130,18 @@ assert.ok(
   !studyOs.links.some((link) => link.url === STUDY_OS_LIVE_APP),
   'Study OS card must not link study.design-bakery.com while that host is not served',
 );
-const vercelConfig = await readJson('./vercel.json');
-for (const [source, destination] of [
-  ['/studyos', STUDY_OS_LIVE_APP],
-  ['/studyos/:path*', `${STUDY_OS_LIVE_APP}:path*`],
-]) {
-  assert.ok(
-    vercelConfig.redirects.some(
-      (r) => r.source === source && r.destination === destination && r.permanent === false,
-    ),
-    `vercel.json should redirect ${source} to the Study OS live app (non-permanent)`,
-  );
-}
+const caddyfile = await readFile(new URL('./deploy/gravebuster/Caddyfile', root), 'utf8');
+// Non-permanent: a 307 with the Study OS host as the Location.
+assert.match(
+  caddyfile,
+  /@studyosExact path \/studyos\n\s*handle @studyosExact \{\n\s*header Location https:\/\/study\.design-bakery\.com\/\n[\s\S]*?BODY 307/,
+  'Caddyfile should redirect /studyos to the Study OS live app (non-permanent)',
+);
+assert.match(
+  caddyfile,
+  /handle_path \/studyos\/\* \{\n\s*header Location https:\/\/study\.design-bakery\.com\{http\.request\.uri\}\n[\s\S]*?BODY 307/,
+  'Caddyfile should redirect /studyos/* to the Study OS live app, keeping the path (non-permanent)',
+);
 const fluffy = projects.find((p) => p.title === 'Fluffy V4');
 assert.ok(fluffy, 'Fluffy V4 should be in the showcase');
 assert.ok(

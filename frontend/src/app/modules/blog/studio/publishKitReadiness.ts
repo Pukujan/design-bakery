@@ -93,7 +93,7 @@ export function formatPublishKitError(raw: string, readiness: PublishKitReadines
   }
   if (/non-JSON|invalid JSON/i.test(raw) && /VITE_BLOG_API_URL|Check VITE/i.test(raw)) {
     return (
-      'Blog API returned a non-JSON error page. Set VITE_BLOG_API_URL to your Railway backend URL on Vercel, ' +
+      'Blog API returned a non-JSON error page. Set VITE_BLOG_API_URL to your Railway backend URL for the frontend build, ' +
       'redeploy, and run pnpm run dev:stack locally (not pnpm run dev alone).'
     );
   }

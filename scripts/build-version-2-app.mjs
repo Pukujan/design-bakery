@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Builds the /version-2 page (frontend/version-2-app) and copies its output into the
-// site's dist tree at /version-2/, where Caddy and Vercel serve it for /version-2 and
+// site's dist tree at /version-2/, where Caddy serves it for /version-2 and
 // /version-2/.
 //
 // frontend/version-2-app is deliberately NOT a pnpm workspace member: it wants Vite 8

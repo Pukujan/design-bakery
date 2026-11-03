@@ -1,15 +1,16 @@
-# design-bakery — Caddy config, 1:1 with the rules in vercel.json (TASK-DB-0055).
+# design-bakery — Caddy config. This file is the source of truth for the site's routing
+# (TASK-DB-0055; the old Vercel config was removed in TASK-DB-0131).
 #
 # Runs inside the container on plain HTTP :80 behind the Cloudflare Tunnel; TLS is
 # terminated at the Cloudflare edge. `auto_https off` keeps Caddy from trying ACME
 # for the tunnel's hostname.
 #
-# Vercel routing semantics reproduced here (order matters):
-#   1. `redirects` are evaluated before the filesystem, in file order.
-#   2. `rewrites` are evaluated *after* the filesystem — a request that matches a real
-#      file (or a directory with index.html) is served from disk, never rewritten.
-#   3. The first matching rewrite wins; `/((?!.*\.html$).*)` is the last-resort SPA
-#      fallback and deliberately skips paths ending in .html (those 404).
+# Routing order (inside `route`, the written order is the evaluated order):
+#   1. Redirects come before the filesystem, in file order.
+#   2. Rewrites come *after* the filesystem — a request that matches a real file (or a
+#      directory with index.html) is served from disk, never rewritten.
+#   3. The first matching rewrite wins; the final `handle` is the last-resort SPA
+#      fallback and sits after the `*.html` 404, so a missing .html file 404s.
 
 {
 	admin off
@@ -21,16 +22,15 @@
 	encode zstd gzip
 
 	# Internal liveness endpoint for the container HEALTHCHECK / deploy.sh.
-	# Not part of the Vercel site (see docs/self-hosting.md, "known differences").
+	# Not part of the public site (see docs/self-hosting.md, "known differences").
 	handle /healthz {
 		respond "ok" 200
 	}
 
 	route {
-		# Not in vercel.json: the apex -> www 307 is Vercel *domain* configuration, and
-		# the site has always behaved this way (https://design-bakery.com/x -> 307
-		# https://www.design-bakery.com/x). Reproduced here so both hostnames can be
-		# routed to this container without serving the site twice. Matches the apex
+		# The apex -> www 307 (https://design-bakery.com/x -> 307
+		# https://www.design-bakery.com/x), so both hostnames can be routed to this
+		# container without serving the site twice. Matches the apex
 		# only, so staging hostnames and direct 127.0.0.1 checks are unaffected.
 		@apex host design-bakery.com
 		handle @apex {
@@ -57,24 +57,15 @@
 		}
 
 		# ---------------------------------------------------------------- redirects
-		# `respond` + an explicit Location instead of `redir`: Vercel answers these with a
-		# 15-byte `Redirecting...\n` text/plain body, and `redir` cannot carry a body. The
-		# body is a heredoc because the Caddyfile does not expand \n in quoted strings —
-		# the blank line before the closing marker is the trailing newline.
-		# vercel.json: { source: "/ai-for-good", destination: "/ai-for-good/", permanent: true }
-		# Location is relative on purpose: the container only ever sees http://, so an
-		# absolute redirect would downgrade the scheme at the Cloudflare edge.
-		@aiForGoodExact path /ai-for-good
-		handle @aiForGoodExact {
-			header Location /ai-for-good/
-			header Content-Type text/plain
-			respond <<BODY
-			Redirecting...
+		# `respond` + an explicit Location instead of `redir` where the redirect answers
+		# with a 15-byte `Redirecting...\n` text/plain body, which `redir` cannot carry.
+		# The body is a heredoc because the Caddyfile does not expand \n in quoted
+		# strings — the blank line before the closing marker is the trailing newline.
+		# Location is relative where it can be: the container only ever sees http://, so
+		# an absolute redirect to this host would downgrade the scheme at the Cloudflare
+		# edge.
 
-			BODY 308
-		}
-
-		# vercel.json: { source: "/studyos", destination: "https://study.design-bakery.com/", permanent: false }
+		# /studyos -> the Study OS live app (non-permanent).
 		@studyosExact path /studyos
 		handle @studyosExact {
 			header Location https://study.design-bakery.com/
@@ -85,7 +76,7 @@
 			BODY 307
 		}
 
-		# vercel.json: { source: "/studyos/:path*", destination: "https://study.design-bakery.com/:path*", permanent: false }
+		# /studyos/* -> the same path on the Study OS host (non-permanent).
 		# handle_path strips the /studyos prefix before the redirect runs, and
 		# {http.request.uri} is the post-strip value (the plain {uri} placeholder is
 		# resolved from the original request URI and would leak the prefix).
@@ -99,20 +90,9 @@
 		}
 
 		# ----------------------------------------------------------------- rewrites
-		# vercel.json rewrites /ai-for-good/ and /ai-for-good/:path* to the separate
-		# ai-for-good Vercel app. Vercel proxies with Host set to the destination.
-		handle /ai-for-good/* {
-			# reverse_proxy reads the rewritten URL directly, so strip_prefix is enough
-			# here (unlike the redirect above, which needs {http.request.uri}).
-			uri strip_prefix /ai-for-good
-			reverse_proxy https://ai-for-good-livid.vercel.app {
-				header_up Host ai-for-good-livid.vercel.app
-			}
-		}
-
-		# --- filesystem (Vercel checks this before applying the rewrites below) ---
+		# --- filesystem (checked before the rewrites below) ---
 		# Directory requests: /dir and /dir/ both serve /dir/index.html (no trailing-slash
-		# redirect — Vercel serves the directory index directly, e.g. /case-studies/cortex).
+		# redirect — the directory index is served directly, e.g. /case-studies/cortex).
 		@dirIndex file {path}/index.html
 		handle @dirIndex {
 			rewrite * {path}/index.html
@@ -133,28 +113,27 @@
 			header Cache-Control "public, max-age=14400, must-revalidate"
 			@htmlAsset path *.html
 			header @htmlAsset Cache-Control "public, max-age=0, must-revalidate"
-			# Go's mime table (what Caddy uses) disagrees with Vercel on four
-			# extensions; the values below are what https://www.design-bakery.com
-			# actually returns, verified per file across the 132 non-hashed static
-			# files in the build (see docs/self-hosting.md §2).
+			# Go's mime table (what Caddy uses) disagrees with the types the site has
+			# always served on four extensions; the values below keep them stable
+			# (see docs/self-hosting.md §2).
 			@xmlAsset path *.xml
 			header @xmlAsset Content-Type "application/xml"
-			# text/javascript vs application/javascript.
+			# application/javascript rather than Go's text/javascript.
 			@jsAsset path *.js *.mjs
 			header @jsAsset Content-Type "application/javascript; charset=utf-8"
-			# Go sends application/json bare; Vercel appends the charset.
+			# Go sends application/json bare; the charset is appended.
 			@jsonAsset path *.json
 			header @jsonAsset Content-Type "application/json; charset=utf-8"
 			# Go has no entry for .b64 (base64 asset) or .keep (empty placeholder
 			# committed under public/) and sends no Content-Type at all for either;
-			# Vercel falls back to application/octet-stream.
+			# they get application/octet-stream.
 			@b64Asset path *.b64 *.keep
 			header @b64Asset Content-Type "application/octet-stream"
 			file_server
 		}
 
-		# vercel.json rewrites /case-studies/cortex, /case-studies/cortex/ and
-		# /case-studies/cortex/a to the archived cortex build. The first two are already
+		# /case-studies/cortex, /case-studies/cortex/ and /case-studies/cortex/a all
+		# serve the archived cortex build. The first two are already
 		# served by the directory index above (public/case-studies/cortex/index.html);
 		# /case-studies/cortex/a only exists as .../a/index.html, so the rewrite applies.
 		@cortex path /case-studies/cortex /case-studies/cortex/ /case-studies/cortex/a
@@ -165,8 +144,8 @@
 		}
 
 		# The IRE dashboard (built from frontend/ire-app into dist/ire by
-		# scripts/build-ire-app.mjs). vercel.json rewrites /ire and /ire/ to its
-		# index.html; this mirrors that so the two configs stay 1:1. `@dirIndex` above
+		# scripts/build-ire-app.mjs). /ire and /ire/ both serve its index.html.
+		# `@dirIndex` above
 		# would serve it too, but its `{path}/index.html` join leaves a double slash for
 		# a trailing-slash request, so both spellings are stated explicitly. Hashed
 		# assets are real files served by `@exactFile` above — this matches only the two
@@ -179,19 +158,17 @@
 		}
 
 		# The dashboard was served from /ire/app/ before it became the /ire page itself
-		# (TASK-DB-0081). vercel.json sends both spellings to /ire/ with a permanent
-		# redirect; this mirrors it so old links and any indexed copy land on the
-		# canonical path. Inside `route` the written order is the evaluated order, so this
-		# sits after the filesystem handlers and before the SPA fallback: a real file under
-		# /ire/app/ still wins, and anything else redirects instead of rendering the shell.
+		# (TASK-DB-0081). Both spellings redirect permanently to /ire/ so old links
+		# and any indexed copy land on the canonical path. This sits after the
+		# filesystem handlers and before the SPA fallback: a real file under /ire/app/
+		# still wins, and anything else redirects instead of rendering the shell.
 		@ireAppLegacy path /ire/app /ire/app/
 		redir @ireAppLegacy /ire/ 301
 
 		# The /version-2 page (the additive cinematic-journey page, built from
 		# frontend/version-2-app into dist/version-2 by scripts/build-version-2-app.mjs).
-		# vercel.json rewrites /version-2 and /version-2/ to its index.html; this mirrors
-		# that so the two configs stay 1:1. `@dirIndex` above would serve it too, but its
-		# `{path}/index.html` join leaves a double slash for a trailing-slash request, so
+		# /version-2 and /version-2/ both serve its index.html.
+		# `@dirIndex` above would serve it too, but its `{path}/index.html` join leaves a double slash for a trailing-slash request, so
 		# both spellings are stated explicitly. Hashed assets and the scene plates
 		# (/version-2/assets/*, /version-2/generated-*.png) are real files served by
 		# `@exactFile` above — this matches only the two directory spellings.
@@ -202,7 +179,7 @@
 			file_server
 		}
 
-		# Missing .html file: vercel.json's catch-all excludes `*.html`, so these 404
+		# Missing .html file: the SPA fallback excludes `*.html`, so these 404
 		# instead of falling back to the SPA shell.
 		@htmlNotFound path *.html
 		handle @htmlNotFound {
@@ -211,14 +188,13 @@
 
 		# ------------------------------------------- Open Graph / link previews
 		# Blog and case-study URLs need a per-post <title> and og:* tags; the SPA shell
-		# has none, so a shared link previewed as the generic homepage. Vercel ran an
-		# Edge middleware for this (middleware.ts); on gravebuster the Express `api`
-		# container does (backend/src/api/ogPreview.ts), and this block routes it the
-		# requests. The matcher is the same set that router handles: blog list/detail,
+		# has none, so a shared link previewed as the generic homepage. The Express `api`
+		# container renders those tags (backend/src/api/ogPreview.ts), and this block
+		# routes it the requests. The matcher is the same set that router handles: blog list/detail,
 		# with or without a portfolio prefix, plus every case-study path.
 		#
 		# Placed after the filesystem handlers and the `.html` 404 above, matching
-		# Vercel: a real file or a static case-study directory (study-os, fossil,
+		# A real file or a static case-study directory (study-os, fossil,
 		# fluffy-v4, cortex) is already served from disk and never reaches the API, and
 		# a missing `.html` has already 404'd. Only SPA-backed paths fall through to
 		# here — the ones the SPA fallback below would otherwise serve the generic
@@ -232,7 +208,6 @@
 			reverse_proxy api:8787
 		}
 
-		# vercel.json: { source: "/((?!.*\\.html$).*)", destination: "/index.html" }
 		# SPA fallback — every other unmatched path renders the app shell.
 		handle {
 			rewrite * /index.html

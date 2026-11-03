@@ -68,7 +68,6 @@ See **[additionals/doc/architecture.md](additionals/doc/architecture.md)** for M
 - **`pnpm run dev:api`** — Express API only.
 - **`pnpm run dev:web`** — Vite only.
 - **Production (current):** gravebuster + Cloudflare Tunnel — the site and the API both serve from the owner's box. **[docs/self-hosting.md](docs/self-hosting.md)** (deploy/rollback, `deploy/gravebuster/`).
-- **Legacy (Vercel + Railway, kept as rollback):** [additionals/doc/deploy-vercel-railway.md](additionals/doc/deploy-vercel-railway.md).
 - Dev port: first free from **5300** (`vite.config.ts`).
 
 ## Publish kit tests
