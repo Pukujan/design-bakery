@@ -57,8 +57,8 @@ const CLOSERS: Line[] = [
 ];
 
 const GAP_MS = 2200;
-/** Fillers start only if the answer is not back by then, so an instant answer is never preceded by one. */
-const THINK_DELAY_MS = 700;
+/** Fillers start only if the answer is not back by then, so an instant or quick answer is never preceded by one. */
+const THINK_DELAY_MS = 1500;
 /** Barely a breath between clips: they are recorded to run on from one another. */
 const THINK_GAP_MS = 700;
 const THINK_LONG_AFTER_MS = 9000;
@@ -281,7 +281,7 @@ export function stopNudges() {
 /* ---------- Thinking fillers ---------- */
 
 export type Thinking = {
-  /** The answer is ready: let the clip in progress end, say a closer if fillers were used, then resolve. */
+  /** The answer is ready: fade out the clip in progress, say a closer if a whole filler was heard, then resolve. */
   finish: () => Promise<void>;
   /** Someone started speaking: stop at once. */
   cancel: () => void;
@@ -295,12 +295,14 @@ const pickOne = <T,>(items: readonly T[], not?: T): T => {
 /**
  * Fillers while an answer is worked out: after a short delay, an opener ("Hmm", "Let me see"), then up to two more
  * ("Now let me look at that", "One second"), each finishing before the next begins, and one "taking a while" line
- * if it is still not ready. Then silence. When the answer arrives, `finish()` lets the current clip end and adds a
- * closer ("Ahh, here it is"), so the real answer is never cut across mid-sentence.
+ * if it is still not ready. Then silence. When the answer arrives, `finish()` fades out the clip in progress at once
+ * (the answer is never held behind it), and adds a closer ("Ahh, here it is") only after a filler that was heard in
+ * full, so a long wait still flows into the answer.
  */
 export function startThinking(onLine: (text: string) => void): Thinking {
   let live = true;
-  let played = 0;
+  /** Fillers heard to the end. A closer only follows those; one cut short goes straight to the answer. */
+  let heard = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let current: { audio: HTMLAudioElement; done: Promise<void>; end: () => void } | null = null;
   const startedAt = Date.now();
@@ -317,11 +319,13 @@ export function startThinking(onLine: (text: string) => void): Thinking {
         onLine('');
         resolve();
       };
-      audio.onended = end;
+      audio.onended = () => {
+        heard += 1;
+        end();
+      };
     });
     current = { audio, done, end };
     onLine(line.text);
-    played += 1;
     audio.play().catch(end);
     return done;
   };
@@ -349,8 +353,15 @@ export function startThinking(onLine: (text: string) => void): Thinking {
     async finish() {
       live = false;
       clearTimeout(timer);
-      if (current) await current.done;
-      if (played > 0) await play(pickOne(CLOSERS));
+      // The answer is ready, so it is not held behind a 5 to 6 second filler: the clip in progress fades out.
+      const playing = current;
+      if (playing) {
+        current = null;
+        onLine('');
+        fadeOut(playing.audio);
+        await new Promise((resolve) => setTimeout(resolve, FADE_MS));
+      }
+      if (heard > 0) await play(pickOne(CLOSERS));
     },
     cancel() {
       live = false;

@@ -210,7 +210,7 @@ export const voice = {
           // spoken, and its bubble shown, only once the page is there.
           await Promise.race([copilot.takeMoves(), new Promise((resolve) => setTimeout(resolve, 30_000))]);
         } finally {
-          // A clip in progress ends first, then a closer ("Ahh, here it is"), so the answer is never cut across.
+          // A clip in progress fades out, and a closer ("Ahh, here it is") follows only a filler heard in full.
           await waiting.finish();
           if (thinking === waiting) thinking = null;
           set({ thinking: false });
