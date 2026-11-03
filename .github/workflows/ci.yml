@@ -72,6 +72,9 @@ jobs:
       - name: Check the copilot's session memory
         run: pnpm test:copilot-memory
 
+      - name: Check the copilot's owner rate-limit exemption
+        run: pnpm test:copilot-exempt
+
       - name: Check the copilot's streaming text filter
         run: pnpm test:copilot-stream
 

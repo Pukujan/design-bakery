@@ -42,6 +42,8 @@ export class TurnTrace {
   output = '';
   /** 'text' or 'voice'. */
   channel = 'text';
+  /** The visitor's address is on the owner's rate-limit exemption list (COPILOT_RATE_EXEMPT_IPS). */
+  exempt = false;
   /** The page moves and chips this turn sent, one word each, so a trace shows what the visitor was shown. */
   actions: string[] = [];
   /** What cite_section was asked to cite: path#anchor when the guard let it through, path!reason when it did not. */
@@ -88,6 +90,7 @@ export class TurnTrace {
       'copilot.model': this.model,
       'copilot.source': this.model.startsWith('cache:') ? 'cache' : 'model',
       'copilot.routine': this.routine,
+      ...(this.exempt ? { 'copilot.exempt': true } : {}),
       'copilot.latency_ms': end - this.start,
       'copilot.finish_reason': this.finishReason,
       'copilot.truncated': this.truncated,
