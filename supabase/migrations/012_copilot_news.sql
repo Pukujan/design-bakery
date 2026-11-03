@@ -9,6 +9,7 @@ create table if not exists public.copilot_news (
   summary text not null check (char_length(summary) <= 240),
   url text not null check (url ~ '^https?://'),
   source text not null check (char_length(source) <= 60),
+  first_party boolean not null default false,
   item_date date not null,
   fetched_at timestamptz not null default now()
 );
