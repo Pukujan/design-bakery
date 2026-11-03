@@ -45,3 +45,7 @@ Cached answers are logged: each is a `copilot.turn` span (1 to 174 ms). They wer
 ## Update: expressions and talking mouth
 
 The moon now has a wink, heart eyes and a gasp (one at random every 6 to 14 s while idle), a mouth that opens and closes in an uneven rhythm while it speaks or shows a hold line, and a wobbly mouth with eyes looking up while it thinks.
+
+## Update: the pull of the sky body
+
+Rarely (every 60 to 200 s, never while it speaks or the agent is working) the moon is pulled toward the body in the sky (the disc the page text flows round, read from `flowField`), spirals in while shrinking and spinning, vanishes, and pops out somewhere else after 2 to 3 s. Not under reduced motion. Dev handle: `window.__moonPull()`. Measured: spiral about 4.5 s, hidden about 2 s, respawn grows back over 0.7 s.

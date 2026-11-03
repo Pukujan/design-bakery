@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { flowField } from '../lab/flow';
 import { useAgentCursor } from './agentCursor';
 import { useCopilot } from './store';
 import { useVoice } from './voice';
@@ -73,6 +74,15 @@ export default function MoonCursor() {
     let lastTick = performance.now();
     let nextSpin = performance.now() + rand(25000, 40000);
     let raf = 0;
+    // A rare silly event: the body in the sky pulls the moon in, it spirals down, is swallowed, and pops out somewhere else.
+    let fall: 'none' | 'pulled' | 'gone' = 'none';
+    let fallStart = 0;
+    let fallFrom = { d: 0, angle: 0 };
+    let goneUntil = 0;
+    let popAt = 0;
+    let spinRoll = 0;
+    let pullAt = performance.now() + rand(60000, 150000);
+    if (import.meta.env.DEV) (window as unknown as { __moonPull?: () => void }).__moonPull = () => { pullAt = 0; };
 
     const say = (next: Mood, forMs: number) => {
       moodUntil = performance.now() + forMs;
@@ -180,8 +190,56 @@ export default function MoonCursor() {
       const a = agentRef.current;
       // Lazy and unhurried by default; quicker only to run from the pointer, and when the agent is going somewhere.
       let stiffness = 7;
+      const hole = reduceMotion ? undefined : flowField.obstacles.find((o) => o.kind === 'disc' && o.r > 14);
 
-      if (a.visible) {
+      if (fall === 'gone') {
+        if (now < goneUntil) return;
+        // Out it comes, somewhere else, tiny and then growing.
+        fall = 'none';
+        pos.x = rand(MARGIN, window.innerWidth - SIZE - MARGIN);
+        pos.y = rand(MARGIN + 56, window.innerHeight - SIZE - MARGIN);
+        vel.x = 0;
+        vel.y = 0;
+        target = { ...pos };
+        anchor = { ...pos };
+        popAt = now;
+        root.style.opacity = '1';
+        say('whee', 1400);
+      }
+      if (fall === 'none' && hole && hole.kind === 'disc' && !a.visible && !talkingRef.current && now > pullAt) {
+        const c = centre();
+        fall = 'pulled';
+        fallStart = now;
+        fallFrom = { d: Math.max(80, Math.hypot(c.x - hole.x, c.y - hole.y)), angle: Math.atan2(c.y - hole.y, c.x - hole.x) };
+        swirl = 0;
+        say('scared', 9000);
+      }
+
+      if (fall === 'pulled') {
+        if (!hole || hole.kind !== 'disc' || a.visible) {
+          fall = 'none';
+          pullAt = now + rand(90000, 200000);
+        } else {
+          // A slow drift at first, then faster and tighter: a spiral down to the middle.
+          const t = (now - fallStart) / 1000;
+          const p = clamp(t / 5.5, 0, 1);
+          const e = p * p;
+          const angle = fallFrom.angle + e * Math.PI * 3;
+          const radius = fallFrom.d * (1 - e);
+          target = { x: hole.x + Math.cos(angle) * radius - SIZE / 2, y: hole.y + Math.sin(angle) * radius - SIZE / 2 };
+          stiffness = 4 + 50 * p;
+          spinRoll += (160 + 1100 * p) * dt;
+          if (p >= 1) {
+            // Swallowed.
+            fall = 'gone';
+            goneUntil = now + rand(1800, 3200);
+            pullAt = now + rand(90000, 200000);
+            root.style.opacity = '0';
+            spinRoll = 0;
+            return;
+          }
+        }
+      } else if (a.visible) {
         // The agent is working: roll to where it points.
         target = place({ x: a.x - SIZE / 2 + 6, y: a.y - SIZE / 2 + 6 });
         stiffness = 40;
@@ -241,7 +299,7 @@ export default function MoonCursor() {
       const loopX = a.visible || reduceMotion ? 0 : Math.cos(swirlAngle) * 190 * swirl;
       const loopY = a.visible || reduceMotion ? 0 : Math.sin(swirlAngle) * 120 * swirl;
       // The spot it heads for, with the pointer's parallax and the swirl laid over the plan (the plan itself is untouched).
-      const goal = place({ x: target.x + (a.visible ? 0 : parallax.x) + loopX, y: target.y + (a.visible ? 0 : parallax.y) + loopY });
+      const goal = fall === 'pulled' ? target : place({ x: target.x + (a.visible ? 0 : parallax.x) + loopX, y: target.y + (a.visible ? 0 : parallax.y) + loopY });
       if (reduceMotion) {
         pos.x = target.x;
         pos.y = target.y;
@@ -255,11 +313,13 @@ export default function MoonCursor() {
         pos.y += vel.y * dt;
       }
 
+      if (fall !== 'pulled') spinRoll *= 0.9;
       lean *= 0.92;
       tilt *= 0.92;
-      const roll = clamp(vel.x * 0.05, -28, 28) + lean + tilt * 0.4;
+      const roll = clamp(vel.x * 0.05, -28, 28) + lean + tilt * 0.4 + spinRoll;
+      const shrink = fall === 'pulled' ? 1 - Math.pow(clamp((now - fallStart) / 5500, 0, 1), 1.6) * 0.9 : popAt ? 0.1 + 0.9 * clamp((now - popAt) / 700, 0, 1) : 1;
       root.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0)`;
-      body.style.transform = `rotate(${roll.toFixed(1)}deg) scale(${1 + Math.min(0.18, Math.abs(vel.y) * 0.0006)}, ${1 - Math.min(0.12, Math.abs(vel.y) * 0.0004)})`;
+      body.style.transform = `rotate(${roll.toFixed(1)}deg) scale(${(1 + Math.min(0.18, Math.abs(vel.y) * 0.0006)) * shrink}, ${(1 - Math.min(0.12, Math.abs(vel.y) * 0.0004)) * shrink})`;
       // The eyes follow the pointer.
       const eyes = eyesRef.current;
       if (eyes) {
