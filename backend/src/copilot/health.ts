@@ -18,6 +18,7 @@ export interface Health {
 }
 
 const state = new Map<string, Health>();
+const FREE_LAST = 'openrouter';
 
 /** Healthy and never-probed providers first, in their own order; failing ones after. */
 export function byHealth<T extends { id: string }>(providers: T[], fastest = false): T[] {
@@ -25,8 +26,12 @@ export function byHealth<T extends { id: string }>(providers: T[], fastest = fal
   const healthy = providers.filter((p) => !failing(p));
   // On a call the wait is heard: the provider whose last probe was quickest goes first. Never-probed ones keep their place.
   const ms = (p: T) => state.get(p.id)?.ms ?? Infinity;
-  if (fastest) healthy.sort((a, b) => (ms(a) === Infinity || ms(b) === Infinity ? 0 : ms(a) - ms(b)));
-  return [...healthy, ...providers.filter(failing)];
+  // The free model is a reasoning model: it answers the probe's two-line prompt first, then takes up to 16 s on a real
+  // 8k-token prompt. It stays the last resort of the healthy ones, never ranked by the probe.
+  const free = healthy.filter((p) => p.id === FREE_LAST);
+  const paid = healthy.filter((p) => p.id !== FREE_LAST);
+  if (fastest) paid.sort((a, b) => (ms(a) === Infinity || ms(b) === Infinity ? 0 : ms(a) - ms(b)));
+  return [...paid, ...free, ...providers.filter(failing)];
 }
 
 export function healthReport(providers: Provider[] = smartProviders()) {
