@@ -127,26 +127,179 @@
   cursor: pointer;
 }
 
-.cp-voice {
+/* The voice call button (MoonCallButton): the moon dozes in a soft, breathing glow and wakes up when the visitor comes
+   near. Moon-cream on the dark composer, so it is the brightest thing there until a question is typed. */
+.cp-call {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  height: 42px;
-  padding: 0 0.9rem;
+  gap: 0.45rem;
+  height: 44px;
+  padding: 0 1rem 0 0.4rem;
   flex: none;
-  border: 1px solid var(--lab-line);
+  border: 1px solid rgb(239 230 198 / 0.45);
   border-radius: 999px;
-  background: transparent;
-  color: var(--lab-paper);
-  font: 600 0.8rem var(--lab-display);
+  background:
+    radial-gradient(120% 140% at 15% 50%, rgb(255 253 243 / 0.2), transparent 60%),
+    rgb(239 230 198 / 0.08);
+  color: #f6efd6;
+  font: 650 0.82rem var(--lab-display);
+  letter-spacing: 0.01em;
   white-space: nowrap;
   cursor: pointer;
+  isolation: isolate;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s, background 0.2s, box-shadow 0.25s;
+  animation: cp-call-glow 3.2s ease-in-out infinite;
 }
 
-.cp-voice:hover, .cp-voice:focus-visible {
-  border-color: var(--lab-accent);
-  color: var(--lab-accent);
+/* A ring that swells out now and then, like the moon taking a breath. */
+.cp-call::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  border: 1px solid rgb(239 230 198 / 0.5);
+  opacity: 0;
+  animation: cp-call-ripple 3.2s ease-out infinite;
+  pointer-events: none;
+}
+
+.cp-call:hover, .cp-call:focus-visible {
+  transform: translateY(-1px) scale(1.04);
+  border-color: rgb(255 253 243 / 0.85);
+  background:
+    radial-gradient(120% 140% at 15% 50%, rgb(255 253 243 / 0.32), transparent 65%),
+    rgb(239 230 198 / 0.14);
+  box-shadow: 0 0 0 4px rgb(239 230 198 / 0.08), 0 6px 22px -6px rgb(239 230 198 / 0.55);
+  outline: none;
+}
+
+.cp-call:active {
+  transform: scale(0.97);
+}
+
+.cp-call-moon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  filter: drop-shadow(0 0 6px rgb(255 247 214 / 0.55));
+  animation: cp-call-bob 3.2s ease-in-out infinite;
+}
+
+.cp-call-moon svg {
+  display: block;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cp-call:hover .cp-call-moon svg, .cp-call:focus-visible .cp-call-moon svg {
+  transform: rotate(-10deg) scale(1.08);
+}
+
+/* The face: asleep at rest, awake and smiling up close, thinking while the call connects. */
+.cp-call-awake, .cp-call-think { opacity: 0; }
+.cp-call-sleepy, .cp-call-awake, .cp-call-think, .cp-call-smile { transition: opacity 0.18s; }
+.cp-call-blush { opacity: 0.55; transition: opacity 0.25s; }
+.cp-call:hover .cp-call-sleepy, .cp-call:focus-visible .cp-call-sleepy, .cp-call[data-status='connecting'] .cp-call-sleepy { opacity: 0; }
+.cp-call:hover .cp-call-awake, .cp-call:focus-visible .cp-call-awake, .cp-call[data-status='connecting'] .cp-call-awake { opacity: 1; }
+.cp-call:hover .cp-call-blush, .cp-call:focus-visible .cp-call-blush { opacity: 0.95; }
+.cp-call[data-status='connecting'] .cp-call-smile { opacity: 0; }
+.cp-call[data-status='connecting'] .cp-call-think { opacity: 1; }
+
+/* Every so often it peeks: a short blink awake while dozing. */
+.cp-call[data-status='idle']:not(:hover):not(:focus-visible) .cp-call-sleepy { animation: cp-call-doze 7s ease-in-out infinite; }
+.cp-call[data-status='idle']:not(:hover):not(:focus-visible) .cp-call-awake { animation: cp-call-peek 7s ease-in-out infinite; }
+
+.cp-call-mic {
+  position: absolute;
+  right: -3px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--lab-accent);
+  color: var(--lab-accent-ink, #0b0b0a);
+  box-shadow: 0 0 0 2px var(--lab-ink);
+}
+
+.cp-call-spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #fff7d6;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  opacity: 0;
+  animation: cp-call-twinkle 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.cp-call-spark-1 { top: -3px; left: -2px; }
+.cp-call-spark-2 { top: 4px; right: -6px; width: 5px; height: 5px; animation-delay: 1.4s; }
+
+.cp-call:hover .cp-call-spark, .cp-call:focus-visible .cp-call-spark {
+  animation-duration: 1.2s;
+}
+
+.cp-call[data-status='connecting'] {
+  border-color: rgb(255 253 243 / 0.7);
+  animation-duration: 1s;
+}
+
+.cp-call[data-status='connecting']::before,
+.cp-call[data-status='connecting'] .cp-call-moon {
+  animation-duration: 1.1s;
+}
+
+.cp-call[data-status='connected'] {
+  padding: 0 1rem;
+  border-color: rgb(var(--lab-hot-rgb) / 0.6);
+  background: rgb(var(--lab-hot-rgb) / 0.12);
+  color: var(--lab-hot);
+  animation: none;
+}
+
+.cp-call[data-status='connected']::before { display: none; }
+
+@keyframes cp-call-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(239 230 198 / 0), 0 0 14px -4px rgb(239 230 198 / 0.25); }
+  50% { box-shadow: 0 0 0 0 rgb(239 230 198 / 0), 0 0 22px -2px rgb(239 230 198 / 0.45); }
+}
+
+@keyframes cp-call-ripple {
+  0%, 55% { opacity: 0; transform: scale(1); }
+  60% { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.18, 1.45); }
+}
+
+@keyframes cp-call-bob {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-2px) rotate(4deg); }
+}
+
+@keyframes cp-call-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.4) rotate(0); }
+  45% { opacity: 1; transform: scale(1) rotate(45deg); }
+  70% { opacity: 0; transform: scale(0.5) rotate(90deg); }
+}
+
+@keyframes cp-call-doze {
+  0%, 84%, 96%, 100% { opacity: 1; }
+  86%, 94% { opacity: 0; }
+}
+
+@keyframes cp-call-peek {
+  0%, 84%, 96%, 100% { opacity: 0; }
+  86%, 94% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-call, .cp-call::before, .cp-call-moon, .cp-call-spark, .cp-call-sleepy, .cp-call-awake { animation: none !important; }
+  .cp-call, .cp-call-moon svg { transition: none; }
 }
 
 .lab-msg-step,
