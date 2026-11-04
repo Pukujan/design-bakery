@@ -130,3 +130,9 @@ The owner's iPhone screenshots: after Continue chat, the keyboard came up and th
 
 - **Wake on visit** (`CopilotRoot.tsx`): the warm-up now runs as soon as any page loads (not only once the chat box mounts), again when the tab comes back to the front, and every 5 minutes while it is in front, so the agent (which sleeps after 10 idle minutes) is up before the visitor reaches the button. `warmVoice` still sends at most one every 4 minutes, and the API at most one a minute. Checked: one `/api/copilot/voice/warm` on load.
 - **Moon call button** (`MoonCallButton.tsx`, `copilot.css`): the mic pill is now the mascot moon in a moon-cream pill with a breathing glow, a ripple now and then and two twinkling sparkles. It dozes (eyes shut, peeking awake every 7 s), wakes up and smiles on hover or focus, thinks with a quicker pulse while connecting ("Waking up…"), and turns into a red End call on a call. A lime mic badge keeps it readable as voice. Label "Talk to me". Reduced motion stops every animation. Checked at desktop and 375 px (fits, no sideways scroll); the connecting and on-call looks were not seen live.
+
+## Rename finished; stand-in removed
+
+- #204 deployed at 17:01:58 UTC through the stand-in (host files moved to `deploy/vps/`). After that, Komodo's own file check failed every 3 minutes until server-management #124 (17:55 UTC) pointed the stack at `deploy/vps/`. #206 then deployed from the new path at 17:58:05 UTC. server-management #122 was cut down to the CONVENTION.md row and merged.
+- `deploy/gravebuster/` (the stand-in), its ignore and line-ending rules, and the doc note about it are removed. On the VPS that folder held only the stand-in.
+- Live checks after #206: the wake-up fires on `/blogs` (204); the agent, asleep before the visit, was up within a minute and a token took 0.17 s; the moon button shows "Waking up…" on press. A full spoken call was not tried (the browser pane blocks the mic).

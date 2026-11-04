@@ -2,7 +2,6 @@
 # line endings there (a CRLF shell script fails with "bad interpreter"). `**`, not `*`:
 # a single `*` does not cross a directory separator.
 deploy/vps/** text eol=lf
-deploy/gravebuster/** text eol=lf
 
 # OIO (TASK-DB-0061) records byte-exact SHA-256 hashes of its managed files.
 # With core.autocrlf=true a Windows checkout rewrites them to CRLF and the
