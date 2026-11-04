@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { copilot, requestVoiceGrant, typedReply, warmVoice } from './store';
+import { copilot, requestVoiceGrant, typedReply } from './store';
 import type { LocalAudioTrack, Room } from 'livekit-client';
 import { noteActivity, pauseNudges, playSpokenReply, preloadHold, isNudge, resumeNudges, setCallOn, startHold, startNudges, startThinking, stopHold, stopNudges, withoutEcho, type Thinking } from './holdAudio';
 import { pickOrigin, type SkyOrigin } from './skyOrigin';
@@ -140,7 +140,6 @@ export const voice = {
   /** Fetch the hold lines ahead of the click so the first one starts at once. */
   preload: () => preloadHold(),
   /** The call button is on screen: wake the voice service now, so a call does not wait for it to start up. */
-  warm: () => warmVoice(),
   /** Mutes or unmutes the visitor's microphone on the call. */
   async toggleMute() {
     const track = microphone;

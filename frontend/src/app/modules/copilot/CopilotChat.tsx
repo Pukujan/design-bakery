@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { ArrowUp, Compass, MessageCircle, Mic, PhoneOff, Square } from 'lucide-react';
+import { ArrowUp, Compass, MessageCircle, Square } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useProjectRecords } from '../../lib/portfolioDocs';
 import { PLACEHOLDER_QUESTIONS, SUGGESTIONS } from '../lab/copilotAnswers';
@@ -8,6 +8,7 @@ import { chipKindOf, openLabel } from './chips';
 import { previewOf } from './replyPeek';
 import { copilot, useCopilot, type CopilotAction, type CopilotMessage } from './store';
 import { useVoice, voice } from './voice';
+import { MoonCallButton } from './MoonCallButton';
 import './chat-core.css';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
@@ -227,12 +228,6 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
     if (thread) thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
   }, [messages, showThread]);
 
-  // The call button is on screen: wake the voice service a few seconds after the page settles.
-  useEffect(() => {
-    const timer = window.setTimeout(() => voice.warm(), 3000);
-    return () => window.clearTimeout(timer);
-  }, []);
-
   const ask =(question: string) => {
     if (!question.trim() || busy) return;
     copilot.setDraft('');
@@ -357,17 +352,7 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
           autoComplete="off"
         />
         <div className="lab-composer-actions">
-          <button
-            type="button"
-            className="cp-voice"
-            aria-label={voiceState.status === 'idle' ? 'Talk to AI Pujan by voice' : 'End voice call'}
-            onPointerEnter={() => voice.preload()}
-            onFocus={() => voice.preload()}
-            onClick={() => voiceState.status === 'idle' ? void voice.start() : voice.stop()}
-          >
-            {voiceState.status === 'idle' ? <Mic size={16} /> : <PhoneOff size={16} />}
-            <span>{voiceState.status === 'idle' ? 'AI Pujan' : 'End call'}</span>
-          </button>
+          <MoonCallButton />
           {busy ? (
             <button type="button" className="lab-send" aria-label="Stop" onClick={() => copilot.stop()}>
               <Square size={16} fill="currentColor" />
