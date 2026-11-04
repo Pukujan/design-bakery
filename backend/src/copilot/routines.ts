@@ -223,6 +223,78 @@ const role: Routine = {
   },
 };
 
+/**
+ * "Show me anything", "idk, you pick", "keep going": the visitor wants to be taken somewhere and does not care where,
+ * so the next stop of a tour is opened at once (shipped projects, then a paper, then a post) with no question asked.
+ * What was already visited is read from what AI Pujan said earlier in the conversation, so nothing is stored.
+ * A request that names a topic ("anything about RAG") is not this routine's.
+ */
+const SURPRISE = /\b(anything|any (of them|one|project|projects)|whatever|surprise me|you pick|you choose|you decide|your call|you tell me|idk|dunno|i don t know|don t care|pick one|pick for me|show me some|something)\b/;
+const SHOW_VERB = /\b(show|see|open|take|walk|tour|pick|surprise|tell|go|give)\b/;
+const CONTINUE = /^(next|next one|next please|keep going|go on|go ahead|continue|what else|more|more please|another one|show me more|and then|then what|what s next|what next)$/;
+const VAGUE_WORDS = new Set('anything whatever something idk dunno don know care pick choose decide call surprise come on bro dude man just really honestly seriously already now then yes yeah ok okay fine sure me us them project projects one some any all of the a it'.split(' '));
+
+type Stop = { path: string; title: string; kind: 'project' | 'paper' | 'blog'; blurb: string };
+
+/** The tour, in order: shipped projects, the newest paper, the newest post, then the remaining projects. */
+function tourStops(site: Site): Stop[] {
+  const asStop = (p: Project): Stop => ({ path: projectPath(p), title: p.title, kind: 'project', blurb: [p.tagline, lead(p.description, 110)].filter(Boolean).map((t) => t.trim().replace(/[.!?…]+$/, '')).filter((t, i, all) => !all.slice(0, i).some((u) => t.toLowerCase().startsWith(u.toLowerCase()))).join('. ') });
+  const stops = site.projects.filter((p) => p.category === 'shipped').map(asStop);
+  const paper = latestPaper(site.papers.filter((p) => p.status === 'approved'));
+  if (paper) stops.push({ path: `/research/papers/${paper.id}`, title: paper.title, kind: 'paper', blurb: lead(paper.abstract, 120) });
+  const blog = latestBlog(site.blogs);
+  if (blog) stops.push({ path: `/blogs/${blog.id}`, title: blog.title, kind: 'blog', blurb: lead(blog.excerpt, 120) });
+  stops.push(...site.projects.filter((p) => p.category !== 'shipped').map(asStop));
+  return stops;
+}
+
+const sentence = (text: string) => text.trim().replace(/[.!?…]+$/, '') + '.';
+
+/** Whether this turn asks to be taken somewhere without saying where. `previous` is the assistant's last line. */
+export function asksForSurprise(question: string, previous?: string): 'start' | 'continue' | null {
+  const q = norm(question).replace(/^(it )?(should|could|can) be /, '');
+  const n = q.split(' ').length;
+  if (!q || n > 10) return null;
+  if (CONTINUE.test(q)) return previous ? 'continue' : null;
+  if (NEEDS_THOUGHT.test(q)) return null;
+  const left = words(q).filter((w) => !VAGUE_WORDS.has(w));
+  if (left.length) return null;
+  if (!SURPRISE.test(q)) return null;
+  // "show me anything" asks outright. A bare "anything" or "idk" only answers a question the assistant had just asked.
+  if (SHOW_VERB.test(q)) return 'start';
+  return previous && /\?\s*$/.test(previous.trim()) ? 'start' : null;
+}
+
+function surprise(ask: Ask, site: Site, said: string): RoutedAnswer | null {
+  const heard = norm(said);
+  const stops = tourStops(site);
+  const next = stops.findIndex((stop) => !heard.includes(norm(stop.title)));
+  if (next < 0) {
+    return {
+      routine: 'tour:end', intent: 'service', go: true, captions: journey(),
+      text: vary('tour-end', [
+        "That's the highlight reel. If any of it fits something you're building, I can set up a free call.",
+        "That's the best of it. If you have something in mind, a free call with me is one tap away.",
+      ]),
+      actions: [navigate('/contact', 'Book a free call')],
+    };
+  }
+  const stop = stops[next];
+  const after = stops[next + 1];
+  const opener = next === 0 || !heard.trim()
+    ? vary('tour-first', [`Let's start with ${stop.title}.`, `Okay, starting with ${stop.title}.`, `Here's one I like: ${stop.title}.`])
+    : vary('tour-next', [`Next, ${stop.title}.`, `On to ${stop.title}.`, `Then there's ${stop.title}.`]);
+  const teaser = after ? ` After this, ${after.title}.` : '';
+  return {
+    routine: 'tour:next',
+    intent: stop.kind === 'project' ? 'project' : stop.kind === 'paper' ? 'research' : 'blog',
+    text: `${opener} ${sentence(stop.blurb)}${teaser}`,
+    actions: [navigate(stop.path, `Open ${stop.title}`)],
+    go: true,
+    captions: journey(),
+  };
+}
+
 /** The registry, in the order they are tried. New routines are added here. */
 export const ROUTINES: readonly Routine[] = [latest, tech, role, open];
 
@@ -272,10 +344,15 @@ async function answerToOffer(ask: Ask, previous: string | undefined): Promise<Ro
  * The routine's answer for this question, or null when it belongs to the model. `routine` names which one ran: the
  * routines above, or `intent:<id>` for the saved intents in answers.ts. It is what the trace labels the turn with.
  */
-export async function routeRequest(question: string, firstTurn: boolean, voice = false, previous?: string): Promise<RoutedAnswer | null> {
+export async function routeRequest(question: string, firstTurn: boolean, voice = false, previous?: string, said = ''): Promise<RoutedAnswer | null> {
   const ask: Ask = { question, q: norm(question), voice, firstTurn };
   const replied = await answerToOffer(ask, previous);
   if (replied) return replied;
+  if (asksForSurprise(question, previous)) {
+    const [projects, papers, blogs, experience] = await Promise.all([loadProjects(), loadPapers(), loadBlogs(), loadExperience()]);
+    const stop = surprise(ask, { projects, papers, blogs, experiences: experience.experiences }, said);
+    if (stop) return stop;
+  }
   // Famous AI trick questions and "good catch" banter (gotchas.ts): short, self-contained, no site data.
   const gotcha = gotchaReply(question, voice, previous);
   if (gotcha) return gotcha;

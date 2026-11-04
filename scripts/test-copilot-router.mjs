@@ -57,6 +57,43 @@ assert.ok(role.text.includes('Nepasoft') && role.text.includes('AI/ML Engineer')
 assert.equal(nav(role).path, '/#experience');
 assert.notEqual((await routeRequest('what did you do at Initech?', true))?.routine, 'role', 'an employer I never had is not invented');
 
+// "Show me anything", "idk", "you pick": the visitor is taken to the next stop at once, never asked to choose. The phrases
+// are the ones from the 2026-11-04 traces. Each repeat moves on to somewhere not yet said.
+{
+  const asked = 'Hi, I am AI Pujan. Want a tour of my work, or is there something you are building I can help with?';
+  const phrases = [
+    ['Just show me anything, come on.', undefined], ['Should be anything.', 'Want me to open one?'], ['Show me any project.', undefined],
+    ['idk you pick', undefined], ['you tell me', asked], ['anything', asked], ['Surprise me', undefined], ['whatever', asked],
+  ];
+  for (const [phrase, previous] of phrases) {
+    for (const voice of [false, true]) {
+      const hit = await routeRequest(phrase, false, voice, previous);
+      assert.equal(hit?.routine, 'tour:next', `"${phrase}" opens something`);
+      assert.equal(hit.go, true, 'and the page moves');
+      assert.ok(projectPaths.has(nav(hit).path), 'to a project that exists');
+      assert.ok(!hit.text.includes('?'), `no question back: ${hit.text}`);
+    }
+  }
+  let said = '';
+  const seen = new Set();
+  for (let i = 0; i < projects.filter((p) => p.category === 'shipped').length; i += 1) {
+    const hit = await routeRequest('just show me anything', false, true, i ? 'Anything else?' : undefined, said);
+    assert.ok(!seen.has(nav(hit).path), 'a repeat ask goes somewhere new');
+    seen.add(nav(hit).path);
+    said += ` ${hit.text}`;
+  }
+  const more = await routeRequest('keep going', false, true, 'After this, something. Anything else?', said);
+  assert.equal(more?.routine, 'tour:next', '"keep going" continues the tour');
+  assert.ok(!seen.has(nav(more).path), 'to somewhere new');
+  const all = `${said} ${projects.map((p) => p.title).join(' ')} ${blogs.map((b) => b.title).join(' ')}`;
+  const end = await routeRequest('next', false, true, 'Anything else?', `${all} Deny-by-default`);
+  assert.ok(['tour:end', 'tour:next'].includes(end?.routine), 'the tour ends cleanly');
+  // Not this routine's: no prior question for a bare word, a topic, or a real question.
+  for (const [phrase, previous] of [['anything', undefined], ['anything', 'Here is Cortex.'], ['show me anything about RAG', undefined], ['can you do anything about my slow site', undefined], ['why would you show me anything', undefined], ['keep going', undefined]]) {
+    assert.notEqual((await routeRequest(phrase, false, true, previous))?.routine, 'tour:next', `"${phrase}" is not a vague show-me`);
+  }
+}
+
 // The latest paper.
 const latestPaper = await routeRequest("what's your latest paper", true);
 assert.equal(latestPaper?.routine, 'latest');

@@ -136,3 +136,13 @@ The owner's iPhone screenshots: after Continue chat, the keyboard came up and th
 - #204 deployed at 17:01:58 UTC through the stand-in (host files moved to `deploy/vps/`). After that, Komodo's own file check failed every 3 minutes until server-management #124 (17:55 UTC) pointed the stack at `deploy/vps/`. #206 then deployed from the new path at 17:58:05 UTC. server-management #122 was cut down to the CONVENTION.md row and merged.
 - `deploy/gravebuster/` (the stand-in), its ignore and line-ending rules, and the doc note about it are removed. On the VPS that folder held only the stand-in.
 - Live checks after #206: the wake-up fires on `/blogs` (204); the agent, asleep before the visit, was up within a minute and a token took 0.17 s; the moon button shows "Waking up…" on press. A full spoken call was not tried (the browser pane blocks the mic).
+
+## A vague "show me anything" starts a tour (twelfth commit)
+
+Traces on 2026-11-04: "just show me anything" four times got headings read out and a question back, and "anything." after the greeting got "What are you working on these days?". Three causes: no routine for a vague ask (the model decided), the text prompt said "even if they ask to see a page directly, ask first", and replies ended in offers.
+
+- `routines.ts`: `asksForSurprise` + `surprise` open the next stop with no model call and no question (shipped projects, the newest approved paper, the newest post, the rest, then the booking line). What was visited is read from what the assistant already said, so nothing is stored. A bare "anything" counts only after a question; a topic ("anything about RAG") or a real question does not.
+- `route.ts`: `tour:` answers are kept even when the previous line ended in "?"; the "ask first" rule now treats an explicit or vague show-me as the yes.
+- `health.ts`: the free reasoning model stays last on calls (its probe is quick, its real replies took up to 16 s).
+- Tests: `test-copilot-router.mjs` (trace phrases, repeats move on, no "?", non-triggers) and `test-copilot-truncation.mjs`.
+- Not verified against a live call; check Phoenix for `copilot.routine = tour:next` after deploy.
