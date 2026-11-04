@@ -119,3 +119,9 @@ The owner's iPhone screenshots: after Continue chat, the keyboard came up and th
 - **Rename** (a6876fb): `deploy/gravebuster/` → `deploy/vps/`. A stand-in `deploy/gravebuster/deploy.sh` covers the switch: the first deploy after the merge is started by the old script, which re-runs itself from the old path; the stand-in moves `.env`, `.env.api`, backups, `.deploy-state`, the lock and logs to `deploy/vps/` and execs the new script. Simulated end to end (bare origin, Komodo-style no-args run): files moved, secret kept, new script built from `deploy/vps/`, lock released.
 - **Komodo paths**: pukujan-lab-2/server-management#122 points the stack at `deploy/vps/`. Merge it after this PR has merged and deployed once. That one deploy's Komodo `compose up` in the old folder fails (deploy.sh has already swapped the containers by then).
 - **Next**: delete `deploy/gravebuster/` and its ignore lines once a deploy has run through `deploy/vps/`.
+
+## "Voice is unavailable" on the live site (tenth commit)
+
+- **Cause, confirmed on the VPS**: the voice service (`~/apps/copilot`, `demo/live-site/sablier.ts`) stops its agent container after 10 idle minutes, and `/api/voice/token` waits for it to start again before answering. The owner's call at 16:52 UTC on 2026-11-04 started the agent at 16:52:06, and it was ready at about 16:52:15. The live API (main 4d78839) gives the voice service 10 s, so a first call after an idle spell fails. The 25 s timeout and retry (seventh commit) fix this once PR #204 is deployed.
+- **Warm-up fixed** (`route.ts`): `/api/copilot/voice/warm` read `/api/health`, which does not wake the agent. It now POSTs `/api/voice/options`, the service's own "widget loaded" wake (it starts the agent without waiting), so the agent is usually up before the visitor presses call. Test: two warm-ups make one wake call.
+- Checked: the real service answers `POST /api/voice/options` with 200; with the agent awake, a token takes 0.19 s.

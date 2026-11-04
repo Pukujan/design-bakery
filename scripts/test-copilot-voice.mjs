@@ -17,7 +17,12 @@ let grant = { url: 'wss://copilot.design-bakery.com', token: 'test-grant' };
 // How many of the next token requests fail, as a voice service that is still waking up does.
 let failures = 0;
 let tokenCalls = 0;
+let wakeCalls = 0;
 globalThis.fetch = (input, init) => {
+  if (String(input) === 'https://copilot.design-bakery.com/api/voice/options' && init?.method === 'POST') {
+    wakeCalls += 1;
+    return Promise.resolve(Response.json({}));
+  }
   if (String(input) !== 'https://copilot.design-bakery.com/api/voice/token') return realFetch(input, init);
   tokenCalls += 1;
   if (failures > 0) {
@@ -43,11 +48,13 @@ try {
   // Two failures in a row: the visitor is told voice is unavailable.
   failures = 2;
   assert.equal((await fetch(`${base}/api/copilot/voice`, { method: 'POST', headers })).status, 503);
-  // The warm-up needs no pass and answers at once.
+  // The warm-up needs no pass, answers at once and wakes the agent (voice/options), once a minute at most.
   assert.equal((await fetch(`${base}/api/copilot/voice/warm`, { method: 'POST' })).status, 204);
+  assert.equal((await fetch(`${base}/api/copilot/voice/warm`, { method: 'POST' })).status, 204);
+  assert.equal(wakeCalls, 1);
   grant = { url: 'wss://untrusted.example', token: 'bad' };
   assert.equal((await fetch(`${base}/api/copilot/voice`, { method: 'POST', headers })).status, 503);
-  console.log('voice gateway: pass required, valid grant accepted, one retry, warm-up open, untrusted origin rejected');
+  console.log('voice gateway: pass required, valid grant accepted, one retry, warm-up wakes the agent, untrusted origin rejected');
 } finally {
   globalThis.fetch = realFetch;
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));

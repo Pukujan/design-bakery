@@ -194,12 +194,16 @@ async function voiceGrant(): Promise<{ url?: unknown; token?: unknown }> {
 }
 
 let warmedAt = 0;
-// The page calls this when the call button shows, so the voice service is awake before anyone presses it. Once a minute
-// at most, whoever asks; it only reads the service's health page, so it needs no pass.
+// The page calls this when the call button shows, so the voice agent is awake before anyone presses it. The service stops
+// the agent after 10 idle minutes and starts it again (about 10 s) on /api/voice/options, without waiting; its health page
+// does not wake it. Once a minute at most, whoever asks; it hands out no token, so it needs no pass.
 copilotRouter.post('/voice/warm', (_req, res) => {
   if (!voiceTokenConfigured() && Date.now() - warmedAt > 60_000) {
     warmedAt = Date.now();
-    void fetch(`${VOICE_SERVICE}/api/health`, { signal: AbortSignal.timeout(25_000) }).catch(() => undefined);
+    void fetch(`${VOICE_SERVICE}/api/voice/options`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}',
+      signal: AbortSignal.timeout(10_000),
+    }).catch(() => undefined);
   }
   res.status(204).end();
 });
