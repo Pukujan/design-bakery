@@ -135,27 +135,6 @@
     ]
   },
   {
-    "id": 5,
-    "slug": "legal-workflow-research",
-    "title": "Legal Workflow Research",
-    "category": "research",
-    "tagline": "AI-Assisted Litigation & Document Intelligence",
-    "description": "Independent research into safer AI-assisted legal workflows using document intelligence, confidence routing, source authority, human review, and procedural memory.",
-    "tech": ["Legal AI", "RAG", "Workflow Systems", "Python", "Node.js"],
-    "color": "#9B6DD6",
-    "accentColor": "#FF8C42",
-    "startedAt": "2026-05-29",
-    "startedAtSource": "GitHub repo creation date of Pukujan/litigation-prompt-engineering-v2 (linked repo; private). Related litigation research repos date back to 2026-04.",
-    "stats": [
-      {"label": "Workflow Modeling", "icon": "TrendingUp"},
-      {"label": "Confidence Routing", "icon": "Sparkles"},
-      {"label": "Human Review", "icon": "Users"}
-    ],
-    "links": [
-      {"label": "Case Study", "url": "/case-studies/legal-workflow-research"}
-    ]
-  },
-  {
     "id": 8,
     "slug": "fluffy-v4",
     "title": "Fluffy V4",
@@ -335,6 +314,51 @@
     "links": [
       {"label": "Live App", "url": "https://arize.design-bakery.com"},
       {"label": "GitHub · Public", "url": "https://github.com/pukujan-lab-2/arize-ai-hackersprint"}
+    ]
+  },
+  {
+    "id": 17,
+    "slug": "nyc-map-agent",
+    "title": "NYC Map Agent",
+    "category": "shipped",
+    "tagline": "Getting around New York by chat or voice, on a map",
+    "description": "Ask in your own words or language and the answer shows on the map, not as a wall of text: plan a trip and see the delays and planned work first, find a restroom listed as open, pick the right station exit, and read subway notices in plain words. Built first for people new to the city.",
+    "tech": ["Voice Agents", "Maps", "Trip Planning", "React", "MapLibre", "Hono"],
+    "color": "#0B1622",
+    "accentColor": "#60A5FA",
+    "startedAt": "2026-10-19",
+    "startedAtSource": "GitHub repo creation date of nyc-map-agent (2026-10-19T23:30:21Z, which is 2026-10-19 US Eastern; now pukujan-lab-2/nyc-map-agent)",
+    "status": "ongoing",
+    "stats": [
+      {"label": "The answer shows on the map", "icon": "Sparkles"},
+      {"label": "Ask by chat or voice, in your own language", "icon": "Users"},
+      {"label": "Live in New York", "icon": "TrendingUp"}
+    ],
+    "links": [
+      {"label": "Live App", "url": "https://nyc.design-bakery.com"},
+      {"label": "GitHub · Public", "url": "https://github.com/pukujan-lab-2/nyc-map-agent"}
+    ]
+  },
+  {
+    "id": 18,
+    "slug": "octo",
+    "title": "Octo",
+    "category": "systems",
+    "tagline": "One server, a workspace for every project",
+    "description": "A self-hosted data platform. Each project, person or agent gets a workspace with its own Postgres database, files, search, graph and scoped keys, all through one API, so no project has to rebuild that plumbing. The products on this page keep their data there.",
+    "tech": ["PostgreSQL", "pgvector", "Self-Hosted", "Data Platform", "FalkorDB", "Cloudflare R2"],
+    "color": "#14141F",
+    "accentColor": "#A78BFA",
+    "startedAt": "2026-09-30",
+    "startedAtSource": "GitHub repo creation date of octo-database (2026-09-30T20:16:05Z, which is 2026-09-30 US Eastern; now pukujan-lab-2/octo-database)",
+    "status": "ongoing",
+    "stats": [
+      {"label": "A database per workspace", "icon": "Award"},
+      {"label": "Files, search and graph in one API", "icon": "Sparkles"},
+      {"label": "Runs on my own server", "icon": "TrendingUp"}
+    ],
+    "links": [
+      {"label": "GitHub · Public", "url": "https://github.com/pukujan-lab-2/octo-database"}
     ]
   }
 ]

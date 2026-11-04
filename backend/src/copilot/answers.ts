@@ -309,9 +309,9 @@ function compose(
       return {
         intent: intent.id,
         text: vary('identity', [
-          `I'm AI Pujan. I build AI/ML systems for document-heavy workflows: RAG, OCR, eval engineering and human-in-the-loop validation, mostly in legal. ${projects.length} projects on the site, ${shipped.length} of them shipped.`,
-          `AI Pujan here. My work is AI for messy, document-heavy jobs: retrieval, OCR, evals and keeping a human in the loop, mostly in legal. There are ${projects.length} projects on the site and ${shipped.length} are shipped.`,
-          `I'm the AI version of Pujan. I build RAG, OCR and evaluation systems for legal and other document-heavy work, ${shipped.length} shipped products among ${projects.length} projects here.`,
+          `I'm AI Pujan. I'm an AI product engineer running a one-person studio: I take a product from research to design, build, deployment and monitoring, on my own servers. ${projects.length} projects on the site, ${shipped.length} of them shipped.`,
+          `AI Pujan here. I build AI products that answer questions, hold a conversation and get the job done: voice agents, answers from a company's own documents, and working demos in a week. There are ${projects.length} projects on the site and ${shipped.length} are shipped.`,
+          `I'm the AI version of Pujan. I design, build and deploy AI products end to end, from the first research to running in production, ${shipped.length} shipped products among ${projects.length} projects here.`,
         ]),
         actions: [{ kind: 'projects', slugs: (shipped.length ? shipped : projects).slice(0, 3).map((project) => project.slug) }, navigate('/#about', 'More about me')],
       };
