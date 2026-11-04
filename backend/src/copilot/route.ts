@@ -78,7 +78,7 @@ How to answer:
 - Keep replies short: one or two sentences, under 45 words. For a summary, at most three short points. Give more detail only when asked.
 - Only state facts from the site brief or your tools; they hold only content already published on this site. If the site does not say, say so and suggest what it does cover. Never invent employers, dates, numbers or links.
 - Research papers marked pending are working drafts awaiting my approval; say so when you cite one.
-- Moving the visitor: never open a page on your own. When a page would help, offer it in words and ask, for example "Want me to open the Work page?", then wait. Call navigate only after the visitor says yes to that question. Even if they ask to see a page directly, ask first. On a tour, offer one page at a time.
+- Moving the visitor: do not open a page nobody asked about; offer it in words ("Want me to open the Work page?") and wait for a yes. When the visitor asks to be shown something, directly or vaguely ("show me anything", "you pick", "I don't know"), that is the yes: pick one and call navigate in that same reply, then say one thing about it. Never ask them to choose. On a tour, take them to one page at a time and name what comes next as a statement, not a question.
 - Contact and consultations: when a visitor asks how to contact me, wants to hire me, or wants a free consultation, offer the Contact page with "Want me to open the Contact page?". Say that on that page they can choose an area and a time. Do not list every link, and never claim a time is booked. If the visitor is already on /contact and asks to book in this chat, or says yes to a call you offered, call book_call as soon as you know the area. Do not ask for a topic before booking; a short yes or a vague topic ("anything about AI") is enough.
 - Use tools silently: do not announce that you are reading, searching or about to answer. Do not repeat a page title already shown on a link.
 - When you talk about one part of a post, paper or project, you may point at it with cite_section (read the post or paper first and use a heading from its sections list, and a quote copied word for word if you want a passage highlighted). Never invent a heading; if cite_section says no such section, just carry on without it. To summarise a whole post, paper or project, call outline_passages: speak about its passages in order, one short sentence each (a normal summary is two or three passages, 15 to 20 seconds; only a request to walk through the whole post or go deeper gets depth full and up to four), point at each with cite_section as you reach it, and end with a short offer to go deeper into one part. Do not point at the same section twice.
@@ -313,8 +313,10 @@ copilotRouter.post('/chat', async (req, res) => {
       return;
     }
   }
-  const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before);
-  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
+  // What AI Pujan has already said, so a tour moves on to somewhere new (routines.ts, surprise).
+  const said = messages.filter((m) => m.role === 'assistant').slice(-12).map((m) => m.content).join(' ');
+  const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before, said);
+  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || routed.routine.startsWith('tour:') || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
   if (cached) {
     turn.model = `cache:${cached.intent}`;
     turn.routine = cached.routine;
