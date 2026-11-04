@@ -10,6 +10,7 @@ import { answer as localAnswer, type CopilotProject } from '../lab/copilotAnswer
 import { getTurnstileToken } from './turnstile';
 import { scrollStageToElement, scrollStageToTop, setStageScroll } from '../lab/stageScroll';
 import { agentCursor } from './agentCursor';
+import { preloadWalk, walkIdle, walkLine, type WalkStep } from './holdAudio';
 import { citeAt, MAX_CITES, passageSchedule, planRoute, sentenceStart, swipePlan, swipeY } from './citeRoute';
 import { clearQuote, highlightQuote } from './quoteHighlight';
 import { capPage, historyToSend, planSummary, RETRY_MS, type Summary } from './memory';
@@ -257,6 +258,12 @@ function detailParent(path: string): string | null {
 
 const pause = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
+/** The moon's words for a step of a walk, in its bubble, and said aloud for a text-chat visitor. */
+function walkSay(step: WalkStep, aloud: boolean, ms?: number) {
+  const words = walkLine(step, aloud);
+  if (words) agentCursor.say([words], ms);
+}
+
 /** Waits for a link to a path to be on the page; null if it never shows up. */
 async function linkFor(path: string, ms = 3000): Promise<HTMLElement | null> {
   for (let waited = 0; waited <= ms; waited += 120) {
@@ -272,11 +279,11 @@ async function linkFor(path: string, ms = 3000): Promise<HTMLElement | null> {
  * link, a slow scroll to the card, a press on the card, and then the new page's title. If the card cannot be found it
  * simply goes there.
  */
-async function journey(path: string) {
+async function journey(path: string, aloud = false) {
   const list = detailParent(path);
   if (!list) return;
   agentCursor.release(25_000);
-  agentCursor.say(['Let me find that one...', 'One sec, finding it...', 'Heading over there...']);
+  walkSay('start', aloud, 2600);
   let card = document.querySelector<HTMLElement>(`a[href="${path.replace(/"/g, '')}"]`);
   if (!card) {
     // Not on this page: go to the list page first, by pressing its link.
@@ -294,8 +301,9 @@ async function journey(path: string) {
     return;
   }
   // Scroll to the card slowly, wheel and all, then point at it and press.
-  await scrollToCard(card);
-  agentCursor.say(['Ah, there it is.', 'Found it.', 'That one.']);
+  await scrollToCard(card, aloud);
+  if (aloud) await walkIdle();
+  walkSay('found', aloud);
   await agentCursor.pointAtLinkFor(path);
   card.click();
   // On the new page: back to the top, and the cursor taps its title.
@@ -307,20 +315,47 @@ async function journey(path: string) {
   agentCursor.release(6000);
 }
 
-/** Scrolls a card slowly to the middle of the screen, wheel and all, unless it is already where the cursor can reach it. */
-async function scrollToCard(card: HTMLElement) {
+/** The height of the screen the visitor can see: on a phone, above the keyboard. */
+const screenHeight = () => window.visualViewport?.height ?? window.innerHeight;
+
+/** The card is where the cursor can reach it: its middle on screen, below the header. */
+function cardInReach(card: HTMLElement): boolean {
   const rect = card.getBoundingClientRect();
-  // The card only has to be where the cursor can reach it: its middle on screen, below the header.
   const middle = rect.top + rect.height / 2;
-  if (middle >= 130 && middle <= window.innerHeight - 70) return;
-  // Land the card in the middle of the screen (or just under the header when it is taller than the window).
-  const seconds = scrollStageToElement(card, { slow: true, offset: -Math.max(110, (window.innerHeight - rect.height) / 2) });
-  if (seconds > 0) {
-    agentCursor.say(['Somewhere in here...', 'Scrolling a bit...', 'Hold on, it is further down...'], seconds * 1000);
-    agentCursor.startScroll(rect.top > 0 ? 'down' : 'up', seconds * 1000);
-    await pause(seconds * 1000);
+  return rect.height > 0 && middle >= 130 && middle <= screenHeight() - 70;
+}
+
+/**
+ * Scrolls a card slowly to the middle of the screen, wheel and all, unless it is already where the cursor can reach it.
+ * A phone can move the page under the glide (the keyboard closing, a late image), so where the card ended up is checked,
+ * and a card that is still out of reach is put in place at once.
+ */
+async function scrollToCard(card: HTMLElement, aloud = false) {
+  for (let attempt = 0; attempt < 2 && !cardInReach(card); attempt += 1) {
+    const rect = card.getBoundingClientRect();
+    // Land the card in the middle of the screen (or just under the header when it is taller than the window).
+    const offset = -Math.max(110, (screenHeight() - rect.height) / 2);
+    const seconds = scrollStageToElement(card, { slow: true, offset });
+    if (seconds > 0) {
+      if (attempt === 0) walkSay('scroll', aloud, Math.max(2600, seconds * 1000));
+      agentCursor.startScroll(rect.top > 0 ? 'down' : 'up', seconds * 1000);
+      await pause(seconds * 1000);
+    }
     await agentCursor.settle(card);
   }
+  if (!cardInReach(card)) {
+    setStageScroll(card.getBoundingClientRect().top + window.scrollY - Math.max(110, (screenHeight() - card.offsetHeight) / 2));
+    await agentCursor.settle(card);
+  }
+}
+
+/** On a phone, a chip pressed while typing closes the keyboard: wait for the screen to grow back before measuring anything. */
+async function keyboardDown() {
+  if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  const viewport = window.visualViewport;
+  if (!viewport) return;
+  for (let waited = 0; waited < 900 && viewport.height < window.innerHeight - 80; waited += 60) await pause(60);
+  await pause(120);
 }
 
 /**
@@ -502,10 +537,10 @@ export const copilot = {
     abort?.abort();
   },
   /** Scroll to a section, or change page with the app's router and then scroll. */
-  go(path: string, options: { slow?: boolean; agent?: boolean } = {}): Promise<void> {
+  go(path: string, options: { slow?: boolean; agent?: boolean; aloud?: boolean } = {}): Promise<void> {
     // A page deep in the site (a post, a project, a paper) is reached the way a person would: through its list page, scrolling
     // to the card, and clicking it.
-    if (options.agent && detailParent(path) && !path.includes('#')) return journey(path);
+    if (options.agent && detailParent(path) && !path.includes('#')) return journey(path, options.aloud);
     const [pathname, hash] = path.split('#');
     const scroll = () =>
       new Promise<void>((resolve) => {
@@ -514,14 +549,19 @@ export const copilot = {
         const seconds = hash ? scrollStageToElement(target, options) : scrollStageToTop(options);
         // On a call the cursor shows the scroll: a wheel moving down or up for as long as the page takes.
         if (options.agent && seconds > 0) agentCursor.startScroll(down ? 'down' : 'up', seconds * 1000);
+        if (options.aloud && target && seconds > 0.6) walkSay('scroll', true, Math.max(2600, seconds * 1000));
         // Then it points at what it came to show: the section's heading, or the new page's title.
         if (options.agent) {
           const shown = target ?? document.querySelector('main h1, h1');
-          window.setTimeout(() => void agentCursor.pointAtElement(shown).then(() => resolve()), seconds * 1000 + 150);
+          window.setTimeout(() => {
+            if (options.aloud && target) void walkIdle().then(() => walkSay('found', true));
+            void agentCursor.pointAtElement(shown).then(() => resolve());
+          }, seconds * 1000 + 150);
         } else resolve();
       });
     const run = (): Promise<void> => {
       if (options.agent) agentCursor.release(options.slow ? 9000 : 2500);
+      if (options.aloud) walkSay('start', true, 2600);
       if (!pathname || pathname === window.location.pathname) return scroll();
       if (navigateFn) navigateFn(path);
       else window.location.assign(path);
@@ -544,9 +584,13 @@ export const copilot = {
    * A navigation chip, or a "yes" to an offer to open a page: the moon comes in as a guest, goes to the link and presses it,
    * and leaves a moment after the page has arrived. On a phone the chat sheet closes first, since it would cover the target.
    */
-  guide(path: string): Promise<void> {
-    if (!window.matchMedia('(min-width: 821px)').matches) set({ open: false });
-    return copilot.go(path, { slow: true, agent: true }).catch(() => agentCursor.hide());
+  async guide(path: string): Promise<void> {
+    preloadWalk();
+    if (!window.matchMedia('(min-width: 821px)').matches) {
+      set({ open: false });
+      await keyboardDown();
+    }
+    return copilot.go(path, { slow: true, agent: true, aloud: true }).catch(() => agentCursor.hide());
   },
   /** Point at a section of the page cited by the copilot (a chip click in text chat). The moon stays a few seconds, not a whole spoken passage. */
   cite: (action: Extract<CopilotAction, { kind: 'cite' }>) => {
@@ -718,10 +762,13 @@ async function getPass(force = false, signal?: AbortSignal): Promise<string> {
 }
 
 /** Obtain a short-lived room grant using the same visitor pass as text chat. */
+/** The API gives the voice service two tries of 25 seconds each when it has to wake up, so the page waits for both. */
+const GRANT_MS = 55_000;
+
 export async function requestVoiceGrant(signal?: AbortSignal): Promise<{ url: string; token: string; call?: string }> {
   const request = async () => fetch(`${base()}/api/copilot/voice`, {
     method: 'POST', headers: { 'x-copilot-pass': await getPass(false, signal) },
-    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15_000)]) : AbortSignal.timeout(15_000),
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(GRANT_MS)]) : AbortSignal.timeout(GRANT_MS),
   });
   let response = await request();
   if (response.status === 401) {
@@ -730,6 +777,14 @@ export async function requestVoiceGrant(signal?: AbortSignal): Promise<{ url: st
   }
   if (!response.ok) throw new ApiError(response.status);
   return response.json() as Promise<{ url: string; token: string; call?: string }>;
+}
+
+let warmedAt = 0;
+/** Wakes the voice service while the visitor is still reading, so a call does not start against a sleeping one. */
+export function warmVoice() {
+  if (Date.now() - warmedAt < 4 * 60_000) return;
+  warmedAt = Date.now();
+  void fetch(`${base()}/api/copilot/voice/warm`, { method: 'POST', keepalive: true }).catch(() => undefined);
 }
 
 async function stream(

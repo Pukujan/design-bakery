@@ -461,3 +461,92 @@ export function playSpokenReply(text: string): Promise<boolean> | null {
     audio.play().then(() => noteSpoken(text, audio), () => resolve(false));
   });
 }
+
+/* ---------- The moon's walk ---------- */
+
+/**
+ * Said aloud when the moon walks a text-chat visitor to a page (a chip, or a yes to an offer): as it sets off, while it
+ * scrolls, and when it finds the card. The bubble shows the same words. Not on a call, where the call's own voice and
+ * fillers are already talking.
+ */
+const WALK = {
+  start: [
+    { src: '/voice/walk-start-1.m4a', text: 'Let me find that one...' },
+    { src: '/voice/walk-start-2.m4a', text: 'One sec... finding it...' },
+    { src: '/voice/walk-start-3.m4a', text: 'Okay... heading over there...' },
+  ],
+  scroll: [
+    { src: '/voice/walk-scroll-1.m4a', text: 'Hmm... somewhere in here...' },
+    { src: '/voice/walk-scroll-2.m4a', text: 'Scrolling down a bit...' },
+    { src: '/voice/walk-scroll-3.m4a', text: "Hold on... it's a little further down..." },
+  ],
+  found: [
+    { src: '/voice/walk-found-1.m4a', text: 'Ahh, there it is.' },
+    { src: '/voice/walk-found-2.m4a', text: 'Found it!' },
+    { src: '/voice/walk-found-3.m4a', text: 'That one, right there.' },
+  ],
+} satisfies Record<string, Line[]>;
+export type WalkStep = keyof typeof WALK;
+
+let callOn = false;
+/** voice.ts says when a call is connecting or up, so the walk keeps quiet then. */
+export function setCallOn(on: boolean) {
+  callOn = on;
+  if (on) stopWalkLine();
+}
+
+let walkCurrent: HTMLAudioElement | null = null;
+const lastWalk: Partial<Record<WalkStep, number>> = {};
+const WALK_STOPS = ['pointerdown', 'wheel', 'touchstart', 'keydown'] as const;
+
+/** The visitor took over (a click, a scroll, a key): the line fades out. */
+export function stopWalkLine() {
+  for (const type of WALK_STOPS) window.removeEventListener(type, stopWalkLine, true);
+  fadeOut(walkCurrent);
+  walkCurrent = null;
+}
+
+/** Resolves when the line being said has ended (or after `maxMs`), so "found it" follows "let me find that one" instead of being dropped. */
+export function walkIdle(maxMs = 2500): Promise<void> {
+  const audio = walkCurrent;
+  if (!audio || audio.paused) return Promise.resolve();
+  return new Promise((resolve) => {
+    const done = () => { clearInterval(poll); resolve(); };
+    const started = Date.now();
+    const poll = setInterval(() => {
+      if (walkCurrent !== audio || audio.paused || audio.ended || Date.now() - started > maxMs) done();
+    }, 80);
+  });
+}
+
+export function preloadWalk() {
+  for (const line of Object.values(WALK).flat()) clip(line.src);
+}
+
+/**
+ * A line for a step of the walk, never the same one twice in a row; `aloud` also plays it. Returns null while an earlier
+ * line is still being said, so it is never cut off mid-word and the bubble never shows words that are not being heard.
+ */
+export function walkLine(step: WalkStep, aloud: boolean): string | null {
+  if (walkCurrent && !walkCurrent.paused) return null;
+  const lines = WALK[step];
+  let index = Math.floor(Math.random() * lines.length);
+  if (index === lastWalk[step]) index = (index + 1) % lines.length;
+  lastWalk[step] = index;
+  const line = lines[index];
+  if (!aloud || callOn) return line.text;
+  const audio = clip(line.src);
+  audio.currentTime = 0;
+  audio.volume = 1;
+  walkCurrent = audio;
+  audio.onended = () => {
+    if (walkCurrent !== audio) return;
+    walkCurrent = null;
+    for (const type of WALK_STOPS) window.removeEventListener(type, stopWalkLine, true);
+  };
+  for (const type of WALK_STOPS) window.addEventListener(type, stopWalkLine, { capture: true, passive: true });
+  audio.play().catch(() => {
+    if (walkCurrent === audio) walkCurrent = null;
+  });
+  return line.text;
+}

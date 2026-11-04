@@ -227,7 +227,13 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
     if (thread) thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
   }, [messages, showThread]);
 
-  const ask = (question: string) => {
+  // The call button is on screen: wake the voice service a few seconds after the page settles.
+  useEffect(() => {
+    const timer = window.setTimeout(() => voice.warm(), 3000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const ask =(question: string) => {
     if (!question.trim() || busy) return;
     copilot.setDraft('');
     void copilot.send(question, { path: location.pathname, title: document.title });

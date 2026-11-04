@@ -173,6 +173,37 @@ copilotRouter.get('/health', (_req, res) => {
   res.set('cache-control', 'no-store').json({ ok: true, profile: pickProfile(), smart: healthReport(), dev: Boolean(devProvider()) });
 });
 
+const VOICE_SERVICE = 'https://copilot.design-bakery.com';
+/**
+ * The voice service sleeps when idle and its first token after that took 11.7 s, past the old 10 s cut-off, so a visitor's
+ * first call failed with "Voice is unavailable". It now gets 25 s, and one more try if the first fails.
+ */
+async function voiceGrant(): Promise<{ url?: unknown; token?: unknown }> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const response = await fetch(`${VOICE_SERVICE}/api/voice/token`, {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}',
+        signal: AbortSignal.timeout(25_000),
+      });
+      if (!response.ok) throw new Error('voice service unavailable');
+      return await response.json() as { url?: unknown; token?: unknown };
+    } catch (error) {
+      if (attempt >= 1) throw error;
+    }
+  }
+}
+
+let warmedAt = 0;
+// The page calls this when the call button shows, so the voice service is awake before anyone presses it. Once a minute
+// at most, whoever asks; it only reads the service's health page, so it needs no pass.
+copilotRouter.post('/voice/warm', (_req, res) => {
+  if (!voiceTokenConfigured() && Date.now() - warmedAt > 60_000) {
+    warmedAt = Date.now();
+    void fetch(`${VOICE_SERVICE}/api/health`, { signal: AbortSignal.timeout(25_000) }).catch(() => undefined);
+  }
+  res.status(204).end();
+});
+
 // The voice service creates a room; the visitor's spoken turns are answered by
 // /chat, so it has the same published site knowledge and visitor limits.
 copilotRouter.post('/voice', async (req, res) => {
@@ -188,12 +219,7 @@ copilotRouter.post('/voice', async (req, res) => {
     return;
   }
   try {
-    const response = await fetch('https://copilot.design-bakery.com/api/voice/token', {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}',
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (!response.ok) throw new Error('voice service unavailable');
-    const grant = await response.json() as { url?: unknown; token?: unknown };
+    const grant = await voiceGrant();
     if (grant.url !== 'wss://copilot.design-bakery.com' || typeof grant.token !== 'string') throw new Error('invalid voice grant');
     res.set('cache-control', 'no-store').json({ url: grant.url, token: grant.token, call: session });
   } catch {
