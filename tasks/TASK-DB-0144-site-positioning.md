@@ -1,4 +1,11 @@
-# TASK-DB-0143: site positioning refresh (AI product engineer, one-person studio)
+# TASK-DB-0144 — Site positioning refresh (AI product engineer, one-person studio)
+
+<!-- continuity:task {"acceptance":["Hero, About, Roles and project order carry the owner-approved copy; live products lead the showcase","Legal appears only as one past role (Fitzgerald, Feb-Jun 2026, last) and one project (Precedent)","Copilot identity answers and SEO descriptions no longer frame the work as legal","test-homepage-content-stability and copilot tests pass"],"depends_on":[],"goal":"Home page says who the owner is now: AI product engineer, one-person studio; legal out of the lead","id":"DB-0144","issue_url":"https://github.com/Pukujan/design-bakery/issues/209","next_action":"Owner reviews PR #210; on their go, merge (Komodo deploys) and write the six ete__ documents to Octo","owner":"claude-code","priority":"P1","protocol_version":"0.1.0-draft","schema":"project-continuity.task.v1","status":"active","why":"Owner asked; copy approved 2026-11-04"} -->
+
+- Status: active
+- Owner: claude-code
+- Priority: P1
+- Depends on: none
 
 Owning issue: Pukujan/design-bakery#209.
 
@@ -30,3 +37,11 @@ JSON only as fallback. After merge, write the same six documents to Octo (`engin
 `engineering_about_content`, `engineering_projects`, `engineering_skills`, `relevant_experience_content`,
 `relevant_experience_rendered`), or the old copy stays live. Merging to `main` deploys through Komodo
 (`design-bakery-deploy-on-push`).
+
+## Checkpoint log
+
+No checkpoints yet.
+
+## Handoff
+
+Read PROJECT → CURRENT → this task → minimum relevant spec. Checkpoint before stopping.
