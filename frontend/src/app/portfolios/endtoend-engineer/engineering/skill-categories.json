@@ -1,6 +1,6 @@
 [
   {
-    "title": "Legal Dataset Evaluation",
+    "title": "Evaluation Datasets",
     "icon": "Shield",
     "color": "#4169E1",
     "skills": [
@@ -66,7 +66,7 @@
       "Source Grounding",
       "Document Intelligence",
       "LLM Distillation",
-      "Legal Document Processing",
+      "Document Processing",
       "Review Queues"
     ]
   }

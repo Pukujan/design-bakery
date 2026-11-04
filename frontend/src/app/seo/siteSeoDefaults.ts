@@ -5,7 +5,7 @@ export const SITE_NAME = 'Design Baker';
 export const DEFAULT_SITE_TITLE = 'Design Baker | AI/ML, Product & Design Engineer';
 
 export const DEFAULT_SITE_DESCRIPTION =
-  'AI/ML, product and design engineer building document-heavy AI workflow systems: RAG, OCR, legal-tech products, evals and agent architecture.';
+  'AI product engineer and one-person studio. Research, design, full-stack build, deployment and monitoring for AI products: live voice agents, answers from your own documents, and a working demo in a week.';
 
 /** Default social preview image (1200×630-ish PNG in /public). */
 export const DEFAULT_OG_IMAGE_PATH = '/images/design-baker-social.png';

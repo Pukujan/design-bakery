@@ -1,22 +1,22 @@
 {
   "headingLeft": "RELEVANT",
   "headingRight": "EXPERIENCE",
-  "subtitle": "Work history across legal operations, AI workflows, document intelligence, civic-tech, and product engineering.",
+  "subtitle": "Where I learned the trade: production AI, full-stack product work and front-end engineering.",
   "resumeButtonLabel": "Download My Resume",
   "experiences": [
     {
-      "id": 1,
-      "company": "The Fitzgerald Law Firm",
-      "role": "Litigation Operations / AI Workflow Systems",
-      "period": "Feb 2026 - Present · 4 mos",
-      "location": "United States",
-      "icon": "Shield",
-      "color": "#4169E1",
-      "accentColor": "#8EA7FF",
-      "collapsedSummary": "Work on high-volume litigation operations while developing AI workflow research around docketing, NYSCEF filing signals, judge/part rules, procedural risk, and privacy-safe legal automation.",
-      "expandedSummary": "Work on high-volume litigation operations while developing AI workflow research around docketing, NYSCEF filing signals, judge/part rules, procedural risk, and privacy-safe legal automation.",
+      "id": 6,
+      "company": "Design Bakery",
+      "role": "AI Product Engineer · One-person studio",
+      "period": "Jun 2026 - Present",
+      "location": "Remote",
+      "icon": "Rocket",
+      "color": "#6366F1",
+      "accentColor": "#A78BFA",
+      "collapsedSummary": "I take products from research to launch for clients and for myself: voice agents, answer engines over a company's documents, map and data apps, and the platform and agent tooling underneath them.",
+      "expandedSummary": "I take products from research to launch for clients and for myself: voice agents, answer engines over a company's documents, map and data apps, and the platform and agent tooling underneath them.",
       "highlights": [],
-      "tags": ["Legal Ops", "NYSCEF", "TrialWorks", "Docketing", "AI Workflow"]
+      "tags": ["Product Studio", "Voice Agents", "RAG", "Full-Stack", "Self-Hosted Infrastructure", "Evals"]
     },
     {
       "id": 2,
@@ -91,6 +91,20 @@
       "expandedSummary": "Built 0→1 SaaS solutions, dashboards, workflow prototypes, and client-specific tools for legal, financial, and business operations clients.",
       "highlights": [],
       "tags": ["Legal Clients", "SaaS", "Dashboards", "React", "Node.js"]
+    },
+    {
+      "id": 1,
+      "company": "The Fitzgerald Law Firm",
+      "role": "AI Workflow Systems",
+      "period": "Feb 2026 - Jun 2026 · 5 mos",
+      "location": "United States",
+      "icon": "Shield",
+      "color": "#4169E1",
+      "accentColor": "#8EA7FF",
+      "collapsedSummary": "Worked on high-volume litigation operations while developing AI workflow research around docketing, NYSCEF filing signals, judge/part rules, procedural risk, and privacy-safe legal automation.",
+      "expandedSummary": "Worked on high-volume litigation operations while developing AI workflow research around docketing, NYSCEF filing signals, judge/part rules, procedural risk, and privacy-safe legal automation.",
+      "highlights": [],
+      "tags": ["Legal Ops", "NYSCEF", "TrialWorks", "Docketing", "AI Workflow"]
     }
   ]
 }

@@ -67,7 +67,7 @@ export function LabHero() {
         </span>
       </motion.h1>
 
-      <p className="lab-hero-roles lab-mono">AI/ML engineer · Product engineer · Design engineer</p>
+      <p className="lab-hero-roles lab-mono">AI Product Engineer · A one-person studio, from research to production</p>
 
       <div className="lab-hero-body">
         <motion.div

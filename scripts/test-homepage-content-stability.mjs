@@ -51,11 +51,12 @@ const communitySource = await readFile(
 
 assert.equal(
   about.roleTitle,
-  'I build AI agents that improve through data, testing, and human feedback.',
+  'I take a product from the first question to running in production.',
 );
 // Every project keeps a start date as evidence. The carousel does not sort by it:
-// the default All view leads with Website Copilot, then Precedent, Ekagajpatra, Eval Lab, and
-// Agent Custom Setup, then the remaining shipped products and system features.
+// the default All view leads with the live products (Website Copilot, NYC Map Agent), then Octo,
+// Ekagajpatra, Study OS, Agent Custom Setup, Eval Lab and Precedent, then the remaining shipped
+// products and system features.
 for (const project of projects) {
   assert.match(
     project.startedAt ?? '',
@@ -73,30 +74,31 @@ assert.deepEqual(
   rendered.map((project) => project.title),
   [
     'Website Copilot',
-    'Precedent',
+    'NYC Map Agent',
+    'Octo',
     'Ekagajpatra',
-    'Eval Lab',
-    'Agent Custom Setup',
     'Study OS',
+    'Agent Custom Setup',
+    'Eval Lab',
+    'Precedent',
     'Cortex',
     'Project Continuity Modules',
     'ONI vs My Agent Ready Architecture',
-    'Legal Workflow Research',
     'Inference Recommendation Engine',
     'FOSSIL',
     'Orbitgraph',
     'Fluffy V4',
     'Voidfeed',
   ],
-  'All should lead with Website Copilot, then the named leads, then shipped and systems',
+  'All should lead with the live products, then the platform and tools, then shipped and systems',
 );
 assert.deepEqual(
   orderProjectsForShowcase(projects, 'shipped').map((project) => project.title),
-  ['Website Copilot', 'Precedent', 'Ekagajpatra', 'Study OS'],
+  ['Website Copilot', 'NYC Map Agent', 'Ekagajpatra', 'Study OS', 'Precedent'],
 );
 assert.deepEqual(
   orderProjectsForShowcase(projects, 'systems').map((project) => project.title),
-  ['Agent Custom Setup', 'Cortex', 'Project Continuity Modules', 'ONI vs My Agent Ready Architecture'],
+  ['Octo', 'Agent Custom Setup', 'Cortex', 'Project Continuity Modules', 'ONI vs My Agent Ready Architecture'],
 );
 assert.equal(orderProjectsForShowcase(projects, 'research')[0].title, 'Eval Lab');
 assert.deepEqual(
@@ -235,7 +237,20 @@ assert.ok(
   acs.links.some((link) => link.url === 'https://github.com/Pukujan/agent-custom-setup'),
   'Agent Custom Setup should link to its public GitHub repo',
 );
-assert.equal(relevantExperience.experiences[0].company, 'Nepasoft LLC');
+assert.equal(relevantExperience.experiences[0].company, 'Design Bakery', 'the studio role leads the work history');
+assert.equal(
+  relevantExperience.experiences.at(-1).company,
+  'The Fitzgerald Law Firm',
+  'the one past legal role sits at the bottom, not in the lead',
+);
+for (const title of ['NYC Map Agent', 'Octo']) {
+  const project = projects.find((p) => p.title === title);
+  assert.ok(project, `${title} should be in the showcase`);
+}
+assert.ok(
+  !projects.some((p) => p.title === 'Legal Workflow Research'),
+  'Legal Workflow Research leaves the showcase; Precedent is the one legal project',
+);
 assert.equal(skillMeta.headingRight, 'SYSTEMS');
 assert.ok(
   communitySource.includes('AI workflow mentorship'),

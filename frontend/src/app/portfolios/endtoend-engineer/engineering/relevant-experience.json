@@ -1,9 +1,23 @@
 {
   "headingLeft": "RELEVANT",
   "headingRight": "EXPERIENCE",
-  "subtitle": "Work history across AI orchestration, prompt engineering, coding workflows, RAG, product engineering, and automation.",
+  "subtitle": "Where I learned the trade: production AI, full-stack product work and front-end engineering.",
   "resumeButtonLabel": "Download My Resume",
   "experiences": [
+    {
+      "id": 3,
+      "company": "Design Bakery",
+      "role": "AI Product Engineer · One-person studio",
+      "period": "Jun 2026 - Present",
+      "location": "Remote",
+      "icon": "Rocket",
+      "color": "#6366F1",
+      "accentColor": "#A78BFA",
+      "collapsedSummary": "I take products from research to launch for clients and for myself: voice agents, answer engines over a company's documents, map and data apps, and the platform and agent tooling underneath them.",
+      "expandedSummary": "I take products from research to launch for clients and for myself: voice agents, answer engines over a company's documents, map and data apps, and the platform and agent tooling underneath them.",
+      "highlights": [],
+      "tags": ["Product Studio", "Voice Agents", "RAG", "Full-Stack", "Self-Hosted Infrastructure", "Evals"]
+    },
     {
       "id": 1,
       "company": "Nepasoft LLC",
@@ -23,34 +37,6 @@
         "Specific clients, platforms, and proprietary metrics withheld per confidentiality agreements."
       ],
       "tags": ["RAG", "OCR", "Document Classification", "AI Orchestration", "Document Classification & Extraction", "Model Validation", "Human-in-the-Loop Validation", "Prompt Versioning", "Audit Trails", "Governance", "HIPAA / SOC 2-Sensitive Workflows"]
-    },
-    {
-      "id": 2,
-      "company": "The Fitzgerald Law Firm",
-      "role": "Litigation Operations / AI Workflow Systems",
-      "period": "Feb 2026 - Present · 4 mos",
-      "location": "United States",
-      "icon": "Shield",
-      "color": "#4169E1",
-      "accentColor": "#8EA7FF",
-      "collapsedSummary": "Develop AI workflow research around docketing, document intelligence, court filing signals, rule lookup, and privacy-safe legal automation.",
-      "expandedSummary": "Develop AI workflow research around docketing, document intelligence, court filing signals, rule lookup, and privacy-safe legal automation.",
-      "highlights": [],
-      "tags": ["AI Workflow", "Legal AI", "Document Intelligence", "RAG", "Human Review"]
-    },
-    {
-      "id": 3,
-      "company": "Independent AI Projects",
-      "role": "AI Workflow Systems Builder",
-      "period": "Dec 2025 - Present",
-      "location": "Remote",
-      "icon": "Rocket",
-      "color": "#6366F1",
-      "accentColor": "#A78BFA",
-      "collapsedSummary": "Build AI agents, prompt standards, golden dataset tests, eval pipelines, RAG assistants, LLM distillation workflows, data-driven AI insights, and human-review automation.",
-      "expandedSummary": "Build AI agents, prompt standards, golden dataset tests, eval pipelines, RAG assistants, LLM distillation workflows, data-driven AI insights, and human-review automation.",
-      "highlights": [],
-      "tags": ["AI Agents", "Prompt Standards", "Golden Datasets", "Data Analytics", "LLM Distillation", "Human Review"]
     },
     {
       "id": 4,
@@ -79,6 +65,20 @@
       "expandedSummary": "Built frontend projects using React, Next.js, Tailwind, Redux, APIs, animations, and QA workflows.",
       "highlights": [],
       "tags": ["React", "Next.js", "Frontend", "APIs", "QA"]
+    },
+    {
+      "id": 2,
+      "company": "The Fitzgerald Law Firm",
+      "role": "AI Workflow Systems",
+      "period": "Feb 2026 - Jun 2026 · 5 mos",
+      "location": "United States",
+      "icon": "Shield",
+      "color": "#4169E1",
+      "accentColor": "#8EA7FF",
+      "collapsedSummary": "Developed AI workflow research around docketing, document intelligence, court filing signals, rule lookup, and privacy-safe legal automation.",
+      "expandedSummary": "Developed AI workflow research around docketing, document intelligence, court filing signals, rule lookup, and privacy-safe legal automation.",
+      "highlights": [],
+      "tags": ["AI Workflow", "Legal AI", "Document Intelligence", "RAG", "Human Review"]
     }
   ]
 }
