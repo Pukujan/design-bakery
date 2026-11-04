@@ -15,7 +15,7 @@ ordinary Postgres client:
 - MCP: `provision_database`  |  HTTP: `POST /api/workspaces/<id>/database`
 - The connection string is returned exactly once; store it as a secret.
 - Already provisioned for this workspace. The id is not committed: it is
-  `OCTO_WORKSPACE_ID` in `backend/.env` (and `deploy/gravebuster/.env.api` on the VPS).
+  `OCTO_WORKSPACE_ID` in `backend/.env` (and `deploy/vps/.env.api` on the VPS).
   Prefer `POST /api/workspaces/<id>/query` (Octo API key, no connection string).
 
 Only depart from this if you can demonstrate a concrete incompatibility, and
@@ -67,7 +67,7 @@ See **[additionals/doc/architecture.md](additionals/doc/architecture.md)** for M
 - **`pnpm run dev:stack`** — Vite + Express on **8787**; set `VITE_BLOG_API_URL=http://localhost:8787` in **`frontend/.env`**.
 - **`pnpm run dev:api`** — Express API only.
 - **`pnpm run dev:web`** — Vite only.
-- **Production:** the owner's VPS + Cloudflare Tunnel; Komodo deploys it when `main` moves. Where services run is decided in `pukujan-lab-2/server-management` `vps/PLAN.md`. **[docs/self-hosting.md](docs/self-hosting.md)** (deploy/rollback). The deploy kit's folder is still named `deploy/gravebuster/` (Komodo runs it by that path); gravebuster itself is not used.
+- **Production:** the owner's VPS + Cloudflare Tunnel; Komodo deploys it when `main` moves. Where services run is decided in `pukujan-lab-2/server-management` `vps/PLAN.md`. **[docs/self-hosting.md](docs/self-hosting.md)** (deploy/rollback). The deploy kit is `deploy/vps/`. gravebuster is not used.
 - Dev port: first free from **5300** (`vite.config.ts`).
 
 ## Publish kit tests

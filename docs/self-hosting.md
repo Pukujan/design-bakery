@@ -5,10 +5,10 @@ design-bakery.com (the site and its API) runs on the owner's VPS (`ssh vps`, Tai
 `pukujan-lab-2/server-management`, file `vps/PLAN.md`; if this page and that plan disagree,
 the plan wins.
 
-The deploy kit is in `deploy/gravebuster/`. The folder is named after the box the site
-first ran on; the name is kept because the VPS's Komodo stack runs these files by that
-path. Earlier hosts (gravebuster, the MacBook Pro, Vercel, Railway) are retired; their
-runbooks are in git history.
+The deploy kit is in `deploy/vps/`. Earlier hosts (gravebuster, the MacBook Pro, Vercel,
+Railway) are retired; their runbooks are in git history. `deploy/gravebuster/deploy.sh` is
+only a stand-in for the move to `deploy/vps/` (see that file); it goes once Komodo runs the
+new path.
 
 ---
 
@@ -26,19 +26,19 @@ browser ──► Cloudflare edge (design-bakery.com zone)
 | --- | --- |
 | Host | the VPS, user `ubuntu` |
 | Deploy checkout | `~/apps/design-bakery` (detached HEAD at the deployed SHA; managed by `deploy.sh`, do not develop in it) |
-| Compose project | `design-bakery` (`deploy/gravebuster/docker-compose.yml` + `docker-compose.edge.yml`) |
+| Compose project | `design-bakery` (`deploy/vps/docker-compose.yml` + `docker-compose.edge.yml`) |
 | Containers | `design-bakery-web` (Caddy on `:80`, healthcheck `/healthz`), `design-bakery-api` (`node backend/lib/server.js`, healthcheck `/health`) |
 | Ports | `127.0.0.1:8085` (web), `127.0.0.1:8789` (api); loopback only |
 | Networks | both on `design-bakery_default`; web also on `study-os_edge`, which tunnel A reaches |
 | Images | `design-bakery-web:<sha12>-<UTC timestamp>` (~182 MB), `design-bakery-api:<sha12>-<UTC timestamp>` (~1 GB) |
-| Logs | `docker logs design-bakery-web` / `design-bakery-api`, `deploy/gravebuster/deploy.log` |
+| Logs | `docker logs design-bakery-web` / `design-bakery-api`, `deploy/vps/deploy.log` |
 
-**Build.** `deploy/gravebuster/Dockerfile` runs `pnpm install --frozen-lockfile` and
+**Build.** `deploy/vps/Dockerfile` runs `pnpm install --frozen-lockfile` and
 `pnpm --dir frontend run build` on `node:24-bookworm-slim`, and `caddy:2-alpine` serves
 `frontend/dist`. `Dockerfile.api` builds `backend/services` and `backend`, and installs
 `fontconfig` + `fonts-dejavu-core` for the publish kit's SVG text.
 
-**Routing.** `deploy/gravebuster/Caddyfile` is the source of truth for every redirect and
+**Routing.** `deploy/vps/Caddyfile` is the source of truth for every redirect and
 rewrite (the CI tests assert against it):
 
 1. Redirects run **before** the filesystem (`/studyos[/…]` → `https://study.design-bakery.com/…` 307, `/ire/app` → `/ire/` 301).
@@ -61,12 +61,12 @@ shell SPA.
 **A merge to `main` is the deploy.** Komodo (on the VPS) runs the action
 `design-bakery-deploy-on-push` every 5 minutes. When GitHub's `main` is ahead of the running
 `design-bakery-web` image, it deploys the stack `design-bakery-vps`, whose pre-deploy runs
-`deploy/gravebuster/deploy.sh`. Both are defined in `server-management`,
+`deploy/vps/deploy.sh`. Both are defined in `server-management`,
 `komodo/resources/stacks-vps.toml`. Do not deploy by hand-pulling an unmerged branch.
 
 What `deploy.sh` does, in order:
 
-1. Take the deploy lock (`deploy/gravebuster/.deploy.lock`, a directory; a second caller
+1. Take the deploy lock (`deploy/vps/.deploy.lock`, a directory; a second caller
    exits at once instead of queueing).
 2. `git fetch --prune origin`, resolve the ref (default `origin/main`), and note the running
    web and API images.
@@ -89,14 +89,14 @@ By hand on the VPS (to retry a failed deploy, or to deploy a merged commit at on
 
 ```bash
 cd ~/apps/design-bakery
-deploy/gravebuster/deploy.sh --ref origin/main
+deploy/vps/deploy.sh --ref origin/main
 ```
 
 Flags: `--no-pull`, `--with-edge` / `--no-edge`, `--with-api` / `--no-api`, `--port <n>`,
 `--no-rollback`. Keep `WITH_EDGE=1` in `.env`: without it a deploy recreates `web` without
 `study-os_edge` and the tunnel returns 502.
 
-### Config (git-ignored, on the VPS in `deploy/gravebuster/`)
+### Config (git-ignored, on the VPS in `deploy/vps/`)
 
 - **`.env`**: public values only (ports, `EDGE_NETWORK`, `WITH_EDGE`, image tags,
   `VITE_SITE_URL`, `VITE_BLOG_API_URL=https://www.design-bakery.com`). The `VITE_*` values
@@ -128,9 +128,9 @@ The ones the API cannot serve without:
 
 ```bash
 cd ~/apps/design-bakery
-deploy/gravebuster/rollback.sh              # back to PREVIOUS_IMAGE from .deploy-state
-deploy/gravebuster/rollback.sh --list       # image tags on the host
-deploy/gravebuster/rollback.sh --image design-bakery-web:<tag>
+deploy/vps/rollback.sh              # back to PREVIOUS_IMAGE from .deploy-state
+deploy/vps/rollback.sh --list       # image tags on the host
+deploy/vps/rollback.sh --image design-bakery-web:<tag>
 ```
 
 `rollback.sh` takes the same lock, swaps to the recorded previous tags (web and API),

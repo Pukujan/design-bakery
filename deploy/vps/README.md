@@ -4,10 +4,8 @@ The container stack that serves the site (`frontend` SPA, built with pnpm + Vite
 Express API on the VPS, routed by the rules in `Caddyfile`. Full runbook:
 [`docs/self-hosting.md`](../../docs/self-hosting.md).
 
-The folder is named after gravebuster, the box the site first ran on. gravebuster is no
-longer used; the name stays because the VPS's Komodo stack (`design-bakery-vps` in
-`pukujan-lab-2/server-management`, `komodo/resources/stacks-vps.toml`) runs these files by
-this path.
+Komodo runs these files by this path: the stack `design-bakery-vps` in
+`pukujan-lab-2/server-management`, `komodo/resources/stacks-vps.toml`.
 
 | file | purpose |
 | --- | --- |
@@ -29,8 +27,8 @@ hand on the VPS:
 
 ```bash
 cd ~/apps/design-bakery
-deploy/gravebuster/deploy.sh --ref origin/main
-deploy/gravebuster/rollback.sh
+deploy/vps/deploy.sh --ref origin/main
+deploy/vps/rollback.sh
 ```
 
 Besides `/api/*`, Caddy sends the blog and case-study paths to `api:8787` so link

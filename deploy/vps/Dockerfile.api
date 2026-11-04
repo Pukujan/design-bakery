@@ -9,7 +9,7 @@
 # through librsvg and probes for that font.
 #
 # Build from the repo root:
-#   docker build -f deploy/gravebuster/Dockerfile.api -t design-bakery-api:local .
+#   docker build -f deploy/vps/Dockerfile.api -t design-bakery-api:local .
 
 ARG NODE_IMAGE=node:24-bookworm-slim
 

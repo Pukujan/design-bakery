@@ -31,7 +31,7 @@ export function resolveOpenRouterKey(): string {
   const key = process.env.OPENROUTER_API_KEY?.trim();
   if (key?.startsWith('sk-')) return key;
   const err = new Error(
-    'OPENROUTER_API_KEY is missing. Add it to backend/.env (see backend/.env.example), or to deploy/gravebuster/.env.api on the VPS.',
+    'OPENROUTER_API_KEY is missing. Add it to backend/.env (see backend/.env.example), or to deploy/vps/.env.api on the VPS.',
   );
   (err as Error & { code: string }).code = 'failed-precondition';
   throw err;

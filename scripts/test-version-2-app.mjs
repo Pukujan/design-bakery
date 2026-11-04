@@ -60,7 +60,7 @@ assert.ok(!buildScript.includes('shell/index.html'), 'the build should not move 
 
 // 3. Routing: /version-2 and /version-2/ serve the app's shell, before the SPA
 //    catch-all, in the Caddyfile (the live server's config).
-const caddy = await read('./deploy/gravebuster/Caddyfile');
+const caddy = await read('./deploy/vps/Caddyfile');
 const catchAllMatch = caddy.match(/\n\t\thandle \{\n\t\t\trewrite \* (\/\S+)/);
 assert.ok(catchAllMatch, 'Caddyfile should keep the SPA catch-all');
 assert.equal(
@@ -94,7 +94,7 @@ assert.ok(
 // 4. The deploy smoke test exercises the page: its shell and a scene plate under the base
 //    path (the plate proves the asset prefix resolves through the rewrite). The two body
 //    checks pin the two documents apart — a status-only smoke cannot tell them apart.
-const deploy = await read('./deploy/gravebuster/deploy.sh');
+const deploy = await read('./deploy/vps/deploy.sh');
 assert.match(deploy, /check 200 \/version-2\b/, 'deploy.sh should smoke-check /version-2');
 assert.match(deploy, /body_has \/version-2 "\/version-2\/assets\/"/, 'deploy.sh should assert /version-2 is the journey');
 assert.match(deploy, /check 200 \/version-2\/plate-[a-z0-9-]+\.png/, 'deploy.sh should smoke-check a scene plate');

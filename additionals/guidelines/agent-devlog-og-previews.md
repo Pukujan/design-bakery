@@ -106,7 +106,7 @@ reads JSON there and a silent `index.html` would be worse than the 502.
 | Shared OG modules (backend) | `backend/src/og/*.ts` |
 | Shared OG module (frontend copy) | `frontend/src/og/blogSocialMeta.ts` |
 | Browser-only half | `frontend/src/og/blogSocialMetaClient.ts` |
-| Caddy routing | `deploy/gravebuster/Caddyfile` (`@ogPreview`, `handle_errors`) |
+| Caddy routing | `deploy/vps/Caddyfile` (`@ogPreview`, `handle_errors`) |
 | Drift tests | `scripts/test-og-routing.mjs`, `scripts/test-og-contract.mjs` |
 | Env | `SITE_URL` (public origin), `OG_SHELL_ORIGIN` (default `http://web:80`) |
 

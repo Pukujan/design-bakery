@@ -101,7 +101,7 @@ export function formatPublishKitError(raw: string, readiness: PublishKitReadines
     return `${raw} Try again, or switch OPENROUTER_MODEL in backend/.env.`;
   }
   if (/OPENROUTER_API_KEY is missing/i.test(raw)) {
-    return 'Backend is missing OPENROUTER_API_KEY. Add it to backend/.env (one line, no line break after =), or to deploy/gravebuster/.env.api on the VPS.';
+    return 'Backend is missing OPENROUTER_API_KEY. Add it to backend/.env (one line, no line break after =), or to deploy/vps/.env.api on the VPS.';
   }
   if (/GOOGLE_APPLICATION_CREDENTIALS_JSON|Firebase Admin is not configured|default Firebase app does not exist/i.test(raw)) {
     return (

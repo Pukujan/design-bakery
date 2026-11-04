@@ -37,7 +37,7 @@ pnpm run dev:api      # backend only
 | Host | Root directory | Env |
 |------|----------------|-----|
 | **Frontend build** | `frontend` | `frontend/.env.example` |
-| **API container (VPS)** | `backend` | `backend/.env.example` → `deploy/gravebuster/.env.api` |
+| **API container (VPS)** | `backend` | `backend/.env.example` → `deploy/vps/.env.api` |
 
 See [docs/self-hosting.md](../../docs/self-hosting.md).
 

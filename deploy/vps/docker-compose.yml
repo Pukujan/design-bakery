@@ -1,11 +1,11 @@
 # design-bakery web and API stack on the VPS (TASK-DB-0055).
 #
-# Lives in the repo at deploy/gravebuster/docker-compose.yml and is driven by
+# Lives in the repo at deploy/vps/docker-compose.yml and is driven by
 # deploy.sh / rollback.sh. Published on 127.0.0.1 only — nothing is exposed publicly
 # until the Cloudflare Tunnel ingress is pointed at it (docs/self-hosting.md).
 #
 #   cd ~/apps/design-bakery
-#   docker compose -f deploy/gravebuster/docker-compose.yml up -d
+#   docker compose -f deploy/vps/docker-compose.yml up -d
 #
 # The image is built by deploy.sh with a git-sha tag; `docker compose build` here is
 # only a convenience for manual work.
@@ -18,7 +18,7 @@ services:
     image: ${DESIGN_BAKERY_IMAGE:-design-bakery-web:local}
     build:
       context: ../..
-      dockerfile: deploy/gravebuster/Dockerfile
+      dockerfile: deploy/vps/Dockerfile
       args:
         # Public, build-time values only — see Dockerfile and docs/self-hosting.md.
         VITE_SITE_URL: ${VITE_SITE_URL:-}
@@ -50,7 +50,7 @@ services:
     image: ${DESIGN_BAKERY_API_IMAGE:-design-bakery-api:local}
     build:
       context: ../..
-      dockerfile: deploy/gravebuster/Dockerfile.api
+      dockerfile: deploy/vps/Dockerfile.api
     restart: unless-stopped
     ports:
       - "127.0.0.1:${API_HOST_PORT:-8789}:8787"
