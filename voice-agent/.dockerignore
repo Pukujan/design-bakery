@@ -1,0 +1,6 @@
+.venv
+__pycache__
+tests
+scenarios.py
+*.md
+models

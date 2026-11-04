@@ -2,7 +2,7 @@
 /**
  * The Open Graph link-preview routing is written twice, in two languages:
  *
- *   deploy/gravebuster/Caddyfile          `@ogPreview` / `@ogShellFallback` (RE2)
+ *   deploy/vps/Caddyfile          `@ogPreview` / `@ogShellFallback` (RE2)
  *   backend/src/api/ogPreview.ts          the Express router (JavaScript regexes)
  *
  * Nothing but this test stops them drifting, and a drift is silent: a path Caddy
@@ -24,7 +24,7 @@ const read = (p) => readFile(new URL(p, root), 'utf8');
 
 // --- the Caddy matchers ---------------------------------------------------------
 
-const caddyfile = await read('./deploy/gravebuster/Caddyfile');
+const caddyfile = await read('./deploy/vps/Caddyfile');
 
 function caddyMatcher(name) {
   const m = caddyfile.match(new RegExp(`^\\s*@${name}\\s+path_regexp\\s+(\\S+)\\s*$`, 'm'));

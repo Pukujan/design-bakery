@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 #
-# design-bakery API on gravebuster (issue #80).
+# design-bakery API image (issue #80).
 #
 # Reproduces the Railway/Nixpacks build (root nixpacks.toml + backend/railway.toml)
 # exactly: install with devDependencies (tsc is needed), build services then backend,
@@ -9,7 +9,7 @@
 # through librsvg and probes for that font.
 #
 # Build from the repo root:
-#   docker build -f deploy/gravebuster/Dockerfile.api -t design-bakery-api:local .
+#   docker build -f deploy/vps/Dockerfile.api -t design-bakery-api:local .
 
 ARG NODE_IMAGE=node:24-bookworm-slim
 

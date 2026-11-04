@@ -5,6 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { useProjectRecords } from '../../lib/portfolioDocs';
 import { PLACEHOLDER_QUESTIONS, SUGGESTIONS } from '../lab/copilotAnswers';
 import { chipKindOf, openLabel } from './chips';
+import { previewOf } from './replyPeek';
 import { copilot, useCopilot, type CopilotAction, type CopilotMessage } from './store';
 import { useVoice, voice } from './voice';
 import './chat-core.css';
@@ -152,6 +153,28 @@ function ActionView({ action }: { action: CopilotAction }) {
   );
 }
 
+/** A line heard on a call that got no reply (someone else in the room, or my own voice heard back): greyed, and answerable. */
+function IgnoredLine({ message }: { message: CopilotMessage }) {
+  const { busy } = useCopilot();
+  const why = message.ignored === 'another voice' ? 'Not your voice, so I let it pass.' : message.ignored?.startsWith('said to ') ? `Sounded like it was for ${message.ignored.slice(8)}.` : 'I was not sure that was for me.';
+  return (
+    <motion.div
+      className="lab-msg lab-msg--user cp-ignored"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: EASE }}
+    >
+      <p className="cp-ignored-text">{message.text}</p>
+      <p className="cp-ignored-why">
+        {why}{' '}
+        <button type="button" className="cp-ignored-answer" disabled={busy} onClick={() => void copilot.answerIgnored(message.id)}>
+          Answer this
+        </button>
+      </p>
+    </motion.div>
+  );
+}
+
 function AssistantMessage({ message }: { message: CopilotMessage }) {
   const waiting = message.streaming && !message.text && message.steps.length === 0;
   return (
@@ -191,8 +214,10 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
   const [focused, setFocused] = useState(false);
   // The hero's thread is open only while the visitor is working in it. It folds away on a click elsewhere or when
   // the hero scrolls off screen, and the conversation stays in the store, so the side panel still has all of it.
+  // Folded, a one- or two-line peek above the box shows that it is working and then the start of the reply.
   const [engaged, setEngaged] = useState(false);
-  const showThread = messages.length > 0 && (variant === 'dock' || ((engaged || busy) && heroVisible));
+  const showThread = messages.length > 0 && (variant === 'dock' || (engaged && heroVisible));
+  const showPeek = variant === 'hero' && messages.length > 0 && !showThread;
   const threadRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const placeholder = useTypedPlaceholder(!focused && draft === '' && messages.length === 0);
@@ -202,7 +227,13 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
     if (thread) thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
   }, [messages, showThread]);
 
-  const ask = (question: string) => {
+  // The call button is on screen: wake the voice service a few seconds after the page settles.
+  useEffect(() => {
+    const timer = window.setTimeout(() => voice.warm(), 3000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const ask =(question: string) => {
     if (!question.trim() || busy) return;
     copilot.setDraft('');
     void copilot.send(question, { path: location.pathname, title: document.title });
@@ -250,14 +281,6 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
           : undefined
       }
     >
-      {variant === 'dock' && messages.length > 0 && (
-        <div className="lab-copilot-status lab-mono">
-          <button type="button" className="cp-link" onClick={() => copilot.clear()}>
-            New chat
-          </button>
-        </div>
-      )}
-
       <AnimatePresence initial={false}>
         {showThread && (
         <motion.div
@@ -272,7 +295,9 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
           transition={{ duration: 0.3, ease: EASE }}
         >
           {messages.map((message) =>
-            message.role === 'user' ? (
+            message.role === 'user' && message.ignored ? (
+              <IgnoredLine key={message.id} message={message} />
+            ) : message.role === 'user' ? (
               <motion.p
                 key={message.id}
                 className="lab-msg lab-msg--user"
@@ -287,6 +312,30 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
             ),
           )}
         </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence initial={false}>
+        {showPeek && (
+          <motion.button
+            key="peek"
+            type="button"
+            className="cp-peek"
+            aria-label="Open the conversation"
+            onClick={() => inputRef.current?.focus()}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: EASE }}
+          >
+            <span className={`cp-peek-dot${busy ? ' is-busy' : ''}`} aria-hidden="true" />
+            <span className="cp-peek-text" aria-live="polite">
+              {previewOf(messages)}
+            </span>
+            <span className="cp-peek-open lab-mono" aria-hidden="true">
+              {busy ? 'Replying' : 'Read'}
+            </span>
+          </motion.button>
         )}
       </AnimatePresence>
 

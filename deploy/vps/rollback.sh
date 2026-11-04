@@ -2,28 +2,28 @@
 #
 # Roll design-bakery back to the previously deployed image.
 #
-# deploy.sh keeps the previous image tag in deploy/gravebuster/.deploy-state and never
+# deploy.sh keeps the previous image tag in deploy/vps/.deploy-state and never
 # deletes old images, so a rollback is just an image swap — no rebuild. The API
 # container is swapped back with the web container under the same enable rule.
 #
 # Usage (the deploy checkout, e.g. ~/apps/design-bakery):
-#   deploy/gravebuster/rollback.sh                  # back to PREVIOUS_IMAGE
-#   deploy/gravebuster/rollback.sh --image <tag>    # to a specific tag
-#   deploy/gravebuster/rollback.sh --with-edge      # keep the tunnel network attached
-#   deploy/gravebuster/rollback.sh --with-api       # also swap the API container
-#   deploy/gravebuster/rollback.sh --no-api         # web only, even if the API is enabled
-#   deploy/gravebuster/rollback.sh --list           # show deployed images
+#   deploy/vps/rollback.sh                  # back to PREVIOUS_IMAGE
+#   deploy/vps/rollback.sh --image <tag>    # to a specific tag
+#   deploy/vps/rollback.sh --with-edge      # keep the tunnel network attached
+#   deploy/vps/rollback.sh --with-api       # also swap the API container
+#   deploy/vps/rollback.sh --no-api         # web only, even if the API is enabled
+#   deploy/vps/rollback.sh --list           # show deployed images
 #
 # Only one deploy or rollback runs at a time: each takes an exclusive lock DIRECTORY
-# (deploy/gravebuster/.deploy.lock) and exits at once if another already holds it.
+# (deploy/vps/.deploy.lock) and exits at once if another already holds it.
 #
-# The API container is rolled back when WITH_API=1 or deploy/gravebuster/.env.api
+# The API container is rolled back when WITH_API=1 or deploy/vps/.env.api
 # exists; --with-api / --no-api override that for a single run (see deploy.sh).
 set -euo pipefail
 
 # Docker Desktop on macOS installs the CLI in /usr/local/bin, which is NOT on the
-# default non-interactive SSH PATH (a login shell has it, `ssh host <script>` does
-# not). Harmless on Linux. The Mac host runs this over plain SSH.
+# default non-interactive SSH PATH. Harmless on Linux (the VPS); kept so the script
+# also runs on a Mac for a local test.
 PATH="/usr/local/bin:$PATH"
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -45,7 +45,7 @@ HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-90}
 HEALTH_PATH=${HEALTH_PATH:-/healthz}
 API_HEALTH_PATH=${API_HEALTH_PATH:-/health}
 TARGET_IMAGE=""
-# Empty so deploy/gravebuster/.env (sourced below) can set it; --with-edge / --no-edge
+# Empty so deploy/vps/.env (sourced below) can set it; --with-edge / --no-edge
 # override for a single run. A sticky WITH_EDGE=1 keeps a rollback from dropping the
 # tunnel network (see deploy.sh).
 WITH_EDGE=""
@@ -87,7 +87,7 @@ API_HOST_PORT=${API_HOST_PORT:-8789}
 WITH_EDGE=${WITH_EDGE:-0}
 
 # Same enable rule as deploy.sh: the API is in play when WITH_API=1, or automatically
-# once deploy/gravebuster/.env.api exists. --with-api / --no-api override for a run.
+# once deploy/vps/.env.api exists. --with-api / --no-api override for a run.
 if [ -z "$WITH_API_FLAG" ] && [ -z "$WITH_API" ]; then
 	if [ -f "$API_ENV_FILE" ]; then WITH_API=1; else WITH_API=0; fi
 fi
@@ -236,7 +236,7 @@ while [ "$SECONDS" -lt "$deadline" ]; do
 		fi
 		write_tags "$TARGET_IMAGE" "$([ "$WITH_API" = "1" ] && echo "$TARGET_API_IMAGE")"
 		log "rollback OK: now serving $TARGET_IMAGE"
-		log "re-deploy the newer build with: deploy/gravebuster/deploy.sh --no-pull --ref $(state_get SHA)"
+		log "re-deploy the newer build with: deploy/vps/deploy.sh --no-pull --ref $(state_get SHA)"
 		exit 0
 	fi
 	sleep 2

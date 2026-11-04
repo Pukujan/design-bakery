@@ -1,5 +1,5 @@
 /**
- * Vite `VITE_*` flags are baked in at build time (e.g. Vercel).
+ * Vite `VITE_*` flags are baked in at build time (the web image on the VPS).
  * When unset: off in dev, on in production (opt out with =false).
  */
 export function viteFlag(name: string): boolean {

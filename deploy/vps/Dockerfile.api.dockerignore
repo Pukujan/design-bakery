@@ -1,5 +1,5 @@
 # Build context is the repo root; keep the context small and stable.
-# Docker picks this up automatically for `-f deploy/gravebuster/Dockerfile.api`.
+# Docker picks this up automatically for `-f deploy/vps/Dockerfile.api`.
 .git
 .github
 **/node_modules

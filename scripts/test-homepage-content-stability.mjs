@@ -130,7 +130,7 @@ assert.ok(
   !studyOs.links.some((link) => link.url === STUDY_OS_LIVE_APP),
   'Study OS card must not link study.design-bakery.com while that host is not served',
 );
-const caddyfile = await readFile(new URL('./deploy/gravebuster/Caddyfile', root), 'utf8');
+const caddyfile = await readFile(new URL('./deploy/vps/Caddyfile', root), 'utf8');
 // Non-permanent: a 307 with the Study OS host as the Location.
 assert.match(
   caddyfile,

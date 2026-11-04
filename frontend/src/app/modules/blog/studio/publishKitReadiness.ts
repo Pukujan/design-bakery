@@ -93,7 +93,7 @@ export function formatPublishKitError(raw: string, readiness: PublishKitReadines
   }
   if (/non-JSON|invalid JSON/i.test(raw) && /VITE_BLOG_API_URL|Check VITE/i.test(raw)) {
     return (
-      'Blog API returned a non-JSON error page. Set VITE_BLOG_API_URL to your Railway backend URL for the frontend build, ' +
+      'Blog API returned a non-JSON error page. Set VITE_BLOG_API_URL to the API URL for the frontend build, ' +
       'redeploy, and run pnpm run dev:stack locally (not pnpm run dev alone).'
     );
   }
@@ -101,7 +101,7 @@ export function formatPublishKitError(raw: string, readiness: PublishKitReadines
     return `${raw} Try again, or switch OPENROUTER_MODEL in backend/.env.`;
   }
   if (/OPENROUTER_API_KEY is missing/i.test(raw)) {
-    return 'Backend is missing OPENROUTER_API_KEY. Add it to backend/.env (one line, no line break after =) or Railway variables.';
+    return 'Backend is missing OPENROUTER_API_KEY. Add it to backend/.env (one line, no line break after =), or to deploy/vps/.env.api on the VPS.';
   }
   if (/GOOGLE_APPLICATION_CREDENTIALS_JSON|Firebase Admin is not configured|default Firebase app does not exist/i.test(raw)) {
     return (

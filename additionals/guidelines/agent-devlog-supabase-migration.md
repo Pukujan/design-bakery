@@ -132,7 +132,7 @@ Legacy Firebase vars remain until Phase 5; do not delete until migration complet
 | Safe | Avoid |
 |------|--------|
 | Server-side image upload via Express when `VITE_BLOG_API_URL` set | Browser upload to Firebase Storage in production |
-| `service_role` key **only** on Railway / backend | Exposing `SUPABASE_SERVICE_ROLE_KEY` in Vite |
+| `service_role` key **only** in the backend's env | Exposing `SUPABASE_SERVICE_ROLE_KEY` in Vite |
 | JSONB CMS rows mirroring Firestore `{ items }` shape during migration | Big-bang rewrite of every admin editor at once |
 | Budget alert on Supabase/GCP if any billing linked later | Committing `.env` or service keys |
 

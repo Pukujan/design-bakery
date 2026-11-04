@@ -28,7 +28,7 @@ export type CommitVisualUploadResult = {
 
 function productionUploadHelp(): string {
   return (
-    'Server upload failed. On Railway set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_STORAGE_BUCKET, ' +
+    'Server upload failed. In the API env set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_STORAGE_BUCKET, ' +
     'then redeploy the API. Local: pnpm run dev:stack and confirm http://localhost:8787/health.'
   );
 }

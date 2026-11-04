@@ -1,689 +1,180 @@
-# Self-hosting design-bakery on gravebuster
+# Hosting design-bakery
 
-Runbook for serving the `frontend` SPA from gravebuster (the owner's Linux box)
-instead of Vercel — TASK-DB-0055, issue
-[#52](https://github.com/Pukujan/design-bakery/issues/52).
+design-bakery.com (the site and its API) runs on the owner's VPS (`ssh vps`, Tailscale
+`octo-vps`), behind Cloudflare Tunnel. Where services run is decided in
+`pukujan-lab-2/server-management`, file `vps/PLAN.md`; if this page and that plan disagree,
+the plan wins.
 
-**Current state (2026-10-11): the site is live on the MacBook Pro.** gravebuster
-went offline (Tailscale unreachable; every gravebuster-origin hostname 502s), so
-TASK-DB-0082 moved design-bakery onto the Mac in `~/apps/design-bakery`, beside
-octo — **see §0**. The rest of this runbook describes the gravebuster
-deployment, which is unchanged in shape (the same compose project, scripts,
-Caddyfile and tunnel); the Mac is now the host running it.
-
-**Historical (2026-10-07):** the site was live on gravebuster — the tunnel served
-`www.design-bakery.com` and the apex from `design-bakery-web:80`, and the `api`
-container was deployed behind Caddy's `/api/*` proxy (TASK-DB-0076).
-
-**Vercel is gone (TASK-DB-0131).** The Vercel project was deleted, `vercel.json` was
-removed from the repo, and `deploy/gravebuster/Caddyfile` is now the source of truth for
-routing (the CI tests assert against it). The `/ai-for-good/*` proxy and redirect were
-dropped, because their upstream Vercel app no longer exists. Mentions of Vercel below
-(§2 parity tables, §5 cutover steps, the rollback notes) are historical and kept as a
-record of the migration.
-
----
-
-## 0. Running on the Mac (TASK-DB-0082)
-
-The MacBook Pro (`ssh mac`; user `teresaguajardo`) runs Docker Desktop and
-already hosts octo. design-bakery is a second compose project on it.
-
-| Piece | Value |
-| --- | --- |
-| Deploy checkout | `~/apps/design-bakery` on the Mac (detached HEAD at the deployed SHA) |
-| Compose project | `design-bakery` (same `deploy/gravebuster/docker-compose.yml`) |
-| Containers | `design-bakery-web` (`127.0.0.1:8085`→80), `design-bakery-api` (`127.0.0.1:8789`→8787) |
-| Tunnel | the **shared** `study-os-gravebuster` tunnel, via the Mac's existing `octo-cloudflared` container — **no Cloudflare/DNS/token change was needed**; its ingress already routed `www`/apex to `design-bakery-web:80` |
-
-**Why it "just worked".** The tunnel is shared by both boxes, and the Mac's
-`octo-cloudflared` was already connected to it. The `www`/apex 502 was purely
-"no container named `design-bakery-web` on the Mac". Standing up that container
-on the tunnel network (`study-os_edge`, via the same `WITH_EDGE=1` +
-`docker-compose.edge.yml` mechanism as §5) restored the site with nothing
-changed at Cloudflare.
-
-**macOS portability.** Three things differ from Linux and are now handled in
-`deploy.sh` / `rollback.sh` / `autodeploy.sh`:
-
-1. **No `flock(1)`.** The deploy lock is a **directory** (`acquire_lock()`):
-   atomic `mkdir`, the holder writes its `pid` inside, an EXIT trap `rm -rf`s it.
-   Stale-takeover rules: a dead pid — or a live-looking pid older than
-   `STALE_LOCK_MAX_MINUTES` (default 1440 m, pid-reuse safety valve) — is taken
-   over; a lock with no `pid` yet only after `STALE_LOCK_MINUTES` (default
-   60 m); a leftover plain FILE at the lock path (the pre-macOS flock scheme) is
-   removed on sight. `DEPLOY_LOCK_DIR` overrides the path (was
-   `DEPLOY_LOCK_FILE`). Still non-blocking.
-2. **Docker Desktop is not on the non-interactive SSH PATH.** `ssh mac <script>`
-   has no `/usr/local/bin`, so all three scripts prepend it to `PATH`
-   (harmless on Linux).
-3. **No systemd.** §6's timer has no macOS equivalent; the Mac uses a launchd agent
-   (`deploy/gravebuster/launchd/com.designbakery.autodeploy.plist`, TASK-DB-0086) that runs
-   the same `autodeploy.sh`. It is installed and enabled — see §6.
-
-**Watch out — the shared tunnel will split-brain.** When gravebuster comes back,
-its `cloudflared` reconnects to the same tunnel and Cloudflare load-balances
-**every** hostname across both connectors: `www`/apex would split between two
-builds, and study/bench/acs (gravebuster-only origins) would flap to 502
-whenever the Mac connector is chosen. Resolve this before gravebuster returns
-(rotate the shared token, retire gravebuster's connector, or give the Mac its
-own tunnel). Not done as of this writing.
-
-**Open — the octo data did not move.** The Mac's octo has **no design-bakery
-workspace**, so the 136 content rows are still only in gravebuster's
-the workspace named in `deploy/gravebuster/.env.api` (unreachable). Until the owner supplies a new
-workspace id/key and the API container is recreated, `/api/public/blogs` returns
-**500** and the site serves the committed 7-post `blog-data.json` snapshot, and
-crawler link previews (§8) degrade to the plain shell.
+The deploy kit is in `deploy/vps/`. Earlier hosts (gravebuster, the MacBook Pro, Vercel,
+Railway) are retired; their runbooks are in git history. `deploy/gravebuster/deploy.sh` is
+only a stand-in for the move to `deploy/vps/` (see that file); it goes once Komodo runs the
+new path.
 
 ---
 
 ## 1. Architecture
 
 ```
-browser ──► Cloudflare edge (design-bakery.com zone, proxied)
-              │
-              ├─ study.design-bakery.com ──► study-os tunnel ──► study-os-api-1:8000   (unchanged)
-              │
-              └─ www / apex ──► same tunnel ──► design-bakery-web:80
-                                                    │  Caddy, static
-                                                    ├─ /api/*        ─► api:8787   (Express)
-                                                    └─ blog/case-study ─► api:8787   (link previews)
+browser ──► Cloudflare edge (design-bakery.com zone)
+              └─ www / apex ──► tunnel A (octo-cloudflared) ──► design-bakery-web:80
+                                                                 │  Caddy, static
+                                                                 ├─ /api/*          ─► api:8787 (Express)
+                                                                 └─ blog/case-study ─► api:8787 (link previews)
 ```
 
 | Piece | Value |
 | --- | --- |
-| Deploy checkout | `~/apps/design-bakery` on gravebuster (detached HEAD at the deployed SHA) |
-| Compose project | `design-bakery` (`deploy/gravebuster/docker-compose.yml`) |
-| Container | `design-bakery-web` (Caddy 2 on `:80`, `restart: unless-stopped`, healthcheck on `/healthz`) |
-| Published port | `127.0.0.1:8085` — loopback only, never the LAN/WAN |
-| Image | `design-bakery-web:<sha12>-<UTC timestamp>` (~182 MB), plus a `<sha12>` alias |
-| Tunnel | the existing `study-os-cloudflared-1` container (token-based, remotely managed) |
-| Logs | `docker logs design-bakery-web`, `deploy/gravebuster/deploy.log`, `deploy/gravebuster/autodeploy.log` |
+| Host | the VPS, user `ubuntu` |
+| Deploy checkout | `~/apps/design-bakery` (detached HEAD at the deployed SHA; managed by `deploy.sh`, do not develop in it) |
+| Compose project | `design-bakery` (`deploy/vps/docker-compose.yml` + `docker-compose.edge.yml`) |
+| Containers | `design-bakery-web` (Caddy on `:80`, healthcheck `/healthz`), `design-bakery-api` (`node backend/lib/server.js`, healthcheck `/health`) |
+| Ports | `127.0.0.1:8085` (web), `127.0.0.1:8789` (api); loopback only |
+| Networks | both on `design-bakery_default`; web also on `study-os_edge`, which tunnel A reaches |
+| Images | `design-bakery-web:<sha12>-<UTC timestamp>` (~182 MB), `design-bakery-api:<sha12>-<UTC timestamp>` (~1 GB) |
+| Logs | `docker logs design-bakery-web` / `design-bakery-api`, `deploy/vps/deploy.log` |
 
-**Build.** `deploy/gravebuster/Dockerfile` is a two-stage build: `node:24-bookworm-slim`
-runs `pnpm install --frozen-lockfile`, then
-`pnpm --dir frontend run build` (output `frontend/dist`), and `caddy:2-alpine` serves
-the result. Node 24 comes from `.node-version`, pnpm 10.32.1 from
-`package.json#packageManager`.
+**Build.** `deploy/vps/Dockerfile` runs `pnpm install --frozen-lockfile` and
+`pnpm --dir frontend run build` on `node:24-bookworm-slim`, and `caddy:2-alpine` serves
+`frontend/dist`. `Dockerfile.api` builds `backend/services` and `backend`, and installs
+`fontconfig` + `fonts-dejavu-core` for the publish kit's SVG text.
 
-**Routing.** `deploy/gravebuster/Caddyfile` is the source of truth for every redirect and rewrite
-(it was written to reproduce the old `vercel.json` rule for rule). The important
-semantics, which are easy to get wrong:
+**Routing.** `deploy/vps/Caddyfile` is the source of truth for every redirect and
+rewrite (the CI tests assert against it):
 
-1. Redirects are evaluated **before** the filesystem (`/studyos[/…]` →
-   `https://study.design-bakery.com/…` 307, `/ire/app` → `/ire/` 301).
-2. Rewrites are evaluated **after** the filesystem — so `/case-studies/cortex` serves the
-   real `case-studies/cortex/index.html`, and only `/case-studies/cortex/a` (which exists
-   solely as `…/a/index.html`) hits the cortex rewrite.
-3. The final `handle` (→ `/index.html`) is the SPA fallback, and paths
-   ending in `.html` deliberately 404 instead of falling back.
-4. The apex → `https://www.design-bakery.com` **307** lives in the Caddyfile
-   (`@apex host design-bakery.com`) so both hostnames can point at this container without
-   serving the site twice.
+1. Redirects run **before** the filesystem (`/studyos[/…]` → `https://study.design-bakery.com/…` 307, `/ire/app` → `/ire/` 301).
+2. Rewrites run **after** the filesystem, so `/case-studies/cortex` serves the real
+   `case-studies/cortex/index.html`, and only paths that exist solely as rewrites hit them.
+3. The final `handle` (→ `/index.html`) is the SPA fallback; paths ending in `.html` 404
+   instead of falling back.
+4. The apex → `https://www.design-bakery.com` 307 lives in the Caddyfile (`@apex`), so both
+   hostnames can point at this container.
 
-**The `/version-2` sub-app.** The cinematic-journey page (TASK-DB-0083) is an **additive**
-page: `frontend/version-2-app` builds with `base: "/version-2/"`, `scripts/build-version-2-app.mjs`
-copies its output into `frontend/dist/version-2`, and both hosts rewrite `/version-2` and
-`/version-2/` to `/version-2/index.html` (the Caddyfile's `@version2` block, mirroring
-`@ire`). `/` itself is the site shell SPA — the same document every other unmatched path
-falls back to (rule 3), and the document `backend/src/og/blogShareHtml.ts` reads for crawler
-HTML. A brief experiment (TASK-DB-0084) promoted the journey to `/` and moved the shell to
-`/shell/index.html`; it was reverted in TASK-DB-0085, and the owners' intent is that the
-journey stays additive.
+**The `/version-2` sub-app.** `frontend/version-2-app` builds with `base: "/version-2/"`,
+`scripts/build-version-2-app.mjs` copies it into `frontend/dist/version-2`, and the
+Caddyfile's `@version2` block rewrites `/version-2[/]` to its `index.html`. `/` is the site
+shell SPA.
 
 ---
 
-## 2. Parity with Vercel (historical)
+## 2. Deploy
 
-> Recorded at the 2026-10 cutover, when the Vercel site still existed to compare against.
-> The `/ai-for-good` rows describe a proxy that has since been removed (TASK-DB-0131).
-
-Probed from gravebuster on 2026-09-25 against commit `b9ecda471919`; local =
-`http://127.0.0.1:8085`, live = `https://www.design-bakery.com`. Every path matches on
-status, content type and (except where noted below) body size; the redirect rows match
-including the 15-byte `Redirecting...` body.
-
-| Path | local (status / content-type) | live (status / content-type) |
-| --- | --- | --- |
-| `/` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
-| `/index.html` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
-| `/research/papers/db-r-2026-010` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
-| `/research/papers/db-r-2026-010/` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
-| `/research/papers/nope-does-not-exist` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
-| `/some/deep/spa/route` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
-| `/blogs` | 200 text/html; charset=utf-8 (1856 B) | 200 text/html; charset=utf-8 (1941 B) |
-| `/blogs/design-bakery-rebuild` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
-| `/case-studies` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
-| `/robots.txt` | 200 text/plain; charset=utf-8 | 200 text/plain; charset=utf-8 |
-| `/sitemap.xml` | 200 application/xml (4140 B) | 200 application/xml (10292 B) |
-| `/images/site-og.png` | 200 image/png (255298 B) | 200 image/png (255298 B) |
-| `/favicon.ico` | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
-| `/assets/index-2U2j1KKs.js` (ours) vs `/assets/index-CWC-t1Uc.js` (live) | 200 application/javascript; charset=utf-8 | 200 application/javascript; charset=utf-8 |
-| `/assets/index-BQtZzjba.css` | 200 text/css; charset=utf-8 | 200 text/css; charset=utf-8 |
-| `/assets/nope-12345.js` (unknown hash) | 200 text/html; charset=utf-8 | 200 text/html; charset=utf-8 |
-| `/case-studies/cortex` | 200 text/html; charset=utf-8 (537 B) | 200 text/html; charset=utf-8 (537 B) |
-| `/case-studies/cortex/` | 200 text/html; charset=utf-8 (537 B) | 200 text/html; charset=utf-8 (537 B) |
-| `/case-studies/cortex/a` | 200 text/html; charset=utf-8 (49858 B) | 200 text/html; charset=utf-8 (49858 B) |
-| `/case-studies/cortex/b/index.html` | 200 text/html; charset=utf-8 (454 B) | 200 text/html; charset=utf-8 (454 B) |
-| `/case-studies/cortex/nope.html` | 404 text/plain; charset=utf-8 | 404 text/plain; charset=utf-8 |
-| `/nope.html` | 404 text/plain; charset=utf-8 (14 B) | 404 text/plain; charset=utf-8 (79 B) |
-| `/ai-for-good` | 308 text/plain, 15 B → `/ai-for-good/` | 308 text/plain, 15 B → `https://www.design-bakery.com/ai-for-good/` |
-| `/ai-for-good/` | 200 text/html; charset=utf-8 (2190 B) | 200 text/html; charset=utf-8 (2190 B) |
-| `/ai-for-good/assets/index-BbMbqSAa.js` | 200 application/javascript; charset=utf-8 (227478 B) | 200 application/javascript; charset=utf-8 (227478 B) |
-| `/ai-for-good/brand/logo.svg` (upstream 404) | 404 text/plain; charset=utf-8 | 404 text/plain; charset=utf-8 |
-| `/studyos` | 307 text/plain, 15 B → `https://study.design-bakery.com/` | 307 text/plain, 15 B → same |
-| `/studyos/foo/bar` | 307 → `https://study.design-bakery.com/foo/bar` | 307 → same |
-| `/studyos/foo/bar?q=1` | 307 → `…/foo/bar?q=1` (query kept) | 307 → same |
-| apex `design-bakery.com/research/papers/db-r-2026-010` (Host override) | 307 text/plain, 15 B → `https://www.design-bakery.com/research/papers/db-r-2026-010` | 307 → same |
-| `/healthz` (internal) | 200 text/plain (2 B) | 200 text/html (SPA fallback — Vercel has no such route) |
-
-Body-level checks (md5 of the response body, local vs live): **byte-identical** for
-`/robots.txt`, `/ai-for-good/`, `/case-studies/cortex`, `/case-studies/cortex/a`,
-`/images/site-og.png` and all four redirect responses (`Redirecting...` + newline,
-`42c939d0ba4bbdc4c7eab1b5c34aaf71`). The cortex sizes match exactly (537 / 49858 / 454
-bytes), as does the proxied app (2190 / 227478 bytes). `/` and `/index.html` are the same
-document (the journey homepage) and byte-identical; before TASK-DB-0084 they were the
-shell and differed in the entry-bundle hash. The only other
-size differences are `/sitemap.xml` (content, see below), the 404 body (Vercel appends a
-per-request id) and `/healthz` (our own endpoint).
-
-### Content types
-
-Go's mime table (what Caddy's `file_server` uses) disagrees with Vercel on four
-extensions, so the Caddyfile overrides them explicitly — the values are what the live
-site actually returns, checked file by file across **all 133 non-hashed static files in
-the build (0 differences remaining)**, plus the hashed `assets/` bundles:
-
-| Extension | Go/Caddy default | Vercel (reproduced) |
-| --- | --- | --- |
-| `.xml` | `text/xml` | `application/xml` |
-| `.js`, `.mjs` | `text/javascript; charset=utf-8` | `application/javascript; charset=utf-8` |
-| `.json` | `application/json` | `application/json; charset=utf-8` |
-| `.b64`, `.keep` | *(no `Content-Type` header at all)* | `application/octet-stream` |
-
-`.css`, `.html`, `.txt`, `.svg`, `.png`, `.webp`, `.avif`, `.vtt` and `.mp4` already
-matched.
-
-### Known differences (all deliberate or content-level, none are routing bugs)
-
-| Difference | Why | Fix if it matters |
-| --- | --- | --- |
-| ~~`/` and `/index.html` body differs in one line~~ | **Resolved 2026-10-12** (TASK-DB-0084) — the two-document swap makes `/` and `/index.html` the same journey document, so they are byte-identical. The old difference was the entry-bundle hash (the shell referenced its own hashed bundle) | nothing to fix |
-| `/sitemap.xml` size | **Resolved 2026-10-07** — `scripts/generate-sitemap.mjs` reads the live blog list at build time; with `VITE_BLOG_API_URL` set (§3) it lists all 33 posts (66 blog URLs across `/blogs/N` and `/endtoend-engineer/blogs/N`), not the 7-post snapshot | nothing — set `VITE_BLOG_API_URL` (§3), which the box now does |
-| 404 body is `404: NOT_FOUND` (14 B) instead of Vercel's 79-byte page | Vercel's body carries a per-request `NOT_FOUND` id | cosmetic; status and content type match |
-| `/ai-for-good/brand/logo.svg` 404 body 79 B vs 84 B | the 404 comes from the **upstream** ai-for-good Vercel app through the proxy; the last line of its body is a request id (`iad1::zfvxj-…` vs `iad1:iad1::2mqz4-…`) that differs per request on both sides | nothing to fix — not our response |
-| `/ai-for-good` `Location` is relative (`/ai-for-good/`) | the container only ever sees `http://` from the tunnel, so an absolute URL would downgrade the scheme at the edge; RFC 7231 allows a relative `Location` | cosmetic |
-| `/blogs`, `/blogs/*`, `/{portfolio}/blogs/*` and `/case-studies/*` render the SPA shell instead of per-post meta | **Resolved** — the Vercel Edge middleware (`middleware.ts`) is gone; the `api` container reproduces it (`backend/src/api/ogPreview.ts`) and Caddy routes those paths to it. See §7. Requires `WITH_API` (the `api` container) to be deployed; without it Caddy degrades those paths to the plain shell | deploy the API (`WITH_API=1`), or accept the generic preview |
-| `/healthz` | internal liveness endpoint for the container healthcheck and `deploy.sh`; the live site has no such route (it would SPA-fallback to 200 text/html) | leave it; it is the "is this our container?" marker |
-| Vercel response headers absent (`x-vercel-*`, `access-control-allow-origin: *`, `NEL`/`Report-To`) | platform headers | not reproduced; add via Cloudflare if ever needed |
-
-Note that an *unknown* `/assets/*.js` path is not a difference: both sides fall back to
-the SPA shell with `200 text/html` (Vercel's catch-all rewrite, our last `handle`), which
-is why `/assets/nope-12345.js` matches. Only the real bundle name differs between builds.
-
-Cache headers do match Vercel's defaults: HTML `public, max-age=0, must-revalidate`,
-other static files `public, max-age=14400, must-revalidate`.
-
----
-
-## 3. Deploy
-
-First-time setup on gravebuster (already done for this deploy):
-
-```bash
-git clone https://github.com/Pukujan/design-bakery.git ~/apps/design-bakery
-cd ~/apps/design-bakery
-cp deploy/gravebuster/.env.example deploy/gravebuster/.env   # port 8085, optional VITE_*
-```
-
-Deploy a ref (default `origin/main`):
-
-```bash
-cd ~/apps/design-bakery
-deploy/gravebuster/deploy.sh --ref origin/main
-```
+**A merge to `main` is the deploy.** Komodo (on the VPS) runs the action
+`design-bakery-deploy-on-push` every 5 minutes. When GitHub's `main` is ahead of the running
+`design-bakery-web` image, it deploys the stack `design-bakery-vps`, whose pre-deploy runs
+`deploy/vps/deploy.sh`. Both are defined in `server-management`,
+`komodo/resources/stacks-vps.toml`. Do not deploy by hand-pulling an unmerged branch.
 
 What `deploy.sh` does, in order:
 
-1. `git fetch --prune origin` and resolve the ref to a SHA.
-2. Remember the currently running image (`docker inspect` on `design-bakery-web`, and
-   on `design-bakery-api` when the API is enabled).
-3. `git checkout --force --detach <sha>` — the deploy checkout is intentionally detached;
-   do not expect a branch there.
-4. **Re-exec the freshly checked-out script** (TASK-DB-0084). The checkout above rewrote
-   `deploy.sh` itself, and bash reads a script incrementally, so continuing would run the
-   *outgoing* revision's `smoke()` against the *incoming* container — a routing change
-   would be rolled back by its own stale smoke line. `DEPLOY_REEXEC=1 exec "$SELF" "$@"`
-   replaces the process image once, before anything is built; `exec` keeps the pid, so the
-   deploy lock taken before step 1 stays ours.
-5. `docker compose build` a new image tagged `<sha12>-<UTC timestamp>` (and `<sha12>`).
-6. `docker compose up -d --no-deps web` with the new image.
-7. When the API is enabled: `compose up -d --no-deps api` with the new API image, then
-   health-check `127.0.0.1:$API_HOST_PORT/health` (up to `API_HEALTH_TIMEOUT`, 180 s —
-   Node cold-starts slower than Caddy). An unhealthy API fails the deploy.
-8. Health-check `127.0.0.1:8085/healthz` (up to 90 s), then smoke-check `/`, `/healthz`,
-   `/research/papers/db-r-2026-010`, `/robots.txt`, `/version-2` (200) and a journey scene
-   plate under the `/version-2/` prefix, `/ire` (200), `/ire/app` (301),
-   `/studyos` (307). Two of those are body checks, not status
-   checks: `/` must contain the shell's title marker and `/version-2` must reference its
-   own `/version-2/assets/` prefix — a status-only smoke cannot tell the two documents
-   apart, and this is the check that catches a routing mistake that serves the wrong one
-   with a 200. With the API enabled, also GET
-   `/api/public/blogs` through the web container: a 200 proves the Caddy `/api/*` proxy
-   and the data layer both work; a gateway status (502/503/504) fails the deploy (the
-   proxy is broken — the original bug); a 500 only warns (a data-layer/secret problem,
-   not a routing one).
-9. On success: write `deploy/gravebuster/.deploy-state` (`SHA`, `CURRENT_IMAGE`,
-   `PREVIOUS_IMAGE`, `CURRENT_API_IMAGE`, `PREVIOUS_API_IMAGE`, `DEPLOYED_AT`) and log
-   to `deploy/gravebuster/deploy.log`. It also writes DESIGN_BAKERY_IMAGE (and DESIGN_BAKERY_API_IMAGE when there is an API image) to deploy/gravebuster/.env after each swap, keeping the file's other settings, so a Komodo compose up uses the live tags.
-10. On failure: swap the previous web image (and API image, when enabled) back
-    automatically, health-check it, exit 1 (`--no-rollback` to skip).
+1. Take the deploy lock (`deploy/vps/.deploy.lock`, a directory; a second caller
+   exits at once instead of queueing).
+2. `git fetch --prune origin`, resolve the ref (default `origin/main`), and note the running
+   web and API images.
+3. `git checkout --force --detach <sha>`, then re-exec the freshly checked-out `deploy.sh`,
+   so the incoming revision's smoke checks are the ones that run.
+4. Build both images, tagged `<sha12>-<UTC timestamp>` (and `<sha12>`).
+5. Swap `api`, health-check `127.0.0.1:8789/health` (up to 180 s); swap `web`,
+   health-check `127.0.0.1:8085/healthz` (up to 90 s).
+6. Smoke-check `/`, `/healthz`, `/research/papers/db-r-2026-010`, `/robots.txt`,
+   `/version-2` and a journey plate, `/ire` (200), `/ire/app` (301), `/studyos` (307), and
+   `/api/public/blogs` through Caddy. `/` and `/version-2` are body checks, so a routing
+   mistake that serves the wrong document with a 200 is caught. A gateway status on
+   `/api/*` fails the deploy; a 500 only warns (data or secrets, not routing).
+7. On success, write `.deploy-state` (`SHA`, current and previous images, `DEPLOYED_AT`)
+   and the live tags (`DESIGN_BAKERY_IMAGE`, `DESIGN_BAKERY_API_IMAGE`) into `.env`, so
+   Komodo's `compose up` changes nothing.
+8. On failure, swap the previous images back, health-check them and exit 1.
 
-Useful flags: `--no-pull` (use the local checkout), `--with-edge` (attach the
-Cloudflare Tunnel network for this run, see §5), `--no-edge` (drop it for this run),
-`--with-api` / `--no-api` (force the API container on/off for one run, see §8),
-`--port <n>`, `--no-rollback`.
-
-**The edge attachment is sticky once the site is tunnel-fronted.** `deploy.sh` and
-`rollback.sh` read `WITH_EDGE` from `deploy/gravebuster/.env`; set `WITH_EDGE=1` there
-after the tunnel goes live. Without it a plain deploy recreates `web` with only the
-default network, silently dropping `study-os_edge`, and the tunnel returns 502 until
-someone re-runs `--with-edge`. `--with-edge` / `--no-edge` override the file for a
-single run.
-
-**One deploy at a time.** Both scripts take an exclusive lock on
-`deploy/gravebuster/.deploy.lock` (git-ignored, `DEPLOY_LOCK_DIR` overrides the
-path) as their first action after the environment guards. The lock is a
-**directory** (`acquire_lock()` — portable, since macOS has no `flock(1)`; see
-§0), non-blocking: a second caller logs
-`another deploy or rollback is running (lock: …)` and exits 1 at once rather
-than queueing. This matters now that the timer can fire on its own — a hand-run
-deploy and a timer tick that overlap interleave the `web`/`api` container swaps,
-and on 2026-10-07 that left the API container in `Created` while `/api/*`
-answered 502 live. When the timer hits a busy lock it just retries on its next
-tick, five minutes later.
-
-Manual verification after any deploy:
-
-```bash
-curl -sS -o /dev/null -w '%{http_code} %{content_type}\n' http://127.0.0.1:8085/
-curl -sS -o /dev/null -w '%{http_code} %{redirect_url}\n' http://127.0.0.1:8085/studyos/foo
-```
-
-### Build-time config (`deploy/gravebuster/.env`, git-ignored)
-
-Public values only — they are inlined into the JS bundle. **Set
-`VITE_BLOG_API_URL=https://www.design-bakery.com`** on gravebuster. That origin is the
-site's own, so the SPA reaches the Caddy `/api/*` proxy same-origin (no CORS, nothing
-in `ALLOWED_ORIGINS` needed) and reads live content from octo; it is also an absolute
-URL, so the **build-time sitemap generator** — a Node script with no browser origin —
-can fetch the live blog list and list all 33 posts instead of the 7-post snapshot. The
-literal `same-origin` also works for the browser (`resolveApiBase` maps it to
-`window.location.origin`) but **not** for the sitemap, which has no origin to resolve
-against, so prefer the absolute URL. Unset is a valid but degraded state: the blog
-falls back to the committed `blog-data.json` snapshot (7 posts) and the sitemap lists
-only those. `VITE_SITE_URL` is optional (canonical URLs fall back to the browser
-origin, which is the public host anyway). Then redeploy — these are build args, so a
-restart alone does not pick them up.
-
----
-
-## 4. Rollback
+By hand on the VPS (to retry a failed deploy, or to deploy a merged commit at once):
 
 ```bash
 cd ~/apps/design-bakery
-deploy/gravebuster/rollback.sh              # back to PREVIOUS_IMAGE from .deploy-state
-deploy/gravebuster/rollback.sh --list       # image tags on the host
-deploy/gravebuster/rollback.sh --image design-bakery-web:97563897ca1e
+deploy/vps/deploy.sh --ref origin/main
 ```
 
-`rollback.sh` swaps the container to the recorded previous tag, health-checks it and
-flips `CURRENT_IMAGE`/`PREVIOUS_IMAGE` so the same command rolls forward again. When the
-API is enabled it swaps `design-bakery-api` back at the same time (under the same enable
-rule as `deploy.sh`, see §8) and leaves the recorded API tags untouched on a web-only
-run. No rebuild is involved, so it takes a couple of seconds. Old images are never
-deleted by the scripts; each is ~182 MB (web) / ~1 GB (api), so prune deliberately when
-the list gets long:
+Flags: `--no-pull`, `--with-edge` / `--no-edge`, `--with-api` / `--no-api`, `--port <n>`,
+`--no-rollback`. Keep `WITH_EDGE=1` in `.env`: without it a deploy recreates `web` without
+`study-os_edge` and the tunnel returns 502.
 
-```bash
-docker images design-bakery-web    # inspect first
-docker image prune -a --filter 'until=720h'   # only if you no longer need the tags
-```
+### Config (git-ignored, on the VPS in `deploy/vps/`)
 
-Disaster recovery (host lost, checkout gone): `git clone`, copy `.env`, then
-`deploy.sh --ref <sha>` — the image is reproducible from the commit.
+- **`.env`**: public values only (ports, `EDGE_NETWORK`, `WITH_EDGE`, image tags,
+  `VITE_SITE_URL`, `VITE_BLOG_API_URL=https://www.design-bakery.com`). The `VITE_*` values
+  are build args: change them, then redeploy. `VITE_BLOG_API_URL` being the site's own
+  absolute origin lets the SPA call the Caddy `/api/*` proxy same-origin and lets the
+  build-time sitemap fetch the live blog list.
+- **`.env.api`**: the API's secrets (mode 600). `.env.api.example` lists every variable and
+  where it comes from. The API is deployed whenever this file exists (or `WITH_API=1`).
+  Missing values fail per request, not at boot: the API still answers `/health`, and the
+  affected routes return a 5xx (see `docker logs design-bakery-api`).
 
-**DNS-level rollback** (once the tunnel is live): see §5 step 7.
-
----
-
-## 5. Routing www.design-bakery.com and the apex (historical cutover steps)
-
-> Done long ago, and written while the Vercel project still existed. Kept as a record.
-
-### What the existing tunnel looks like
-
-Inspected read-only on gravebuster:
-
-- `study-os-cloudflared-1` runs `cloudflare/cloudflared:2026.9.3` with
-  `command: tunnel --no-autoupdate run` and the token supplied as the `TUNNEL_TOKEN`
-  environment variable, from `/srv/study-os/docker-compose.yml`.
-- **It is a token-based, remotely-managed tunnel.** There is no `config.yml`, no
-  `credentials.json` and no ingress file on disk — the ingress rules live in the
-  Cloudflare Zero Trust dashboard (or the Cloudflare API). Nothing about hostnames can
-  be changed from gravebuster.
-- The container is attached to the `study-os_edge` bridge network together with
-  `study-os-api-1`, so its ingress targets a **docker DNS name** (e.g.
-  `http://study-os-api-1:8000`), not a host port.
-- `study.design-bakery.com` is the only public hostname known to be on it.
-
-Consequence: the new hostname is added in the dashboard, and the origin must be
-reachable *from the cloudflared container*, i.e. on `study-os_edge` — not on the host's
-`127.0.0.1:8085`.
-
-### Steps (do these when ready; nothing here has been done yet)
-
-1. **Attach our container to the tunnel network.** Uses
-   `deploy/gravebuster/docker-compose.edge.yml`, which joins `study-os_edge` as an
-   *external* network and adds the alias `design-bakery-web` — while keeping the
-   container on the compose project's default network, which the Caddy `/api` proxy
-   needs to resolve the `api` service. It creates, modifies and restarts nothing in
-   the study-os stack — it only adds a second member to a network that stack already
-   owns.
-
-   ```bash
-   cd ~/apps/design-bakery
-   deploy/gravebuster/deploy.sh --with-edge --no-pull --ref "$(git rev-parse HEAD)"
-   # or, equivalently, without rebuilding:
-   docker compose -f deploy/gravebuster/docker-compose.yml \
-                  -f deploy/gravebuster/docker-compose.edge.yml up -d --no-deps web
-   ```
-
-   Then set `WITH_EDGE=1` in `deploy/gravebuster/.env` so later deploys keep it (see §3).
-
-   Verify the tunnel can reach it. The cloudflared image is distroless — it has no shell,
-   `wget` or `getent` — so check reachability from a throwaway container on the same
-   network instead (this is the same DNS path cloudflared uses):
-
-   ```bash
-   docker run --rm --network study-os_edge alpine wget -qO- --timeout=5 http://design-bakery-web/healthz
-   # → ok
-   ```
-
-   (Verified on 2026-09-25: the overlay attaches cleanly, `design-bakery-web` resolves on
-   `study-os_edge` and answers `ok`; the study-os containers were not touched. The network
-   was then detached again — the deployed container currently sits on
-   `design-bakery_default` only.)
-
-2. **Staging hostname first.** Zero Trust → Networks → Tunnels → the tunnel whose public
-   hostnames include `study.design-bakery.com` → **Public Hostnames** → *Add a public
-   hostname*:
-
-   | Field | Value |
-   | --- | --- |
-   | Subdomain | `staging` |
-   | Domain | `design-bakery.com` |
-   | Service | `HTTP` → `design-bakery-web:80` |
-
-   Cloudflare creates the proxied CNAME automatically because the zone is on Cloudflare.
-   Then, from anywhere: `curl -sS -o /dev/null -w '%{http_code}\n' https://staging.design-bakery.com/healthz`
-   → `200` proves traffic is hitting this container (the live Vercel site has no
-   `/healthz`; it would answer `200 text/html` from the SPA fallback — check the
-   content type to be sure).
-
-3. **Record the current production DNS targets.** In Cloudflare → DNS → Records, note
-   what `www` and the apex currently point at (Vercel; a proxied record hides the target
-   from `dig`, which only shows Cloudflare's anycast IPs). Screenshot or copy the
-   targets — this is the DNS rollback path.
-
-4. **Add the production hostnames** on the same tunnel, same service target:
-   `www.design-bakery.com` and `design-bakery.com` (apex). Adding them replaces the
-   existing proxied records; the Vercel project itself is not touched.
-
-5. **Verify** (expect the same results as the §2 table):
-
-   ```bash
-   for p in / /research/papers/db-r-2026-010 /case-studies/cortex /studyos /robots.txt; do
-     printf '%-38s %s\n' "$p" "$(curl -sS -o /dev/null -w '%{http_code} %{content_type}' https://www.design-bakery.com$p)"
-   done
-   curl -sSI https://design-bakery.com/ | grep -i '^location'   # apex -> www 307
-   curl -sS -o /dev/null -w '%{http_code}\n' https://www.design-bakery.com/healthz   # 200 = our container
-   ```
-
-   Purge the Cloudflare cache for `design-bakery.com` afterwards, and check the zone's
-   SSL/TLS mode is still what it was (the tunnel terminates TLS itself, so the origin
-   mode does not apply to tunnel hostnames).
-
-6. **Watch it.** `docker logs -f design-bakery-web`, `deploy/gravebuster/deploy.log`, and
-   a 200 from `/healthz` after each deploy.
-
-7. **DNS rollback** (if anything looks wrong): delete the two public hostnames (or
-   re-point the records back to the targets recorded in step 3). DNS propagates in
-   seconds on a proxied Cloudflare record, and the Vercel project is still deployed and
-   untouched, so the site returns to its current state. The container can stay running
-   on `127.0.0.1:8085` meanwhile.
-
-**Shortcut if you want a partial flip:** adding only `www` works — leave the apex record
-at Vercel and it will keep 307-ing the apex to `www`, which then lands on the tunnel. The
-Caddyfile's apex rule then simply never fires. This keeps a dependency on the Vercel
-project, so it is only a transition state.
-
-### Staging hostname plan
-
-`staging.design-bakery.com` (step 2) is a full second entry point to the same container.
-It exists so the tunnel/edge path can be proven before touching production DNS, and it
-stays useful for verifying a deploy before the flip.
-
-- **Point it at a specific build** to test a branch: `deploy.sh --ref origin/<branch>` —
-  but note the container is a single deployment, so staging and production hostnames
-  always serve the *same* image. For two images at once, add a second service/port
-  (e.g. `web-staging` on `127.0.0.1:8086` with its own image tag) and give it its own
-  public hostname.
-- **Keep it out of search results.** The SPA computes canonical/OG URLs from
-  `window.location.origin`, so staging pages self-canonicalize to
-  `staging.design-bakery.com`. `sitemap.xml` is built with `VITE_SITE_URL` (default
-  `https://www.design-bakery.com`), so it keeps pointing at production — good. Add one
-  of: a Cloudflare Transform Rule adding `X-Robots-Tag: noindex` for
-  `http.host eq "staging.design-bakery.com"`, or Cloudflare Access in front of the
-  hostname so only the owner can reach it (recommended).
-- Once production is on the tunnel and stable, the staging hostname can be deleted from
-  the tunnel ingress (no DNS cleanup needed beyond that).
-
----
-
-## 6. Auto-deploy on merge to main
-
-**Enabled on both hosts** — gravebuster via a systemd timer, the Mac via a launchd agent
-(TASK-DB-0086). Neither host is publicly reachable, so there is no GitHub webhook to
-receive; instead a scheduler polls `origin/main` and deploys when the SHA moves. The
-scheduler only ever runs `deploy.sh`, so it needs the deploy lock above: a merge that
-lands while someone is deploying by hand must fail fast, not interleave.
-
-```bash
-# gravebuster — systemd (as root; the units use User=yoav like the other timers)
-sudo cp ~/apps/design-bakery/deploy/gravebuster/systemd/design-bakery-autodeploy.{service,timer} /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now design-bakery-autodeploy.timer
-
-systemctl list-timers design-bakery-autodeploy.timer   # next run
-journalctl -u design-bakery-autodeploy.service -n 50   # what happened
-tail -f ~/apps/design-bakery/deploy/gravebuster/autodeploy.log
-
-# disable
-sudo systemctl disable --now design-bakery-autodeploy.timer
-```
-
-```bash
-# the Mac — launchd (no sudo: it is a per-user agent, like com.octo.autodeploy)
-cp ~/apps/design-bakery/deploy/gravebuster/launchd/com.designbakery.autodeploy.plist \
-	~/Library/LaunchAgents/
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.designbakery.autodeploy.plist
-launchctl kickstart gui/$(id -u)/com.designbakery.autodeploy   # run once now
-
-launchctl print gui/$(id -u)/com.designbakery.autodeploy | grep -E 'state|last exit'
-tail -f ~/apps/design-bakery/deploy/gravebuster/autodeploy.log
-
-# disable
-launchctl bootout gui/$(id -u)/com.designbakery.autodeploy
-```
-
-- `autodeploy.sh` fetches `origin/main`, compares it with the deployed `SHA` in
-  `.deploy-state`, and calls `deploy.sh --no-pull --ref <sha>` only when it differs.
-  `--dry-run` reports without deploying. It delegates the lock and every safety check to
-  `deploy.sh`, so a scheduled run and a hand run cannot collide. `deploy.sh` writes `SHA`
-  back to `.deploy-state` only after its smoke test passes, so a failed deploy is retried
-  on the next tick rather than being recorded as done.
-- gravebuster's timer fires every 5 minutes (`OnCalendar=*:0/5`, `RandomizedDelaySec=90`),
-  `Type=oneshot`, `Nice=10`, `CPUSchedulingPolicy=batch` to stay out of the way of the
-  other stacks on the box. The Mac agent is `StartInterval=300` with `RunAtLoad`, matching
-  the `com.octo.autodeploy` agent already on that machine. Either way a merge to main goes
-  live within ~5 minutes.
-- A failed deploy is logged and rolls back automatically (see §3 step 8); the scheduler
-  keeps firing regardless. `journalctl`/`autodeploy.log` are the source of truth.
-- Alternatives considered: a GitHub Action that SSHes in (needs inbound reachability, or a
-  Tailscale OAuth client and SSH key as repo secrets), or `watchtower`-style image polling.
-  The pull-based scheduler needs no inbound access and no credentials on GitHub.
-- **`gh` is not installed on the Mac**, and the checkout's `origin` is HTTPS — the poller
-  authenticates through the login keychain (`credential.helper=osxkeychain`). That works
-  from a launchd agent in the user's session (it is how `com.octo.autodeploy` fetches), but
-  it is the one dependency worth remembering if the agent ever starts failing its fetch.
-
----
-
-## 7. Operational notes
-
-- **Do not touch** the study-os stack, `agent-telemetry`, `langfuse`, `infisical`, or any
-  other stack on gravebuster. This deployment only ever touches its own containers
-  (`design-bakery-web`, and `design-bakery-api` when enabled), image tags, and the
-  `127.0.0.1:8085` / `127.0.0.1:8789` ports (checked free with `ss -ltn`; the box is
-  busy — 8788 is taken by another stack, which is why the API default is 8789. Re-check
-  before changing `WEB_HOST_PORT` or `API_HOST_PORT`).
-- **Secrets:** `deploy/gravebuster/.env` is git-ignored and holds no secrets today (only
-  the port, image tag and optional public `VITE_*` values). Keep it that way; API
-  secrets go in `deploy/gravebuster/.env.api` (§8).
-- **Disk:** ~182 MB per web image, ~1 GB per api image, two tags per deploy of each.
-  Prune old tags deliberately (§4).
-- **Repo checkout:** `~/apps/design-bakery` is managed by `deploy.sh` (detached HEAD).
-  Do not develop in it; edits there are overwritten on the next deploy.
-- **Vercel:** removed (TASK-DB-0131). There is no Vercel fallback; rollback is the
-  previous image tag (§4).
-
----
-
-## 8. The API container (issue [#80](https://github.com/Pukujan/design-bakery/issues/80))
-
-The Express API is the second half of the move off hosted platforms. The container
-exists (TASK-DB-0071) and `deploy.sh` / `rollback.sh` now build, swap, health-check and
-roll it back alongside the web container (TASK-DB-0075). It is **off by default** so a
-web-only deploy stays fast.
-
-**Enable rule.** The API is deployed when either is true:
-
-- `deploy/gravebuster/.env.api` exists (it holds the secrets the API needs to be useful);
-- `WITH_API=1` is set in `deploy/gravebuster/.env`.
-
-`--with-api` / `--no-api` override that for a single run. When disabled, `deploy.sh`
-and `rollback.sh` never build, start, health-check or touch the `api` container.
-
-| Piece | Value |
-| --- | --- |
-| Dockerfile | `deploy/gravebuster/Dockerfile.api` (single stage, `node:24-bookworm-slim`) |
-| Compose service | `api` in `deploy/gravebuster/docker-compose.yml` |
-| Container | `design-bakery-api` (`node backend/lib/server.js`, healthcheck on `/health`) |
-| Published port | `127.0.0.1:${API_HOST_PORT:-8789}` → container `8787` |
-| Secrets | `deploy/gravebuster/.env.api` (git-ignored, **optional**) |
-| Image | `design-bakery-api:<sha12>-<UTC timestamp>` |
-
-**Build parity.** The image runs the same commands as Railway
-(`backend/railway.toml` + root `nixpacks.toml`): `pnpm install --frozen-lockfile
---prod=false` (tsc is a devDependency), `pnpm --dir backend/services run build &&
-pnpm --dir backend run build`, then `node backend/lib/server.js`. The runtime
-installs `fontconfig` + `fonts-dejavu-core` — the same packages Nixpacks installs —
-because the publish kit rasterizes SVG text through librsvg and probes for DejaVu Sans.
-
-```bash
-# from the repo root
-docker build -f deploy/gravebuster/Dockerfile.api -t design-bakery-api:local .
-docker run --rm -p 127.0.0.1:8789:8787 design-bakery-api:local
-curl -s http://127.0.0.1:8789/health   # {"ok":true,"service":"design-bakery-api"}
-```
-
-**Secrets.** The API's secrets live in `deploy/gravebuster/.env.api` — git-ignored,
-never committed, and never written into `deploy/gravebuster/.env` or the image. On
-gravebuster, create it from the checked-in template and fill in the values from the
-Railway service's Variables tab (Railway stays the rollback, so nothing copies them
-for you):
-
-```bash
-cd ~/apps/design-bakery
-cp deploy/gravebuster/.env.api.example deploy/gravebuster/.env.api
-chmod 600 deploy/gravebuster/.env.api
-$EDITOR deploy/gravebuster/.env.api
-```
-
-`deploy/gravebuster/.env.api.example` lists every variable with a comment saying
-where it comes from. The ones the API cannot serve without:
+The ones the API cannot serve without:
 
 | Variable | Kind | Source |
 | --- | --- | --- |
 | `ADMIN_JWT_SECRET` | secret | `openssl rand -base64 48` |
 | `ADMIN_EMAIL` (+ `ALLOWED_ADMIN_EMAILS`) | config | the admin login address(es) |
-| `ADMIN_PASSWORD_HASH` (or dev-only `ADMIN_PASSWORD`) | secret | `node backend/scripts/hash-admin-password.mjs '<pw>'` |
+| `ADMIN_PASSWORD_HASH` | secret | `node backend/scripts/hash-admin-password.mjs '<pw>'` |
 | `OPENROUTER_API_KEY` | secret | openrouter.ai → Keys |
 | `OCTO_WORKSPACE_ID` | config | the design-bakery workspace UUID |
 | `OCTO_API_KEY` | secret | the workspace key (scopes read, write, files, delete) |
 | `ALLOWED_ORIGINS` | public | `https://www.design-bakery.com,https://design-bakery.com` |
 
-`OCTO_API_BASE` defaults to `https://octodb.design-bakery.com` in code.
-`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are only needed while stored image URLs
-still point at Supabase Storage, so a fresh deploy can omit them.
+`OCTO_API_BASE` defaults to `https://octodb.design-bakery.com`.
 
-**Missing values fail per request, not at boot.** The compose `env_file` entry is
-`required: false` and the server does not validate its environment at startup, so an
-absent or incomplete `.env.api` still boots and answers `/health` — the affected
-routes return a clear 5xx instead. Check `docker logs design-bakery-api` for the
-config error when a route 5xxs, and see §7 for the rule that `.env` itself stays
-secret-free.
+---
 
-**Resolved (2026-10-07):** the same-origin `/api/*` proxy is what shipped — Caddy
-proxies `/api/*` to `api:8787` with the prefix intact, so no api hostname and no
-`ALLOWED_ORIGINS` CORS entry were needed (TASK-DB-0075 / TASK-DB-0076). The build-time
-half is `VITE_BLOG_API_URL=https://www.design-bakery.com` in `deploy/gravebuster/.env`
-(§3) — the site's own origin, so the SPA calls the proxy same-origin with no CORS, and
-being absolute it also feeds the build-time sitemap generator. Railway is no longer
-authoritative. The alternative (an own `api.design-bakery.com` tunnel hostname + a CORS
-entry) was considered and rejected in favour of the proxy.
+## 3. Rollback
 
-### Link previews (Open Graph)
+```bash
+cd ~/apps/design-bakery
+deploy/vps/rollback.sh              # back to PREVIOUS_IMAGE from .deploy-state
+deploy/vps/rollback.sh --list       # image tags on the host
+deploy/vps/rollback.sh --image design-bakery-web:<tag>
+```
 
-The site's blog and case-study URLs need per-post `<title>` / `og:*` tags for link
-previews (Slack, Discord, LinkedIn, X, WhatsApp, search crawlers). The SPA shell has
-none, so on Vercel an Edge middleware (`middleware.ts`) rewrote it for exactly those
-paths. That middleware is **gone**; the same logic now lives in the `api` container
-as `backend/src/api/ogPreview.ts`, and the Caddyfile routes the paths to it.
+`rollback.sh` takes the same lock, swaps to the recorded previous tags (web and API),
+health-checks them, and flips current/previous so the same command rolls forward again. No
+rebuild, so it takes seconds. A later merge to `main` deploys again on Komodo's next tick.
 
-- **Matcher.** `@ogPreview` in `deploy/gravebuster/Caddyfile`: `/blogs`, `/blogs/:id`,
+Old images are never deleted by the scripts; prune deliberately:
+
+```bash
+docker images design-bakery-web
+docker image prune -a --filter 'until=720h'
+```
+
+Host lost: clone to `~/apps/design-bakery`, restore `.env` and `.env.api`, run
+`deploy.sh --ref <sha>`; the images are reproducible from the commit.
+
+---
+
+## 4. Link previews (Open Graph)
+
+Blog and case-study URLs need per-post `<title>` / `og:*` tags for link previews. The API
+serves them (`backend/src/api/ogPreview.ts`) and the Caddyfile routes those paths to it.
+
+- **Matcher.** `@ogPreview` in the Caddyfile: `/blogs`, `/blogs/:id`,
   `/{endtoend|legal-workflow|ai|forward-deployed}-engineer/blogs[/:id]`, and every
-  `/case-studies/*` path, excluding `*.html`. It sits **after** the filesystem
-  handlers, so a real file or a static case-study directory (`study-os`, `fossil`,
-  `fluffy-v4`, `cortex`) is served from disk and never reaches the API.
-- **The two matchers must agree.** Caddy's `@ogPreview` and the router's regexes are
-  the same set written twice; `pnpm test:og-routing` fails CI if they drift, and
-  `pnpm test:og-contract` fails if the router's copy of `blogSocialMeta.ts` drifts
-  from the frontend's.
-- **Crawler vs browser.** The router injects the tags into a copy of the shell for
-  crawler user agents; a browser gets the untouched shell (the SPA sets the same tags
-  client-side via `PageSeo`). Responses carry `Vary: User-Agent` and
-  `Cache-Control: public, max-age=0, must-revalidate` — deliberately uncacheable,
-  because one URL has two bodies and Cloudflare's cache does not key on
-  `Vary: User-Agent`. That matches what the SPA fallback already served for these
-  paths, so nothing that was cacheable became uncacheable.
-- **The API must run for previews.** Without the `api` container, Caddy's
-  `handle_errors` block degrades these paths to the plain SPA shell (a 200, not a
-  502) — the same preview as before this existed. An error under `/api/*` still
-  errors, because the frontend reads JSON there.
-- `SITE_URL` (default `https://www.design-bakery.com`) is what the router puts in
-  canonical URLs and absolute `og:image` links; the shell it injects into is fetched
-  from the `web` container (`OG_SHELL_ORIGIN`, default `http://web:80`).
+  `/case-studies/*` path, excluding `*.html`. It sits after the filesystem handlers, so a
+  real file or static case-study directory is served from disk.
+- **The two matchers must agree.** `pnpm test:og-routing` fails CI if Caddy's matcher and
+  the router's regexes drift; `pnpm test:og-contract` checks `blogSocialMeta.ts`.
+- **Crawler vs browser.** Crawlers get a copy of the shell with the tags injected; browsers
+  get the untouched shell. Responses carry `Vary: User-Agent` and
+  `Cache-Control: public, max-age=0, must-revalidate`.
+- **Without the API**, Caddy's `handle_errors` degrades these paths to the plain shell (a
+  200, not a 502). Errors under `/api/*` still error.
+- `SITE_URL` (default `https://www.design-bakery.com`) feeds canonical and `og:image` URLs;
+  the shell comes from `OG_SHELL_ORIGIN` (default `http://web:80`).
 
+---
+
+## 5. Operational notes
+
+- **Only touch this stack.** Other services share the VPS (Octo, Komodo, Precedent, ACS,
+  the copilot voice stack and more; see `vps/PLAN.md`). This deploy touches only its own
+  containers, image tags and ports 8085 / 8789.
+- **The voice call** is a separate service, `copilot.design-bakery.com` (Komodo stack
+  `copilot` on the same VPS). The API asks it for a call token (`/api/copilot/voice`).
+- **Disk:** two images per deploy (~1.2 GB together); prune old tags (§3).

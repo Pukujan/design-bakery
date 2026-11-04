@@ -19,14 +19,14 @@ export function scrollStageToTop(options: { slow?: boolean } = {}): number {
     window.scrollTo({ top: 0, behavior: 'auto' });
     return 0;
   }
-  const duration = options.slow ? Math.min(7, Math.max(2.5, window.scrollY / 800)) : 0.9;
+  const duration = options.slow ? Math.min(2.4, Math.max(1.2, window.scrollY / 2500)) : 0.9;
   lenis.scrollTo(0, options.slow ? { duration, easing: easeInOut } : { duration });
   return duration;
 }
 
 /**
- * Smoothly scroll an element to the top of the viewport. `slow` is for a voice call: the page glides there in a long,
- * even scroll, longer the further it has to go (2.5 to 7 seconds), while the agent talks about what it is showing.
+ * Smoothly scroll an element to the top of the viewport. `slow` is for a voice call: the page glides there in an even
+ * scroll, longer the further it has to go (1.2 to 2.4 seconds), so the visitor can follow where it went.
  */
 export function scrollStageToElement(element: HTMLElement | null, options: { slow?: boolean; offset?: number } = {}): number {
   if (!element) return 0;
@@ -39,7 +39,7 @@ export function scrollStageToElement(element: HTMLElement | null, options: { slo
     return 1.1;
   }
   const distance = Math.abs(element.getBoundingClientRect().top);
-  const duration = Math.min(7, Math.max(2.5, distance / 800));
+  const duration = Math.min(2.4, Math.max(1.2, distance / 2500));
   lenis.scrollTo(element, { duration, easing: easeInOut, offset: options.offset ?? 0 });
   return duration;
 }

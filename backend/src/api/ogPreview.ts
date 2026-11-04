@@ -4,8 +4,8 @@
  * Rewrites the SPA shell for blog and case-study URLs so link-preview bots and
  * crawlers read a real `<title>` / `og:*` instead of the generic app shell. It is an
  * Express route behind Caddy (the `@ogPreview` matcher in
- * deploy/gravebuster/Caddyfile). It replaced an Edge middleware (`middleware.ts`) from
- * the Vercel days.
+ * deploy/vps/Caddyfile). It replaced an Edge middleware (`middleware.ts`) from
+ * the Vercel days (Vercel is no longer used).
  *
  * The pure HTML/meta builders are copied verbatim from `frontend/src/og/` (the
  * frontend keeps the browser-facing ones); `scripts/test-og-contract.mjs` fails CI
@@ -13,7 +13,7 @@
  *
  * Routing: Caddy sends these paths here from *after* its filesystem handlers, so a
  * real file or a static case-study directory is still served from disk and never
- * reaches this router. See `deploy/gravebuster/Caddyfile`.
+ * reaches this router. See `deploy/vps/Caddyfile`.
  *
  * Fragile area: read `additionals/guidelines/agent-devlog-og-previews.md` before
  * changing the matchers, the caching headers, or the shell fallback.
@@ -270,7 +270,7 @@ export const ogPreviewRouter = Router();
  * the matcher identical to the Edge middleware's.
  *
  * This router is *total* over the paths Caddy sends it (the `@ogPreview` matcher in
- * deploy/gravebuster/Caddyfile): a request under one of those prefixes that matches
+ * deploy/vps/Caddyfile): a request under one of those prefixes that matches
  * no handler still gets the plain SPA shell rather than Express's 404, because that
  * is what the SPA fallback served before Caddy started routing these paths here.
  */

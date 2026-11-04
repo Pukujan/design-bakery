@@ -1,14 +1,14 @@
 # syntax=docker/dockerfile:1
 #
-# design-bakery on gravebuster (TASK-DB-0055).
+# design-bakery web image (TASK-DB-0055).
 #
 # Stage 1 installs and builds the frontend (`pnpm install`, then
 # `pnpm --dir frontend run build`, output in `frontend/dist`); stage 2 serves
-# `frontend/dist` with Caddy using deploy/gravebuster/Caddyfile, the source of truth for
+# `frontend/dist` with Caddy using deploy/vps/Caddyfile, the source of truth for
 # every redirect/rewrite.
 #
 # Build from the repo root:
-#   docker build -f deploy/gravebuster/Dockerfile -t design-bakery-web:local .
+#   docker build -f deploy/vps/Dockerfile -t design-bakery-web:local .
 
 ARG NODE_IMAGE=node:24-bookworm-slim
 ARG CADDY_IMAGE=caddy:2-alpine
@@ -41,7 +41,7 @@ RUN pnpm install --frozen-lockfile
 # backend secrets here. Empty values are treated as "unset" by the app, so an
 # unconfigured deploy still builds: the blog then falls back to the committed
 # frontend/src/app/modules/blog/data/blog-data.json snapshot.
-# Supply them via deploy/gravebuster/.env (git-ignored) — see docs/self-hosting.md.
+# Supply them via deploy/vps/.env (git-ignored) — see docs/self-hosting.md.
 ARG VITE_SITE_URL=
 ARG VITE_BLOG_API_URL=
 ARG VITE_SUPABASE_URL=
@@ -64,7 +64,7 @@ RUN pnpm --dir frontend run build
 # ---------------------------------------------------------------- runtime (caddy)
 FROM ${CADDY_IMAGE} AS runtime
 
-COPY deploy/gravebuster/Caddyfile /etc/caddy/Caddyfile
+COPY deploy/vps/Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /repo/frontend/dist /srv
 
 # Plain HTTP inside the container; TLS terminates at the Cloudflare Tunnel edge.

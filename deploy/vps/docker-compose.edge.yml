@@ -3,8 +3,8 @@
 # can reach it by container name without touching the study-os stack.
 #
 #   cd ~/apps/design-bakery
-#   docker compose -f deploy/gravebuster/docker-compose.yml \
-#                  -f deploy/gravebuster/docker-compose.edge.yml up -d
+#   docker compose -f deploy/vps/docker-compose.yml \
+#                  -f deploy/vps/docker-compose.edge.yml up -d
 #
 # Not used by the first deploy: the service is reachable on 127.0.0.1:<port> and is
 # verified that way. Enable this only when wiring the tunnel ingress

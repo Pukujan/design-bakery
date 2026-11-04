@@ -118,6 +118,9 @@ function coverage(a: string[], b: string[]): number {
   return a.filter((word) => setB.has(word)).length / a.length;
 }
 
+/** The words a greeting to me can be made of; any other word names someone else ("hey campos"). */
+const GREETED = new Set(['hi', 'hello', 'hey', 'yo', 'good', 'morning', 'afternoon', 'evening', 'howdy', 'hiya', 'there', 'pujan', 'ai', 'again', 'you', 'all', 'everyone', 'buddy', 'friend', 'man', 'bro', 'dude', 'mate', 'folks', 'guys']);
+
 function bestIntent(question: string, threshold: number): Intent | null {
   const asked = words(question);
 
@@ -275,7 +278,7 @@ function compose(
       };
 
     case 'howareyou':
-      return { intent: intent.id, text: vary('howareyou', ["Doing well, thanks. I'm AI Pujan, so I mostly think about my own work. What would you like to see?", 'All good here, thanks for asking. Want to see some work, or just chat?', "Can't complain. I live on this site, so it's a calm day. What are you curious about?", 'Pretty good! Ask me about a project, and I will get properly excited.']), actions: [] };
+      return { intent: intent.id, text: vary('howareyou', ["Doing well, thanks. No commute, no inbox, just vibes and a server fan. How's your day going?", "Pretty good! I live on a website, so the weather in here is always 72 and sunny. You?", "Can't complain. Well, I could, but nobody reads the logs. How about you?", 'All good. Running on electricity and mild optimism. What are you up to?']), actions: [] };
 
     case 'realai':
       return { intent: intent.id, text: vary('realai', ["He and I are one. I'm AI Pujan: his work and his voice, running as an AI. I'm not him live, but everything I say comes from what's published here.", "I'm an AI, and I'm Pujan too: his work and his way of explaining it. Not him live, but everything I say comes from what he published.", "Both, in a way. I'm AI Pujan, built from his projects, writing and research. He and I are one, though I'm not him live."]), actions: [] };
@@ -413,6 +416,12 @@ export function refersBack(question: string): boolean {
   return /\b(we (just )?(talked|spoke|discussed|covered|mentioned|looked|saw|said)|(you|i) (just )?(said|say|mentioned|told|showed|asked|talked)|what did i|did i|earlier|last time|previously|just now|a moment ago|(said|mentioned|asked|talked about|discussed) before|the (first|last|previous|earlier|second|third|other) (one|thing|project|post|paper|question|topic)|that one|again)\b/.test(norm(question));
 }
 
+/** Whether the question names one of the projects by its title or slug. */
+function namesProject(question: string, projects: Project[]): boolean {
+  const q = ` ${norm(question)} `;
+  return projects.some((project) => [norm(project.title), norm(project.slug.replace(/-/g, ' '))].some((name) => name.length >= 3 && q.includes(` ${name} `)));
+}
+
 export async function cachedAnswer(question: string, firstTurn: boolean, voice = false): Promise<CachedAnswer | null> {
   if (!firstTurn && refersBack(question)) return null;
   // The Contact page's "Ask the AI right now" sends "How can you help with <area>?": one fixed answer per area.
@@ -427,7 +436,14 @@ export async function cachedAnswer(question: string, firstTurn: boolean, voice =
   // Mid-conversation, "hello??" means "are you there", not a new visitor: the canned
   // introduction would drop the thread.
   if (!firstTurn && intent.id === 'greeting') return null;
+  // "Hey, Campos!" greets someone else (on a call, someone in the visitor's room): the model decides, and may stay quiet.
+  if (intent.id === 'greeting' && words(question).some((word) => !GREETED.has(word))) return null;
   const [projects, papers, blogs, experience] = await Promise.all([loadProjects(), loadPapers(), loadBlogs(), loadExperience()]);
+  // The project list answers "what have you built", not a question about one project ("what stack is Precedent built
+  // with", "the President project" as speech heard it, "this project") nor, mid-conversation, "what else?" (the model
+  // knows which were already shown).
+  const q = norm(question);
+  if (intent.id === 'projects' && (namesProject(question, projects) || /\b(this|that|the [a-z]+) project\b/.test(q) || (!firstTurn && /\b(another|else|other|more)\b/.test(q)))) return null;
   const answer = compose(intent, {
     projects,
     papers,

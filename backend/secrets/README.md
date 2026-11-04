@@ -12,6 +12,6 @@ In `backend/.env`:
 GOOGLE_APPLICATION_CREDENTIALS_PATH=./secrets/firebase-service-account.json
 ```
 
-On **Railway**, use `GOOGLE_APPLICATION_CREDENTIALS_JSON` (single-line JSON) instead of a file.
+In the API container, use `GOOGLE_APPLICATION_CREDENTIALS_JSON` (single-line JSON) instead of a file.
 
 These files are gitignored. Do not commit them.

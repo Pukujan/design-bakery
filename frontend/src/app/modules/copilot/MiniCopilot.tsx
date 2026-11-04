@@ -2,17 +2,10 @@ import { type FormEvent } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { ArrowUp, ChevronUp, Square, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import { copilot, useCopilot, type CopilotMessage } from './store';
+import { previewOf } from './replyPeek';
+import { copilot, useCopilot } from './store';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
-
-/** The latest reply, flattened to one short line for the strip. */
-function previewOf(messages: CopilotMessage[]): string {
-  const reply = [...messages].reverse().find((message) => message.role === 'assistant');
-  if (!reply) return 'Ask me anything about my work.';
-  if (reply.text) return reply.text.replace(/\s+/g, ' ').trim();
-  return reply.steps.length ? 'Looking that up…' : 'Thinking…';
-}
 
 /**
  * The minimized chat on phones: a strip at the bottom edge that shows the latest reply and

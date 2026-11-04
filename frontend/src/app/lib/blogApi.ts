@@ -1,6 +1,6 @@
 import { getAdminAccessToken, resolveApiBase } from '@/lib/adminToken';
 
-/** Express API on Railway (or local `pnpm run dev:api`), or same-origin behind Caddy. */
+/** The Express API: same-origin behind Caddy in production, or local `pnpm run dev:api`. */
 export function getBlogApiBaseUrl(): string | null {
   return resolveApiBase(import.meta.env.VITE_BLOG_API_URL);
 }
@@ -35,7 +35,7 @@ export async function postBlogApi<TResponse>(path: string, body: unknown): Promi
     if (/localhost|127\.0\.0\.1/.test(base) && pageOrigin && !/localhost|127\.0\.0\.1/.test(pageOrigin)) {
       throw new Error(
         `Failed to fetch — this site is on ${pageOrigin} but VITE_BLOG_API_URL points at ${base}. ` +
-          'On Vercel set VITE_BLOG_API_URL to your Railway HTTPS URL and redeploy.',
+          'Set VITE_BLOG_API_URL in the frontend build (production: https://www.design-bakery.com) and redeploy.',
       );
     }
     throw new Error(
@@ -52,7 +52,7 @@ export async function postBlogApi<TResponse>(path: string, body: unknown): Promi
     } catch {
       const snippet = text.replace(/\s+/g, ' ').trim().slice(0, 200);
       throw new Error(
-        `API returned non-JSON (${res.status}). Check VITE_BLOG_API_URL points at your Railway/backend URL. Response: ${snippet || '(empty)'}`,
+        `API returned non-JSON (${res.status}). Check VITE_BLOG_API_URL points at the API (production: https://www.design-bakery.com). Response: ${snippet || '(empty)'}`,
       );
     }
   }

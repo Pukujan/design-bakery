@@ -60,7 +60,7 @@ function runFcMatch(query: string): string | null {
       timeout: 10_000,
     });
     if ((result.error as NodeJS.ErrnoException | undefined)?.code === 'ENOENT') {
-      return '(fc-match not installed — install fontconfig package on Linux/Railway)';
+      return '(fc-match not installed — install the fontconfig package on Linux)';
     }
     if (result.status !== 0 && result.status !== null) {
       const err = (result.stderr || result.stdout || '').trim();
@@ -108,7 +108,7 @@ export function collectPublishKitFontDiagnostics(context: string): PublishKitFon
     try {
       const r = spawnSync('fc-cache', ['-f', fontDir], { stdio: 'pipe', timeout: 15_000 });
       if ((r.error as NodeJS.ErrnoException | undefined)?.code === 'ENOENT') {
-        fcCacheError = 'fc-cache not installed (expected on macOS dev; Railway has fontconfig)';
+        fcCacheError = 'fc-cache not installed (expected on macOS dev; the API container has fontconfig)';
         fcCacheExit = null;
       } else {
         fcCacheExit = r.status;
@@ -199,7 +199,7 @@ export function logPublishKitFontDiagnostics(diag: PublishKitFontDiagnostics): v
       console.warn(`${LOG_PREFIX} WARNING: probe PNG unusually small — check font rendering`);
     }
   }
-  console.log(`${LOG_PREFIX} tip: set PUBLISH_KIT_FONT_DEBUG=1 for fc-match FC_DEBUG=1 on Railway`);
+  console.log(`${LOG_PREFIX} tip: set PUBLISH_KIT_FONT_DEBUG=1 for fc-match FC_DEBUG=1 in the API container`);
 }
 
 export async function logPublishKitFontsForContext(

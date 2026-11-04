@@ -12,7 +12,7 @@
     "Static portfolio pages rendered from typed content in frontend/src/app/portfolios/endtoend-engineer/",
     "Case studies under frontend/public/case-studies/ with a shared redirect pattern",
     "Research-paper rendering with figures and tables under frontend/src/app/modules/research/render/",
-    "Express API on Railway plus Supabase for published content"
+    "Express API container on the VPS, with published content in Octo"
   ],
   "evidence": [
     {

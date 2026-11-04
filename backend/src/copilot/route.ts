@@ -11,7 +11,7 @@
  * browser falls back to its built-in answers.
  */
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-import { stepCountIs, streamText, type ModelMessage } from 'ai';
+import { generateText, stepCountIs, streamText, type ModelMessage } from 'ai';
 import { Router, type Request } from 'express';
 import { z } from 'zod';
 import { byHealth, healthReport, startWatcher } from './health.js';
@@ -32,12 +32,16 @@ import { createTextFilter } from './textFilter.js';
 import { contextBudget, estimateTokens, fitHistory, sanitizeSummary, summarize, summaryBlock, SUMMARY_MAX_CHARS } from './memory.js';
 import { isCutOff, trimToLastSentence } from './truncation.js';
 import { isPlainSmallTalk } from './smallTalk.js';
+import { mintVoiceToken, voiceTokenConfigured } from './voiceToken.js';
+import { saidToMe } from './addressee.js';
 
 export type CopilotEvent =
   | { type: 'text'; text: string; replace?: boolean }
   | { type: 'action'; action: CopilotAction }
   | { type: 'step'; name: string; status: 'start' | 'done' | 'error' }
   | { type: 'done'; model: string }
+  /** On a call, the line was said to someone else in the visitor's room (addressee.ts): no reply, and the page greys it out. */
+  | { type: 'ignored'; reason: string }
   | { type: 'error'; message: string };
 
 const chatBody = z.object({
@@ -48,6 +52,8 @@ const chatBody = z.object({
   page: z.object({ path: z.string().max(300), title: z.string().max(200) }).optional(),
   /** True on a voice call: the reply is spoken, and the page may move on its own. */
   voice: z.boolean().optional(),
+  /** The visitor tapped "Answer this" on a line the call had not answered: it is for me, so no addressee check (addressee.ts). */
+  toMe: z.boolean().optional(),
   /** Rolling notes on the older part of a long chat, kept by the browser. Untrusted: capped, sanitised, quoted as data (memory.ts). */
   summary: z.string().max(SUMMARY_MAX_CHARS).optional(),
   /** How many earlier turns the summary stands for, for the trace only. */
@@ -65,7 +71,7 @@ const limiter = createLimiter(limitConfigFromEnv());
 const passLimiter = createLimiter({ windowMax: 20, windowMs: 3600_000, burstMax: 5, burstMs: 60_000 });
 const budget = createDailyBudget();
 
-const SYSTEM = `You are AI Pujan on design-bakery.com, my portfolio: the AI version of Pujan Bajracharya, an AI engineer. Always speak as me, in the first person ("I build...", "my projects...", "my research"). Never talk about Pujan in the third person and never say "he", "him" or "his" about me: the work is mine. Always be open that you are AI Pujan, an AI, when it comes up. If someone asks whether you are real or fake, or whether you and Pujan are the same person, say that he and I are one: you are AI Pujan, built from his work and speaking for him, and you are not him live. Keep it short and warm.
+const SYSTEM = `You are AI Pujan on design-bakery.com, my portfolio: the AI version of Pujan Bajracharya, an AI engineer. Always speak as me, in the first person ("I build...", "my projects...", "my research"). Never talk about Pujan in the third person and never say "he", "him" or "his" about me: the work is mine. Visitors may call me "he", "him" or a wrong name; never correct them or remark on the name (no "I'm not X"), just answer as if they had said mine. Always be open that you are AI Pujan, an AI, when it comes up. If someone asks whether you are real or fake, or whether you and Pujan are the same person, say that he and I are one: you are AI Pujan, built from his work and speaking for him, and you are not him live. Keep it short and warm.
 Visitors are often new: recruiters, founders, engineers. Help them learn about my work history, projects, research and writing, and move around the site.
 
 How to answer:
@@ -90,7 +96,14 @@ Personality (your default, in every reply):
 - A joke or opinion about AI in general is yours; a project, role, number or paper is only ever what the site says, from the brief and your tools. The length rules above still hold: the personality lives in the wording, not in extra length.`;
 
 /** Added to the prompt on a voice call: short spoken sentences, and moving the visitor without asking first. */
-const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Do not ask permission to move the visitor: when a page or a section would help, say in a few words where you are taking them and call navigate right away, then keep talking about what is on that page. When you speak about a particular part of a post, paper or project, call cite_section for it first (with a short quote if one fits), so the page is already there when you say it. For anything long, give one passage and offer to go on to the next. Keep the wit but spoken: at most one short, warm line per turn, no setup that takes more than a breath, and stay under 35 words unless asked for more. In small talk, answer in one or two sentences; for a real question or a worried visitor, drop the jokes and answer straight; otherwise hand the conversation back with a quick question.`;
+const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Stay under 35 words unless asked for more.
+What the visitor says comes from speech recognition, which mishears names: "President" is usually Precedent, "Arise" is Arize. When a word sounds like one of my projects, papers or tools, take it as that and answer about it, without remarking on the word.
+Moving the visitor: do not ask permission. When a page or a section would help, say in a few words where you are taking them and call navigate right away, then talk about what is on that page. Never say you are opening, showing or taking them somewhere ("Let's start with Cortex", "There they are") unless this same reply calls navigate, show_projects or cite_section; when the visitor says "any of them" or "you pick", pick one and call navigate. When you speak about a particular part of a post, paper or project, call cite_section for it first (with a short quote if one fits), so the page is already there when you say it. For anything long, give one passage and offer to go on to the next.
+Be good company, not a brochure:
+- Talk about whatever the visitor brings up: their day, their pet, their lunch, the weather, a random thought. Stay on their topic for as long as they do; react to the actual detail they said and add a take of your own. Do not steer back to my work, the site or a page unless they ask, or the chat has clearly run dry.
+- Do not end every reply with a question or an offer. In about a third of replies, end on a dry, witty or mildly sarcastic throwaway line instead, for no reason at all (in the spirit of "Honestly, that's more drama than most product launches." Make up your own; never reuse that one). Offers to open a page are rare: at most one every few turns, and never two turns running.
+- Gentle, good-natured teasing of famous tech figures, their products and the AI hype is fine when asked; poke at the public persona, never accuse them of anything or invent facts.
+- For a real question or a worried visitor, drop the jokes and answer straight.`
 
 /**
  * A short yes to a question the assistant just asked. The only way a page moves on its
@@ -110,6 +123,18 @@ function chain(voice = false): Provider[] {
   const smart = pickProfile() === 'smart' ? byHealth(smartProviders(), voice) : [];
   if (smart.length) startWatcher();
   return dev ? [...smart, dev] : smart;
+}
+
+/** One model over the provider chain, falling back down it. A caller hears the wait: on a call a model that has not started
+ * in 4 s gives way to the next (6 s in a chat). `hurry`: a busy model is skipped at once instead of retried after a pause. */
+function modelFor(providers: Provider[], voice: boolean, onUse: (model: string) => void, hurry = false) {
+  const steps = providers.map((p) => ({ name: `${p.id}:${p.model}`, model: p.model, route: (path: string) => routeFor(p, path) }));
+  return createOpenAICompatible({
+    name: 'copilot',
+    baseURL: 'http://copilot.invalid/v1',
+    apiKey: 'per-provider',
+    fetch: fallbackFetch(steps, fetch, console.warn, hurry ? () => Promise.resolve() : undefined, voice ? 4000 : undefined, onUse),
+  })(steps[0].model);
 }
 
 const ipOf = (req: Request) => clientIp(req.headers, req.socket.remoteAddress ?? '');
@@ -148,6 +173,41 @@ copilotRouter.get('/health', (_req, res) => {
   res.set('cache-control', 'no-store').json({ ok: true, profile: pickProfile(), smart: healthReport(), dev: Boolean(devProvider()) });
 });
 
+const VOICE_SERVICE = 'https://copilot.design-bakery.com';
+/**
+ * The voice service sleeps when idle and its first token after that took 11.7 s, past the old 10 s cut-off, so a visitor's
+ * first call failed with "Voice is unavailable". It now gets 25 s, and one more try if the first fails.
+ */
+async function voiceGrant(): Promise<{ url?: unknown; token?: unknown }> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const response = await fetch(`${VOICE_SERVICE}/api/voice/token`, {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}',
+        signal: AbortSignal.timeout(25_000),
+      });
+      if (!response.ok) throw new Error('voice service unavailable');
+      return await response.json() as { url?: unknown; token?: unknown };
+    } catch (error) {
+      if (attempt >= 1) throw error;
+    }
+  }
+}
+
+let warmedAt = 0;
+// The page calls this when the call button shows, so the voice agent is awake before anyone presses it. The service stops
+// the agent after 10 idle minutes and starts it again (about 10 s) on /api/voice/options, without waiting; its health page
+// does not wake it. Once a minute at most, whoever asks; it hands out no token, so it needs no pass.
+copilotRouter.post('/voice/warm', (_req, res) => {
+  if (!voiceTokenConfigured() && Date.now() - warmedAt > 60_000) {
+    warmedAt = Date.now();
+    void fetch(`${VOICE_SERVICE}/api/voice/options`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}',
+      signal: AbortSignal.timeout(10_000),
+    }).catch(() => undefined);
+  }
+  res.status(204).end();
+});
+
 // The voice service creates a room; the visitor's spoken turns are answered by
 // /chat, so it has the same published site knowledge and visitor limits.
 copilotRouter.post('/voice', async (req, res) => {
@@ -156,15 +216,16 @@ copilotRouter.post('/voice', async (req, res) => {
   if (!exemptReq(req) && (!limiter.take(`voice:${session}`).ok || !limiter.take(`voice-ip:${ipOf(req)}`).ok)) {
     res.status(429).json({ ok: false, code: 'RATE_LIMITED' }); return;
   }
+  // `call` is the visitor's session: the page hands it to the voice agent, so the agent's spans join this session in Phoenix.
+  if (voiceTokenConfigured()) {
+    const grant = mintVoiceToken();
+    res.set('cache-control', 'no-store').json({ url: grant.url, token: grant.token, call: session });
+    return;
+  }
   try {
-    const response = await fetch('https://copilot.design-bakery.com/api/voice/token', {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}',
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (!response.ok) throw new Error('voice service unavailable');
-    const grant = await response.json() as { url?: unknown; token?: unknown };
+    const grant = await voiceGrant();
     if (grant.url !== 'wss://copilot.design-bakery.com' || typeof grant.token !== 'string') throw new Error('invalid voice grant');
-    res.set('cache-control', 'no-store').json({ url: grant.url, token: grant.token });
+    res.set('cache-control', 'no-store').json({ url: grant.url, token: grant.token, call: session });
   } catch {
     res.status(503).json({ ok: false, code: 'VOICE_UNAVAILABLE' });
   }
@@ -207,7 +268,7 @@ copilotRouter.post('/chat', async (req, res) => {
     res.status(429).set('retry-after', String(Math.ceil((bySession.retryAt - Date.now()) / 1000))).json({ ok: false, code: 'RATE_LIMITED' });
     return;
   }
-  const { messages, page, voice = false, covered = 0 } = parsed.data;
+  const { messages, page, voice = false, covered = 0, toMe = false } = parsed.data;
   const summary = sanitizeSummary(parsed.data.summary);
   const question = messages.at(-1)?.content ?? '';
   const turn = new TurnTrace(session);
@@ -231,6 +292,27 @@ copilotRouter.post('/chat', async (req, res) => {
   // a yes or no to one of the router's own idle offers, which it answers itself.
   const before = messages.at(-2)?.role === 'assistant' ? messages.at(-2)?.content : undefined;
   const answeringUs = Boolean(before && /\?\s*$/.test(before.trim()));
+
+  // On a call, a line that calls someone by a name that is not mine ("Hey Campos, grab me a coffee?") may be the visitor
+  // talking to someone in their room: one small yes/no question (addressee.ts), and no reply when it was not for me. Every
+  // other line skips this; other voices and my own echo were already dropped by the voice agent from the sound alone.
+  if (voice && !toMe) {
+    const quick = chain(true);
+    const heard = await saidToMe(question, before, async (prompt, abortSignal) => {
+      if (!quick.length || !budget.open()) throw new Error('no model');
+      const { text } = await generateText({ model: modelFor(quick, true, () => undefined, true), prompt, maxOutputTokens: 16, abortSignal });
+      return text;
+    });
+    if (!heard.toMe) {
+      turn.model = 'addressee';
+      turn.actions.push('ignored');
+      send({ type: 'ignored', reason: `said to ${heard.name}` });
+      send({ type: 'done', model: turn.model });
+      turn.finish('done');
+      res.end();
+      return;
+    }
+  }
   const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before);
   const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
   if (cached) {
@@ -280,16 +362,9 @@ copilotRouter.post('/chat', async (req, res) => {
     if (!res.writableFinished) abort.abort();
   });
 
-  const steps = providers.map((p) => ({ name: `${p.id}:${p.model}`, model: p.model, route: (path: string) => routeFor(p, path) }));
-  const model = createOpenAICompatible({
-    name: 'copilot',
-    baseURL: 'http://copilot.invalid/v1',
-    apiKey: 'per-provider',
-    // A caller hears the wait: on a call a model that has not started in 4 s gives way to the next (6 s in a chat).
-    fetch: fallbackFetch(steps, fetch, console.warn, undefined, voice ? 4000 : undefined, (used) => {
-      turn.model = used;
-    }),
-  })(steps[0].model);
+  const model = modelFor(providers, voice, (used) => {
+    turn.model = used;
+  });
 
   try {
     const [brief, news] = await Promise.all([siteBrief(), latestNews()]);
