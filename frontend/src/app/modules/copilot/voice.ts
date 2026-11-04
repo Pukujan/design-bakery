@@ -28,6 +28,9 @@ const meters: Record<'user' | 'agent', Meter | null> = { user: null, agent: null
 let room: Room | null = null;
 let microphone: LocalAudioTrack | null = null;
 let generation = 0;
+/** This call reached a live agent at least once, and the one automatic redial after a drop has been used. */
+let wasConnected = false;
+let redialed = false;
 let pending: AbortController | null = null;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let agentTimer: ReturnType<typeof setTimeout> | undefined;
@@ -42,6 +45,7 @@ const SPEECH_LEAD_MS = 800;
 const audioElements = new Set<HTMLMediaElement>();
 const listeners = new Set<() => void>();
 const set = (patch: Partial<VoiceState>) => {
+  if (patch.status === 'connected') wasConnected = true;
   // Once the call is up, failed or over, the hold lines stop; they only belong to connecting.
   if (patch.status && patch.status !== 'connecting') {
     stopHold();
@@ -135,8 +139,23 @@ function close(error = '') {
   set({ status: 'idle', error, audioBlocked: false, speaking: 'none', muted: false, origin: null });
 }
 
+/**
+ * A call that was up and drops without the visitor hanging up (the voice service was redeployed, the network blinked) is
+ * redialled once, at once and silently: the visitor was mid-conversation. A second drop, or a call that never reached an
+ * agent, ends with the message as before.
+ */
+function dropped(message: string) {
+  if (wasConnected && !redialed) {
+    redialed = true;
+    close();
+    void voice.start(true);
+    return;
+  }
+  close(message);
+}
+
 export const voice = {
-  stop: () => close(),
+  stop: () => { redialed = false; close(); },
   /** Fetch the hold lines ahead of the click so the first one starts at once. */
   preload: () => preloadHold(),
   /** The call button is on screen: wake the voice service now, so a call does not wait for it to start up. */
@@ -161,8 +180,10 @@ export const voice = {
       set({ audioBlocked: true });
     }
   },
-  async start() {
+  async start(redial = false) {
     if (state.status !== 'idle') return;
+    if (!redial) redialed = false;
+    wasConnected = false;
     const run = ++generation;
     const controller = new AbortController();
     pending = controller;
@@ -281,7 +302,7 @@ export const voice = {
         clearTimeout(agentTimer);
         agentTimer = setTimeout(() => {
           if (generation === run && call.state === lk.ConnectionState.Connected && ![...call.remoteParticipants.values()].some((p) => p.isAgent)) {
-            close('The voice agent disconnected. You can continue typing.');
+            dropped('The voice agent disconnected. You can continue typing.');
           }
         }, 5000);
       });
@@ -289,7 +310,7 @@ export const voice = {
       call.on(lk.RoomEvent.Reconnected, () => {
         if (generation !== run) return;
         if ([...call.remoteParticipants.values()].some((p) => p.isAgent)) set({ status: 'connected' });
-        else close('The voice agent disconnected. You can continue typing.');
+        else dropped('The voice agent disconnected. You can continue typing.');
       });
       call.on(lk.RoomEvent.ActiveSpeakersChanged, (speakers) => {
         if (generation !== run) return;
@@ -305,7 +326,7 @@ export const voice = {
         if (generation === run) set({ audioBlocked: !call.canPlaybackAudio });
       });
       call.on(lk.RoomEvent.Disconnected, () => {
-        if (generation === run) close('The call disconnected. You can continue typing.');
+        if (generation === run) dropped('The call disconnected. You can continue typing.');
       });
       timer = setTimeout(() => {
         if (generation === run && state.status === 'connecting') close('The voice agent did not answer. You can continue typing.');
