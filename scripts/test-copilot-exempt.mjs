@@ -50,4 +50,12 @@ assert.equal(budget.open(), true);
 budget.record(100);
 assert.equal(budget.open(), false, 'the budget closes for everyone, exempt or not');
 
+// The owner's network is never shown the human check: a pass is issued with no token when the address is exempt, and
+// still refused for everyone else once a Turnstile secret is set.
+const { issuePass } = await import(new URL('./backend/lib/copilot/guard.js', root).href);
+process.env.TURNSTILE_SECRET_KEY = 'test-secret';
+assert.equal(await issuePass('', '203.0.113.9'), null, 'a stranger with no token is refused');
+assert.ok(await issuePass('', '203.0.113.9', undefined, true), 'the owner gets a pass with no token');
+delete process.env.TURNSTILE_SECRET_KEY;
+
 console.log('copilot exempt tests passed');

@@ -37,8 +37,9 @@ async function verifyTurnstile(token: string, ip: string): Promise<boolean> {
 }
 
 /** A pass for a visitor who solved the challenge, or null. */
-export async function issuePass(turnstileToken: string, ip: string, visitorProof?: string): Promise<{ pass: string; session: string; visitor: string } | null> {
-  if (!(await verifyTurnstile(turnstileToken, ip))) return null;
+export async function issuePass(turnstileToken: string, ip: string, visitorProof?: string, owner = false): Promise<{ pass: string; session: string; visitor: string } | null> {
+  // `owner`: the address is on the owner's exemption list (COPILOT_RATE_EXEMPT_IPS), so the owner's network is never challenged.
+  if (!owner && !(await verifyTurnstile(turnstileToken, ip))) return null;
   let session: string | undefined;
   if (visitorProof) {
     try {

@@ -144,10 +144,11 @@ const exemptReq = (req: Request) => isExempt(ipOf(req));
 
 export const copilotRouter = Router();
 
-copilotRouter.get('/config', (_req, res) => {
+copilotRouter.get('/config', (req, res) => {
   res.set('cache-control', 'no-store').json({
     ok: true,
-    turnstileSiteKey: turnstileSiteKey(),
+    // No site key for the owner's network: the page then asks for a pass without showing the human check.
+    turnstileSiteKey: exemptReq(req) ? null : turnstileSiteKey(),
     booking: Boolean(process.env.COPILOT_BOOKING_URL?.trim()),
     live: chain().length > 0,
   });
@@ -161,7 +162,7 @@ copilotRouter.post('/pass', async (req, res) => {
   }
   const token = typeof req.body?.token === 'string' ? req.body.token : '';
   const proof = typeof req.body?.visitor === 'string' ? req.body.visitor.slice(0, 2048) : undefined;
-  const issued = await issuePass(token, ip, proof);
+  const issued = await issuePass(token, ip, proof, exemptReq(req));
   if (!issued) {
     res.status(403).json({ ok: false, code: 'CHALLENGE_FAILED' });
     return;
