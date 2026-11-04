@@ -1,4 +1,4 @@
-# design-bakery web stack on gravebuster (TASK-DB-0055).
+# design-bakery web and API stack on the VPS (TASK-DB-0055).
 #
 # Lives in the repo at deploy/gravebuster/docker-compose.yml and is driven by
 # deploy.sh / rollback.sh. Published on 127.0.0.1 only — nothing is exposed publicly

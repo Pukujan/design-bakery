@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 #
-# design-bakery on gravebuster (TASK-DB-0055).
+# design-bakery web image (TASK-DB-0055).
 #
 # Stage 1 installs and builds the frontend (`pnpm install`, then
 # `pnpm --dir frontend run build`, output in `frontend/dist`); stage 2 serves

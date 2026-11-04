@@ -21,7 +21,7 @@ Copy `frontend/.env.example` → `frontend/.env` and `backend/.env.example` → 
 | File | Contents |
 |------|----------|
 | [env.md](./env.md) | **Env files** — `frontend/.env` vs `backend/.env` |
-| [../../docs/self-hosting.md](../../docs/self-hosting.md) | **Production** — gravebuster + Cloudflare Tunnel (Caddy serves the site and proxies the API) |
+| [../../docs/self-hosting.md](../../docs/self-hosting.md) | **Production** — the VPS + Cloudflare Tunnel, deployed by Komodo (Caddy serves the site and proxies the API) |
 | [routes.md](./routes.md) | **All routes** — public URLs, admin paths, section anchors, navbar |
 | [project-guide.md](./project-guide.md) | Architecture, portfolios, content/data, how to extend |
 | [modularization-plan.md](./modularization-plan.md) | **Plan** — proposed package/repo splits and dependency trimming (TASK-DB-0049) |

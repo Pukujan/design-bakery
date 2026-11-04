@@ -15,7 +15,7 @@ export { ensurePublishKitFontconfig, getPublishKitFontMode, usesSystemPublishKit
 
 /**
  * Embedded @font-face for Inkscape/browsers only — librsvg uses fontconfig, not these defs.
- * Empty on Railway when system DejaVu is used.
+ * Empty in the API container when system DejaVu is used.
  */
 export function interFontFaceDefs(): string {
   if (cachedDefs !== null) return cachedDefs;

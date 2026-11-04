@@ -184,7 +184,7 @@ async function fetchBlogPostRemote(numericId: number): Promise<Blog | null> {
     try {
       dto = await fetchBlogPostFromSupabase(numericId);
     } catch {
-      // fall through to Railway API
+      // fall through to the Express API
     }
   }
   if (!dto && getAuthApiBaseUrl()) {
@@ -248,7 +248,7 @@ async function fetchRemoteBlogList(): Promise<RemoteBlogDto[]> {
       const rows = await fetchBlogListFromSupabase();
       if (rows.length) return rows;
     } catch {
-      // fall through to Railway API
+      // fall through to the Express API
     }
   }
   if (getAuthApiBaseUrl()) {

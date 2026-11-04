@@ -21,7 +21,7 @@ cp backend/.env.example backend/.env
 
 **Legacy:** Firebase Storage still works if `IMAGE_STORAGE=firebase` and Firebase Admin creds are set.
 
-Firebase callable source lives in `backend/services/` (optional deploy; Express on Railway is the default prod path).
+Firebase callable source lives in `backend/services/` (optional deploy; the Express API container on the VPS is the prod path).
 
 ## Local dev
 
@@ -37,7 +37,7 @@ pnpm run dev:api      # backend only
 | Host | Root directory | Env |
 |------|----------------|-----|
 | **Frontend build** | `frontend` | `frontend/.env.example` |
-| **Railway** | `backend` | `backend/.env.example` |
+| **API container (VPS)** | `backend` | `backend/.env.example` → `deploy/gravebuster/.env.api` |
 
 See [docs/self-hosting.md](../../docs/self-hosting.md).
 
@@ -51,7 +51,7 @@ Use the same Supabase project as `backend/.env` (`SUPABASE_URL`).
 4. Under **Project API keys**, copy **`anon` `public`** (sometimes labeled “anon key” or “Publishable”).
 5. Paste into `frontend/.env` as `VITE_SUPABASE_ANON_KEY=...` and in the frontend build env for production.
 
-Do **not** copy **`service_role`** into the frontend — that key bypasses RLS and must stay in `backend/.env` / Railway only.
+Do **not** copy **`service_role`** into the frontend — that key bypasses RLS and must stay in `backend/.env` / the API's `.env.api` on the VPS only.
 
 After editing `frontend/.env`, restart `pnpm run dev` or `pnpm run dev:stack`.
 

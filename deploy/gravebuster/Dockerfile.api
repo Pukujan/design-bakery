@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 #
-# design-bakery API on gravebuster (issue #80).
+# design-bakery API image (issue #80).
 #
 # Reproduces the Railway/Nixpacks build (root nixpacks.toml + backend/railway.toml)
 # exactly: install with devDependencies (tsc is needed), build services then backend,

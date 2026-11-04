@@ -5,7 +5,7 @@
  * crawlers read a real `<title>` / `og:*` instead of the generic app shell. It is an
  * Express route behind Caddy (the `@ogPreview` matcher in
  * deploy/gravebuster/Caddyfile). It replaced an Edge middleware (`middleware.ts`) from
- * the Vercel days.
+ * the Vercel days (Vercel is no longer used).
  *
  * The pure HTML/meta builders are copied verbatim from `frontend/src/og/` (the
  * frontend keeps the browser-facing ones); `scripts/test-og-contract.mjs` fails CI

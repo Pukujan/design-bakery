@@ -1,8 +1,13 @@
-# design-bakery on gravebuster
+# design-bakery deploy kit
 
-Container stack that serves the `frontend` SPA (built with pnpm + Vite) from
-gravebuster, routed by the rules in `Caddyfile`. Full runbook:
+The container stack that serves the site (`frontend` SPA, built with pnpm + Vite) and its
+Express API on the VPS, routed by the rules in `Caddyfile`. Full runbook:
 [`docs/self-hosting.md`](../../docs/self-hosting.md).
+
+The folder is named after gravebuster, the box the site first ran on. gravebuster is no
+longer used; the name stays because the VPS's Komodo stack (`design-bakery-vps` in
+`pukujan-lab-2/server-management`, `komodo/resources/stacks-vps.toml`) runs these files by
+this path.
 
 | file | purpose |
 | --- | --- |
@@ -10,36 +15,25 @@ gravebuster, routed by the rules in `Caddyfile`. Full runbook:
 | `Dockerfile.api` | single-stage `node:24-bookworm-slim` + pnpm build → runs the Express API (`backend/lib/server.js`) with fontconfig + DejaVu Sans |
 | `Caddyfile` | static server with the site's redirect/rewrite rules (the source of truth for routing), plus the `/api/*` and link-preview proxies to `api:8787` |
 | `docker-compose.yml` | the `web` and `api` containers, both published on `127.0.0.1` only |
-| `docker-compose.edge.yml` | optional overlay joining the Cloudflare Tunnel's docker network |
-| `deploy.sh` | fetch ref → build tagged image → swap container → smoke test (auto-rollback on failure); builds/swaps the API too when it is enabled. Takes an exclusive lock so only one deploy runs at a time |
-| `rollback.sh` | swap back to the previously deployed image tag (web + API); takes the same lock |
-| `autodeploy.sh` | poll `origin/main` and deploy on change (run by the systemd timer) |
-| `systemd/` | `design-bakery-autodeploy.{service,timer}` — **enabled** on gravebuster |
-| `.env.example` | copy to `.env` (git-ignored) for port / image / optional `VITE_*` build args |
+| `docker-compose.edge.yml` | overlay joining the Cloudflare Tunnel's docker network (`study-os_edge`) |
+| `deploy.sh` | fetch ref → build tagged images → swap containers → smoke test (auto-rollback on failure). Takes an exclusive lock so only one deploy runs at a time. Komodo runs it as the stack's pre-deploy |
+| `rollback.sh` | swap back to the previously deployed image tags (web + API); takes the same lock |
+| `PROJECT.json` | machine-readable summary: hostnames, ports, compose files, data layer |
+| `.env.example` | copy to `.env` (git-ignored) for ports, edge network, image tags and the public `VITE_*` build args |
 | `.env.api.example` | template for `.env.api` — every variable, with where each value comes from |
-| `.env.api` | **secrets** for the API container (git-ignored, optional) — Octo workspace key, OpenRouter, admin password, legacy Supabase |
+| `.env.api` | **secrets** for the API container (git-ignored) — Octo workspace key, OpenRouter, admin password |
 
-Quick start on gravebuster:
+Deploys happen on their own: a merge to `main` is picked up by Komodo's
+`design-bakery-deploy-on-push` action within about five minutes. To deploy or roll back by
+hand on the VPS:
 
 ```bash
-git clone https://github.com/Pukujan/design-bakery.git ~/apps/design-bakery
 cd ~/apps/design-bakery
-cp deploy/gravebuster/.env.example deploy/gravebuster/.env
 deploy/gravebuster/deploy.sh --ref origin/main
-curl -sI http://127.0.0.1:8085/ | head -1
+deploy/gravebuster/rollback.sh
 ```
 
-The container is `design-bakery-web`, the image repo is `design-bakery-web`
-(tagged `<sha12>-<utc timestamp>`). Nothing is reachable from outside the host
-until the Cloudflare Tunnel ingress points at it.
-
-The API container (`design-bakery-api`) is deployed only when it is enabled: either
-`deploy/gravebuster/.env.api` exists, or `WITH_API=1` is set in `.env`. Force it for a
-single run with `--with-api` / `--no-api`. See
-[`docs/self-hosting.md` §8](../../docs/self-hosting.md).
-
 Besides `/api/*`, Caddy sends the blog and case-study paths to `api:8787` so link
-previews get per-post `<title>` / `og:*` tags. Those routes are handled by `backend/src/api/ogPreview.ts`; the
-matcher is `@ogPreview` in the Caddyfile, and `pnpm test:og-routing` keeps the two in
-step. When the API is not deployed, Caddy degrades those paths to the plain SPA shell
-rather than 502ing them.
+previews get per-post `<title>` / `og:*` tags (`backend/src/api/ogPreview.ts`; the matcher
+is `@ogPreview` in the Caddyfile, and `pnpm test:og-routing` keeps the two in step). When
+the API is down, Caddy degrades those paths to the plain SPA shell rather than 502ing them.

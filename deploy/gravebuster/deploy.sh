@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Deploy design-bakery (TASK-DB-0055). Runs on the Mac host since TASK-DB-0082.
+# Deploy design-bakery (TASK-DB-0055). Runs on the VPS, started by Komodo's design-bakery-vps stack
+# (see docs/self-hosting.md).
 #
 # Pulls a git ref into the deploy checkout, builds a new tagged image, swaps the
 # container, smoke-checks the running site and records the previous image tag so
@@ -30,8 +31,8 @@
 set -euo pipefail
 
 # Docker Desktop on macOS installs the CLI in /usr/local/bin, which is NOT on the
-# default non-interactive SSH PATH (a login shell has it, `ssh host <script>` does
-# not). Harmless on Linux. The Mac host runs this over plain SSH.
+# default non-interactive SSH PATH. Harmless on Linux (the VPS); kept so the script
+# also runs on a Mac for a local test.
 PATH="/usr/local/bin:$PATH"
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
