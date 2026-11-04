@@ -6,9 +6,7 @@ design-bakery.com (the site and its API) runs on the owner's VPS (`ssh vps`, Tai
 the plan wins.
 
 The deploy kit is in `deploy/vps/`. Earlier hosts (gravebuster, the MacBook Pro, Vercel,
-Railway) are retired; their runbooks are in git history. `deploy/gravebuster/deploy.sh` is
-only a stand-in for the move to `deploy/vps/` (see that file); it goes once Komodo runs the
-new path.
+Railway) are retired; their runbooks are in git history.
 
 ---
 

@@ -25,11 +25,6 @@ deploy/vps/.deploy-state
 deploy/vps/.deploy.lock
 deploy/vps/*.log
 deploy/vps/.env.api.bak*
-# the old path, until the stand-in in deploy/gravebuster/ has moved these on the VPS
-deploy/gravebuster/.env*
-deploy/gravebuster/.deploy-state
-deploy/gravebuster/.deploy.lock
-deploy/gravebuster/*.log
 
 # Legacy duplicates (use backend/ + backend/services/ only)
 server/
