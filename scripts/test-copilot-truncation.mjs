@@ -79,4 +79,7 @@ assert.equal(s.isPlainSmallTalk('nothing', 'Anyone catching your eye? I can open
 const ps = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
 assert.deepEqual(h.byHealth(ps, true).map((p) => p.id), ['a', 'b', 'c'], 'never probed: table order');
 
-console.log('copilot truncation: 6 groups ok');
+// 7. The free reasoning model never jumps the queue on a call, even when its probe was the quickest.
+assert.deepEqual(h.byHealth([{ id: 'a' }, { id: 'openrouter' }, { id: 'c' }], true).map((p) => p.id), ['a', 'c', 'openrouter'], 'free model last among the healthy');
+
+console.log('copilot truncation: 7 groups ok');
