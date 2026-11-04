@@ -42,6 +42,29 @@ JSON only as fallback. After merge, write the same six documents to Octo (`engin
 
 No checkpoints yet.
 
+### 2026-11-04 20:15:06 UTC — claude-code
+
+<!-- continuity:checkpoint {"agent":"claude-code","blocked":[],"changed":["none"],"completed":["work completed"],"decisions":["no new decisions"],"evidence":["no external evidence recorded"],"next_action":"Owner reviews PR #210; on their go, merge (Komodo deploys) and write the six ete__ documents to Octo so the live page shows the new copy.","protocol_version":"0.1.0-draft","schema":"project-continuity.checkpoint.v1","task_id":"DB-0144","timestamp":"2026-11-04T20:15:06Z"} -->
+<!-- continuity:checkpoint-operation {"payload_sha256":"1edf2e4419db2b2277816252fd093bc2474dae12c3cdfeca4a4dcfddb6758f53","request_id":"fb20d9e80bf14717936015ba849ca11d","schema":"project-continuity.checkpoint-operation.v1","task_id":"DB-0144"} -->
+
+Completed:
+- work completed
+
+Evidence:
+- no external evidence recorded
+
+Decisions:
+- no new decisions
+
+Changed:
+- none
+
+Blocked/uncertain:
+- none
+
+Next:
+- Owner reviews PR #210; on their go, merge (Komodo deploys) and write the six ete__ documents to Octo so the live page shows the new copy.
+
 ## Handoff
 
 Read PROJECT → CURRENT → this task → minimum relevant spec. Checkpoint before stopping.
