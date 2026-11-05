@@ -1,7 +1,7 @@
 // Runs the benchmark on a hosted provider from inside the API container (its keys stay there): node run_hosted.js DEEPSEEK|QWEN|WORKBUDDY|OPENROUTER
 const fs = require('fs');
 const [id, concurrency = '3'] = process.argv.slice(2);
-const cases = JSON.parse(fs.readFileSync('/tmp/router/cases.json', 'utf8'));
+const cases = JSON.parse(fs.readFileSync(process.env.CASES || '/tmp/router/cases.json', 'utf8'));
 const P = JSON.parse(fs.readFileSync('/tmp/router/prompt.json', 'utf8'));
 const TABLE = { DEEPSEEK: ['https://api.inferhub.dev/v1', 'cb/deepseek-v4.1-flash'], QWEN: ['https://yolo-auto.com/v1', 'yolo'], WORKBUDDY: ['https://www.workbuddy.ai/v2', 'auto'], OPENROUTER: ['https://openrouter.ai/api/v1', 'nvidia/nemotron-3.5-super-vl:free'] };
 const [target, model] = [TABLE[id][0], process.env[`SMART_${id}_MODEL`] || TABLE[id][1]];
@@ -27,4 +27,4 @@ async function worker() {
     res[n] = { i: n, intent: got.intent, target: got.target, valid, ms: Date.now() - t0 };
   }
 }
-(async () => { await Promise.all(Array.from({ length: Number(concurrency) }, worker)); fs.writeFileSync(`/tmp/router/out-${id.toLowerCase()}.json`, JSON.stringify(res)); console.log(id, 'done', res.length); })();
+(async () => { await Promise.all(Array.from({ length: Number(concurrency) }, worker)); fs.writeFileSync(`/tmp/router/out-${id.toLowerCase()}${process.env.OUTSUF || ''}.json`, JSON.stringify(res)); console.log(id, 'done', res.length); })();
