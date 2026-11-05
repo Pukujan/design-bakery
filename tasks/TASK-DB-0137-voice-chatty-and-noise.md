@@ -146,3 +146,11 @@ Traces on 2026-11-04: "just show me anything" four times got headings read out a
 - `health.ts`: the free reasoning model stays last on calls (its probe is quick, its real replies took up to 16 s).
 - Tests: `test-copilot-router.mjs` (trace phrases, repeats move on, no "?", non-triggers) and `test-copilot-truncation.mjs`.
 - Not verified against a live call; check Phoenix for `copilot.routine = tour:next` after deploy.
+
+## A dropped call redials once (thirteenth commit)
+
+"The call disconnected" kept appearing. The voice service (`~/apps/copilot`) shipped four releases in 50 minutes on 2026-11-04 (#135 to #138; #136 recreated LiveKit at 23:10, the agent was replaced at 23:25 and 23:34), and a deploy ends every call in progress. The path itself checked out afterwards (pass, grant, `/rtc/validate` 200 from the owner's network).
+
+- `voice.ts`: `dropped()` replaces `close(message)` on an unexpected disconnect. A call that had reached an agent is redialled once, at once and silently (the moon shows "Waking up…"); a second drop, or a call that never connected, ends with the message as before. Hanging up or pressing the button resets it.
+- `pnpm test:voice-redial` bundles the real `voice.ts` with esbuild against a fake LiveKit room: a drop redials once with a fresh grant and no message, a second drop ends it, hang-up resets, no agent means no redial, an agent leaving redials. It fails on the old code ("a second room is dialled").
+- Not verified on a live call (the browser pane blocks the microphone). The deploy cadence of the voice service is a separate matter, in its own repo.
