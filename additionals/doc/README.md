@@ -24,4 +24,5 @@ Copy `frontend/.env.example` → `frontend/.env` and `backend/.env.example` → 
 | [../../docs/self-hosting.md](../../docs/self-hosting.md) | **Production** — the VPS + Cloudflare Tunnel, deployed by Komodo (Caddy serves the site and proxies the API) |
 | [routes.md](./routes.md) | **All routes** — public URLs, admin paths, section anchors, navbar |
 | [project-guide.md](./project-guide.md) | Architecture, portfolios, content/data, how to extend |
+| [copilot-spec.md](./copilot-spec.md) | **Copilot spec** — how AI Pujan behaves on every turn: threads, what is offered, invariants, metamorphic tests (TASK-DB-0137) |
 | [modularization-plan.md](./modularization-plan.md) | **Plan** — proposed package/repo splits and dependency trimming (TASK-DB-0049) |
