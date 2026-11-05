@@ -22,7 +22,8 @@ export type CachedAction =
   | { kind: 'navigate'; path: string; label: string }
   | { kind: 'projects'; slugs: string[] }
   | { kind: 'link'; label: string; url: string }
-  | { kind: 'book'; url: string; name?: string; email?: string; topic?: string };
+  | { kind: 'book'; url: string; name?: string; email?: string; topic?: string }
+  | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string; mode?: 'swipe' | 'perch' };
 
 /** `steps` are for a voice call only: scroll to a section when the spoken answer reaches character `at`. */
 export type CachedAnswer = {

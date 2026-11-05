@@ -31,8 +31,14 @@ await page.evaluate(() => window.__voiceSet({ status: 'connected' }));
 const say = (line) => page.evaluate(async (text) => {
   const c = window.__copilot;
   await c.send(text, { path: location.pathname, title: document.title }, { voice: true });
-  await Promise.race([c.takeMoves(), new Promise((r) => setTimeout(r, 15000))]);
-  await new Promise((r) => setTimeout(r, 600));
+  // The call waits for the page's moves for up to 30 s (voice.ts); a walk through a long list can take most of that.
+  await Promise.race([c.takeMoves(), new Promise((r) => setTimeout(r, 30000))]);
+  // Then until the page has stopped changing, so the next line is said from where the call really is.
+  let last = location.pathname;
+  for (let stable = 0; stable < 4;) {
+    await new Promise((r) => setTimeout(r, 300));
+    if (location.pathname === last) stable += 1; else { last = location.pathname; stable = 0; }
+  }
   return { path: location.pathname, list: c.takeListScroll() };
 }, line);
 const shot = async (name) => { if (shots) await page.screenshot({ path: `${shots}/${name}.png` }); };

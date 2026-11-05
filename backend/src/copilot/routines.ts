@@ -18,11 +18,12 @@
  */
 import {
   cachedAnswer, lead, refersBack, list, latestBlog, latestPaper, navigate, norm, vary, words,
-  type CachedAnswer,
+  type CachedAnswer, type CachedAction,
 } from './answers.js';
 import { bookingTurn } from './booking.js';
 import { gotchaReply } from './gotchas.js';
-import { loadBlogs, loadExperience, loadPapers, loadProjects, projectPath, type BlogSummary, type Paper, type Project } from './knowledge.js';
+import { loadBlogs, loadExperience, loadPapers, loadProjects, projectPath, sectionsForPath, type BlogSummary, type Paper, type Project } from './knowledge.js';
+import { buildPassages } from './sections.js';
 
 /**
  * `captions` are the moon's bubble lines while the cursor moves the page, one wording picked per step, in order
@@ -348,6 +349,57 @@ function neighbour(site: Site, path: string, dir: 1 | -1): Omit<RoutedAnswer, 'r
   };
 }
 
+/**
+ * "Summarise this" on a paper, post or project, answered from the page itself. On the call of 2026-11-05 the model, asked to
+ * summarise a paper, read it, called the tools and then said only "Here it is." (3 runs in 4 on the simulator, whatever the prompt
+ * said): the words are the summary, and a model that skips them leaves the caller with nothing. Built from the page, so it is
+ * brief (about thirty seconds), grounded in the page's own sentences, and the page follows it: each passage is quoted word for word,
+ * and the cursor swipes to its heading as it is said.
+ */
+const SUMMARISE = /\b(summar(?:y|ise|ize)|sum (?:it|this|that) up|explain (?:this|it)|what (?:is|s) (?:this|it) (?:paper |post |project |article )?about|what does (?:this|it|the) (?:paper |post |project |article )?(?:say|mean|try to say)|tell me about (?:this|it)|walk me through (?:this|it))\b/;
+
+async function pageSummary(question: string, page: { path: string }): Promise<Omit<RoutedAnswer, 'routine'> | null> {
+  const q = norm(question);
+  if (q.split(' ').length > 16 || !SUMMARISE.test(q)) return null;
+  const path = page.path.split('#')[0];
+  const paper = path.match(/^\/research\/papers\/([^/]+)$/);
+  const post = path.match(/^\/blogs\/(\d+)$/);
+  const work = path.match(/^\/work\/([^/]+)$/);
+  let intro = '';
+  let intent: 'research' | 'blog' | 'project';
+  if (paper) {
+    const found = (await loadPapers()).find((p) => p.id === paper[1]);
+    if (!found) return null;
+    intent = 'research';
+    intro = `${sentence(lead(found.abstract, 200))}${found.status === 'approved' ? '' : ' It is a pending draft.'}`;
+  } else if (post) {
+    const found = (await loadBlogs()).find((b) => String(b.id) === post[1]);
+    if (!found) return null;
+    intent = 'blog';
+    intro = sentence(lead(found.excerpt, 200));
+  } else if (work) {
+    const found = (await loadProjects()).find((p) => p.slug === work[1]);
+    if (!found) return null;
+    intent = 'project';
+    intro = `${sentence(found.tagline)} ${sentence(lead(found.description, 160))}`;
+  } else return null;
+  const sections = (await sectionsForPath(path)) ?? [];
+  // Two passages that carry the argument: not future work, related work, a tag list or a status note, and a real sentence.
+  const BAD = /future|related|built with|reference|acknowledg|appendix|limitation|status|gate|scaffold|contents|licen[cs]e|citation|changelog|stack|tech/i;
+  const GOOD = /problem|introduc|method|approach|result|finding|conclusion|what it is|how it works|overview|why|design|evaluation|summary|abstract|contribution|idea/i;
+  const usable = buildPassages(sections, 12).filter((p) => p.quote && p.quote.length >= 50 && p.quote.length <= 150 && p.quote.split(" ").length >= 8 && /[.!?]$/.test(p.quote) && !BAD.test(p.heading) && !/(?:,\s*[A-Z][\w -]+){3,}/.test(p.quote));
+  const passages = [...usable.filter((p) => GOOD.test(p.heading)), ...usable.filter((p) => !GOOD.test(p.heading))].slice(0, 2);
+  const spoken = passages.map((p) => p.quote as string).filter((quote) => !intro.includes(quote));
+  if (!intro.trim() && !spoken.length) return null;
+  const draft = paper && intent === 'research' && intro.includes('pending draft');
+  return {
+    intent,
+    text: [intro.replace(' It is a pending draft.', '').trim(), ...spoken, draft ? 'It is a pending draft.' : '', 'Say go deeper for the section by section version.'].filter(Boolean).join(' '),
+    actions: passages.map((p): CachedAction => ({ kind: 'cite', path, anchor: p.anchor, heading: p.heading, quote: p.quote, mode: 'swipe' })),
+    go: false,
+  };
+}
+
 /** The registry, in the order they are tried. New routines are added here. */
 export const ROUTINES: readonly Routine[] = [latest, tech, role, open];
 
@@ -406,6 +458,11 @@ export async function routeRequest(question: string, firstTurn: boolean, voice =
   }
   const replied = await answerToOffer(ask, previous);
   if (replied) return replied;
+  // "Summarise this" on a paper, post or project: said from the page, with the page following (above).
+  if (voice && page) {
+    const summary = await pageSummary(question, page);
+    if (summary) return { ...summary, routine: 'summary:page' };
+  }
   // "Next" on a paper or a post is the next paper or post, not the tour's first project (above).
   if (voice && page) {
     const dir = stepRequest(norm(question));

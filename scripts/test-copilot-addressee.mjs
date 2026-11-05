@@ -17,6 +17,8 @@ const named = {
   'Okay Alexa, stop.': 'Alexa',
 };
 const unnamed = [
+  // 2026-11-05: lines the recogniser capitalises read as a call to someone named Next, Research, Poojan; they were silently dropped.
+  'Next.', 'Previous.', 'Research.', 'Marketing.', 'Poojan.', 'Yes.', 'Go on.', 'Next one.', 'Next, show me the blog', 'Research is interesting.',
   'Hey Pujan, what are you working on?',
   'Hi Pooja, how are you?',
   'Thanks, Pujan.',

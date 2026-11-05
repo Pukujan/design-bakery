@@ -12,7 +12,9 @@ const NOT_NAMES = new Set(
   ('okay ok sorry yes yeah yep no nope well so thanks thank please hello hey hi wait cool great nice sure right alright oh wow ' +
     'also and but what why how when where who which can could would should will do does did is are was tell show give let ' +
     'man dude bro buddy mate guys folks everyone everybody friend sir god jesus lord seriously honestly actually really ' +
-    'interesting true exactly perfect awesome fine good hmm huh anyway again there here then now today yesterday tomorrow')
+    'interesting true exactly perfect awesome fine good hmm huh anyway again there here then now today yesterday tomorrow ' +
+    'next previous back continue more stop skip repeat resume pause research papers paper projects project blog blogs posts post ' +
+    'contact book booking marketing design engineering development consultation call work writing experience about home page')
     .split(' '),
 );
 /** How a recogniser may spell my name (Parakeet heard "Pujan" as these). */
@@ -25,11 +27,21 @@ const LEADING_AFTER_GREETING = /^([A-Z][a-z]{2,})\b/;
 /** "…, Campos?" */
 const TRAILING = /,\s*([A-Z][a-z]{2,})\s*[?!.]*$/;
 
+/**
+ * A line of one or two words is never someone else being called ("Next.", "Previous.", "Research.", "Marketing.", "Go on.", a name
+ * given as an answer): there is nobody asked to do anything. The recogniser capitalises the first word of every line, so before this
+ * a bare "Next." read as a call to a person named Next, the small model said it was not for me, and the line was silently dropped
+ * (the call of 2026-11-05: "Research." was ignored, and "Next." never moved the page).
+ */
+const BARE_LINE = 2;
+
 /** The name the line calls someone by, when it is not mine; null for a line that names no one. */
 export function otherName(line: string): string | null {
   const text = line.trim();
   const rest = text.replace(GREETING, '');
   const greeted = rest !== text;
+  // "Hey Campos!" is a call; a bare "Next." or "Research." is not.
+  if (!greeted && text.split(/\s+/).filter(Boolean).length <= BARE_LINE) return null;
   const found = [(greeted ? LEADING_AFTER_GREETING : LEADING).exec(rest)?.[1], TRAILING.exec(text)?.[1]];
   for (const name of found) {
     const lower = name?.toLowerCase();
