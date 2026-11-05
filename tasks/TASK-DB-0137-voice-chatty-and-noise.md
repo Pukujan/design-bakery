@@ -243,3 +243,10 @@ The owner's rule after the call of 2026-11-05: no regex deciding what a visitor 
 - Measured on the live models: tools, booking-corrections, booking-call-1105, recruiter-newcomer and recruiter-deep-dive 3 of 3; booking and booking-frustration 2 of 3; papers-next fails only wording checks; recruiter-checklist ends 4 to 6 of 10 replies in a question (limit 3) and had one "models are busy".
 - Costs: a turn is about 8 to 9k input tokens (site brief, prompt, tool schemas); the 2M daily token cap is about 230 turns. Shrinking or caching the brief is not done.
 - Not verified on a real spoken call. The frontend's built-in fallback answers still match wording (used only when every model is down).
+
+## A behaviour spec for one visitor who can ask anything at any time
+
+[additionals/doc/copilot-spec.md](../additionals/doc/copilot-spec.md) is the contract the next steps are built and tested against. It has no visitor types and no modes: threads (page, list position, booking, and the planned tour and cut note) that can all be open at once, what is offered on every turn, invariants checked from events and state, wording checks done by exact booking lines or a judge (never regex), metamorphic relations that compare two runs, and seeded generated conversations that are shrunk and kept as replay cases in the lane tables.
+
+- Order of work: the test harness first (state checks, the invariant checker, metamorphic pairs, the generator), then explicit threads, tours with state, stored summaries, retrieval, and the cut note from `voice-agent/`.
+- Found while writing it: the prompts contradict INV-8 (the base prompt asks small talk to end with a question; the voice note forbids hand-backs but lets two in three replies end in a question), a likely cause of INV-8 failing, and the trace does not record the offered tools (INV-1 cannot be checked yet).
