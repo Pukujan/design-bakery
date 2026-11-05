@@ -218,3 +218,14 @@ The owner: a recruiter who knows nothing about the projects or the research judg
 - A reply that announces a project ("Let's try X", "Something different, X") without moving the page now moves it.
 - The simulator did not apply `replace` events and always passed `toMe`; both fixed.
 - Honest state: the workflows use the real model chain, so a turn can fail one run in four (a model that skips a move or answers off-pattern). Run with `--runs 3` or more.
+
+## Booking is a guided flow: explicit state, a model reads each answer (twenty-first commit)
+
+The call of 2026-11-05 (04:49 to 04:57 UTC) showed the regex-and-history booking dialogue failing in six ways: "That's P-U-J-A-N" counted as a yes; a whole corrected email given instead of a "no" was refused (and "one five oh four" was not read as 1504); a re-prompt lost the place so "No." went to the model; "Book the call." started over; "I just told you the name" became the name "Just Told You"; the caller was asked for their name again and again.
+
+- `bookingFlow.ts`: the code owns the steps (name, confirm name, how it is said, email, confirm email, area, one `book` action), the state (`{ step, data }`) and what is said (fixed sentences, spelled letter by letter, never a claim without the action). The state is explicit: the page sends it as the request's `flow` and receives the new state as a `flow` event (`store.ts` `callFlow`, reset when a call ends or the chat is cleared). Nothing is rebuilt from the conversation any more.
+- A reader per answer: `bookingModel.ts` asks DeepSeek, then Qwen, one small JSON call returning what the line is (answer, yes, no, correction with the right value, cancel, other); a bare yes/no or a one-word name skips the model; the regex parsers (`booking.ts`) are the reader when no model answers. A spelling or a whole email at a confirm step is a correction and is read back; a no keeps the step; a complaint or a repeated "Book the call." mid-flow keeps the place and asks again; a line that is not an answer twice leaves the flow and goes to the normal routing.
+- Folded in from #218: how the caller says their name ("poo jun" -> "Poo-jun", used for the rest of the call). `booking.ts` also reads "oh" next to digits as a zero, ignores the "s" of "That's P-U-J-A-N", and drops a word said and then spelled.
+- Tests: `test-copilot-booking.mjs` (a scripted reader: steps, state, corrections, leaving, cancel, the offline reader), simulator scenarios `booking`, `booking-corrections`, `booking-frustration` and `booking-call-1105`, which replays the real failed call's lines with the real models and passes 3 runs in 3. The real-browser check carries the state through the page's store.
+- Fixed on the way: `routeRequest` lost its `answerToOffer` step in this edit (caught by the router test, restored).
+- Not verified on a real spoken call.

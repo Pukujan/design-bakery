@@ -74,6 +74,7 @@ type Event =
   | { type: 'step'; name: string; status: 'start' | 'done' | 'error' }
   | { type: 'done'; model: string }
   | { type: 'ignored'; reason: string }
+  | { type: 'flow'; flow: unknown }
   | { type: 'error'; message: string };
 
 const STORAGE_KEY = 'db-copilot-v1';
@@ -137,6 +138,9 @@ function setSummary(next: Summary | null) {
     /* private mode */
   }
 }
+
+/** The voice booking's place (bookingFlow.ts on the server): sent with each line, replaced by each reply's `flow` event. */
+let callFlow: unknown = null;
 
 let state: CopilotState = { messages: load(), busy: false, open: false, heroVisible: false, draft: '' };
 let nextId = state.messages.reduce((max, m) => Math.max(max, m.id), 0) + 1;
@@ -558,6 +562,8 @@ export const copilot = {
   },
   setOpen: (open: boolean) => set({ open }),
   dismissBooking: () => set({ booking: null }),
+  /** A call ended or the chat was cleared: a booking under way is over. */
+  resetFlow: () => { callFlow = null; },
   setDraft: (draft: string) => set({ draft }),
   setHeroVisible: (heroVisible: boolean) => {
     if (state.heroVisible !== heroVisible) set({ heroVisible });
@@ -571,6 +577,7 @@ export const copilot = {
     set({ messages: [...kept, { id: nextId++, role: 'assistant', text, steps: [], actions: [], streaming: false, nudge: true }] });
   },
   clear() {
+    callFlow = null;
     abort?.abort();
     lastAsk = null;
     for (const id of [...reveals.keys()]) flushText(id);
@@ -858,7 +865,7 @@ async function stream(
     signal,
     headers: { 'content-type': 'application/json', 'x-copilot-pass': await getPass(false, signal) },
     // `toMe`: the visitor said this line was for the copilot ("Answer this"), so the server does not ask whether it was.
-    body: JSON.stringify({ messages, page, voice, ...(toMe ? { toMe } : {}), ...(notes ? { summary: notes.text, covered: notes.covers } : {}) }),
+    body: JSON.stringify({ messages, page, voice, ...(toMe ? { toMe } : {}), ...(voice && callFlow ? { flow: callFlow } : {}), ...(notes ? { summary: notes.text, covered: notes.covers } : {}) }),
   });
   if (res.status === 401 && !retried) {
     pass = null;
@@ -963,6 +970,8 @@ function handle(event: Event, replyId: number) {
         listMove = LIST_PAGE.test(event.action.path);
       }
     }
+  } else if (event.type === 'flow') {
+    callFlow = event.flow;
   } else if (event.type === 'ignored') {
     // On a call the line was said to someone else in the visitor's room: no reply, and the line stays, greyed, to answer anyway.
     set({ messages: state.messages.filter((m) => m.id !== replyId).map((m) => (m.id === replyId - 1 ? { ...m, ignored: event.reason } : m)) });

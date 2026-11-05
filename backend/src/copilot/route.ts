@@ -26,7 +26,9 @@ import { makeTools, type CopilotAction } from './tools.js';
 import { TurnTrace } from './tracing.js';
 import { takeDurableCopilotLimit, durableLimitConfigured } from './durableLimit.js';
 import { FOLLOW_ON_CALL, norm } from './answers.js';
-import { routeRequest } from './routines.js';
+import { routeRequest, type FlowIO } from './routines.js';
+import { modelReader } from './bookingModel.js';
+import type { BookingFlow } from './bookingFlow.js';
 import { latestNews, newsBlock } from './news.js';
 import { createTextFilter } from './textFilter.js';
 import { contextBudget, estimateTokens, fitHistory, sanitizeSummary, summarize, summaryBlock, SUMMARY_MAX_CHARS } from './memory.js';
@@ -42,6 +44,7 @@ export type CopilotEvent =
   | { type: 'done'; model: string }
   /** On a call, the line was said to someone else in the visitor's room (addressee.ts): no reply, and the page greys it out. */
   | { type: 'ignored'; reason: string }
+  | { type: 'flow'; flow: BookingFlow | null }
   | { type: 'error'; message: string };
 
 const chatBody = z.object({
@@ -52,6 +55,12 @@ const chatBody = z.object({
   page: z.object({ path: z.string().max(300), title: z.string().max(200) }).optional(),
   /** True on a voice call: the reply is spoken, and the page may move on its own. */
   voice: z.boolean().optional(),
+  /** The booking flow's state, kept by the page between turns (bookingFlow.ts). */
+  flow: z.object({
+    kind: z.literal('booking'),
+    step: z.enum(['name', 'confirm_name', 'say', 'email', 'confirm_email', 'area']),
+    data: z.object({ name: z.string().max(60).optional(), say: z.string().max(60).optional(), email: z.string().max(120).optional(), tries: z.number().int().min(0).max(5).optional() }),
+  }).nullable().optional(),
   /** The visitor tapped "Answer this" on a line the call had not answered: it is for me, so no addressee check (addressee.ts). */
   toMe: z.boolean().optional(),
   /** Rolling notes on the older part of a long chat, kept by the browser. Untrusted: capped, sanitised, quoted as data (memory.ts). */
@@ -329,7 +338,10 @@ copilotRouter.post('/chat', async (req, res) => {
   }
   // What AI Pujan has already said, so a tour moves on to somewhere new (routines.ts, surprise).
   const said = messages.filter((m) => m.role === 'assistant').slice(-12).map((m) => m.content).join(' ');
-  const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before, said, messages, page);
+  const flowIO: FlowIO = { in: (parsed.data.flow ?? null) as BookingFlow | null };
+  const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before, said, page, flowIO, modelReader());
+  // The booking's place goes back to the page every turn it is in play, so the next line is read at the right step.
+  if (flowIO.touched) send({ type: 'flow', flow: flowIO.out ?? null });
   const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || routed.routine.startsWith('tour:') || routed.routine.startsWith('booking:') || routed.routine.startsWith('step:') || routed.routine.startsWith('summary:') || (/^intent:(contact|book|projects|research|blog|experience)$/.test(routed.routine) && EXPLICIT_REQUEST.test(norm(question))) || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
   if (cached) {
     turn.model = `cache:${cached.intent}`;

@@ -27,13 +27,13 @@ async function pass() {
   return j.pass;
 }
 
-async function turn(token, messages, page, toMe = false) {
+async function turn(token, messages, page, toMe = false, flow = null) {
   const t = Date.now();
   const r = await fetch(`${base}/api/copilot/chat`, {
     method: 'POST', headers: { 'content-type': 'application/json', 'x-copilot-pass': token },
     // The page's own client sends only the latest turns (a summary stands for the rest): the API takes at most 24.
     // toMe stays false, as for a line heard on a real call: the addressee check runs on it, and a line it drops is a failure below.
-    body: JSON.stringify({ messages: messages.slice(-24), voice: true, ...(toMe ? { toMe: true } : {}), ...(page ? { page } : {}) }),
+    body: JSON.stringify({ messages: messages.slice(-24), voice: true, ...(toMe ? { toMe: true } : {}), ...(flow ? { flow } : {}), ...(page ? { page } : {}) }),
   });
   const body = await r.text();
   const events = body.split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return { type: 'garbled', raw: l }; } });
@@ -90,12 +90,15 @@ let failedRuns = 0;
 const token = await pass();
 for (let run = 1; run <= runs; run += 1) {
   const messages = [];
+  // The booking flow's state, kept by the page between turns: the reply's `flow` event replaces it.
+  let flow = null;
   let page = scenario.startPage ?? { path: '/', title: 'Home' };
   const results = [];
   for (const [i, step] of scenario.steps.entries()) {
     if (step.page) page = step.page;
     messages.push({ role: 'user', content: step.say });
-    const got = await turn(token, messages, page, step.toMe === true);
+    const got = await turn(token, messages, page, step.toMe === true, flow);
+    for (const ev of got.events) if (ev.type === 'flow') flow = ev.flow;
     // The page moves when a reply moves it (the call's browser takes the move before the speech): the next turn is told so.
     for (const ev of got.events) {
       if (ev.type !== 'action') continue;

@@ -1,0 +1,102 @@
+{
+  "name": "the real booking call of 2026-11-05 (garbled lines, a spelling instead of yes, a whole email instead of no), replayed",
+  "startPage": {
+    "path": "/research",
+    "title": "Research"
+  },
+  "steps": [
+    {
+      "say": "Tarity Middle School, can you Book it for me.",
+      "expect": {
+        "navigatesTo": "/contact",
+        "textMatch": "name"
+      }
+    },
+    {
+      "say": "Poojan.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "spells": [
+          "poojan"
+        ]
+      }
+    },
+    {
+      "say": "That's P-U-J-A-N.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "spells": [
+          "pujan"
+        ],
+        "asksToConfirm": true,
+        "textNotMatch": "email"
+      }
+    },
+    {
+      "say": "Yes.",
+      "expect": {
+        "textMatch": "How do you say your name"
+      }
+    },
+    {
+      "say": "It's fine as spelled.",
+      "expect": {
+        "textMatch": "email"
+      }
+    },
+    {
+      "say": "My email is Teresagohardo at gmail.com.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "spells": [
+          "teresagohardo"
+        ],
+        "asksToConfirm": true
+      }
+    },
+    {
+      "say": "It's Teresa, T E R E S A G U A J A R D O one five oh four at gmail.com",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "spells": [
+          "teresaguajardo1504"
+        ],
+        "asksToConfirm": true,
+        "textNotMatch": "did not catch|didn't catch"
+      }
+    },
+    {
+      "say": "Yes.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "textMatch": "Which area"
+      }
+    },
+    {
+      "say": "Marketing.",
+      "expect": {
+        "actions": [
+          "book"
+        ],
+        "maxActions": {
+          "book": 1
+        },
+        "book": {
+          "name": "Pujan",
+          "email": "teresaguajardo1504@gmail.com",
+          "topic": "Marketing"
+        }
+      }
+    }
+  ]
+}

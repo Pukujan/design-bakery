@@ -20,7 +20,7 @@ import {
   cachedAnswer, lead, refersBack, list, latestBlog, latestPaper, navigate, norm, vary, words,
   type CachedAnswer, type CachedAction,
 } from './answers.js';
-import { bookingTurn } from './booking.js';
+import { bookingFlow, readerWith, type BookingFlow, type Interpreter } from './bookingFlow.js';
 import { gotchaReply } from './gotchas.js';
 import { loadBlogs, loadExperience, loadPapers, loadProjects, projectPath, sectionsForPath, type BlogSummary, type Paper, type Project } from './knowledge.js';
 import { buildPassages } from './sections.js';
@@ -501,12 +501,16 @@ async function answerToOffer(ask: Ask, previous: string | undefined): Promise<Ro
  * The routine's answer for this question, or null when it belongs to the model. `routine` names which one ran: the
  * routines above, or `intent:<id>` for the saved intents in answers.ts. It is what the trace labels the turn with.
  */
-export async function routeRequest(question: string, firstTurn: boolean, voice = false, previous?: string, said = '', history?: Array<{ role: 'user' | 'assistant'; content: string }>, page?: { path: string; title: string }): Promise<RoutedAnswer | null> {
+/** The booking flow's state in and out of one turn: the page sends `in`, the route sends `out` back when `touched`. */
+export type FlowIO = { in: BookingFlow | null; out?: BookingFlow | null; touched?: boolean };
+
+export async function routeRequest(question: string, firstTurn: boolean, voice = false, previous?: string, said = '', page?: { path: string; title: string }, flowIO?: FlowIO, reader?: Interpreter): Promise<RoutedAnswer | null> {
   const ask: Ask = { question, q: norm(question), voice, firstTurn };
-  // Booking by voice is a fixed dialogue that checks the name and email with the caller (booking.ts), not the model's judgement.
-  if (voice && history) {
-    const booking = bookingTurn(history, process.env.COPILOT_BOOKING_URL?.trim());
-    if (booking) return { ...booking, captions: booking.go ? journey() : undefined };
+  // Booking by voice is a guided flow (bookingFlow.ts): explicit state from the page, a model reading each answer.
+  if (voice) {
+    const turn = await bookingFlow(flowIO?.in ?? null, question, { interpret: reader ?? readerWith(null), bookingBase: process.env.COPILOT_BOOKING_URL?.trim() });
+    if (flowIO) { flowIO.out = turn.flow; flowIO.touched = Boolean(flowIO.in || turn.flow); }
+    if (turn.answer) return { ...turn.answer, captions: turn.answer.go ? journey() : undefined };
   }
   const replied = await answerToOffer(ask, previous);
   if (replied) return replied;

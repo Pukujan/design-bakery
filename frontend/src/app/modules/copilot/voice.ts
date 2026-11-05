@@ -118,6 +118,7 @@ export function audioLevel(side: 'user' | 'agent'): number {
 
 function close(error = '') {
   copilot.setIgnoredAnswerer(null);
+  copilot.resetFlow();
   generation += 1;
   pending?.abort();
   pending = null;
