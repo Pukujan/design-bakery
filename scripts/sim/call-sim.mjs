@@ -31,7 +31,8 @@ async function turn(token, messages, page) {
   const t = Date.now();
   const r = await fetch(`${base}/api/copilot/chat`, {
     method: 'POST', headers: { 'content-type': 'application/json', 'x-copilot-pass': token },
-    body: JSON.stringify({ messages, voice: true, toMe: true, ...(page ? { page } : {}) }),
+    // The page's own client sends only the latest turns (a summary stands for the rest): the API takes at most 24.
+    body: JSON.stringify({ messages: messages.slice(-24), voice: true, toMe: true, ...(page ? { page } : {}) }),
   });
   const body = await r.text();
   const events = body.split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return { type: 'garbled', raw: l }; } });

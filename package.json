@@ -21,6 +21,8 @@
     "migrate:firestore-to-supabase": "pnpm --dir backend/services run build && pnpm dlx tsx scripts/migrations/migrate-firestore-to-supabase.ts",
     "test:railway-build": "node scripts/test-railway-build.mjs",
     "test:homepage-content": "node scripts/test-homepage-content-stability.mjs",
+    "sim:call": "node scripts/sim/call-sim.mjs",
+    "sim:browser": "node scripts/sim/browser-call.mjs",
     "test:copilot-booking": "node scripts/test-copilot-booking.mjs",
     "test:voice-redial": "node scripts/test-voice-redial.mjs",
     "test:copilot-answers": "node scripts/test-copilot-answers.mjs",
