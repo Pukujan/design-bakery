@@ -535,3 +535,33 @@
     transition: none;
   }
 }
+
+/* The booking a voice call has made: one card, in view, above the call bar. */
+.cp-book-card {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(150px, 22vh, 210px);
+  transform: translateX(-50%);
+  z-index: 60;
+  width: min(92vw, 340px);
+  padding: 14px 16px 16px;
+  border: 1px solid var(--lab-line);
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--lab-ink) 92%, transparent);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(10px);
+  color: var(--lab-paper);
+  animation: cp-book-in 0.28s ease-out;
+}
+.cp-book-kicker { margin: 0 0 4px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; }
+.cp-book-who { margin: 0 0 12px; font-size: 14px; overflow-wrap: anywhere; }
+.cp-book-go {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 999px;
+  background: var(--lab-accent, #c8f542); color: #101010; font-weight: 600; text-decoration: none;
+}
+.cp-book-go:hover, .cp-book-go:focus-visible { filter: brightness(1.08); outline: 2px solid var(--lab-paper); outline-offset: 2px; }
+.cp-book-close { position: absolute; top: 8px; right: 8px; padding: 4px; border: 0; background: transparent; color: inherit; opacity: 0.6; cursor: pointer; }
+.cp-book-close:hover { opacity: 1; }
+@keyframes cp-book-in { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) { .cp-book-card { animation: none; } }

@@ -171,3 +171,16 @@ On the call of 2026-11-05 (01:24 to 01:27 UTC) three asks about a paper got the 
 - `answers.ts` (`cachedAnswer`): after the first turn, a sentence that points back ("this", "that", "it", "them"...) or asks for a summary or explanation ("summarize", "explain", "talk me through", "what does ... say") is the model's, with its tools. Thanks and small talk are exempt.
 - `test-copilot-answers.mjs`: the real phrases must reach the model; "thanks, got it" and the plain research list question still work.
 - Also seen on that call: a text-to-speech socket timeout at 01:26:14 (retried now, voice-agent-research #146) and an 18.5 s turn on workbuddy before the speed ranking (#213) deployed.
+
+## Booking by voice is a checked dialogue with a visible button; a call simulator guards it (sixteenth commit)
+
+The call of 2026-11-05 (02:42 to 02:48 UTC): "Fo John" became the name John unchecked; "Poojan three six four five at gmail dot com" was never read back; the model said "the booking card is up" three times without calling the tool (once calling it with nothing in it) and once on a page that could not show it. Root causes found while reproducing it locally:
+
+- A voice call drops every `book` action twice over: the server (`route.ts`, "On a call there are no buttons") and the store (`store.ts`, "On a call there are no chips"). So the model's `book_call` could never put anything on the screen, whatever it said.
+- Nothing checked a name or email with the caller, and nothing stopped the reply claiming success without the tool.
+
+- `booking.ts`: the voice booking is a fixed dialogue (ask the name, spell it back, ask the email, spell it back, ask the area, then exactly one `book` action). A no asks for the letters. State is rebuilt from the conversation each turn. `routeRequest` runs it first on a call; `booking:` answers are kept even after a question.
+- `route.ts`: the `book` action now reaches a call (cached and model paths).
+- `store.ts` + `BookingCard.tsx` + `copilot.css`: a call shows the booking as a card above the call bar with the name, email and one "Pick a time" button.
+- `scripts/sim/call-sim.mjs` + `scripts/sim/scenarios/*.json`: a call simulator. It plays a conversation through the real backend in voice mode (`api-voice` launch config, localhost exempt from the rate limit), keeps the page the way a call does, and checks each turn's actions, order, count and claims. Exit 1 on any failure; `--runs N` repeats it. The same flow was driven end to end in the browser (`window.__copilot.send(..., { voice: true })`): the card appeared on /contact with the right name and email.
+- `test-copilot-booking.mjs`: parsers and the dialogue, including the "Fo John" and wrong-email corrections.

@@ -316,8 +316,8 @@ copilotRouter.post('/chat', async (req, res) => {
   }
   // What AI Pujan has already said, so a tour moves on to somewhere new (routines.ts, surprise).
   const said = messages.filter((m) => m.role === 'assistant').slice(-12).map((m) => m.content).join(' ');
-  const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before, said);
-  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || routed.routine.startsWith('tour:') || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
+  const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before, said, messages);
+  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || routed.routine.startsWith('tour:') || routed.routine.startsWith('booking:') || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
   if (cached) {
     turn.model = `cache:${cached.intent}`;
     turn.routine = cached.routine;
@@ -327,8 +327,9 @@ copilotRouter.post('/chat', async (req, res) => {
     // shown something, the call takes them there, and a tour scrolls section by section as it is spoken.
     const follow = cached.go ?? (voice && FOLLOW_ON_CALL.has(cached.intent));
     for (const action of cached.actions) {
-      // On a call there are no buttons: only a page move the call makes itself.
-      if (voice && !(follow && action.kind === 'navigate')) continue;
+      // On a call there are no buttons: only a page move the call makes itself, and the booking button, which is the point of a
+      // booking made by voice (booking.ts): without it the caller gives a name and an email and is left with nothing to tap.
+      if (voice && action.kind !== 'book' && !(follow && action.kind === 'navigate')) continue;
       send({ type: 'action', action: withChip(action.kind === 'navigate' ? { ...action, go: follow } : action) });
     }
     if (voice) for (const step of cached.steps ?? []) send({ type: 'action', action: { kind: 'scrollstep', path: step.path, at: step.at } });
@@ -396,7 +397,7 @@ copilotRouter.post('/chat', async (req, res) => {
       tools: smallTalk ? {} : makeTools(
         // On a call the model moves the page itself and sends no buttons.
         (action) => {
-          if (voice && action.kind !== 'navigate' && action.kind !== 'cite') return;
+          if (voice && action.kind !== 'navigate' && action.kind !== 'cite' && action.kind !== 'book') return;
           send({ type: 'action', action: withChip(action) });
         },
         { canNavigate: voice || visitorSaidYes(messages), citations },
