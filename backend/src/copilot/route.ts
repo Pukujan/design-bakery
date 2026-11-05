@@ -11,38 +11,35 @@
  * browser falls back to its built-in answers.
  */
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-import { generateText, stepCountIs, streamText, type ModelMessage } from 'ai';
+import { stepCountIs, streamText, type ModelMessage } from 'ai';
 import { Router, type Request } from 'express';
 import { z } from 'zod';
 import { byHealth, healthReport, noteLatency, startWatcher } from './health.js';
 import { fallbackFetch } from './model-fallback.js';
 import { checkPass, clientIp, issuePass, turnstileSiteKey } from './guard.js';
 import { createDailyBudget, createExemptMatcher, createLimiter, limitConfigFromEnv } from './fairUse.js';
-import { siteBrief, loadProjects, projectPath } from './knowledge.js';
+import { siteBrief } from './knowledge.js';
 import { devProvider, pickProfile, routeFor, smartProviders, type Provider } from './providers.js';
 import { createCitations } from './citations.js';
 import { withChip } from './chips.js';
 import { makeTools, type CopilotAction } from './tools.js';
 import { TurnTrace } from './tracing.js';
 import { takeDurableCopilotLimit, durableLimitConfigured } from './durableLimit.js';
-import { FOLLOW_ON_CALL, norm } from './answers.js';
-import { routeRequest, type FlowIO } from './routines.js';
-import { modelReader } from './bookingModel.js';
-import type { BookingFlow } from './bookingFlow.js';
+import { ALL_BOOKING_TOOLS, bookingTools, describe, type BookingFlow } from './bookingState.js';
 import { latestNews, newsBlock } from './news.js';
+import { laneNameFor, loadLane } from './lanes/loader.js';
+import type { Lane } from './lanes/types.js';
 import { createTextFilter } from './textFilter.js';
 import { contextBudget, estimateTokens, fitHistory, sanitizeSummary, summarize, summaryBlock, SUMMARY_MAX_CHARS } from './memory.js';
 import { isCutOff, trimToLastSentence } from './truncation.js';
-import { isPlainSmallTalk } from './smallTalk.js';
 import { mintVoiceToken, voiceTokenConfigured } from './voiceToken.js';
-import { saidToMe } from './addressee.js';
 
 export type CopilotEvent =
   | { type: 'text'; text: string; replace?: boolean }
   | { type: 'action'; action: CopilotAction }
   | { type: 'step'; name: string; status: 'start' | 'done' | 'error' }
   | { type: 'done'; model: string }
-  /** On a call, the line was said to someone else in the visitor's room (addressee.ts): no reply, and the page greys it out. */
+  /** On a call, the model found the line was said to someone else in the visitor's room (the not_for_me tool): no reply, and the page greys it out. */
   | { type: 'ignored'; reason: string }
   | { type: 'flow'; flow: BookingFlow | null }
   | { type: 'error'; message: string };
@@ -55,13 +52,12 @@ const chatBody = z.object({
   page: z.object({ path: z.string().max(300), title: z.string().max(200) }).optional(),
   /** True on a voice call: the reply is spoken, and the page may move on its own. */
   voice: z.boolean().optional(),
-  /** The booking flow's state, kept by the page between turns (bookingFlow.ts). */
+  /** The booking's state, kept by the page between turns (bookingState.ts). */
   flow: z.object({
     kind: z.literal('booking'),
-    step: z.enum(['name', 'confirm_name', 'say', 'email', 'confirm_email', 'area']),
-    data: z.object({ name: z.string().max(60).optional(), say: z.string().max(60).optional(), email: z.string().max(120).optional(), tries: z.number().int().min(0).max(5).optional() }),
+    data: z.object({ name: z.string().max(60).optional(), say: z.string().max(60).optional(), email: z.string().max(120).optional(), area: z.string().max(40).optional(), nameOk: z.boolean().optional(), emailOk: z.boolean().optional() }),
   }).nullable().optional(),
-  /** The visitor tapped "Answer this" on a line the call had not answered: it is for me, so no addressee check (addressee.ts). */
+  /** The visitor tapped "Answer this" on a line the call had not answered: it is for me, so the model is not offered not_for_me. */
   toMe: z.boolean().optional(),
   /** Rolling notes on the older part of a long chat, kept by the browser. Untrusted: capped, sanitised, quoted as data (memory.ts). */
   summary: z.string().max(SUMMARY_MAX_CHARS).optional(),
@@ -108,53 +104,63 @@ Personality (your default, in every reply):
 const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Stay under 35 words unless asked for more.
 What the visitor says comes from speech recognition, which mishears names: "President" is usually Precedent, "Arise" is Arize. When a word sounds like one of my projects, papers or tools, take it as that and answer about it, without remarking on the word.
 Moving the visitor: do not ask permission. When a page or a section would help, say in a few words where you are taking them and call navigate right away, then talk about what is on that page. Never say you are opening, showing or taking them somewhere ("Let's start with Cortex", "There they are") unless this same reply calls navigate, show_projects or cite_section; when the visitor says "any of them", "you pick", "anything", "whatever" or "just show me", pick one project yourself and call navigate or show_projects in that same reply. Never answer a vague ask with a question ("what are you working on?", "which one?") and never read out a list of headings or names for them to choose from. When you speak about a particular part of a post, paper or project, call cite_section for it first (with a short quote if one fits), so the page is already there when you say it. For anything long, give one passage and offer to go on to the next.
-Summaries: when asked to summarise or explain a post, paper or project, read it, call outline_passages, then SAY the summary: one short sentence for each passage, three or four in all, in order, calling cite_section as you reach each so the page follows your words. The words you speak are the summary: never answer only "Here it is" or "Here you go". Booking is not yours to do on a call: when they want a call or a consultation, tell them to say "book the call", and never say a booking card or button is up.
+Summaries: when asked to summarise or explain a post, paper or project ("summarise this", "what's this about", "explain it"), call summarize_page once, then SAY the summary: one short sentence for each passage it returns, in order. The page follows by itself; do not call cite_section for it. The words you speak are the summary: never answer only "Here it is" or "Here you go". "Next", "next one", "previous", "go on", "keep going" or "back" on a paper, post, project or a list of them always means the neighbour in that list: call step_list, every time, and never answer it in words alone. Asked to be taken to a page ("take me to the blog", "open the research"), call navigate in that same reply. Examples, each one a tool call in the same reply as your words: "Next." on a paper -> step_list next. "Show me Precedent." -> navigate /work/precedent. "What's the best way to reach you?" or "how would I contact you" -> navigate /contact. "Take me to the blog" -> navigate /blogs. "Show me your research" -> navigate /research. Never say "here it is", "here you go" or "taking you there" without the call. When they leave the choice to you, call tour_next.
+Booking a call: when they want a call or a consultation, call booking_start (it opens the Contact page itself). Each step has its own booking tool and only the tool for the current step is offered ("[Booking in progress]" at the end of their message says where it is). Call it with what the line gave, exactly as heard (keep the spelling "Poojan" even if you know a more common one; the caller corrects it at the read-back), then say the "say" it returns, word for word. Never ask for a name or email twice. A line that does not answer the step (a complaint, noise, a yes where a name was asked) is booking_repeat. A no, a spelling or a whole new email at a read-back is a correction, sent through the confirm tool with correct false. If they stop or change their mind, call booking_cancel; if they ask something else mid-booking, answer it and then take the booking up again. The button appears by itself when the last step succeeds; never say it is up before that tool result says so. A line that garbles a request to book ("book it for me", "set that up") is still a request to book: start it.
+Lines for someone else: the microphone is open in the visitor's room. If a line is clearly to another person there ("Hey Campos, grab me a coffee"), call not_for_me and write nothing. A short line, a fragment, a name given as an answer or a command like "Next." is for you.
+Never end a reply by handing the turn back ("Want me to...?", "Anything else?", "Which one would you like?") unless you truly need an answer to go on.
 Be good company, not a brochure:
 - Talk about whatever the visitor brings up: their day, their pet, their lunch, the weather, a random thought. Stay on their topic for as long as they do; react to the actual detail they said and add a take of your own. Do not steer back to my work, the site or a page unless they ask, or the chat has clearly run dry.
 - Do not end every reply with a question or an offer. In about a third of replies, end on a dry, witty or mildly sarcastic throwaway line instead, for no reason at all (in the spirit of "Honestly, that's more drama than most product launches." Make up your own; never reuse that one). Offers to open a page are rare: at most one every few turns, and never two turns running.
 - Gentle, good-natured teasing of famous tech figures, their products and the AI hype is fine when asked; poke at the public persona, never accuse them of anything or invent facts.
 - For a real question or a worried visitor, drop the jokes and answer straight.`
 
-/**
- * A short yes to a question the assistant just asked. The only way a page moves on its
- * own: the visitor confirmed the offer in their own words (issue #147, confirm first).
- */
-function visitorSaidYes(messages: Array<{ role: string; content: string }>): boolean {
-  const last = messages.at(-1);
-  const before = messages.at(-2);
-  if (!last || last.role !== 'user' || last.content.includes('?')) return false;
-  if (last.content.trim().split(/\s+/).length > 5) return false;
-  if (!/^\s*(yes|yeah|yep|yup|sure|ok|okay|please|go ahead|do it|open it|sounds good|absolutely|definitely)\b/i.test(last.content)) return false;
-  return before?.role === 'assistant' && /\?\s*$/.test(before.content.trim());
-}
-
 /** On a call there are no follow-up buttons: the tool that makes them only costs a model round trip and its suggestions go nowhere. */
-function callTools<T extends Record<string, unknown>>(tools: T, voice: boolean): Partial<T> {
-  if (!voice) return tools;
-  const { suggest_followups: _unused, ...rest } = tools as Record<string, unknown>;
-  void _unused;
+function callTools<T extends Record<string, unknown>>(tools: T, voice: boolean, booking: BookingFlow | null): Partial<T> {
+  if (!voice) {
+    const chat = { ...tools } as Record<string, unknown>;
+    for (const name of [...ALL_BOOKING_TOOLS, 'not_for_me']) delete chat[name];
+    return chat as Partial<T>;
+  }
+  // On a call the booking tools offered are the ones for the booking's current step (bookingState.ts), decided before the model runs.
+  const rest = { ...tools } as Record<string, unknown>;
+  for (const name of ['suggest_followups', 'book_call']) delete rest[name];
+  const offered = bookingTools(booking);
+  for (const name of ALL_BOOKING_TOOLS) if (!offered.includes(name)) delete rest[name];
   return rest as Partial<T>;
 }
 
-/** A full request ("how would I contact him", "show me your research"), not a short answer to something the assistant just asked. */
-const EXPLICIT_REQUEST = /\b(how (?:do|would|can|could) i|can i (?:see|get|book|contact|reach|read)|show me|take me|open|go to|where (?:do|can) i|i want to|i would like to|i d like to)\b/;
+/** Which list the page belongs to, so "next" and "previous" are read against it. From the path alone. */
+function listHintFor(path: string): string {
+  const [top, second] = path.split('#')[0].split('/').filter(Boolean);
+  const kind = top === 'research' ? 'papers' : top === 'blogs' ? 'posts' : top === 'work' && second ? 'projects' : '';
+  return kind ? ` This page is in the list of my ${kind}: "next" and "previous" mean step_list.` : '';
+}
 
-function chain(voice = false): Provider[] {
+/** A lane with a closed tool list offers only those tools. */
+function onlyLaneTools<T extends Record<string, unknown>>(lane: Lane, tools: T): Partial<T> {
+  const allowed = lane.manifest.tools;
+  if (allowed === 'all') return tools;
+  return Object.fromEntries(Object.entries(tools).filter(([name]) => allowed.includes(name))) as Partial<T>;
+}
+
+/** The providers a lane may use, in health order. Without a lane, all of them (the summary and /config use that). */
+function chain(voice = false, lane?: Lane): Provider[] {
   const dev = devProvider();
   const smart = pickProfile() === 'smart' ? byHealth(smartProviders(), voice) : [];
   if (smart.length) startWatcher();
-  return dev ? [...smart, dev] : smart;
+  const all = dev ? [...smart, dev] : smart;
+  return lane ? all.filter((p) => lane.manifest.providers.includes(p.id)) : all;
 }
 
 /** One model over the provider chain, falling back down it. A caller hears the wait: on a call a model that has not started
  * in 4 s gives way to the next (6 s in a chat). `hurry`: a busy model is skipped at once instead of retried after a pause. */
-function modelFor(providers: Provider[], voice: boolean, onUse: (model: string) => void, hurry = false) {
+function modelFor(providers: Provider[], voice: boolean, onUse: (model: string) => void, hurry = false, lane?: Lane) {
   const steps = providers.map((p) => ({ name: `${p.id}:${p.model}`, model: p.model, route: (path: string) => routeFor(p, path) }));
   return createOpenAICompatible({
     name: 'copilot',
     baseURL: 'http://copilot.invalid/v1',
     apiKey: 'per-provider',
-    fetch: fallbackFetch(steps, fetch, console.warn, hurry ? () => Promise.resolve() : undefined, voice ? 4000 : undefined, (name, ms) => { noteLatency(name.split(':')[0], ms); onUse(name); }),
+    fetch: fallbackFetch(steps, fetch, console.warn, hurry ? () => Promise.resolve() : undefined, lane ? lane.manifest.limits.startMs[voice ? 'voice' : 'chat'] : voice ? 4000 : undefined, (name, ms) => { noteLatency(name.split(':')[0], ms); onUse(name); }, lane?.adjustBody),
   })(steps[0].model);
 }
 
@@ -299,70 +305,15 @@ copilotRouter.post('/chat', async (req, res) => {
   turn.channel = voice ? 'voice' : 'text';
   turn.exempt = exempt;
 
-  res.status(200).set({ 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-store', 'x-accel-buffering': 'no' });
-  res.flushHeaders();
-  const send = (event: CopilotEvent) => {
-    if (event.type === 'action') turn.actions.push(event.action.kind === 'navigate' ? `navigate:${event.action.path}${event.action.go ? '(go)' : ''}` : event.action.kind);
-    res.write(`${JSON.stringify(event)}\n`);
-  };
-
-  // The instant tier, before the durable limit: the questions visitors open with are
-  // answered from the site's own data with no model call, so they cost nothing to serve
-  // and keep working when the database holding the rate budget is down. A follow-up
-  // carries context, so only a near-exact match counts after the first turn.
-  // A reply to a question the copilot just asked belongs to that thread, however much it
-  // looks like an opener ("ok", "hello??"), so it goes to the model. The one exception is
-  // a yes or no to one of the router's own idle offers, which it answers itself.
+  // Every line goes to the model, which decides what it means: answer, move the page (tools), fill the booking, or find it
+  // was said to someone else in the room (not_for_me). No wording is matched here.
   const before = messages.at(-2)?.role === 'assistant' ? messages.at(-2)?.content : undefined;
-  const answeringUs = Boolean(before && /\?\s*$/.test(before.trim()));
-
-  // On a call, a line that calls someone by a name that is not mine ("Hey Campos, grab me a coffee?") may be the visitor
-  // talking to someone in their room: one small yes/no question (addressee.ts), and no reply when it was not for me. Every
-  // other line skips this; other voices and my own echo were already dropped by the voice agent from the sound alone.
-  if (voice && !toMe) {
-    const quick = chain(true);
-    const heard = await saidToMe(question, before, async (prompt, abortSignal) => {
-      if (!quick.length || !budget.open()) throw new Error('no model');
-      const { text } = await generateText({ model: modelFor(quick, true, () => undefined, true), prompt, maxOutputTokens: 16, abortSignal });
-      return text;
-    });
-    if (!heard.toMe) {
-      turn.model = 'addressee';
-      turn.actions.push('ignored');
-      send({ type: 'ignored', reason: `said to ${heard.name}` });
-      send({ type: 'done', model: turn.model });
-      turn.finish('done');
-      res.end();
-      return;
-    }
-  }
-  // What AI Pujan has already said, so a tour moves on to somewhere new (routines.ts, surprise).
+  void before;
+  // What AI Pujan has already said, so a tour moves on to somewhere new (tour_next).
   const said = messages.filter((m) => m.role === 'assistant').slice(-12).map((m) => m.content).join(' ');
-  const flowIO: FlowIO = { in: (parsed.data.flow ?? null) as BookingFlow | null };
-  const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before, said, page, flowIO, modelReader());
-  // The booking's place goes back to the page every turn it is in play, so the next line is read at the right step.
-  if (flowIO.touched) send({ type: 'flow', flow: flowIO.out ?? null });
-  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || routed.routine.startsWith('tour:') || routed.routine.startsWith('booking:') || routed.routine.startsWith('step:') || routed.routine.startsWith('summary:') || (/^intent:(contact|book|projects|research|blog|experience)$/.test(routed.routine) && EXPLICIT_REQUEST.test(norm(question))) || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
-  if (cached) {
-    turn.model = `cache:${cached.intent}`;
-    turn.routine = cached.routine;
-    turn.output = cached.text;
-    send({ type: 'text', text: cached.text });
-    // In a chat an instant answer offers its pages as chips the visitor clicks. On a call, when the visitor asked to be
-    // shown something, the call takes them there, and a tour scrolls section by section as it is spoken.
-    const follow = cached.go ?? (voice && FOLLOW_ON_CALL.has(cached.intent));
-    for (const action of cached.actions) {
-      // On a call there are no buttons: only a page move the call makes itself, and the booking button, which is the point of a
-      // booking made by voice (booking.ts): without it the caller gives a name and an email and is left with nothing to tap.
-      if (voice && action.kind !== 'book' && action.kind !== 'projects' && action.kind !== 'cite' && !(follow && action.kind === 'navigate')) continue;
-      send({ type: 'action', action: withChip(action.kind === 'navigate' ? { ...action, go: follow } : action) });
-    }
-    if (voice) for (const step of cached.steps ?? []) send({ type: 'action', action: { kind: 'scrollstep', path: step.path, at: step.at } });
-    send({ type: 'done', model: turn.model });
-    turn.finish('done');
-    res.end();
-    return;
-  }
+  let booking: BookingFlow | null = (parsed.data.flow ?? null) as BookingFlow | null;
+  let bookingTouched = false;
+  let ignoredLine = false;
 
   try {
     const limit = exempt ? { ok: true as const } : await takeDurableCopilotLimit(ip, session);
@@ -380,11 +331,23 @@ copilotRouter.post('/chat', async (req, res) => {
     }
     console.warn('[copilot] no durable rate limiter configured; in-memory limits only');
   }
-  const providers = chain(voice);
+  // The lane for this channel (lanes/): its providers, its limits, its tool list and its model fixes. The others are not loaded.
+  const lane = await loadLane(laneNameFor(voice ? 'voice' : 'chat'));
+  turn.lane = lane.manifest.name;
+  const channel = voice ? 'voice' : 'chat';
+  const providers = chain(voice, lane);
   if (!providers.length || !budget.open()) {
     res.status(503).json({ ok: false, code: providers.length ? 'BUDGET' : 'NO_MODEL' });
     return;
   }
+
+  // Only now does the reply start streaming: a refusal above (limit, budget, no model) is still a proper HTTP status.
+  res.status(200).set({ 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-store', 'x-accel-buffering': 'no' });
+  res.flushHeaders();
+  const send = (event: CopilotEvent) => {
+    if (event.type === 'action') turn.actions.push(event.action.kind === 'navigate' ? `navigate:${event.action.path}${event.action.go ? '(go)' : ''}` : event.action.kind);
+    res.write(`${JSON.stringify(event)}\n`);
+  };
 
   const abort = new AbortController();
   res.on('close', () => {
@@ -393,15 +356,16 @@ copilotRouter.post('/chat', async (req, res) => {
 
   const model = modelFor(providers, voice, (used) => {
     turn.model = used;
-  });
+  }, false, lane);
 
   try {
     const [brief, news] = await Promise.all([siteBrief(), latestNews()]);
     // The page context rides on the user turn, not the system prompt. The prompt then
     // stays byte-identical across a conversation, which is what lets a provider's prefix
     // cache hit instead of re-billing the brief on every step of a tool loop.
-    const where = page ? `\n\n[The visitor is on ${page.path} ("${page.title}").]` : '';
-    const system = `${voice ? `${SYSTEM}\n\n${VOICE_NOTE}` : SYSTEM}\n\n# Site brief\n${brief}${newsBlock(news)}${summaryBlock(summary)}`;
+    const listHint = page ? listHintFor(page.path) : '';
+    const where = `${page ? `\n\n[The visitor is on ${page.path} ("${page.title}").${listHint}]` : ''}${voice && booking ? `\n[Booking in progress: ${describe(booking.data)}]` : ''}`;
+    const system = `${voice ? `${SYSTEM}\n\n${VOICE_NOTE}` : SYSTEM}${lane.promptNote ? `\n\n${lane.promptNote}` : ''}\n\n# Site brief\n${brief}${newsBlock(news)}${summaryBlock(summary)}`;
     // Fit the history to the token budget. The routing above used the full list; the newest turns stay verbatim here,
     // so a pending offer (always in the last two) and the question itself are never cut.
     const fit = fitHistory(messages, estimateTokens(system) + estimateTokens(where) + 300, contextBudget());
@@ -413,36 +377,36 @@ copilotRouter.post('/chat', async (req, res) => {
       index === fit.messages.length - 1 && m.role === 'user' ? { role: 'user', content: `${m.content}${where}` } : { role: m.role, content: m.content },
     );
     const citations = createCitations();
-    // A short social reply ("im doing fine thanks!") is answered from the prompt: no tools, one step.
-    const smallTalk = isPlainSmallTalk(question, before);
-    let moved = false;
     const result = streamText({
       model,
       system,
       messages: history,
-      tools: smallTalk ? {} : callTools(makeTools(
+      tools: onlyLaneTools(lane, callTools(makeTools(
         // On a call the model moves the page itself and sends no buttons; project cards and the booking button are what a call shows.
         (action) => {
-          if (action.kind === 'navigate' && action.go) moved = true;
           if (voice && action.kind !== 'navigate' && action.kind !== 'cite' && action.kind !== 'book' && action.kind !== 'projects') return;
           send({ type: 'action', action: withChip(action) });
         },
-        { canNavigate: voice || visitorSaidYes(messages), citations, voice },
-      ), voice),
+        {
+          canNavigate: true, citations, voice, page, said,
+          booking: { get: () => booking, set: (next) => { booking = next; bookingTouched = true; } },
+          notForMe: () => { if (!toMe) ignoredLine = true; },
+        },
+      ), voice, booking)),
       // Each step is a model round trip: on a call six of them took 18 to 32 s. Four leave room for a read, a page move and a pointer.
-      stopWhen: stepCountIs(smallTalk ? 1 : voice ? 4 : 6),
+      stopWhen: stepCountIs(lane.manifest.limits.maxSteps[channel]),
       // The prompt keeps replies short; this is the ceiling, with room above a visible reply for a model that still thinks.
-      maxOutputTokens: voice ? 300 : 400,
+      maxOutputTokens: lane.manifest.limits.maxOutputTokens[channel],
       abortSignal: abort.signal,
     });
 
     // Streaming hygiene lives in textFilter.ts: leaked reasoning blocks are cut, and the
     // "let me look that up" line before a tool call is dropped.
-    const filter = createTextFilter((text, replace) => send({ type: 'text', text, replace }), undefined, voice);
+    const filter = createTextFilter((text, replace) => send({ type: 'text', text, replace }));
 
     for await (const part of result.fullStream) {
       if (part.type === 'text-delta') {
-        filter.push(part.text);
+        if (!ignoredLine) filter.push(part.text);
       } else if (part.type === 'tool-call') {
         filter.toolCall();
         turn.stepStart(part.toolCallId, part.toolName, part.input);
@@ -465,20 +429,14 @@ copilotRouter.post('/chat', async (req, res) => {
     }
     turn.citations = citations.summary();
     turn.output = filter.flush();
-    // "Let's try Orbitgraph" said without moving the page leaves the caller on the old page being told they are somewhere new
-    // (the scripted newcomer visit, 1 run in 3): when a call's reply announces a project and the model did not move, the page moves.
-    if (voice && !moved && !smallTalk) {
-      const lead = turn.output.slice(0, 120);
-      // Announced ("Let's try X", "Here's X") or answered to a request to be shown something ("Something different, X").
-      const announced = /^(?:okay,? |so |well )?(?:let'?s (?:try|start with|look at|go to|check out|do|see)|here'?s|here is|taking you to|opening|next up|up next|how about)\b/i.test(lead);
-      const asked = /\b(show me|take me|open|let me see|something (?:different|else|new)|another (?:one|project)|what about)\b/i.test(question);
-      if (announced || asked) {
-        const hit = (await loadProjects()).find((p) => lead.toLowerCase().includes(p.title.toLowerCase()));
-        if (hit) {
-          send({ type: 'action', action: withChip({ kind: 'navigate', path: projectPath(hit), label: `Open ${hit.title}`, go: true }) });
-          turn.actions.push('navigate');
-        }
-      }
+    if (bookingTouched) send({ type: 'flow', flow: booking });
+    if (ignoredLine) {
+      turn.model = turn.model || 'addressee';
+      turn.actions.push('ignored');
+      send({ type: 'ignored', reason: 'said to someone else' });
+      send({ type: 'done', model: turn.model });
+      turn.finish('done');
+      return;
     }
     // A reply the model was cut off in is never sent as complete: pull it back to its last whole sentence.
     if (isCutOff(turn.finishReason, turn.output)) {

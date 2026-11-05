@@ -42,6 +42,8 @@ export class TurnTrace {
   output = '';
   /** 'text' or 'voice'. */
   channel = 'text';
+  /** The lane that answered (lanes/): strong, hybrid or small. */
+  lane = '';
   /** The visitor's address is on the owner's rate-limit exemption list (COPILOT_RATE_EXEMPT_IPS). */
   exempt = false;
   /** The page moves and chips this turn sent, one word each, so a trace shows what the visitor was shown. */
@@ -95,6 +97,7 @@ export class TurnTrace {
       'copilot.finish_reason': this.finishReason,
       'copilot.truncated': this.truncated,
       'copilot.channel': this.channel,
+      'copilot.lane': this.lane,
       'copilot.actions': this.actions.join(' '),
       'copilot.citations': this.citations.join(' | '),
       'copilot.context_tokens': this.contextTokens,

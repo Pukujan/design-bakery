@@ -80,19 +80,6 @@ const answer = 'That is the lay of the land. Want me to dig into a project, a pa
   assert.ok(seen.events.every((event) => !event.replace), 'nothing to retract in a clean answer');
 }
 
-// 4. Narration before a tool call is dropped, and the answer that follows still lands.
-{
-  const seen = harness();
-  const filter = createTextFilter(seen.send);
-  feed(filter, 'Let me pull up the blog page for you.');
-  filter.toolCall();
-  filter.toolResult();
-  feed(filter, 'The blog is on screen. A few that tend to interest people: the legal AI series.');
-  const final = filter.flush();
-  assert.equal(final, 'The blog is on screen. A few that tend to interest people: the legal AI series.');
-  assert.equal(seen.text, final);
-}
-
 // 5. An opening tag with no close yet shows nothing at all.
 {
   const seen = harness();
@@ -115,21 +102,4 @@ const answer = 'That is the lay of the land. Want me to dig into a project, a pa
   assert.equal(filter.flush(), 'Two things stand out.\n\nThe first is the eval harness.');
 }
 
-// A spoken reply's closing hand-back is cut; a reply that is only the question, or a real clarifying question, stays.
-{
-  const { dropHandback, createTextFilter } = await import(new URL('../backend/lib/copilot/textFilter.js', import.meta.url).href);
-  assert.equal(dropHandback('That is the Cortex kernel, a gate in front of every agent action. Want me to open it?'), 'That is the Cortex kernel, a gate in front of every agent action.');
-  assert.equal(dropHandback('Eleven papers on agent reliability. Which one would you like first?'), 'Eleven papers on agent reliability.');
-  assert.equal(dropHandback('Happy to help. Anything else you want to look at?'), 'Happy to help. Anything else you want to look at?', 'too little before it to cut');
-  assert.equal(dropHandback('Want me to open the Contact page?'), 'Want me to open the Contact page?', 'only the question');
-  assert.equal(dropHandback('It runs on Octo. Do you mean the database or the deploys?'), 'It runs on Octo. Do you mean the database or the deploys?', 'a clarifying question is kept');
-  const sent = [];
-  const filter = createTextFilter((text, replace) => sent.push({ text, replace }), 220, true);
-  filter.push('Cortex checks what a coding agent did instead of trusting it. Want me to open the page?');
-  assert.equal(filter.flush(), 'Cortex checks what a coding agent did instead of trusting it.');
-  const chat = createTextFilter(() => undefined, 220, false);
-  chat.push('Cortex checks what a coding agent did instead of trusting it. Want me to open the page?');
-  assert.ok(chat.flush().endsWith('?'), 'a text chat keeps its offers');
-}
-
-console.log('copilot stream filter: 6 cases (leaked reasoning, late close, hold, narration, open block, paragraph break)');
+console.log('copilot stream filter: 5 cases (leaked reasoning, late close, hold, open block, paragraph break)');

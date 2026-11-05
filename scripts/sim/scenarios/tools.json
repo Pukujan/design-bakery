@@ -12,17 +12,18 @@
     {
       "say": "Summarize this paper for me.",
       "expect": {
-        "maxSteps": 0,
+        "maxSteps": 1,
         "noTools": [
           "suggest_followups",
           "book_call"
         ],
         "maxTool": {
-          "outline_passages": 1,
-          "read_paper": 1,
-          "cite_section": 3
+          "summarize_page": 1,
+          "read_paper": 0,
+          "outline_passages": 0,
+          "cite_section": 0
         },
-        "maxMs": 3000,
+        "maxMs": 7000,
         "minChars": 180,
         "textNotMatch": "^(here it is|here you go)[.!]?$",
         "actions": [

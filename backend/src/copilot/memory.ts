@@ -92,7 +92,7 @@ export const SUMMARIZER_PROMPT = `You condense a chat between a website visitor 
 
 /** Cheapest first: the free OpenRouter model, then the dev model, then the paid ones in their usual order. WorkBuddy refuses calls that do not stream. */
 export function cheapestFirst(providers: Provider[]): Provider[] {
-  const rank: Record<string, number> = { openrouter: 0, dev: 1, deepseek: 2, qwen: 3 };
+  const rank: Record<string, number> = { openrouter: 0, dev: 1, deepseek: 2, 'deepseek-b': 2, qwen: 3 };
   return providers
     .filter((p) => p.id !== 'workbuddy')
     .map((p, i) => ({ p, i }))
