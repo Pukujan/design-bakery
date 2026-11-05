@@ -1,15 +1,119 @@
 {
   "name": "booking: a misheard name and a wrong email are corrected by spelling",
-  "startPage": { "path": "/", "title": "Home" },
+  "startPage": {
+    "path": "/",
+    "title": "Home"
+  },
   "steps": [
-    { "say": "I want to book a consultation.", "expect": { "navigatesTo": "/contact", "textMatch": "name", "noActions": ["book"] } },
-    { "say": "Fo John.", "expect": { "noActions": ["book"], "spells": ["fojohn"], "asksToConfirm": true } },
-    { "say": "No.", "expect": { "noActions": ["book"], "textMatch": "spell" } },
-    { "say": "P U J A N.", "expect": { "noActions": ["book"], "spells": ["pujan"], "asksToConfirm": true } },
-    { "say": "Yes it is.", "expect": { "noActions": ["book"], "textMatch": "Pujan.*email" } },
-    { "say": "Poojan three six four five at gmail dot com.", "expect": { "noActions": ["book"], "spells": ["poojan3645"], "asksToConfirm": true } },
-    { "say": "No, that's wrong.", "expect": { "noActions": ["book"], "textMatch": "again|spell" } },
-    { "say": "P U J A N three six four five at gmail dot com.", "expect": { "noActions": ["book"], "spells": ["pujan3645"], "asksToConfirm": true } },
-    { "say": "Yes, product design.", "expect": { "actions": ["book"], "maxActions": { "book": 1 }, "book": { "name": "Pujan", "email": "pujan3645@gmail.com", "topic": "Product design" } } }
+    {
+      "say": "I want to book a consultation.",
+      "expect": {
+        "navigatesTo": "/contact",
+        "textMatch": "name",
+        "noActions": [
+          "book"
+        ]
+      }
+    },
+    {
+      "say": "Fo John.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "spells": [
+          "fojohn"
+        ],
+        "asksToConfirm": true
+      }
+    },
+    {
+      "say": "No.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "textMatch": "spell"
+      }
+    },
+    {
+      "say": "P U J A N.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "spells": [
+          "pujan"
+        ],
+        "asksToConfirm": true
+      }
+    },
+    {
+      "say": "Yes it is.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "textMatch": "How do you say your name"
+      }
+    },
+    {
+      "say": "it's fine as spelled",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "textMatch": "Thanks, Pujan"
+      }
+    },
+    {
+      "say": "Poojan three six four five at gmail dot com.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "spells": [
+          "poojan3645"
+        ],
+        "asksToConfirm": true
+      }
+    },
+    {
+      "say": "No, that's wrong.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "textMatch": "again|spell"
+      }
+    },
+    {
+      "say": "P U J A N three six four five at gmail dot com.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "spells": [
+          "pujan3645"
+        ],
+        "asksToConfirm": true
+      }
+    },
+    {
+      "say": "Yes, product design.",
+      "expect": {
+        "actions": [
+          "book"
+        ],
+        "maxActions": {
+          "book": 1
+        },
+        "book": {
+          "name": "Pujan",
+          "email": "pujan3645@gmail.com",
+          "topic": "Product design"
+        }
+      }
+    }
   ]
 }

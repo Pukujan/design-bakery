@@ -1,17 +1,92 @@
 {
   "name": "booking from a paper page: name and email by voice, each checked with the caller",
-  "startPage": { "path": "/research/papers/db-r-2026-010", "title": "Accuracy is not enough" },
+  "startPage": {
+    "path": "/research/papers/db-r-2026-010",
+    "title": "Accuracy is not enough"
+  },
   "steps": [
-    { "say": "Okay, book the call.",
-      "expect": { "navigatesTo": "/contact", "noActions": ["book"], "textMatch": "name", "textNotMatch": "card" } },
-    { "say": "Poojan.",
-      "expect": { "noActions": ["book"], "spells": ["poojan"], "asksToConfirm": true } },
-    { "say": "Yes.",
-      "expect": { "noActions": ["book"], "textMatch": "email" } },
-    { "say": "Poojan three six four five at gmail dot com.",
-      "expect": { "noActions": ["book"], "spells": ["poojan3645"], "textMatch": "gmail dot com", "asksToConfirm": true } },
-    { "say": "Yes, that's right. Marketing.",
-      "expect": { "actions": ["book"], "maxActions": { "book": 1, "navigate": 0 }, "book": { "name": "Poojan", "email": "poojan3645@gmail.com", "topic": "Marketing" }, "pageAfter": "/contact" } },
-    { "say": "I see it, thanks.", "expect": { "noActions": ["book"], "textNotMatch": "booking card is up" } }
+    {
+      "say": "Okay, book the call.",
+      "expect": {
+        "navigatesTo": "/contact",
+        "noActions": [
+          "book"
+        ],
+        "textMatch": "name",
+        "textNotMatch": "card"
+      }
+    },
+    {
+      "say": "Poojan.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "spells": [
+          "poojan"
+        ],
+        "asksToConfirm": true
+      }
+    },
+    {
+      "say": "Yes.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "textMatch": "How do you say your name"
+      }
+    },
+    {
+      "say": "poo jun",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "textMatch": "Thanks, Poo-jun",
+        "textNotMatch": "card"
+      }
+    },
+    {
+      "say": "Poojan three six four five at gmail dot com.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "spells": [
+          "poojan3645"
+        ],
+        "textMatch": "gmail dot com",
+        "asksToConfirm": true
+      }
+    },
+    {
+      "say": "Yes, that's right. Marketing.",
+      "expect": {
+        "actions": [
+          "book"
+        ],
+        "maxActions": {
+          "book": 1,
+          "navigate": 0
+        },
+        "book": {
+          "name": "Poojan",
+          "email": "poojan3645@gmail.com",
+          "topic": "Marketing"
+        },
+        "pageAfter": "/contact",
+        "textMatch": "Poo-jun"
+      }
+    },
+    {
+      "say": "I see it, thanks.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "textNotMatch": "booking card is up"
+      }
+    }
   ]
 }

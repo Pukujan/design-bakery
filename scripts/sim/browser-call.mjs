@@ -64,7 +64,7 @@ ok(p1.path === '/research/papers/db-r-2026-001', `"previous" goes back to the fi
 // 3. Booking: the dialogue, then the card on the screen with the confirmed name and email.
 const b0 = await say('Okay, book the call.');
 ok(b0.path === '/contact', `"book the call" goes to /contact (is ${b0.path})`);
-for (const line of ['Pujan.', 'Yes.', 'P U J A N three six four five at gmail dot com.']) await say(line);
+for (const line of ['Pujan.', 'Yes.', 'poo jun', 'P U J A N three six four five at gmail dot com.']) await say(line);
 ok((await page.locator('.cp-book-card').count()) === 0, 'no booking card before the details are confirmed');
 await say('Yes, that is right. Marketing.');
 const card = page.locator('.cp-book-card');

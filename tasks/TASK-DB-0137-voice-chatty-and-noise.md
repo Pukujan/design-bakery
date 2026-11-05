@@ -205,3 +205,7 @@ Found with the real-browser check, which sends lines the way the voice agent doe
 - `/pass` skips its rate limit for the owner's exempt addresses (the simulator asks for one per run).
 - Tried and removed: making `outline_passages` and `cite_section` read a page themselves. It saves a model round trip but removes the guarantee that the model has seen what it cites (`test-copilot-cite` rightly refused it).
 - `scripts/sim/call-sim.mjs`: no longer passes `toMe`; counts tool steps (`maxSteps`, `noTools`, `maxTool`); checks reply length (`minChars`); fails any line dropped as said to someone else. New scenario `tools.json`.
+
+## The booking dialogue asks how to say a name (nineteenth commit)
+
+The owner: "make it smart with pronunciation and names and spellings, like asking maybe?". After the caller confirms the spelling of their name the dialogue asks "How do you say your name? Say it slowly, a syllable at a time." (`booking.ts`, `parseSay`): "poo jun" becomes "Poo-jun" and is used for the rest of the call ("Thanks, Poo-jun.", the closing line); "fine as spelled" keeps the name; filler or a story is asked once more, then the name is used as written. The booking itself (the card, the URL) keeps the written name. State is still rebuilt from the conversation. Tests: `test-copilot-booking.mjs` (parser, spoken form, unclear answer), both simulator scenarios and the real-browser check gained the step.

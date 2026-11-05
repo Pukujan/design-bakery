@@ -8,6 +8,7 @@
  *
  *   start      "book the call" -> go to the Contact page, ask the name
  *   name       a few words -> spell it back, ask if it is right      (a no asks for the letters, then spells it back again)
+ *   say        how the caller says it, a syllable at a time -> used for the rest of the call ("fine as spelled" keeps it)
  *   email      spoken or spelled -> spell it back, ask if it is right (the same)
  *   area       which of the four -> exactly one `book` action carrying the confirmed name and email
  *
@@ -29,6 +30,7 @@ const NO = /^(?:no|nope|nah|wrong|incorrect|not (?:quite|right|really)|that is w
 const SAYS = {
   askName: 'Happy to set that up. What name should I put it under?',
   spellName: 'Sorry about that. Spell your name for me, letter by letter.',
+  askSay: 'How do you say your name? Say it slowly, a syllable at a time.',
   askEmail: (name: string) => `Thanks, ${name}. What's your email address? Say it slowly, and spell anything unusual.`,
   spellEmail: 'Sorry about that. Say the whole address again, and spell the part before the at sign letter by letter.',
   askArea: 'Which area should the call cover: AI engineering, product design, marketing, or full-stack development?',
@@ -39,6 +41,7 @@ const ID = {
   askName: /What name should I put it under\?/,
   spellName: /Spell your name for me, letter by letter\./,
   confirmName: /I heard .+?, spelled .+?\. Is that right\?/,
+  askSay: /How do you say your name\? Say it slowly/,
   askEmail: /What's your email address\? Say it slowly/,
   spellEmail: /Say the whole address again, and spell the part before the at sign/,
   confirmEmail: /I have .+?\. Is that right\?/,
@@ -55,6 +58,22 @@ export function parseName(text: string): string | null {
   const words = text.toLowerCase().replace(/[^a-z' -]/g, ' ').split(/\s+/).filter((w) => w && !FILLER.has(w));
   if (!words.length || words.length > 3) return null;
   return words.map((w) => w[0].toUpperCase() + w.slice(1)).join(' ');
+}
+
+const KEEP_AS_IS = /\b(fine|as spelled|as it is spelled|same|normal|the way you said|that is right|that s right|the way it looks|doesn t matter|skip|nothing special|just say it)\b/;
+
+/**
+ * How the caller says their name, from the syllables they give ("poo jun", "Poo-jun", "it's pronounced poo jahn") as "Poo-jun", the form
+ * the voice reads. "As spelled" and the like keep the name as it is (the returned value is then the plain name); null when the answer
+ * is not a few short syllables.
+ */
+export function parseSay(text: string, name: string): string | null {
+  const q = norm(text);
+  if (KEEP_AS_IS.test(q)) return name;
+  const syllables = q.replace(/\b(it s|it is|its|pronounced|say|said|i say|you say|like|sounds like|the|is|um+|uh+|er+m?|hmm+|ah+|oh|well|so|okay|ok|yeah|yes)\b/g, ' ').split(/\s+/).filter(Boolean);
+  if (!syllables.length || syllables.length > 6 || syllables.some((w) => w.length > 8 || !/^[a-z]+$/.test(w))) return null;
+  const joined = syllables.join('-');
+  return joined[0].toUpperCase() + joined.slice(1);
 }
 
 /** "p u j a n", "P-U-J-A-N" or "P, U, J, A, N" -> "Pujan"; null when it is not a run of single letters. */
@@ -108,7 +127,7 @@ function stageOf(assistant: string | undefined): keyof typeof ID | undefined {
   return (Object.keys(ID) as Array<keyof typeof ID>).find((k) => ID[k].test(assistant));
 }
 
-type Data = { name?: string; email?: string; nameOk?: boolean; emailOk?: boolean };
+type Data = { name?: string; say?: string; email?: string; nameOk?: boolean; emailOk?: boolean };
 
 /**
  * The next thing the dialogue says, or null when this line is not part of it. `messages` ends with the caller's line;
@@ -142,6 +161,7 @@ export function bookingTurn(messages: Message[], bookingBase: string | undefined
     const asked = stageOf(messages[i - 1]?.content);
     if (asked === 'askName') data.name = parseName(m.content) ?? data.name;
     else if (asked === 'spellName') data.name = parseSpelled(m.content) ?? parseName(m.content) ?? data.name;
+    else if (asked === 'askSay') data.say = parseSay(m.content, data.name ?? '') ?? data.say;
     else if (asked === 'askEmail' || asked === 'spellEmail') data.email = parseEmail(m.content) ?? data.email;
     else if (asked === 'confirmName') data.nameOk = YES.test(norm(m.content)) ? true : NO.test(norm(m.content)) ? false : data.nameOk;
     else if (asked === 'confirmEmail') data.emailOk = YES.test(norm(m.content)) ? true : NO.test(norm(m.content)) ? false : data.emailOk;
@@ -155,9 +175,16 @@ export function bookingTurn(messages: Message[], bookingBase: string | undefined
       return say(`I heard ${name}, spelled ${spell(name.replace(/\s+/g, ''))}. Is that right?`);
     }
     case 'confirmName': {
-      if (YES.test(q)) return say(SAYS.askEmail((data.name ?? '').split(' ')[0] || 'there'));
+      if (YES.test(q)) return say(SAYS.askSay);
       if (NO.test(q)) return say(SAYS.spellName);
       return say(SAYS.again(`I heard ${data.name ?? 'a name'}. Is that right, yes or no?`));
+    }
+    case 'askSay': {
+      const said = parseSay(last, data.name ?? '');
+      // Twice unclear is enough: the name is used as it is written and the dialogue goes on.
+      const asked = messages.filter((m) => m.role === 'assistant' && ID.askSay.test(m.content)).length;
+      if (!said && asked < 2) return say(SAYS.again(SAYS.askSay));
+      return say(SAYS.askEmail(firstName(said ?? data.name ?? '')));
     }
     case 'askEmail':
     case 'spellEmail': {
@@ -180,11 +207,14 @@ export function bookingTurn(messages: Message[], bookingBase: string | undefined
   }
 }
 
+/** The first word of a name as the voice should say it: "Poo-jun Bajracharya" -> "Poo-jun". */
+const firstName = (name: string) => name.split(' ')[0] || 'there';
+
 function finish(data: Data, area: (typeof CONSULT_SERVICES)[number], bookingBase: string): BookingAnswer {
   const topic = area;
   return {
     routine: 'booking:done', intent: 'book',
-    text: `Done. The Pick a time button is in the chat now, with ${data.name ?? 'your name'} and your email filled in, for ${area}. Tap it to choose a slot.`,
+    text: `Done. The Pick a time button is in the chat now, with ${data.say ?? data.name ?? 'your name'} and your email filled in, for ${area}. Tap it to choose a slot.`,
     actions: [{ kind: 'book', url: bookingUrl(bookingBase, { name: data.name, email: data.email, topic }), name: data.name, email: data.email, topic }],
   };
 }
