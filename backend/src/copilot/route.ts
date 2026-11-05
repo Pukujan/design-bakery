@@ -14,7 +14,7 @@ import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { generateText, stepCountIs, streamText, type ModelMessage } from 'ai';
 import { Router, type Request } from 'express';
 import { z } from 'zod';
-import { byHealth, healthReport, startWatcher } from './health.js';
+import { byHealth, healthReport, noteLatency, startWatcher } from './health.js';
 import { fallbackFetch } from './model-fallback.js';
 import { checkPass, clientIp, issuePass, turnstileSiteKey } from './guard.js';
 import { createDailyBudget, createExemptMatcher, createLimiter, limitConfigFromEnv } from './fairUse.js';
@@ -133,7 +133,7 @@ function modelFor(providers: Provider[], voice: boolean, onUse: (model: string) 
     name: 'copilot',
     baseURL: 'http://copilot.invalid/v1',
     apiKey: 'per-provider',
-    fetch: fallbackFetch(steps, fetch, console.warn, hurry ? () => Promise.resolve() : undefined, voice ? 4000 : undefined, onUse),
+    fetch: fallbackFetch(steps, fetch, console.warn, hurry ? () => Promise.resolve() : undefined, voice ? 4000 : undefined, (name, ms) => { noteLatency(name.split(':')[0], ms); onUse(name); }),
   })(steps[0].model);
 }
 
