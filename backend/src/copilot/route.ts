@@ -316,8 +316,8 @@ copilotRouter.post('/chat', async (req, res) => {
   }
   // What AI Pujan has already said, so a tour moves on to somewhere new (routines.ts, surprise).
   const said = messages.filter((m) => m.role === 'assistant').slice(-12).map((m) => m.content).join(' ');
-  const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before, said, messages);
-  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || routed.routine.startsWith('tour:') || routed.routine.startsWith('booking:') || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
+  const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before, said, messages, page);
+  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || routed.routine.startsWith('tour:') || routed.routine.startsWith('booking:') || routed.routine.startsWith('step:') || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
   if (cached) {
     turn.model = `cache:${cached.intent}`;
     turn.routine = cached.routine;

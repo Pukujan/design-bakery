@@ -455,6 +455,46 @@ async function walkTo(action: Extract<CopilotAction, { kind: 'cite' }>, holdMs =
 let pendingSwipe: Array<Extract<CopilotAction, { kind: 'cite' }>> = [];
 let stopSwipe: (() => void) | null = null;
 
+/** Pages that are a list of cards: when the call takes the visitor to one, the page is scrolled through while the answer is spoken. */
+const LIST_PAGE = /^\/(?:research|blogs|work)\/?$|^\/?#work$/;
+let listMove = false;
+
+/**
+ * Scrolls down through a list page, slowly, for as long as the answer takes to say, so every card is on the screen as it is
+ * talked about (2026-11-05: "it said eleven papers and I could only see the first few"). The visitor's own wheel, touch or key
+ * hands the page back at once. At most a few screens: far enough to show the list, short enough not to lose its top.
+ */
+function scrollThroughList(durationMs: number) {
+  stopSwipe?.();
+  const startY = window.scrollY;
+  const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  const endY = Math.min(maxY, startY + window.innerHeight * 3.5);
+  if (endY - startY < 40) return;
+  const started = performance.now();
+  let frame = 0;
+  agentCursor.startScroll('down', durationMs);
+  const cancel = () => {
+    cancelAnimationFrame(frame);
+    window.removeEventListener('wheel', cancel);
+    window.removeEventListener('touchstart', cancel);
+    window.removeEventListener('keydown', cancel);
+    agentCursor.startScroll('down', 0);
+    if (stopSwipe === cancel) stopSwipe = null;
+  };
+  stopSwipe = cancel;
+  window.addEventListener('wheel', cancel, { passive: true });
+  window.addEventListener('touchstart', cancel, { passive: true });
+  window.addEventListener('keydown', cancel);
+  const tick = () => {
+    const t = Math.min(1, (performance.now() - started) / durationMs);
+    const eased = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+    setStageScroll(startY + (endY - startY) * eased);
+    if (t >= 1) cancel();
+    else frame = requestAnimationFrame(tick);
+  };
+  frame = requestAnimationFrame(tick);
+}
+
 /**
  * Speaks a summary by swiping: the page moves through the post in step with the speech, a quick leg to each heading that
  * puts it in the upper third just as its sentence starts, then holds still with that heading lit while it is spoken. The moon stays under the swipe.
@@ -546,7 +586,10 @@ export const copilot = {
   go(path: string, options: { slow?: boolean; agent?: boolean; aloud?: boolean } = {}): Promise<void> {
     // A page deep in the site (a post, a project, a paper) is reached the way a person would: through its list page, scrolling
     // to the card, and clicking it.
-    if (options.agent && detailParent(path) && !path.includes('#')) return journey(path, options.aloud);
+    // From one paper to the next (or back) the visitor is already inside the list's pages: they go straight there, not out to the
+    // list and back through a card, which took ten seconds and failed going backwards (2026-11-05, "Previous" stayed on the page).
+    const sibling = detailParent(path) !== null && detailParent(path) === detailParent(window.location.pathname);
+    if (options.agent && detailParent(path) && !path.includes('#') && !sibling) return journey(path, options.aloud);
     const [pathname, hash] = path.split('#');
     const scroll = () =>
       new Promise<void>((resolve) => {
@@ -619,6 +662,13 @@ export const copilot = {
     return cites;
   },
   swipe: swipeThrough,
+  /** Whether the answer just given moved the call to a list page that should be scrolled through as it is spoken. */
+  takeListScroll() {
+    const yes = listMove;
+    listMove = false;
+    return yes;
+  },
+  scrollList: scrollThroughList,
   stopSwipe: () => stopSwipe?.(),
   takeCites(answer: string) {
     const cites = pendingCites;
@@ -908,7 +958,10 @@ function handle(event: Event, replyId: number) {
       const onCall = voiceReplies.has(replyId);
       // Typed or spoken, the moon takes the visitor there.
       const move = onCall ? copilot.go(event.action.path, { slow: true, agent: true }) : copilot.guide(event.action.path);
-      if (onCall) pendingMoves.push(move);
+      if (onCall) {
+        pendingMoves.push(move);
+        listMove = LIST_PAGE.test(event.action.path);
+      }
     }
   } else if (event.type === 'ignored') {
     // On a call the line was said to someone else in the visitor's room: no reply, and the line stays, greyed, to answer anyway.

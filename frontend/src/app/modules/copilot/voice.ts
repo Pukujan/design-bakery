@@ -240,6 +240,11 @@ export const voice = {
         for (const step of copilot.takeSteps()) {
           stepTimers.push(setTimeout(() => copilot.go(step.path, { slow: true, agent: true }), SPEECH_LEAD_MS + (step.at / SPEECH_CHARS_PER_S) * 1000));
         }
+        // A list page (the research papers, the posts, the work): scrolled through while the answer names what is on it.
+        if (copilot.takeListScroll() && answer) {
+          const ms = Math.min(Math.max((answer.length / SPEECH_CHARS_PER_S) * 1000, 5000), 22_000);
+          stepTimers.push(setTimeout(() => copilot.scrollList(ms), SPEECH_LEAD_MS));
+        }
         // A summary: one swipe through the post, paced by the speech.
         const swiped = copilot.takeSwipe();
         if (swiped.length) stepTimers.push(setTimeout(() => copilot.swipe(answer, swiped, SPEECH_CHARS_PER_S), SPEECH_LEAD_MS));

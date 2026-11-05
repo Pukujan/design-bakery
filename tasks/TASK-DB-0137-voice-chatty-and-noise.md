@@ -184,3 +184,13 @@ The call of 2026-11-05 (02:42 to 02:48 UTC): "Fo John" became the name John unch
 - `store.ts` + `BookingCard.tsx` + `copilot.css`: a call shows the booking as a card above the call bar with the name, email and one "Pick a time" button.
 - `scripts/sim/call-sim.mjs` + `scripts/sim/scenarios/*.json`: a call simulator. It plays a conversation through the real backend in voice mode (`api-voice` launch config, localhost exempt from the rate limit), keeps the page the way a call does, and checks each turn's actions, order, count and claims. Exit 1 on any failure; `--runs N` repeats it. The same flow was driven end to end in the browser (`window.__copilot.send(..., { voice: true })`): the card appeared on /contact with the right name and email.
 - `test-copilot-booking.mjs`: parsers and the dialogue, including the "Fo John" and wrong-email corrections.
+
+## Next and previous follow what is on the screen; a list page is scrolled through (seventeenth commit)
+
+The same call: a "Next." asked on a paper went to a project (the tour's first stop), "Next one." on the blog list went to a project too, and after "show me the research papers" the page stayed at the top while the answer named eleven papers.
+
+- `routines.ts`: `stepRequest` + `neighbour`: with the page the call is on (`route.ts` now passes it), "next", "previous" and their variants open the neighbouring paper or post, with a short summary and what comes after it; the end of the list says so and names where to go. Elsewhere "next" is the tour as before.
+- `store.ts` + `voice.ts`: an agent move to a list page (research, blogs, work) is marked; the answer is then spoken while the page glides down through the list (`scrollThroughList`, paced by the speech, at most 3.5 screens, handed back at once to the visitor's wheel, touch or key).
+- `store.ts` `go()`: from one paper to a sibling the call goes straight there instead of out to the list and back through a card.
+- `scripts/sim/browser-call.mjs`: the same flow in a real Chromium (Playwright) against the local web app and backend: list scroll depth, next/previous, the booking card in view. `pnpm sim:call <scenario>` and `pnpm sim:browser`. Scenario `papers-next.json` walks all eleven papers and back.
+- Not done: blog "next" cannot be played locally (the blog database is not readable here); "next" on a project follows the tour order, not the home page's display order (`orderProjectsForShowcase` is in the frontend).

@@ -296,6 +296,58 @@ function surprise(ask: Ask, site: Site, said: string): RoutedAnswer | null {
   };
 }
 
+/**
+ * "Next" and "previous" mean the next and previous of what is on the screen. On the call of 2026-11-05 a "Next." asked on a paper
+ * went to a project (the tour's first stop), and "Next one." on the blog list went to a project too. On a paper or a post the
+ * neighbour in its list is opened, with a short summary of it; the end of the list says so and names where to go.
+ */
+const STEP_NEXT = /^(?:the )?(?:next(?: one| please| paper| post| article)?|another(?: one)?|one more|keep going|go on|continue|and then|then what|what s next|what next)$/;
+const STEP_BACK = /^(?:the )?(?:previous(?: one| paper| post| article)?|go back|back|one back|the one before|last one)$/;
+
+export function stepRequest(q: string): 1 | -1 | null {
+  if (STEP_NEXT.test(q)) return 1;
+  if (STEP_BACK.test(q)) return -1;
+  return null;
+}
+
+/** The list the visitor is in, as stops in page order, and where they are in it (-1 on the list page itself). */
+function listAround(site: Site, path: string): { items: Stop[]; at: number; noun: string; other: string } | null {
+  const paper = path.match(/^\/research(?:\/papers\/([^/]+))?\/?$/);
+  if (paper) {
+    const items = site.papers.map((p): Stop => ({ path: `/research/papers/${p.id}`, title: p.title, kind: 'paper', blurb: lead(p.abstract, 120) }));
+    return { items, at: paper[1] ? items.findIndex((i) => i.path === `/research/papers/${paper[1]}`) : -1, noun: 'paper', other: 'the blog or the projects' };
+  }
+  const post = path.match(/^\/blogs(?:\/([^/]+))?\/?$/);
+  if (post) {
+    const items = site.blogs.map((b): Stop => ({ path: `/blogs/${b.id}`, title: b.title, kind: 'blog', blurb: lead(b.excerpt, 120) }));
+    return { items, at: post[1] ? items.findIndex((i) => i.path === `/blogs/${post[1]}`) : -1, noun: 'post', other: 'the research or the projects' };
+  }
+  return null;
+}
+
+function neighbour(site: Site, path: string, dir: 1 | -1): Omit<RoutedAnswer, 'routine'> | null {
+  const list = listAround(site, path);
+  if (!list || !list.items.length) return null;
+  const to = list.at + dir;
+  if (to < 0 || to >= list.items.length) {
+    return {
+      intent: 'service', go: false, actions: [],
+      text: dir > 0
+        ? `That was the last ${list.noun}. Say the word and I'll take you to ${list.other}.`
+        : `You're at the first ${list.noun}. Say next and I'll take you through them.`,
+    };
+  }
+  const stop = list.items[to];
+  const after = dir > 0 ? list.items[to + 1] : undefined;
+  return {
+    intent: stop.kind === 'paper' ? 'research' : 'blog',
+    text: `${dir > 0 ? 'Next, ' : 'Going back to '}${stop.title.replace(/[.!?\s]+$/, '')}.${stop.blurb.trim() ? ` ${sentence(stop.blurb)}` : ''}${after ? ` After this, ${after.title.replace(/[.!?\s]+$/, '')}.` : ''}`,
+    actions: [navigate(stop.path, `Open ${stop.title}`)],
+    go: true,
+    captions: journey(),
+  };
+}
+
 /** The registry, in the order they are tried. New routines are added here. */
 export const ROUTINES: readonly Routine[] = [latest, tech, role, open];
 
@@ -345,7 +397,7 @@ async function answerToOffer(ask: Ask, previous: string | undefined): Promise<Ro
  * The routine's answer for this question, or null when it belongs to the model. `routine` names which one ran: the
  * routines above, or `intent:<id>` for the saved intents in answers.ts. It is what the trace labels the turn with.
  */
-export async function routeRequest(question: string, firstTurn: boolean, voice = false, previous?: string, said = '', history?: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<RoutedAnswer | null> {
+export async function routeRequest(question: string, firstTurn: boolean, voice = false, previous?: string, said = '', history?: Array<{ role: 'user' | 'assistant'; content: string }>, page?: { path: string; title: string }): Promise<RoutedAnswer | null> {
   const ask: Ask = { question, q: norm(question), voice, firstTurn };
   // Booking by voice is a fixed dialogue that checks the name and email with the caller (booking.ts), not the model's judgement.
   if (voice && history) {
@@ -354,6 +406,15 @@ export async function routeRequest(question: string, firstTurn: boolean, voice =
   }
   const replied = await answerToOffer(ask, previous);
   if (replied) return replied;
+  // "Next" on a paper or a post is the next paper or post, not the tour's first project (above).
+  if (voice && page) {
+    const dir = stepRequest(norm(question));
+    if (dir && listAround({ projects: [], papers: [], blogs: [], experiences: [] }, page.path)) {
+      const [papers, blogs] = await Promise.all([loadPapers(), loadBlogs()]);
+      const next = neighbour({ projects: [], papers, blogs, experiences: [] }, page.path, dir);
+      if (next) return { ...next, routine: 'step:neighbour' };
+    }
+  }
   if (asksForSurprise(question, previous)) {
     const [projects, papers, blogs, experience] = await Promise.all([loadProjects(), loadPapers(), loadBlogs(), loadExperience()]);
     const stop = surprise(ask, { projects, papers, blogs, experiences: experience.experiences }, said);
