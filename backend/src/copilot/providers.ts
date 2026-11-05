@@ -23,7 +23,10 @@ type Env = Record<string, string | undefined>;
 
 /** In the order smart tries them. Each model can be changed with its *_MODEL variable. */
 const TABLE = [
-  { id: 'deepseek', label: 'DeepSeek (InferHub)', keyEnv: 'SMART_DEEPSEEK_KEY', modelEnv: 'SMART_DEEPSEEK_MODEL', model: 'cb/deepseek-v4.1-flash', target: 'https://api.inferhub.dev/v1' },
+  // InferHub sells the same model through several seats and a seat can have no offers for a day ("no available provider for cb/..."
+  // on 2026-11-05), so DeepSeek is two entries on two seats: a seat that is down fails its probe and the other goes first.
+  { id: 'deepseek', label: 'DeepSeek (InferHub)', keyEnv: 'SMART_DEEPSEEK_KEY', modelEnv: 'SMART_DEEPSEEK_MODEL', model: 'ali/deepseek-v4.1-flash', target: 'https://api.inferhub.dev/v1' },
+  { id: 'deepseek-b', label: 'DeepSeek (InferHub, second seat)', keyEnv: 'SMART_DEEPSEEK_KEY', modelEnv: 'SMART_DEEPSEEK_MODEL_B', model: 'cbcn/deepseek-v4.1-flash', target: 'https://api.inferhub.dev/v1' },
   { id: 'qwen', label: 'Qwen (yolo)', keyEnv: 'SMART_QWEN_KEY', modelEnv: 'SMART_QWEN_MODEL', model: 'yolo', target: 'https://yolo-auto.com/v1' },
   // WorkBuddy refuses calls that do not stream and calls whose first message is not the system prompt.
   { id: 'workbuddy', label: 'WorkBuddy', keyEnv: 'SMART_WORKBUDDY_KEY', modelEnv: 'SMART_WORKBUDDY_MODEL', model: 'auto', target: 'https://www.workbuddy.ai/v2' },

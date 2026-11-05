@@ -43,7 +43,7 @@
         "noActions": [
           "book"
         ],
-        "textMatch": "Thanks, Poo-jun",
+        "textMatch": "email",
         "textNotMatch": "card"
       }
     },

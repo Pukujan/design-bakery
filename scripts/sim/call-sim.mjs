@@ -108,7 +108,7 @@ for (let run = 1; run <= runs; run += 1) {
     }
     const { fails, text, actions, steps } = check(step, got, page);
     messages.push({ role: 'assistant', content: text || '(no reply)' });
-    results.push({ i: i + 1, say: step.say, fails, text, actions, steps, ms: got.ms, page: page.path });
+    results.push({ i: i + 1, say: step.say, fails, text, actions, steps, ms: got.ms, page: page.path, model: (got.events.find((ev) => ev.type === 'done')?.model ?? '-').split('/')[0] });
   }
   // The scenario's rubric judges the whole visit, not one turn: how a person who knows nothing about the site would rate it.
   const rubric = scenario.rubric ?? {};
@@ -131,7 +131,7 @@ for (let run = 1; run <= runs; run += 1) {
   console.log(`\n== ${scenario.name} · run ${run}/${runs}: ${bad.length ? `${results.filter((r) => r.fails.length).length} of ${results.length} turns FAILED${visit.length ? `, ${visit.length} visit check(s) failed` : ''}` : 'all turns ok, visit ok'}`);
   for (const v of visit) console.log(`   VISIT: ${v}`);
   for (const r of results) {
-    console.log(`${r.fails.length ? '✗' : '✓'} ${r.i}. "${r.say}"  [${r.ms} ms, page ${r.page}]`);
+    console.log(`${r.fails.length ? '✗' : '✓'} ${r.i}. "${r.say}"  [${r.ms} ms, page ${r.page}, ${r.model}]`);
     if (verbose || r.fails.length) {
       console.log(`     said:    ${r.text.replace(/\s+/g, ' ').slice(0, 170)}`);
       console.log(`     actions: ${r.actions.map((a) => a.kind + (a.path ? `(${a.path})` : '')).join(', ') || '-'}   tools: ${r.steps.join(', ') || '-'}`);

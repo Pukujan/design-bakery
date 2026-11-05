@@ -229,3 +229,17 @@ The call of 2026-11-05 (04:49 to 04:57 UTC) showed the regex-and-history booking
 - Tests: `test-copilot-booking.mjs` (a scripted reader: steps, state, corrections, leaving, cancel, the offline reader), simulator scenarios `booking`, `booking-corrections`, `booking-frustration` and `booking-call-1105`, which replays the real failed call's lines with the real models and passes 3 runs in 3. The real-browser check carries the state through the page's store.
 - Fixed on the way: `routeRequest` lost its `answerToOffer` step in this edit (caught by the router test, restored).
 - Not verified on a real spoken call.
+
+## Model only: no wording is matched, tools do the steps, lanes keep model kinds apart (twenty-second commit)
+
+The owner's rule after the call of 2026-11-05: no regex deciding what a visitor means. Every line now goes to the model chain with tools; the code validates and holds state.
+
+- Removed: `routines.ts`, `answers.ts`, `gotchas.ts`, `addressee.ts`, `smallTalk.ts`, `booking.ts`, `bookingFlow.ts`, `bookingModel.ts` and their tests; the announced-project repair and the hand-back cutter in `textFilter.ts`.
+- Tools (`tools.ts`, `walk.ts`): `step_list` (next/previous in the page's list), `tour_next`, `summarize_page` (one call, the page follows by itself), `not_for_me` (a line for someone in the room). `navigate` no longer needs a prior yes in chat.
+- Booking by voice (`bookingState.ts`): one tool per step, and only the current step's tool is offered (`bookingTools`), so the model cannot skip or confirm early. State is explicit and carried by the page (`flow`). The button is shown by the last step's tool itself, never claimed before. `booking_start` opens the Contact page; `booking_repeat` re-asks without storing.
+- Lanes (`lanes/strong|hybrid|small`): a manifest (providers, closed tool list, limits, own table prefix), per-lane model fixes, no cross imports (`pnpm check:lanes`), `COPILOT_LANE[_VOICE|_CHAT]`, default hybrid. `lanes/schema.ts` and `scripts/lanes-schema.mjs` print the per-lane tables' SQL; no table was created in Octo.
+- DeepSeek was 502/503 because InferHub's `cb/` seat had no offers: the default seat is now `ali/`, with `cbcn/` as a second entry.
+- Fixed: streaming headers were flushed before the limit, budget and provider checks, so a refusal threw ERR_HTTP_HEADERS_SENT and crashed the process (the same order is on main). The checks now come first.
+- Measured on the live models: tools, booking-corrections, booking-call-1105, recruiter-newcomer and recruiter-deep-dive 3 of 3; booking and booking-frustration 2 of 3; papers-next fails only wording checks; recruiter-checklist ends 4 to 6 of 10 replies in a question (limit 3) and had one "models are busy".
+- Costs: a turn is about 8 to 9k input tokens (site brief, prompt, tool schemas); the 2M daily token cap is about 230 turns. Shrinking or caching the brief is not done.
+- Not verified on a real spoken call. The frontend's built-in fallback answers still match wording (used only when every model is down).
