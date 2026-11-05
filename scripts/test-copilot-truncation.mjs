@@ -82,4 +82,17 @@ assert.deepEqual(h.byHealth(ps, true).map((p) => p.id), ['a', 'b', 'c'], 'never 
 // 7. The free reasoning model never jumps the queue on a call, even when its probe was the quickest.
 assert.deepEqual(h.byHealth([{ id: 'a' }, { id: 'openrouter' }, { id: 'c' }], true).map((p) => p.id), ['a', 'c', 'openrouter'], 'free model last among the healthy');
 
-console.log('copilot truncation: 7 groups ok');
+// 8. Real reply times outrank the probe: a provider that probes quickest but answers slowly drops behind. Needs two samples.
+{
+  const hh = await import(new URL('./backend/lib/copilot/health.js', root).href);
+  const list = [{ id: 'slow' }, { id: 'quick' }, { id: 'openrouter' }];
+  hh.noteLatency('slow', 9000);
+  assert.deepEqual(hh.byHealth(list, true).map((p) => p.id), ['slow', 'quick', 'openrouter'], 'one sample is not enough to reorder');
+  hh.noteLatency('slow', 8000); hh.noteLatency('quick', 1500); hh.noteLatency('quick', 1800);
+  assert.deepEqual(hh.byHealth(list, true).map((p) => p.id), ['quick', 'slow', 'openrouter'], 'measured speed ranks, the free model stays last');
+  assert.deepEqual(hh.byHealth(list, false).map((p) => p.id), ['slow', 'quick', 'openrouter'], 'a chat keeps the table order');
+  hh.noteLatency('quick', NaN); hh.noteLatency('quick', -5);
+  assert.deepEqual(hh.byHealth(list, true).map((p) => p.id), ['quick', 'slow', 'openrouter'], 'junk samples are ignored');
+}
+
+console.log('copilot truncation: 8 groups ok');

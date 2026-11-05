@@ -154,3 +154,12 @@ Traces on 2026-11-04: "just show me anything" four times got headings read out a
 - `voice.ts`: `dropped()` replaces `close(message)` on an unexpected disconnect. A call that had reached an agent is redialled once, at once and silently (the moon shows "Waking up…"); a second drop, or a call that never connected, ends with the message as before. Hanging up or pressing the button resets it.
 - `pnpm test:voice-redial` bundles the real `voice.ts` with esbuild against a fake LiveKit room: a drop redials once with a fresh grant and no message, a second drop ends it, hang-up resets, no agent means no redial, an agent leaving redials. It fails on the old code ("a second room is dialled").
 - Not verified on a live call (the browser pane blocks the microphone). The deploy cadence of the voice service is a separate matter, in its own repo.
+
+## Voice models ranked by real reply time (fourteenth commit)
+
+A live call on 2026-11-05 took 5 to 10 s per reply (one 32 s). `workbuddy` answered 8 of 14 turns though it was the slowest on real prompts (median about 5.5 s against about 2.5 s for deepseek and qwen): the call ranked providers by a two-line health probe.
+
+- `fallbackFetch` now tells `onUse` how long the answering model took to start (response plus first chunk); `route.ts` feeds that to `noteLatency` (`health.ts`), a moving average per provider.
+- On a call, `byHealth` ranks by the measured time once a provider has two samples, else by the probe. The free reasoning model still stays last, failing providers after.
+- Test: group 8 in `test-copilot-truncation.mjs` (one sample does not reorder; two do; chat keeps table order; junk samples ignored).
+- Not verified on a live call. Look at `copilot.model` and `copilot.latency_ms` in Phoenix after deploy.

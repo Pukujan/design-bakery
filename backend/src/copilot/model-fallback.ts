@@ -129,7 +129,7 @@ const headersWithout = (h: HeadersInit | undefined): Record<string, string> => {
   return out;
 };
 
-export function fallbackFetch(chain: Array<string | Step>, base: typeof fetch = fetch, log: (m: string) => void = console.warn, wait: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)), slowMs = SLOW_START_MS, onUse: (model: string) => void = () => undefined): typeof fetch {
+export function fallbackFetch(chain: Array<string | Step>, base: typeof fetch = fetch, log: (m: string) => void = console.warn, wait: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)), slowMs = SLOW_START_MS, onUse: (model: string, ms: number) => void = () => undefined): typeof fetch {
   const steps: Step[] = chain.map((s) => (typeof s === "string" ? { name: s, model: s } : s));
   const models = steps.map((s) => s.name);
   return async (input, init) => {
@@ -163,7 +163,7 @@ export function fallbackFetch(chain: Array<string | Step>, base: typeof fetch = 
         }
         const msg = peek.message;
         const failed = !res.ok || msg !== "";
-        return { res, msg, failed, busy: failed && isBusy(res.ok ? 200 : res.status, msg), slow: false };
+        return { res, msg, failed, busy: failed && isBusy(res.ok ? 200 : res.status, msg), slow: false, ms: Date.now() - started };
       } finally {
         if (timer) clearTimeout(timer);
       }
@@ -183,7 +183,7 @@ export function fallbackFetch(chain: Array<string | Step>, base: typeof fetch = 
         continue;
       }
       if (!a.failed) {
-        onUse(models[i]);
+        onUse(models[i], a.ms ?? 0);
         return a.res;
       }
       last = a.res;
