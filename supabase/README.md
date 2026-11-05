@@ -12,6 +12,7 @@ Postgres schema for CMS + blog when `CONTENT_BACKEND=supabase`.
 | `migrations/006_cover_studio_library.sql` | Cover Studio gallery (`cover_studio_assets`) |
 | `migrations/007_cover_studio_format_platform.sql` | Cover Studio format + platform columns |
 | `migrations/008_cover_studio_pack_grouping.sql` | Cover Studio pack grouping (`pack_id`, `pack_title`) |
+| `migrations/013_copilot_lanes.sql` | The copilot's lanes (strong, hybrid, small): each lane's flagged turns, replay cases, eval sets and judge settings |
 
 **One-time data copy:** `pnpm run migrate:firestore-to-supabase` (see [additionals/doc/supabase-migration.md](../additionals/doc/supabase-migration.md)).
 
