@@ -304,7 +304,7 @@ function compose(
       };
 
     case 'thanks':
-      return { intent: intent.id, text: vary('thanks', ['Anytime. Ask about a project, a paper, or the work history whenever you want.', 'Happy to help. Anything else you want to look at?', "You're welcome! Say the word if you want to dig into something."]), actions: [] };
+      return { intent: intent.id, text: vary('thanks', ['Anytime. Ask about a project, a paper, or the work history whenever you want.', 'Happy to help. Say the word if you want to look at anything else.', "You're welcome! Say the word if you want to dig into something."]), actions: [] };
 
     case 'identity':
       return {
@@ -425,7 +425,7 @@ function namesProject(question: string, projects: Project[]): boolean {
 
 /** Words that point at what the conversation already put on screen, and asks that need the model and its tools to read it. */
 const POINTS_BACK = /\b(this|that|these|those|it|its|them|they)\b/;
-const ASKS_FOR_DETAIL = /\b(summar(?:y|ise|ize)|explain|talk me through|walk me through|read me|tell me more|go deeper|more about|what does .* (?:say|mean)|what is .* about)\b/;
+const ASKS_FOR_DETAIL = /\b(most relevant|best for|best fit|good for|recommend|which (?:project|paper|post|one) (?:is|would|should|do)|summar(?:y|ise|ize)|explain|talk me through|walk me through|read me|tell me more|go deeper|more about|what does .* (?:say|mean)|what is .* about)\b/;
 
 export async function cachedAnswer(question: string, firstTurn: boolean, voice = false): Promise<CachedAnswer | null> {
   if (!firstTurn && refersBack(question)) return null;

@@ -24,6 +24,7 @@ import { bookingTurn } from './booking.js';
 import { gotchaReply } from './gotchas.js';
 import { loadBlogs, loadExperience, loadPapers, loadProjects, projectPath, sectionsForPath, type BlogSummary, type Paper, type Project } from './knowledge.js';
 import { buildPassages } from './sections.js';
+import { orderProjectsForShowcase } from './projectOrder.js';
 
 /**
  * `captions` are the moon's bubble lines while the cursor moves the page, one wording picked per step, in order
@@ -255,6 +256,8 @@ const sentence = (text: string) => text.trim().replace(/[.!?…]+$/, '') + '.';
 /** Whether this turn asks to be taken somewhere without saying where. `previous` is the assistant's last line. */
 export function asksForSurprise(question: string, previous?: string): 'start' | 'continue' | null {
   const q = norm(question).replace(/^(it )?(should|could|can) be /, '');
+  // "I don't know anything about this. What is this?" asks what the site is: that is an answer, not a request to be shown a project.
+  if (/\b(what|who) (is|s) (this|that|it|he|pujan|poojan|all this)\b|\bwhat (is|s) this (site|page|place|about)\b/.test(q)) return null;
   const n = q.split(' ').length;
   if (!q || n > 10) return null;
   if (CONTINUE.test(q)) return previous ? 'continue' : null;
@@ -305,7 +308,9 @@ function surprise(ask: Ask, site: Site, said: string): RoutedAnswer | null {
 const STEP_NEXT = /^(?:the )?(?:next(?: one| please| paper| post| article)?|another(?: one)?|one more|keep going|go on|continue|and then|then what|what s next|what next)$/;
 const STEP_BACK = /^(?:the )?(?:previous(?: one| paper| post| article)?|go back|back|one back|the one before|last one)$/;
 
-export function stepRequest(q: string): 1 | -1 | null {
+export function stepRequest(raw: string): 1 | -1 | null {
+  // "Okay, next." and "so go on": a leading filler word is not a different request.
+  const q = raw.replace(/^(?:(?:okay|ok|so|yeah|yep|alright|right|um|uh|well|please|can you|could you) )+/, '');
   if (STEP_NEXT.test(q)) return 1;
   if (STEP_BACK.test(q)) return -1;
   return null;
@@ -317,6 +322,11 @@ function listAround(site: Site, path: string): { items: Stop[]; at: number; noun
   if (paper) {
     const items = site.papers.map((p): Stop => ({ path: `/research/papers/${p.id}`, title: p.title, kind: 'paper', blurb: lead(p.abstract, 120) }));
     return { items, at: paper[1] ? items.findIndex((i) => i.path === `/research/papers/${paper[1]}`) : -1, noun: 'paper', other: 'the blog or the projects' };
+  }
+  const work = path.match(/^\/work\/([^/]+)\/?$/);
+  if (work) {
+    const items = orderProjectsForShowcase(site.projects).map((p): Stop => ({ path: projectPath(p), title: p.title, kind: 'project', blurb: [p.tagline, lead(p.description, 100)].filter(Boolean).map((t) => t.trim().replace(/[.!?…]+$/, '')).join('. ') }));
+    return { items, at: items.findIndex((i) => i.path === `/work/${work[1]}`), noun: 'project', other: 'the research or the blog' };
   }
   const post = path.match(/^\/blogs(?:\/([^/]+))?\/?$/);
   if (post) {
@@ -341,7 +351,7 @@ function neighbour(site: Site, path: string, dir: 1 | -1): Omit<RoutedAnswer, 'r
   const stop = list.items[to];
   const after = dir > 0 ? list.items[to + 1] : undefined;
   return {
-    intent: stop.kind === 'paper' ? 'research' : 'blog',
+    intent: stop.kind === 'paper' ? 'research' : stop.kind === 'project' ? 'project' : 'blog',
     text: `${dir > 0 ? 'Next, ' : 'Going back to '}${stop.title.replace(/[.!?\s]+$/, '')}.${stop.blurb.trim() ? ` ${sentence(stop.blurb)}` : ''}${after ? ` After this, ${after.title.replace(/[.!?\s]+$/, '')}.` : ''}`,
     actions: [navigate(stop.path, `Open ${stop.title}`)],
     go: true,
@@ -400,8 +410,50 @@ async function pageSummary(question: string, page: { path: string }): Promise<Om
   };
 }
 
+const resume: Routine = {
+  name: 'resume',
+  test: ({ q }) => /\b(resume|resum[eé]|cv|curriculum vitae)\b/.test(q) && q.split(' ').length <= 12,
+  run: () => ({
+    intent: 'experience',
+    text: vary('resume', [
+      "I don't keep a resume file on the site. The Experience section has the full history, and LinkedIn is on the Contact page.",
+      "There's no resume to download here. My full work history is in the Experience section, and LinkedIn is linked from the Contact page.",
+    ]),
+    actions: [navigate('/#experience', 'Experience')],
+    go: true,
+  }),
+};
+
+/** Things a recruiter asks that the site does not hold: said plainly, with the way to get a real answer, never a guess. */
+const privateFact: Routine = {
+  name: 'private',
+  test: ({ q }) => q.split(' ').length <= 16 && /\b(salary|compensation|pay (?:range|expectation)|rate|hourly|visa|sponsorship|work authori[sz]ation|relocat\w*|notice period|start date|when can you start|green card|citizen\w*)\b/.test(q),
+  run: () => ({
+    intent: 'service',
+    text: vary('private', [
+      "That's not on the site, and I'd rather not guess. The quickest way to a real answer is a free call: say book the call and I'll set it up, or use the Contact page.",
+      "I don't have that, and I won't make something up. Say book the call and I'll set up a free call, or the Contact page has the direct details.",
+    ]),
+    actions: [],
+  }),
+};
+
+const contactRequest: Routine = {
+  name: 'contact',
+  // On a call only: in a chat the saved contact answer offers the page as a chip, and a page does not move on its own.
+  test: ({ q, voice }) => voice && q.split(' ').length <= 16 && /\b(contact|reach|get in touch|email|talk to|speak (?:to|with)|message)\b/.test(q) && /\b(how (?:do|would|can|could) i|where (?:do|can) i|can i|best way|i want to|i would like to|i d like to|take me|show me|open)\b/.test(q) && !/\bbook\b/.test(q),
+  run: () => ({
+    intent: 'contact',
+    text: vary('contact-request', ['Here is the Contact page. You can pick an area and a time for a free call, or find my direct details.', 'Taking you to the Contact page. It has my details, and you can pick a time for a free call there.']),
+    actions: [navigate('/contact', 'Contact page')],
+    go: true,
+  }),
+};
+
 /** The registry, in the order they are tried. New routines are added here. */
 export const ROUTINES: readonly Routine[] = [latest, tech, role, open];
+/** Specific enough to answer even when the line also leans on the conversation ("okay I get it. How would I contact him?"). */
+const DIRECT: readonly Routine[] = [privateFact, contactRequest, resume];
 
 /**
  * Offers AI Pujan makes out loud while a call is idle (the NUDGES in frontend holdAudio.ts: change both together; the
@@ -463,12 +515,17 @@ export async function routeRequest(question: string, firstTurn: boolean, voice =
     const summary = await pageSummary(question, page);
     if (summary) return { ...summary, routine: 'summary:page' };
   }
+  for (const routine of DIRECT) {
+    if (!routine.test(ask)) continue;
+    const answer = routine.run(ask, { projects: [], papers: [], blogs: [], experiences: [] });
+    if (answer?.text) return { ...answer, routine: routine.name };
+  }
   // "Next" on a paper or a post is the next paper or post, not the tour's first project (above).
   if (voice && page) {
     const dir = stepRequest(norm(question));
     if (dir && listAround({ projects: [], papers: [], blogs: [], experiences: [] }, page.path)) {
-      const [papers, blogs] = await Promise.all([loadPapers(), loadBlogs()]);
-      const next = neighbour({ projects: [], papers, blogs, experiences: [] }, page.path, dir);
+      const [papers, blogs, projects] = await Promise.all([loadPapers(), loadBlogs(), loadProjects()]);
+      const next = neighbour({ projects, papers, blogs, experiences: [] }, page.path, dir);
       if (next) return { ...next, routine: 'step:neighbour' };
     }
   }

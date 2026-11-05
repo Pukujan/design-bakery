@@ -34,7 +34,23 @@ export type TextFilter = {
   flush: () => string;
 };
 
-export function createTextFilter(send: (text: string, replace?: boolean) => void, hold = 220): TextFilter {
+/**
+ * The last sentence of a spoken reply when it only hands the turn back ("Want me to open it?", "Anything else?", "Which one would
+ * you like?"). On the calls of 2026-11-05 to 11-06 most replies ended this way (8 of 10 in one scripted visit): a caller who knows
+ * nothing about the site is left to decide what to ask, again and again. A reply that is only the question is left alone.
+ */
+const HANDBACK = /(?:^|[.!]\s+)((?:so |and |okay,? |now )?(?:want me to|want (?:the|to|some|a|more)|would you like|do you want|shall i|should i|can i (?:show|take|open)|anything else|is there anything|which (?:one|side|part|area|of these) (?:do|would|should)|how about|what would you like|what else|let me know|ready for|curious about)[^.?!]*\?)\s*$/i;
+
+export function dropHandback(text: string): string {
+  const body = text.trim();
+  const question = HANDBACK.exec(body)?.[1];
+  if (!question) return text;
+  const kept = body.slice(0, body.lastIndexOf(question)).trim();
+  // Only when something real was said before it: a reply that is just the question stays.
+  return kept.length >= 20 ? kept : text;
+}
+
+export function createTextFilter(send: (text: string, replace?: boolean) => void, hold = 220, spoken = false): TextFilter {
   let raw = '';
   let shown = '';
   let afterTool = false;
@@ -81,6 +97,14 @@ export function createTextFilter(send: (text: string, replace?: boolean) => void
     },
     flush() {
       emit();
+      // On a call the closing offer is cut: what was streamed is replaced by the shorter text.
+      if (spoken) {
+        const kept = dropHandback(shown);
+        if (kept !== shown.trim() && kept) {
+          send(kept, true);
+          shown = kept;
+        }
+      }
       return shown.trim();
     },
   };

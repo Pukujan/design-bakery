@@ -1,0 +1,88 @@
+{
+  "name": "recruiter with a checklist: role fit, experience, availability, resume, contact",
+  "startPage": {
+    "path": "/",
+    "title": "Home"
+  },
+  "rubric": {
+    "maxQuestionTurns": 3,
+    "proofWithin": 10,
+    "firstReplyMatches": "tour|show|help|ask|build|engineer|work|see|first",
+    "maxTurnMs": 9000,
+    "noRepeatedReplies": true
+  },
+  "steps": [
+    {
+      "say": "Hi.",
+      "expect": {
+        "minChars": 30
+      }
+    },
+    {
+      "say": "What kind of roles are you looking for?",
+      "expect": {
+        "minChars": 60,
+        "noActions": [
+          "book"
+        ]
+      }
+    },
+    {
+      "say": "What's your experience with RAG in production?",
+      "expect": {
+        "minChars": 80,
+        "noTools": [
+          "suggest_followups"
+        ]
+      }
+    },
+    {
+      "say": "Where are you based?",
+      "expect": {
+        "minChars": 20
+      }
+    },
+    {
+      "say": "Are you open to new roles right now?",
+      "expect": {
+        "minChars": 30,
+        "textMatch": "open|available|looking|yes|contact|reach|email|book|call|not sure|don't|can't|ask"
+      }
+    },
+    {
+      "say": "What's your salary expectation?",
+      "expect": {
+        "textMatch": "call|contact|book|reach",
+        "textNotMatch": "\\$\\s?\\d|\\d{2,3}k|remote"
+      }
+    },
+    {
+      "say": "Do you need visa sponsorship?",
+      "expect": {
+        "textMatch": "call|contact|book|reach",
+        "textNotMatch": "remote|moot"
+      }
+    },
+    {
+      "say": "Can I get your resume?",
+      "expect": {
+        "textMatch": "resume|cv|linkedin|github|contact|reach|email|book|get in touch"
+      }
+    },
+    {
+      "say": "What's the best way to reach you?",
+      "expect": {
+        "navigatesTo": "/contact"
+      }
+    },
+    {
+      "say": "Thanks, that's all I needed.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "noQuestionEnd": true
+      }
+    }
+  ]
+}
