@@ -205,3 +205,16 @@ Found with the real-browser check, which sends lines the way the voice agent doe
 - `/pass` skips its rate limit for the owner's exempt addresses (the simulator asks for one per run).
 - Tried and removed: making `outline_passages` and `cite_section` read a page themselves. It saves a model round trip but removes the guarantee that the model has seen what it cites (`test-copilot-cite` rightly refused it).
 - `scripts/sim/call-sim.mjs`: no longer passes `toMe`; counts tool steps (`maxSteps`, `noTools`, `maxTool`); checks reply length (`minChars`); fails any line dropped as said to someone else. New scenario `tools.json`.
+
+## Four recruiter workflows, and what they found (twentieth commit)
+
+The owner: a recruiter who knows nothing about the projects or the research judges the site by how the assistant performs, and either has a checklist or wants to be guided. `scripts/sim/scenarios/recruiter-*.json` play four visits through the real backend (checklist, newcomer, skeptic, hiring-manager deep dive); a scenario-level `rubric` judges the whole visit (replies ending in a question, something shown within N turns, the first reply, per-turn speed, repeated replies). Gaps they found, now fixed:
+
+- "I don't know anything about this. What is this?" started the "show me anything" tour (a project) instead of saying what the site is.
+- "Okay, next." did nothing (a leading filler word broke the match); "Okay and then?" on a project page did nothing; next and previous now follow the home page's project order too (`projectOrder.ts`, a copy of the frontend's `orderProjectsForShowcase`, kept in step by `test-copilot-order.mjs`).
+- "How would I contact him?" got "Want me to open the Contact page?" with no move; contact, resume and salary/visa/availability questions are now direct routines (a resume is not on the site: it says so and goes to Experience; what the site does not hold is said plainly and points to a free call, never guessed).
+- "Which project is most relevant for a legal AI team?" got the generic project list (a keyword hijack); relevance questions go to the model.
+- 8 replies of 10 ended by handing the turn back ("Want me to open it?", "Anything else?"): on a call the closing hand-back is cut (`textFilter.ts` `dropHandback`); chat keeps its offers.
+- A reply that announces a project ("Let's try X", "Something different, X") without moving the page now moves it.
+- The simulator did not apply `replace` events and always passed `toMe`; both fixed.
+- Honest state: the workflows use the real model chain, so a turn can fail one run in four (a model that skips a move or answers off-pattern). Run with `--runs 3` or more.

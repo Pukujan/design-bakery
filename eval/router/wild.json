@@ -1,0 +1,2522 @@
+[
+ {
+  "say": "i would like it to help analyze ideas",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "No, I don't want to make the reservation now.",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "No thank you that will be all",
+  "page": "/blogs",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "Yes thanks, also whats the cost per night?",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "it must be taste",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:cooking"
+ },
+ {
+  "say": "No, that is all I need. Really appreciate it!",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "give me examples of what to ask you",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:what_can_i_ask_you"
+ },
+ {
+  "say": "what was the date of my last car appointment",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "erase that from my calendar",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:calendar"
+ },
+ {
+  "say": "how many push-ups do i need to do to get ripped",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "that's true",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "confirm",
+  "target": "none",
+  "source": "clinc150:yes"
+ },
+ {
+  "say": "That's all for now. Thank you so much.",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "can i get a table for four at 8:00",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "definitely",
+  "page": "/work/cortex",
+  "intent": "confirm",
+  "target": "none",
+  "source": "clinc150:yes"
+ },
+ {
+  "say": "I would like to leave on Thursday after 12:00.",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "can you tell me your age",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:how_old_are_you"
+ },
+ {
+  "say": "Great! Thank you!",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "would you repeat what you said earlier",
+  "page": "/work/cortex",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:repeat"
+ },
+ {
+  "say": "do you know what company were you designed by",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:who_made_you"
+ },
+ {
+  "say": "Yes I would prefer a cheap place.",
+  "page": "/",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "can you group my photos by location",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "No, not at the moment. Thank you though.",
+  "page": "/",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "would you let me know the status of my american airlines flight",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "i am not able to say",
+  "page": "/research",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:maybe"
+ },
+ {
+  "say": "history",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "make it on day after tomorrow",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "x needs to be called by me",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "Yes, this seems alright. Go ahead and book it.",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "what's 47 times 83",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "how long does it take to bake a cake",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "Great. I also need a train.",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "is it true your a real person",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:are_you_a_bot"
+ },
+ {
+  "say": "i don't need eggs anymore, but i do need milk",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "i need a hotel in phoenix near chase field from january 4th to the 8th",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "i want to hear any songs that got grammys this year",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "Yes, please for my records",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "Great, thank you! What are they?",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "are you a person that's real",
+  "page": "/contact",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:are_you_a_bot"
+ },
+ {
+  "say": "i need to put a stop on my bank account",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "Thats everything I needed thanks for the help!",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "transfer $100 from my checking to saving account",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "I'm also looking for a cheap Italian place in the center of town.",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "thanks that was really helpful",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:thank_you"
+ },
+ {
+  "say": "what date is it today",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:datetime"
+ },
+ {
+  "say": "how many star wars movies are there",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "why is the earth round",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "how long is the bank open until",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "No, not now.That's all now.",
+  "page": "/blogs",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "that is most definitely false",
+  "page": "/",
+  "intent": "decline",
+  "target": "none",
+  "source": "clinc150:no"
+ },
+ {
+  "say": "Perfect, could I have the entrance fee and postcode?",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "can you check how many steps i have walked in the last week from my phone app",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "what is 100 multiplied by 55",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "how many minutes am i from texaco",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "what year was the first airplane built in",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "let's hear a joke from you please",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:tell_joke"
+ },
+ {
+  "say": "can you tell me what you are called",
+  "page": "/contact",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:what_is_your_name"
+ },
+ {
+  "say": "play f. m.",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "bye bye then",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:goodbye"
+ },
+ {
+  "say": "Perfect.I want to reserve the hotel for 4 days.",
+  "page": "/",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "i really need to check my rewards for my credit card",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "find schematics for ikea desk assembly",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "what is the minimum payment on my water bill",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "that's incorrect",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "clinc150:no"
+ },
+ {
+  "say": "Can I get the address of the Gonville, please?",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "whens your birthday",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:how_old_are_you"
+ },
+ {
+  "say": "what is 1000 plus 745",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "Great that will be everything thanks.",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "is there a fee for cancelling a flight i've booked",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "I am also looking for a place to stay in the centre. It should be cheap.",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "give me a joke about water",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:tell_joke"
+ },
+ {
+  "say": "how's the weather like in new jersey",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:weather"
+ },
+ {
+  "say": "how much money can i transfer today",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "can you please read me the routing number to pnc",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "move rap god to my motivational playlist",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "change from whisper mode",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "I am looking for a taxi from yu garden arriving by 14:30",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "what's on your mind",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "this new email should be added to my contact",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:email"
+ },
+ {
+  "say": "i need to know my cars mpg",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "how has your day been today",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "You can smoke in the hotel?Tell me the contact phone number.",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "could you cancel that request, please",
+  "page": "/contact",
+  "intent": "decline",
+  "target": "none",
+  "source": "clinc150:cancel"
+ },
+ {
+  "say": "what is the process for jump starting my car",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "raise the volume of the current music",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:audio"
+ },
+ {
+  "say": "can you set my coffee machine to make me coffee at seven am",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:iot"
+ },
+ {
+  "say": "Tell me the phone number and the address.",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "No not in particular.",
+  "page": "/",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "are there any forecasts of rain or snow this week",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:weather"
+ },
+ {
+  "say": "make a list of what materials have been used for spacesuits",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "submit a negative review about a company",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:social"
+ },
+ {
+  "say": "can you tell me who's calling me",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "remove set alarm",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:alarm"
+ },
+ {
+  "say": "if i go to columbia, will i need a visa",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "has robert emails me yet",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:email"
+ },
+ {
+  "say": "tell me what this song is called",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "repeat that for me please",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:repeat"
+ },
+ {
+  "say": "Ok That's sound good.",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "how its come to us",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:email"
+ },
+ {
+  "say": "Yes, that's right.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "are there any school closures today",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "good speaking to you",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:goodbye"
+ },
+ {
+  "say": "What's their address and phone number?",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "fill up my water bottle for the gym",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "No, that is it, thank you.",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "No, that just about covers it. Thanks!",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "what's happening around my town",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:recommendation"
+ },
+ {
+  "say": "are all the street lamps working on my street",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "is insomnia curable",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "what are you feeling today",
+  "page": "/blogs",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:greeting"
+ },
+ {
+  "say": "ai you have given me so much information, thank you",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:thank_you"
+ },
+ {
+  "say": "can you really get arrested for yelling fire in a crowded theater",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "please send an email to uncle john with the following yes i can make it",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:email"
+ },
+ {
+  "say": "hello, how are things",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:greeting"
+ },
+ {
+  "say": "what is the current time in chennai",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:datetime"
+ },
+ {
+  "say": "Yeah, that sounds awesome.",
+  "page": "/",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "notify me about the event in my calendar",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:calendar"
+ },
+ {
+  "say": "how does my current htc phone compare to other android phones",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "what is a good laptop for gaming",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "who do i call to report my card as lost",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "Can I have the address and postcode please?",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "explain how is u. s. a. better than other countries",
+  "page": "/blogs",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "I would like for the restaurant to be expensive.",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "mild or heavy weather",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:weather"
+ },
+ {
+  "say": "can we please",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "clinc150:yes"
+ },
+ {
+  "say": "Can you book it for me and get a reference number ?",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "What time would you like to depart?",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "your birthday please",
+  "page": "/contact",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:how_old_are_you"
+ },
+ {
+  "say": "can you send the email to the new email id",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:email"
+ },
+ {
+  "say": "i need the temperature set at 70 f",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "Yes that's all correct",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "i wanna know who programmed you",
+  "page": "/blogs",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:who_made_you"
+ },
+ {
+  "say": "what channel is cw on",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "Okay thank you very much.",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "check to see if i still have allergy medication",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "i want to talk english",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "tell me about economy and g. d. p. about india versus china",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "baseball scores",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "start pandora",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "i would like to hear a joke",
+  "page": "/contact",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:tell_joke"
+ },
+ {
+  "say": "Yes, please book it for 4 people.",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "what do you want to do today",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "i apprecaite the help from you",
+  "page": "/blogs",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:thank_you"
+ },
+ {
+  "say": "I need to the train on Friday and I need to arrive by 8:00.",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "is the phone bill the same as last month",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "search to find current local time and time zone",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:datetime"
+ },
+ {
+  "say": "Great thanks so much!",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "I'd like to be where all the action is in the centre of town.",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "can you please tell me about the status of my credit card application",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "can i use sugar instead of salt",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "can you tell me if your a bot",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:are_you_a_bot"
+ },
+ {
+  "say": "I need help finding a hotel.",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "can you see about reservations at the aylesbray lodge guest house",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "turn on vacuum cleaner",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:iot"
+ },
+ {
+  "say": "please give me the time",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "who is the one who programmed you",
+  "page": "/contact",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:who_made_you"
+ },
+ {
+  "say": "give me your name so i can use you",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:what_is_your_name"
+ },
+ {
+  "say": "give me some good sounds",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "did my vacation get approval",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "where are classes taught near me for c++",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "spell the word aaron",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "No that's all. Thank you!",
+  "page": "/contact",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "that has to be false",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "clinc150:no"
+ },
+ {
+  "say": "it is very much false",
+  "page": "/",
+  "intent": "decline",
+  "target": "none",
+  "source": "clinc150:no"
+ },
+ {
+  "say": "let me know who programmed you",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:who_made_you"
+ },
+ {
+  "say": "it was great to talk to you",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:goodbye"
+ },
+ {
+  "say": "at what age can someone get a card",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "when are the winter olympic games",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "Could you give me their phone number, postcode, and entrance fee?",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "plants",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "program my new robot to bring me snacks",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "hi, how are you",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:greeting"
+ },
+ {
+  "say": "what are the hours for disney world",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "Postcode please, than search for an indian restaurant if you are able to",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "give me some health tips",
+  "page": "/blogs",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "what is my remaining amount of pto days",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "please scan the am dial on the radio right now",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "The same as the hotel please",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "technology",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "is my car due for it's next oil change",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "are you smart",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "La Mimosa and can you book it for me and get a reference number ?",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "how many years have you been alive",
+  "page": "/contact",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:how_old_are_you"
+ },
+ {
+  "say": "can you please download my podcast file available in internet and play it once",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "Yes please, for 7 people.",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "that was a mistake, undo that",
+  "page": "/work/cortex",
+  "intent": "decline",
+  "target": "none",
+  "source": "clinc150:cancel"
+ },
+ {
+  "say": "alexa give me the headline news",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:news"
+ },
+ {
+  "say": "open parcheese game for you and i",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "send me a quote from a motivational speaker twice a day",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "how hard is it to close a bank account at wells fargo",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "become a helicopter",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "thank a bunch",
+  "page": "/blogs",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:thank_you"
+ },
+ {
+  "say": "add mary to my phone plan, please",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "ask trivia questions",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "playback tom clancy splinter cell",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "Yes, please. I need 5 tickets.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "how many harry potter books are there",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "can you please order some food for me",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:takeaway"
+ },
+ {
+  "say": "Do you have anything that serves modern european food?",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "Sounds great! please book it for 2 people at 18:15 on monday",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "what is the latest news on donald trump",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:news"
+ },
+ {
+  "say": "give weather update now",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "Thurs. would like to arrive by 08:15 please. I am going to norwich from cambridge.",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "share my current location with kristen",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "quiet time",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:audio"
+ },
+ {
+  "say": "I'm looking for an attraction to visit. Is there anything located in the west part of town?",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "ai, what is your given name",
+  "page": "/contact",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:what_is_your_name"
+ },
+ {
+  "say": "can you please advise",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "find the latest disney podcast",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "I am looking to depart from steveage and leave after 11:15 please.",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "look up which animal is represented in this year's chinese new year",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "can you let amazon know that this new phone case is junk",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:social"
+ },
+ {
+  "say": "please look up local restaurants that are open now",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:recommendation"
+ },
+ {
+  "say": "Thank you so much. You have been very helpful.",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "let me know if you are a human or are a computer",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:are_you_a_bot"
+ },
+ {
+  "say": "i need to schedule meeting room for monday at 2:30 pm, please",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "reply email",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:email"
+ },
+ {
+  "say": "I'm leaving from cambridge and county folk museum.",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "convert current time from g. m. t. to e. s. t.",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:datetime"
+ },
+ {
+  "say": "tell me a blonde joke",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:tell_joke"
+ },
+ {
+  "say": "i need to know traffic patterns heading to the george washington bridge from manhattan",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "email mom and ask how the weather is there",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:email"
+ },
+ {
+  "say": "what did you just say",
+  "page": "/blogs",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:repeat"
+ },
+ {
+  "say": "No, that would be all. Thanks. Bye.",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "Great, thank you for your help!",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "can you tell me the tire pressure for the car",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "No thanks. You've been a great help.",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "would you mind repeating that",
+  "page": "/blogs",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:repeat"
+ },
+ {
+  "say": "you can cancel the task",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "decline",
+  "target": "none",
+  "source": "clinc150:cancel"
+ },
+ {
+  "say": "A museum sounds good can I get the phone number and entrance fee of one?",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "which company made you",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:who_made_you"
+ },
+ {
+  "say": "can you tell me a joke",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_joke"
+ },
+ {
+  "say": "it could go either way",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:maybe"
+ },
+ {
+  "say": "Yes, I would like asian oriental food.",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "Yes, can you give me a phone number please?",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "affirmative",
+  "page": "/work/cortex",
+  "intent": "confirm",
+  "target": "none",
+  "source": "clinc150:yes"
+ },
+ {
+  "say": "that's all i need, i'm going now",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:goodbye"
+ },
+ {
+  "say": "my answer would be maybe",
+  "page": "/research",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:maybe"
+ },
+ {
+  "say": "how many books are in piers anthony virtual mode series",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "my day was extremely hard",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "i want a flight from new york to san francisco using delta",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "i want it to remember my preferences and recommend me things based on them when i ask",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "i need to know how you are doing today",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:greeting"
+ },
+ {
+  "say": "what's your name",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:what_is_your_name"
+ },
+ {
+  "say": "i want to know what type of things you can help me with",
+  "page": "/blogs",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:what_can_i_ask_you"
+ },
+ {
+  "say": "that's not correct",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "clinc150:no"
+ },
+ {
+  "say": "talk to you soon, bye!",
+  "page": "/contact",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:goodbye"
+ },
+ {
+  "say": "what will it take to achieve world peace",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "what's jlo up to",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "tell me a joke about the topic of mice",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:tell_joke"
+ },
+ {
+  "say": "can you share a humorous joke with me",
+  "page": "/contact",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:tell_joke"
+ },
+ {
+  "say": "see you later",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:goodbye"
+ },
+ {
+  "say": "how the to do list for today",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:lists"
+ },
+ {
+  "say": "I need to reserve a table at shiraz, can you help me?",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "yes, that happens to be correct",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "confirm",
+  "target": "none",
+  "source": "clinc150:yes"
+ },
+ {
+  "say": "schedule a meeting with the accounting department on two thirty p. m. on friday",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:calendar"
+ },
+ {
+  "say": "please begin clash of clans",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "what are you programmed to do for me",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:what_can_i_ask_you"
+ },
+ {
+  "say": "how many carry ons can i take on a flight with united airlines to austin",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "can you check to see which parking garages are open downtown",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "can you create a sugar free diet for me and create a shopping list for the ingredients",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "would you tell me how old you are",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:how_old_are_you"
+ },
+ {
+  "say": "Perfect. Please book that train for one person.",
+  "page": "/",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "can you end the current process",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "decline",
+  "target": "none",
+  "source": "clinc150:cancel"
+ },
+ {
+  "say": "what's my salary",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "text mark hello",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "I would like to stay in the east. I prefer a hotel, if possible.",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "stop talking",
+  "page": "/work/cortex",
+  "intent": "decline",
+  "target": "none",
+  "source": "clinc150:cancel"
+ },
+ {
+  "say": "is there an alternate bus stop close to my home i can use",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "what's the latest news on c. n. n.",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:news"
+ },
+ {
+  "say": "send a replay email",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:email"
+ },
+ {
+  "say": "Okay, That sounds great! Find me the address please.",
+  "page": "/work/cortex",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "thanks a million",
+  "page": "/contact",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:thank_you"
+ },
+ {
+  "say": "what do you call me",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:user_name"
+ },
+ {
+  "say": "when is my car due for its next oil change",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "that might be the case",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:maybe"
+ },
+ {
+  "say": "find out where one can get involved in discussing local election issues",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "find out how many latin scholars there are at the university of chicago",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "Nope; play it on speaker in kitchen.",
+  "page": "/contact",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "i need to order some food from papa john's",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:takeaway"
+ },
+ {
+  "say": "would a socket converter be needed in france",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "sticking to diet",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "how are you doing",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:greeting"
+ },
+ {
+  "say": "are you real",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:are_you_a_bot"
+ },
+ {
+  "say": "That's all I need, thanks very much.",
+  "page": "/blogs",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "hey olly i missed you",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "can you please repeat that",
+  "page": "/blogs",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:repeat"
+ },
+ {
+  "say": "generate a list of 20 songs that include the word love in the title",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "tell me amazon's choice for a set of 4 dinner plates",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "check for emails from my employer",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:email"
+ },
+ {
+  "say": "turn off my wifi",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:iot"
+ },
+ {
+  "say": "I would like a polynesian restaurant, please.",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "how should i address you",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:what_is_your_name"
+ },
+ {
+  "say": "In the West part of town for 3 people",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "what do i call you, ai",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:what_is_your_name"
+ },
+ {
+  "say": "No that was all. Thanks!",
+  "page": "/contact",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "that isn't correct",
+  "page": "/blogs",
+  "intent": "decline",
+  "target": "none",
+  "source": "clinc150:no"
+ },
+ {
+  "say": "health",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "can you delete the next event",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:calendar"
+ },
+ {
+  "say": "what's the date of the winter solstice two years from now",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:datetime"
+ },
+ {
+  "say": "can you tell me britain's timezone",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "have you seen the remote",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "show me my calendar event this friday afternoon",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:calendar"
+ },
+ {
+  "say": "I need to find a guesthouse in the north.",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "how old",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:how_old_are_you"
+ },
+ {
+  "say": "i need you to repeat that please",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:repeat"
+ },
+ {
+  "say": "what name do you have for me",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:user_name"
+ },
+ {
+  "say": "i wish it could give me advice",
+  "page": "/blogs",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "massive:general_quirky"
+ },
+ {
+  "say": "can i know what type of things you can help me with",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:what_can_i_ask_you"
+ },
+ {
+  "say": "i would be happy if you update me the events going on our area",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:recommendation"
+ },
+ {
+  "say": "will you tell me how the ai is doing",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:greeting"
+ },
+ {
+  "say": "Great can I get the phone number and entrance fee?",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "No, I am all set.",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "when is my meeting with invoicing scheduled",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "please stop talking",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:audio"
+ },
+ {
+  "say": "please tell me the current location",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "what is the amount of blood needed to stay alive",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "what does my schedule look like today",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:calendar"
+ },
+ {
+  "say": "activate direct deposit to chase account",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "how do i stop my child from setting small animals on fire for amusement",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "are you a person or artificial intelligence",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:are_you_a_bot"
+ },
+ {
+  "say": "No that is all, thank you!",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "i'm not actually sure",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:maybe"
+ },
+ {
+  "say": "Yes, that is everything. Address?",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "I'll be going to London, England. I have some family there.",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "Yes, please. I will need the reference number",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "so what subjects do you like",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:what_can_i_ask_you"
+ },
+ {
+  "say": "thanks for trying",
+  "page": "/blogs",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:thank_you"
+ },
+ {
+  "say": "can you recommend some fiction books",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "did a man really die trying to be loved by a horse",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "my name",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:user_name"
+ },
+ {
+  "say": "check for emails from steve",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:email"
+ },
+ {
+  "say": "play the second song from anirudh's song",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "play my favorite song from last year",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "can you make this event repetitive",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:calendar"
+ },
+ {
+  "say": "tuesday, get me the reference number please.",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "get me a list of universities that provide full scholarships in arizona",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "No that is it. Thank you!",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "tell me who your maker was",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:who_made_you"
+ },
+ {
+  "say": "tell me if taco bell takes reservations",
+  "page": "/research",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:in-scope-elsewhere"
+ },
+ {
+  "say": "what knowledge do you have on certain subjects",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "clinc150:what_can_i_ask_you"
+ },
+ {
+  "say": "show me the most recent emails",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:email"
+ },
+ {
+  "say": "Yes I would like it to serve asian oriental",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "what are the requirements of a lab technician",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "No, that's all I need. Thank you.",
+  "page": "/",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "yes, please",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "clinc150:yes"
+ },
+ {
+  "say": "show me the goals of my local police department in terms of reducing crime",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "clinc150:oos"
+ },
+ {
+  "say": "what do i go by",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:user_name"
+ },
+ {
+  "say": "please continue reading audiobook",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "No, I want an expensive hotel with free wi-fi.",
+  "page": "/blogs",
+  "intent": "decline",
+  "target": "none",
+  "source": "multiwoz/sgd:no"
+ },
+ {
+  "say": "Yes, thats right",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "hush",
+  "page": "/",
+  "intent": "decline",
+  "target": "none",
+  "source": "clinc150:cancel"
+ },
+ {
+  "say": "Yes, to commute between both places.",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "i want to hear snow by red hot chili peppers",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:play"
+ },
+ {
+  "say": "could you tell me my name",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:user_name"
+ },
+ {
+  "say": "Thank you. Can you help me find a concerthall in town to visit?",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "what is the name you have for me",
+  "page": "/research",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:user_name"
+ },
+ {
+  "say": "That sounds good. Do they have free parking?",
+  "page": "/work/cortex",
+  "intent": "confirm",
+  "target": "none",
+  "source": "multiwoz/sgd:yes"
+ },
+ {
+  "say": "a quarter to two",
+  "page": "/work/cortex",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "massive:datetime"
+ },
+ {
+  "say": "I'm also looking for a train. Arriving in Cambridge by 09:15.",
+  "page": "/blogs",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "multiwoz/sgd:task"
+ },
+ {
+  "say": "undecided",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "clinc150:maybe"
+ }
+]
