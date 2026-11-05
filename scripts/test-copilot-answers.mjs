@@ -77,10 +77,17 @@ for (const [question, expected] of firstTurn) {
 const followUps = ['open', 'summarize that', 'the third one', 'what about the second', 'why?', 'more', 'hello??', 'hi',
   // From the traces (2026-11-03): one project named, the conversation itself, and "what else" all got the project list.
   'What stack is Precedent built with?', 'And what was the first project we talked about?', 'What about Another project. What else does he have?',
-  "what's the President project?", 'What did Arise have to do with this project?'];
+  "what's the President project?", 'What did Arise have to do with this project?',
+  // From the call of 2026-11-05: each of these got "11 working papers. The newest is..." and the paper on screen was never read.
+  'You wanna show me this paper and talk me through it?', 'Do you wanna show me this paper and summarize it for me?', 'What does this paper try to say?',
+  'Can you explain the research behind it?', 'Tell me more about the research'];
 for (const followUp of followUps) {
   assert.equal(await cachedAnswer(followUp, false), null, `"${followUp}" must reach the model, not the cache`);
 }
+
+// Small talk is exempt from the pointing-back rule, and the plain list questions still work mid-conversation.
+assert.ok(await cachedAnswer('thanks, got it', false), 'thanks mid-conversation still gets the answer');
+assert.ok(await cachedAnswer('what research papers do you have', true), 'the research list on a first turn');
 
 // The same questions on a later turn are still the same question.
 assert.ok(await cachedAnswer('how do i contact pujan', false), 'an exact contact question should still be answered later in a conversation');
