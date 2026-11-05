@@ -27,12 +27,13 @@ async function pass() {
   return j.pass;
 }
 
-async function turn(token, messages, page) {
+async function turn(token, messages, page, toMe = false) {
   const t = Date.now();
   const r = await fetch(`${base}/api/copilot/chat`, {
     method: 'POST', headers: { 'content-type': 'application/json', 'x-copilot-pass': token },
     // The page's own client sends only the latest turns (a summary stands for the rest): the API takes at most 24.
-    body: JSON.stringify({ messages: messages.slice(-24), voice: true, toMe: true, ...(page ? { page } : {}) }),
+    // toMe stays false, as for a line heard on a real call: the addressee check runs on it, and a line it drops is a failure below.
+    body: JSON.stringify({ messages: messages.slice(-24), voice: true, ...(toMe ? { toMe: true } : {}), ...(page ? { page } : {}) }),
   });
   const body = await r.text();
   const events = body.split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return { type: 'garbled', raw: l }; } });
@@ -49,8 +50,11 @@ function check(step, got, page) {
   const text = got.events.filter((x) => x.type === 'text').map((x) => x.text).join('');
   const actions = got.events.filter((x) => x.type === 'action').map((x) => x.action);
   const kinds = actions.map((a) => a.kind);
+  // Every tool the model started this turn, in order: each is a model round trip, so the count is the turn's cost.
+  const steps = got.events.filter((x) => x.type === 'step' && x.status === 'start').map((x) => x.name);
   if (got.status !== 200) fails.push(`HTTP ${got.status}`);
   for (const ev of got.events) if (ev.type === 'error') fails.push(`error event: ${ev.message}`);
+  if (got.events.some((ev) => ev.type === 'ignored') && !step.expectIgnored) fails.push(`the line was dropped as said to someone else: ${JSON.stringify(got.events.find((ev) => ev.type === 'ignored'))}`);
   if (e.actions) {
     let i = 0;
     for (const k of kinds) if (k === e.actions[i]) i += 1;
@@ -66,26 +70,31 @@ function check(step, got, page) {
       for (const [k, v] of Object.entries(e.book)) if (String(b[k] ?? '').toLowerCase() !== String(v).toLowerCase()) fails.push(`book.${k} should be ${v}, got ${b[k]}`);
     }
   }
+  if (e.maxSteps !== undefined && steps.length > e.maxSteps) fails.push(`${steps.length} tool steps, over ${e.maxSteps}: [${steps}]`);
+  for (const t of e.noTools ?? []) if (steps.includes(t)) fails.push(`must not use the ${t} tool, steps [${steps}]`);
+  for (const [t, max] of Object.entries(e.maxTool ?? {})) if (steps.filter((x) => x === t).length > max) fails.push(`${t} used more than ${max} time(s): [${steps}]`);
   if (e.textMatch && !new RegExp(e.textMatch, 'i').test(text)) fails.push(`reply should match /${e.textMatch}/`);
+  if (e.minChars && text.trim().length < e.minChars) fails.push(`reply too short (${text.trim().length} chars, wanted ${e.minChars}): "${text.trim()}"`);
   if (e.textNotMatch && new RegExp(e.textNotMatch, 'i').test(text)) fails.push(`reply must not match /${e.textNotMatch}/: "${text.slice(0, 120)}"`);
   if (e.spells) for (const w of e.spells) if (!spelled(text, w)) fails.push(`reply should spell "${w}" letter by letter: "${text.slice(0, 140)}"`);
   if (e.asksToConfirm && !endsWithQuestion(text) && !/\b(right|correct|confirm)\b/i.test(text)) fails.push(`reply should ask the caller to confirm: "${text.slice(0, 140)}"`);
   if (e.noQuestionEnd && endsWithQuestion(text)) fails.push(`reply should not end with a question: "${text.slice(-100)}"`);
   if (e.maxMs && got.ms > e.maxMs) fails.push(`took ${got.ms} ms, over ${e.maxMs}`);
   if (e.pageAfter && page.path !== e.pageAfter) fails.push(`page after the turn should be ${e.pageAfter}, is ${page.path}`);
-  return { fails, text, actions };
+  return { fails, text, actions, steps };
 }
 
 let failedRuns = 0;
+// One pass serves every run: it lasts two hours, and /pass has its own rate limit.
+const token = await pass();
 for (let run = 1; run <= runs; run += 1) {
-  const token = await pass();
   const messages = [];
   let page = scenario.startPage ?? { path: '/', title: 'Home' };
   const results = [];
   for (const [i, step] of scenario.steps.entries()) {
     if (step.page) page = step.page;
     messages.push({ role: 'user', content: step.say });
-    const got = await turn(token, messages, page);
+    const got = await turn(token, messages, page, step.toMe === true);
     // The page moves when a reply moves it (the call's browser takes the move before the speech): the next turn is told so.
     for (const ev of got.events) {
       if (ev.type !== 'action') continue;
@@ -93,9 +102,9 @@ for (let run = 1; run <= runs; run += 1) {
       if (a.kind === 'navigate' && a.go) page = { path: a.path, title: a.label };
       if (a.kind === 'cite') page = { path: a.path, title: page.title };
     }
-    const { fails, text, actions } = check(step, got, page);
+    const { fails, text, actions, steps } = check(step, got, page);
     messages.push({ role: 'assistant', content: text || '(no reply)' });
-    results.push({ i: i + 1, say: step.say, fails, text, actions, ms: got.ms, page: page.path });
+    results.push({ i: i + 1, say: step.say, fails, text, actions, steps, ms: got.ms, page: page.path });
   }
   const bad = results.filter((r) => r.fails.length);
   if (bad.length) failedRuns += 1;
@@ -104,7 +113,7 @@ for (let run = 1; run <= runs; run += 1) {
     console.log(`${r.fails.length ? '✗' : '✓'} ${r.i}. "${r.say}"  [${r.ms} ms, page ${r.page}]`);
     if (verbose || r.fails.length) {
       console.log(`     said:    ${r.text.replace(/\s+/g, ' ').slice(0, 170)}`);
-      console.log(`     actions: ${r.actions.map((a) => a.kind + (a.path ? `(${a.path})` : '')).join(', ') || '-'}`);
+      console.log(`     actions: ${r.actions.map((a) => a.kind + (a.path ? `(${a.path})` : '')).join(', ') || '-'}   tools: ${r.steps.join(', ') || '-'}`);
     }
     for (const f of r.fails) console.log(`     FAIL: ${f}`);
   }

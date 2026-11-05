@@ -1,0 +1,58 @@
+{
+  "name": "tool discipline on a paper: few steps, no dead-end buttons, cards on a call",
+  "startPage": {
+    "path": "/research/papers/db-r-2026-010",
+    "title": "Accuracy is not enough"
+  },
+  "steps": [
+    {
+      "say": "Hello",
+      "expect": {}
+    },
+    {
+      "say": "Summarize this paper for me.",
+      "expect": {
+        "maxSteps": 0,
+        "noTools": [
+          "suggest_followups",
+          "book_call"
+        ],
+        "maxTool": {
+          "outline_passages": 1,
+          "read_paper": 1,
+          "cite_section": 3
+        },
+        "maxMs": 3000,
+        "minChars": 180,
+        "textNotMatch": "^(here it is|here you go)[.!]?$",
+        "actions": [
+          "cite"
+        ]
+      }
+    },
+    {
+      "say": "Which projects have you built with React?",
+      "expect": {
+        "actions": [
+          "projects"
+        ],
+        "noTools": [
+          "suggest_followups"
+        ],
+        "maxSteps": 3
+      }
+    },
+    {
+      "say": "Show me your projects.",
+      "page": {
+        "path": "/",
+        "title": "Home"
+      },
+      "expect": {
+        "actions": [
+          "projects"
+        ]
+      }
+    }
+  ]
+}

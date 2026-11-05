@@ -48,7 +48,7 @@ export function bookingUrl(base: string, who: { name?: string; email?: string; t
  * `canNavigate` is true only when the visitor has just said yes to an offer to open a
  * page (route.ts decides that). Without it, navigate refuses and the model must ask.
  */
-export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean; citations?: Citations }) {
+export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean; citations?: Citations; voice?: boolean }) {
   const citations = options.citations;
   return {
     search_site: tool({
@@ -208,6 +208,11 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
         topic: z.string().max(300).optional(),
       }),
       execute: async (who) => {
+        // On a call booking is a short dialogue that checks the name and email with the caller (booking.ts). The model cannot show the
+        // button itself, and on 2026-11-05 it said the card was up three times without it: send the caller to the dialogue.
+        if (options.voice) {
+          return { ok: false, error: 'On a call, booking is a short set of questions that starts when the visitor says "book the call". Tell them to say that, and do not say a booking button or card is up.' };
+        }
         const base = process.env.COPILOT_BOOKING_URL?.trim();
         if (!base) {
           emit({ kind: 'link', label: 'Email me', url: 'mailto:pujan3645@gmail.com' });

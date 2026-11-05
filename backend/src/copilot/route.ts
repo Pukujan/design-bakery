@@ -99,6 +99,7 @@ Personality (your default, in every reply):
 const VOICE_NOTE = `This is a live voice call. Speak in short, natural sentences, one idea at a time, with no lists, markdown or links. Stay under 35 words unless asked for more.
 What the visitor says comes from speech recognition, which mishears names: "President" is usually Precedent, "Arise" is Arize. When a word sounds like one of my projects, papers or tools, take it as that and answer about it, without remarking on the word.
 Moving the visitor: do not ask permission. When a page or a section would help, say in a few words where you are taking them and call navigate right away, then talk about what is on that page. Never say you are opening, showing or taking them somewhere ("Let's start with Cortex", "There they are") unless this same reply calls navigate, show_projects or cite_section; when the visitor says "any of them", "you pick", "anything", "whatever" or "just show me", pick one project yourself and call navigate or show_projects in that same reply. Never answer a vague ask with a question ("what are you working on?", "which one?") and never read out a list of headings or names for them to choose from. When you speak about a particular part of a post, paper or project, call cite_section for it first (with a short quote if one fits), so the page is already there when you say it. For anything long, give one passage and offer to go on to the next.
+Summaries: when asked to summarise or explain a post, paper or project, read it, call outline_passages, then SAY the summary: one short sentence for each passage, three or four in all, in order, calling cite_section as you reach each so the page follows your words. The words you speak are the summary: never answer only "Here it is" or "Here you go". Booking is not yours to do on a call: when they want a call or a consultation, tell them to say "book the call", and never say a booking card or button is up.
 Be good company, not a brochure:
 - Talk about whatever the visitor brings up: their day, their pet, their lunch, the weather, a random thought. Stay on their topic for as long as they do; react to the actual detail they said and add a take of your own. Do not steer back to my work, the site or a page unless they ask, or the chat has clearly run dry.
 - Do not end every reply with a question or an offer. In about a third of replies, end on a dry, witty or mildly sarcastic throwaway line instead, for no reason at all (in the spirit of "Honestly, that's more drama than most product launches." Make up your own; never reuse that one). Offers to open a page are rare: at most one every few turns, and never two turns running.
@@ -116,6 +117,14 @@ function visitorSaidYes(messages: Array<{ role: string; content: string }>): boo
   if (last.content.trim().split(/\s+/).length > 5) return false;
   if (!/^\s*(yes|yeah|yep|yup|sure|ok|okay|please|go ahead|do it|open it|sounds good|absolutely|definitely)\b/i.test(last.content)) return false;
   return before?.role === 'assistant' && /\?\s*$/.test(before.content.trim());
+}
+
+/** On a call there are no follow-up buttons: the tool that makes them only costs a model round trip and its suggestions go nowhere. */
+function callTools<T extends Record<string, unknown>>(tools: T, voice: boolean): Partial<T> {
+  if (!voice) return tools;
+  const { suggest_followups: _unused, ...rest } = tools as Record<string, unknown>;
+  void _unused;
+  return rest as Partial<T>;
 }
 
 function chain(voice = false): Provider[] {
@@ -156,7 +165,8 @@ copilotRouter.get('/config', (req, res) => {
 
 copilotRouter.post('/pass', async (req, res) => {
   const ip = ipOf(req);
-  if (!passLimiter.take(`pass:${ip}`).ok) {
+  // The owner's own addresses skip the request limits (fairUse.ts), this one included: the simulator asks for a pass per run.
+  if (!exemptReq(req) && !passLimiter.take(`pass:${ip}`).ok) {
     res.status(429).json({ ok: false, code: 'RATE_LIMITED' });
     return;
   }
@@ -317,7 +327,7 @@ copilotRouter.post('/chat', async (req, res) => {
   // What AI Pujan has already said, so a tour moves on to somewhere new (routines.ts, surprise).
   const said = messages.filter((m) => m.role === 'assistant').slice(-12).map((m) => m.content).join(' ');
   const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before, said, messages, page);
-  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || routed.routine.startsWith('tour:') || routed.routine.startsWith('booking:') || routed.routine.startsWith('step:') || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
+  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || routed.routine.startsWith('tour:') || routed.routine.startsWith('booking:') || routed.routine.startsWith('step:') || routed.routine.startsWith('summary:') || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
   if (cached) {
     turn.model = `cache:${cached.intent}`;
     turn.routine = cached.routine;
@@ -329,7 +339,7 @@ copilotRouter.post('/chat', async (req, res) => {
     for (const action of cached.actions) {
       // On a call there are no buttons: only a page move the call makes itself, and the booking button, which is the point of a
       // booking made by voice (booking.ts): without it the caller gives a name and an email and is left with nothing to tap.
-      if (voice && action.kind !== 'book' && !(follow && action.kind === 'navigate')) continue;
+      if (voice && action.kind !== 'book' && action.kind !== 'projects' && action.kind !== 'cite' && !(follow && action.kind === 'navigate')) continue;
       send({ type: 'action', action: withChip(action.kind === 'navigate' ? { ...action, go: follow } : action) });
     }
     if (voice) for (const step of cached.steps ?? []) send({ type: 'action', action: { kind: 'scrollstep', path: step.path, at: step.at } });
@@ -394,15 +404,16 @@ copilotRouter.post('/chat', async (req, res) => {
       model,
       system,
       messages: history,
-      tools: smallTalk ? {} : makeTools(
-        // On a call the model moves the page itself and sends no buttons.
+      tools: smallTalk ? {} : callTools(makeTools(
+        // On a call the model moves the page itself and sends no buttons; project cards and the booking button are what a call shows.
         (action) => {
-          if (voice && action.kind !== 'navigate' && action.kind !== 'cite' && action.kind !== 'book') return;
+          if (voice && action.kind !== 'navigate' && action.kind !== 'cite' && action.kind !== 'book' && action.kind !== 'projects') return;
           send({ type: 'action', action: withChip(action) });
         },
-        { canNavigate: voice || visitorSaidYes(messages), citations },
-      ),
-      stopWhen: stepCountIs(smallTalk ? 1 : 6),
+        { canNavigate: voice || visitorSaidYes(messages), citations, voice },
+      ), voice),
+      // Each step is a model round trip: on a call six of them took 18 to 32 s. Four leave room for a read, a page move and a pointer.
+      stopWhen: stepCountIs(smallTalk ? 1 : voice ? 4 : 6),
       // The prompt keeps replies short; this is the ceiling, with room above a visible reply for a model that still thinks.
       maxOutputTokens: voice ? 300 : 400,
       abortSignal: abort.signal,
