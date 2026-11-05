@@ -17,6 +17,7 @@ import { CopilotChat } from './CopilotChat';
 import { MiniCopilot } from './MiniCopilot';
 import VoiceOrb from './VoiceOrb';
 import MoonCursor from './MoonCursor';
+import { BookingCard } from './BookingCard';
 import { useAgentCursor } from './agentCursor';
 import { useReplyPeek } from './replyPeek';
 import { copilot, useCopilot } from './store';
@@ -180,6 +181,7 @@ export default function CopilotDock() {
       onBlur={onBlur}
     >
       <VoiceOrb />
+      <BookingCard />
       <MoonCursor peek={moonOut ? peek : null} />
       <AnimatePresence>
         {showPill && peek && !moonOut && (

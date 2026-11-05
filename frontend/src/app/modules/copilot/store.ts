@@ -52,7 +52,12 @@ export type CopilotMessage = {
   heardId?: string;
 };
 
+/** The booking a call has made: shown as a card with one button, because a call has no chat thread to hold a chip. */
+export type BookingOffer = { url: string; name?: string; email?: string; topic?: string };
+
 export type CopilotState = {
+  /** The booking button of a voice call (booking.ts on the server); null until one is made. */
+  booking?: BookingOffer | null;
   messages: CopilotMessage[];
   busy: boolean;
   /** The dock's sidebar is open. */
@@ -512,6 +517,7 @@ export const copilot = {
     navigateFn = fn;
   },
   setOpen: (open: boolean) => set({ open }),
+  dismissBooking: () => set({ booking: null }),
   setDraft: (draft: string) => set({ draft }),
   setHeroVisible: (heroVisible: boolean) => {
     if (state.heroVisible !== heroVisible) set({ heroVisible });
@@ -875,6 +881,13 @@ function handle(event: Event, replyId: number) {
         const before = Promise.all(pendingMoves);
         pendingMoves.push(before.then(() => cite(action)).catch(() => undefined));
       } else pendingCites.push(action);
+      return;
+    }
+    if (event.action.kind === 'book' && voiceReplies.has(replyId)) {
+      // A call has no chips (the page moves instead), but the person has just given a name and an email to book: the button
+      // to pick a time must be on the screen, and not left to a chat thread nobody is reading.
+      const { url, name, email, topic } = event.action;
+      set({ booking: { url, name, email, topic } });
       return;
     }
     if (event.action.kind === 'projects' && voiceReplies.has(replyId)) {
