@@ -18,15 +18,17 @@ import { byHealth, healthReport, noteLatency, startWatcher } from './health.js';
 import { fallbackFetch } from './model-fallback.js';
 import { checkPass, clientIp, issuePass, turnstileSiteKey } from './guard.js';
 import { createDailyBudget, createExemptMatcher, createLimiter, limitConfigFromEnv } from './fairUse.js';
-import { siteBrief } from './knowledge.js';
+import { siteBrief, loadProjects, projectPath } from './knowledge.js';
 import { devProvider, pickProfile, routeFor, smartProviders, type Provider } from './providers.js';
 import { createCitations } from './citations.js';
 import { withChip } from './chips.js';
 import { makeTools, type CopilotAction } from './tools.js';
 import { TurnTrace } from './tracing.js';
 import { takeDurableCopilotLimit, durableLimitConfigured } from './durableLimit.js';
-import { FOLLOW_ON_CALL } from './answers.js';
-import { routeRequest } from './routines.js';
+import { FOLLOW_ON_CALL, norm } from './answers.js';
+import { routeRequest, type FlowIO } from './routines.js';
+import { modelReader } from './bookingModel.js';
+import type { BookingFlow } from './bookingFlow.js';
 import { latestNews, newsBlock } from './news.js';
 import { createTextFilter } from './textFilter.js';
 import { contextBudget, estimateTokens, fitHistory, sanitizeSummary, summarize, summaryBlock, SUMMARY_MAX_CHARS } from './memory.js';
@@ -42,6 +44,7 @@ export type CopilotEvent =
   | { type: 'done'; model: string }
   /** On a call, the line was said to someone else in the visitor's room (addressee.ts): no reply, and the page greys it out. */
   | { type: 'ignored'; reason: string }
+  | { type: 'flow'; flow: BookingFlow | null }
   | { type: 'error'; message: string };
 
 const chatBody = z.object({
@@ -52,6 +55,12 @@ const chatBody = z.object({
   page: z.object({ path: z.string().max(300), title: z.string().max(200) }).optional(),
   /** True on a voice call: the reply is spoken, and the page may move on its own. */
   voice: z.boolean().optional(),
+  /** The booking flow's state, kept by the page between turns (bookingFlow.ts). */
+  flow: z.object({
+    kind: z.literal('booking'),
+    step: z.enum(['name', 'confirm_name', 'say', 'email', 'confirm_email', 'area']),
+    data: z.object({ name: z.string().max(60).optional(), say: z.string().max(60).optional(), email: z.string().max(120).optional(), tries: z.number().int().min(0).max(5).optional() }),
+  }).nullable().optional(),
   /** The visitor tapped "Answer this" on a line the call had not answered: it is for me, so no addressee check (addressee.ts). */
   toMe: z.boolean().optional(),
   /** Rolling notes on the older part of a long chat, kept by the browser. Untrusted: capped, sanitised, quoted as data (memory.ts). */
@@ -126,6 +135,9 @@ function callTools<T extends Record<string, unknown>>(tools: T, voice: boolean):
   void _unused;
   return rest as Partial<T>;
 }
+
+/** A full request ("how would I contact him", "show me your research"), not a short answer to something the assistant just asked. */
+const EXPLICIT_REQUEST = /\b(how (?:do|would|can|could) i|can i (?:see|get|book|contact|reach|read)|show me|take me|open|go to|where (?:do|can) i|i want to|i would like to|i d like to)\b/;
 
 function chain(voice = false): Provider[] {
   const dev = devProvider();
@@ -326,8 +338,11 @@ copilotRouter.post('/chat', async (req, res) => {
   }
   // What AI Pujan has already said, so a tour moves on to somewhere new (routines.ts, surprise).
   const said = messages.filter((m) => m.role === 'assistant').slice(-12).map((m) => m.content).join(' ');
-  const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before, said, messages, page);
-  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || routed.routine.startsWith('tour:') || routed.routine.startsWith('booking:') || routed.routine.startsWith('step:') || routed.routine.startsWith('summary:') || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
+  const flowIO: FlowIO = { in: (parsed.data.flow ?? null) as BookingFlow | null };
+  const routed = await routeRequest(question, messages.length === 1 && !parsed.data.summary, voice, before, said, page, flowIO, modelReader());
+  // The booking's place goes back to the page every turn it is in play, so the next line is read at the right step.
+  if (flowIO.touched) send({ type: 'flow', flow: flowIO.out ?? null });
+  const cached = routed && (!answeringUs || routed.routine.startsWith('offer:') || routed.routine.startsWith('tour:') || routed.routine.startsWith('booking:') || routed.routine.startsWith('step:') || routed.routine.startsWith('summary:') || (/^intent:(contact|book|projects|research|blog|experience)$/.test(routed.routine) && EXPLICIT_REQUEST.test(norm(question))) || /^(gotcha|banter):/.test(routed.routine)) ? routed : null;
   if (cached) {
     turn.model = `cache:${cached.intent}`;
     turn.routine = cached.routine;
@@ -400,6 +415,7 @@ copilotRouter.post('/chat', async (req, res) => {
     const citations = createCitations();
     // A short social reply ("im doing fine thanks!") is answered from the prompt: no tools, one step.
     const smallTalk = isPlainSmallTalk(question, before);
+    let moved = false;
     const result = streamText({
       model,
       system,
@@ -407,6 +423,7 @@ copilotRouter.post('/chat', async (req, res) => {
       tools: smallTalk ? {} : callTools(makeTools(
         // On a call the model moves the page itself and sends no buttons; project cards and the booking button are what a call shows.
         (action) => {
+          if (action.kind === 'navigate' && action.go) moved = true;
           if (voice && action.kind !== 'navigate' && action.kind !== 'cite' && action.kind !== 'book' && action.kind !== 'projects') return;
           send({ type: 'action', action: withChip(action) });
         },
@@ -421,7 +438,7 @@ copilotRouter.post('/chat', async (req, res) => {
 
     // Streaming hygiene lives in textFilter.ts: leaked reasoning blocks are cut, and the
     // "let me look that up" line before a tool call is dropped.
-    const filter = createTextFilter((text, replace) => send({ type: 'text', text, replace }));
+    const filter = createTextFilter((text, replace) => send({ type: 'text', text, replace }), undefined, voice);
 
     for await (const part of result.fullStream) {
       if (part.type === 'text-delta') {
@@ -448,6 +465,21 @@ copilotRouter.post('/chat', async (req, res) => {
     }
     turn.citations = citations.summary();
     turn.output = filter.flush();
+    // "Let's try Orbitgraph" said without moving the page leaves the caller on the old page being told they are somewhere new
+    // (the scripted newcomer visit, 1 run in 3): when a call's reply announces a project and the model did not move, the page moves.
+    if (voice && !moved && !smallTalk) {
+      const lead = turn.output.slice(0, 120);
+      // Announced ("Let's try X", "Here's X") or answered to a request to be shown something ("Something different, X").
+      const announced = /^(?:okay,? |so |well )?(?:let'?s (?:try|start with|look at|go to|check out|do|see)|here'?s|here is|taking you to|opening|next up|up next|how about)\b/i.test(lead);
+      const asked = /\b(show me|take me|open|let me see|something (?:different|else|new)|another (?:one|project)|what about)\b/i.test(question);
+      if (announced || asked) {
+        const hit = (await loadProjects()).find((p) => lead.toLowerCase().includes(p.title.toLowerCase()));
+        if (hit) {
+          send({ type: 'action', action: withChip({ kind: 'navigate', path: projectPath(hit), label: `Open ${hit.title}`, go: true }) });
+          turn.actions.push('navigate');
+        }
+      }
+    }
     // A reply the model was cut off in is never sent as complete: pull it back to its last whole sentence.
     if (isCutOff(turn.finishReason, turn.output)) {
       turn.truncated = true;

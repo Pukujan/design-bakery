@@ -1,0 +1,150 @@
+{
+ "system": "You route one spoken line from a visitor on a portfolio website for an AI engineer. The line comes from speech recognition, so it may be lowercase, without punctuation, with filler words or misheard words (President means the Precedent project, Octa means Octo, Poojan means Pujan). Decide what they want.\nintent:\n- open_page: go to a page or section; target is one of the listed pages. 'show me your research' is /research, 'your projects' or 'your work' is /#work, 'your experience' is /#experience, a named project is /work/<slug>.\n- next / previous: the next or previous item in the list they are on (a paper, post or project page). Words like 'go on', 'and then', 'keep going', 'back', 'the last one'.\n- summarize: a short summary or explanation of the page they are on ('what's this about', 'explain this', 'the gist', 'sum it up').\n- book: book a call or consultation.\n- question: a question about the content or about the person that needs an answer.\n- chitchat: greeting, thanks, small talk, 'who are you', 'can you hear me'.\n- off_topic: nothing to do with the website or the person (weather, food orders, other tasks).\n- surprise: they leave the choice to you ('show me anything', 'you pick', 'surprise me', 'give me a tour').\n- confirm: yes, okay, go ahead. decline: no, never mind, not now, stop.\n- unclear: garbled, a fragment, noise, or not about this conversation.\ntarget is 'none' unless intent is open_page. Pages you may use: none, /research, /blogs, /#work, /#about, /#experience, /contact, /work/website-copilot, /work/study-os, /work/cortex, /work/fossil, /work/oni-architecture, /work/ekagajpatra, /work/fluffy-v4, /work/eval-lab, /work/project-continuity, /work/inference-recommendation, /work/agent-custom-setup, /work/orbitgraph, /work/voidfeed, /work/precedent, /work/nyc-map-agent, /work/octo.\nAnswer with JSON only: {\"intent\": ..., \"target\": ...}",
+ "shots": [
+  [
+   "/research/papers/db-r-2026-003",
+   "go back to the last one",
+   "previous",
+   "none"
+  ],
+  [
+   "/research",
+   "yeah sure",
+   "confirm",
+   "none"
+  ],
+  [
+   "/",
+   "can you open the blog",
+   "open_page",
+   "/blogs"
+  ],
+  [
+   "/",
+   "take me to your research papers",
+   "open_page",
+   "/research"
+  ],
+  [
+   "/",
+   "tell me about the NYC map project",
+   "open_page",
+   "/work/nyc-map-agent"
+  ],
+  [
+   "/work/octo",
+   "what's the summary of this",
+   "summarize",
+   "none"
+  ],
+  [
+   "/research/papers/db-r-2026-005",
+   "what does this one cover",
+   "summarize",
+   "none"
+  ],
+  [
+   "/",
+   "get me a pizza",
+   "off_topic",
+   "none"
+  ],
+  [
+   "/work/octo",
+   "hey, you there?",
+   "chitchat",
+   "none"
+  ],
+  [
+   "/",
+   "show me what you've got",
+   "surprise",
+   "none"
+  ],
+  [
+   "/work/fossil",
+   "how does the lineage tracking work",
+   "question",
+   "none"
+  ],
+  [
+   "/",
+   "I'd like to schedule a call",
+   "book",
+   "none"
+  ],
+  [
+   "/research/papers/db-r-2026-006",
+   "okay and then?",
+   "next",
+   "none"
+  ],
+  [
+   "/contact",
+   "um the thing is",
+   "unclear",
+   "none"
+  ],
+  [
+   "/",
+   "show me your work history",
+   "open_page",
+   "/#experience"
+  ],
+  [
+   "/",
+   "what do you build",
+   "question",
+   "none"
+  ],
+  [
+   "/blogs",
+   "thanks that was great",
+   "chitchat",
+   "none"
+  ],
+  [
+   "/",
+   "what's the weather like",
+   "off_topic",
+   "none"
+  ],
+  [
+   "/work/cortex",
+   "tell me more about how it decides",
+   "question",
+   "none"
+  ],
+  [
+   "/",
+   "show me the president project",
+   "open_page",
+   "/work/precedent"
+  ]
+ ],
+ "targets": [
+  "none",
+  "/research",
+  "/blogs",
+  "/#work",
+  "/#about",
+  "/#experience",
+  "/contact",
+  "/work/website-copilot",
+  "/work/study-os",
+  "/work/cortex",
+  "/work/fossil",
+  "/work/oni-architecture",
+  "/work/ekagajpatra",
+  "/work/fluffy-v4",
+  "/work/eval-lab",
+  "/work/project-continuity",
+  "/work/inference-recommendation",
+  "/work/agent-custom-setup",
+  "/work/orbitgraph",
+  "/work/voidfeed",
+  "/work/precedent",
+  "/work/nyc-map-agent",
+  "/work/octo"
+ ]
+}

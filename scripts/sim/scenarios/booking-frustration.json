@@ -1,0 +1,85 @@
+{
+  "name": "booking: a complaint and a repeated request in the middle do not restart or lose what was given",
+  "startPage": {
+    "path": "/",
+    "title": "Home"
+  },
+  "steps": [
+    {
+      "say": "Book the call.",
+      "expect": {
+        "navigatesTo": "/contact",
+        "textMatch": "name"
+      }
+    },
+    {
+      "say": "Poojan.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "spells": [
+          "poojan"
+        ]
+      }
+    },
+    {
+      "say": "I just told you the name.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "textNotMatch": "Just Told|What name should I put it under"
+      }
+    },
+    {
+      "say": "Yes, that's right.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "textMatch": "How do you say your name"
+      }
+    },
+    {
+      "say": "Fine as spelled.",
+      "expect": {
+        "textMatch": "email"
+      }
+    },
+    {
+      "say": "Book the call.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "textNotMatch": "What name should I put it under"
+      }
+    },
+    {
+      "say": "pujan three six four five at gmail dot com",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "spells": [
+          "pujan3645"
+        ],
+        "asksToConfirm": true
+      }
+    },
+    {
+      "say": "Yes, AI engineering.",
+      "expect": {
+        "actions": [
+          "book"
+        ],
+        "book": {
+          "name": "Poojan",
+          "email": "pujan3645@gmail.com",
+          "topic": "AI engineering"
+        }
+      }
+    }
+  ]
+}

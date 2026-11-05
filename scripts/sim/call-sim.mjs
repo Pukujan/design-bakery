@@ -27,13 +27,13 @@ async function pass() {
   return j.pass;
 }
 
-async function turn(token, messages, page, toMe = false) {
+async function turn(token, messages, page, toMe = false, flow = null) {
   const t = Date.now();
   const r = await fetch(`${base}/api/copilot/chat`, {
     method: 'POST', headers: { 'content-type': 'application/json', 'x-copilot-pass': token },
     // The page's own client sends only the latest turns (a summary stands for the rest): the API takes at most 24.
     // toMe stays false, as for a line heard on a real call: the addressee check runs on it, and a line it drops is a failure below.
-    body: JSON.stringify({ messages: messages.slice(-24), voice: true, ...(toMe ? { toMe: true } : {}), ...(page ? { page } : {}) }),
+    body: JSON.stringify({ messages: messages.slice(-24), voice: true, ...(toMe ? { toMe: true } : {}), ...(flow ? { flow } : {}), ...(page ? { page } : {}) }),
   });
   const body = await r.text();
   const events = body.split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return { type: 'garbled', raw: l }; } });
@@ -47,7 +47,8 @@ const spelled = (text, word) => new RegExp(word.split('').join('[\\s.,-]*'), 'i'
 function check(step, got, page) {
   const e = step.expect ?? {};
   const fails = [];
-  const text = got.events.filter((x) => x.type === 'text').map((x) => x.text).join('');
+  // A `replace` event retracts what was streamed so far (a leaked reasoning block, a cut closing offer): the reply is what is left.
+  const text = got.events.filter((x) => x.type === 'text').reduce((acc, x) => (x.replace ? x.text : acc + x.text), '');
   const actions = got.events.filter((x) => x.type === 'action').map((x) => x.action);
   const kinds = actions.map((a) => a.kind);
   // Every tool the model started this turn, in order: each is a model round trip, so the count is the turn's cost.
@@ -89,12 +90,15 @@ let failedRuns = 0;
 const token = await pass();
 for (let run = 1; run <= runs; run += 1) {
   const messages = [];
+  // The booking flow's state, kept by the page between turns: the reply's `flow` event replaces it.
+  let flow = null;
   let page = scenario.startPage ?? { path: '/', title: 'Home' };
   const results = [];
   for (const [i, step] of scenario.steps.entries()) {
     if (step.page) page = step.page;
     messages.push({ role: 'user', content: step.say });
-    const got = await turn(token, messages, page, step.toMe === true);
+    const got = await turn(token, messages, page, step.toMe === true, flow);
+    for (const ev of got.events) if (ev.type === 'flow') flow = ev.flow;
     // The page moves when a reply moves it (the call's browser takes the move before the speech): the next turn is told so.
     for (const ev of got.events) {
       if (ev.type !== 'action') continue;
@@ -106,9 +110,26 @@ for (let run = 1; run <= runs; run += 1) {
     messages.push({ role: 'assistant', content: text || '(no reply)' });
     results.push({ i: i + 1, say: step.say, fails, text, actions, steps, ms: got.ms, page: page.path });
   }
+  // The scenario's rubric judges the whole visit, not one turn: how a person who knows nothing about the site would rate it.
+  const rubric = scenario.rubric ?? {};
+  const visit = [];
+  const questionTurns = results.filter((r) => /\?\s*$/.test(r.text.trim())).length;
+  if (rubric.maxQuestionTurns !== undefined && questionTurns > rubric.maxQuestionTurns) visit.push(`${questionTurns} replies ended in a question, over ${rubric.maxQuestionTurns}`);
+  if (rubric.proofWithin) {
+    const at = results.findIndex((r) => r.actions.some((a) => ['navigate', 'cite', 'projects', 'book'].includes(a.kind)));
+    if (at < 0 || at + 1 > rubric.proofWithin) visit.push(`nothing shown (a page, cards or a passage) within the first ${rubric.proofWithin} turns${at >= 0 ? ` (first at turn ${at + 1})` : ''}`);
+  }
+  if (rubric.firstReplyMatches && !new RegExp(rubric.firstReplyMatches, 'i').test(results[0]?.text ?? '')) visit.push(`the first reply should match /${rubric.firstReplyMatches}/: "${(results[0]?.text ?? '').slice(0, 120)}"`);
+  if (rubric.maxTurnMs) for (const r of results) if (r.ms > rubric.maxTurnMs) visit.push(`turn ${r.i} took ${r.ms} ms, over ${rubric.maxTurnMs}`);
+  if (rubric.noRepeatedReplies) {
+    const texts = results.map((r) => r.text.trim().toLowerCase());
+    texts.forEach((t, i) => { if (t.length > 25 && texts.indexOf(t) !== i) visit.push(`turn ${i + 1} repeats an earlier reply word for word`); });
+  }
   const bad = results.filter((r) => r.fails.length);
+  if (visit.length) bad.push({ visit });
   if (bad.length) failedRuns += 1;
-  console.log(`\n== ${scenario.name} · run ${run}/${runs}: ${bad.length ? `${bad.length} of ${results.length} turns FAILED` : 'all turns ok'}`);
+  console.log(`\n== ${scenario.name} · run ${run}/${runs}: ${bad.length ? `${results.filter((r) => r.fails.length).length} of ${results.length} turns FAILED${visit.length ? `, ${visit.length} visit check(s) failed` : ''}` : 'all turns ok, visit ok'}`);
+  for (const v of visit) console.log(`   VISIT: ${v}`);
   for (const r of results) {
     console.log(`${r.fails.length ? '✗' : '✓'} ${r.i}. "${r.say}"  [${r.ms} ms, page ${r.page}]`);
     if (verbose || r.fails.length) {

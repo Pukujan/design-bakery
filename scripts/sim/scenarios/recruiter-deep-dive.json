@@ -1,0 +1,66 @@
+{
+  "name": "a hiring manager on a paper page: summary, depth, next, the relevant project, booking",
+  "startPage": {
+    "path": "/research/papers/db-r-2026-010",
+    "title": "Accuracy is not enough"
+  },
+  "rubric": {
+    "maxQuestionTurns": 3,
+    "proofWithin": 2,
+    "maxTurnMs": 10000,
+    "noRepeatedReplies": true
+  },
+  "steps": [
+    {
+      "say": "Hello.",
+      "expect": {}
+    },
+    {
+      "say": "Summarize this paper for me.",
+      "expect": {
+        "actions": [
+          "cite"
+        ],
+        "minChars": 150
+      }
+    },
+    {
+      "say": "How did you evaluate the judges?",
+      "expect": {
+        "minChars": 80
+      }
+    },
+    {
+      "say": "Okay, next.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-011"
+      }
+    },
+    {
+      "say": "Which project is most relevant for a legal AI team?",
+      "expect": {
+        "minChars": 60,
+        "textMatch": "Precedent|legal"
+      }
+    },
+    {
+      "say": "Show me Precedent.",
+      "expect": {
+        "navigatesTo": "/work/precedent"
+      }
+    },
+    {
+      "say": "How does it avoid citing cases it didn't retrieve?",
+      "expect": {
+        "minChars": 80
+      }
+    },
+    {
+      "say": "Book a call with him.",
+      "expect": {
+        "navigatesTo": "/contact",
+        "textMatch": "name"
+      }
+    }
+  ]
+}

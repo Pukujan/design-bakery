@@ -1,0 +1,765 @@
+[
+ {
+  "say": "Oh okay",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Lol",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Hello.",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "And even here",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "show me some research.",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "What are your experiences?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/#experience",
+  "source": "real"
+ },
+ {
+  "say": "How do I reach you?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/contact",
+  "source": "real"
+ },
+ {
+  "say": "President",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "real"
+ },
+ {
+  "say": "what's the President project?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "real"
+ },
+ {
+  "say": "Yeah, show me the project called Precedent or Or precedent. I don't know.",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "real"
+ },
+ {
+  "say": "What did Arise have to do with this project?",
+  "page": "/work/precedent",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What about Another project. What else does he have?",
+  "page": "/work/cortex",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me anything that's interesting.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Yeah.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Just anyone, come on.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What experience do you have?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/#experience",
+  "source": "real"
+ },
+ {
+  "say": "How can you help with full-stack development?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Hi how are u",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Who are you?",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Can I book a consultation?",
+  "page": "/",
+  "intent": "book",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Experience",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/#experience",
+  "source": "real"
+ },
+ {
+  "say": "What do you build?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Hi pujan how are u show me some research",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "Can I ask about uh real estate? It might be something.",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Hello, can you hear me?",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "That or maybe like this? Oh yeah, it's just really slow. Oh yeah. Really slow. Okay, this is done.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "We're trying some",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "no, because the light connection is still blocked.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Michael Maps. Why is it And when I did see this Uh The humor on Okay, yeah.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "I saw it here somewhere like in the back end, right?",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Publish App Store? No. No.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Is it because of this? Now it's publishing, right? Yeah.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Database",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "research bout ai",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "hermes research",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "project show me one",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "proojects",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "real"
+ },
+ {
+  "say": "Tell me about Cortex.",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/cortex",
+  "source": "real"
+ },
+ {
+  "say": "What have you got for me?",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "No, I mean like Uh I don't know what you what do you want to tell me about Poojan?",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "what does he do?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me some of his projects.",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "real"
+ },
+ {
+  "say": "Just show me anything, come on.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Should be anything.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Yes, I've been telling you this for a while.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Just show me anything.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Yes.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "anything.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "I dunno, you tell me about your work.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Yeah, sure.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "And",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "who are you",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "what is temporal gravity?",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "what do you want to show me?",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What's the highlights?",
+  "page": "/work/website-copilot",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What is this?",
+  "page": "/work/website-copilot",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Is it only for filling forms?",
+  "page": "/work/website-copilot",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Sure what's cortex?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/cortex",
+  "source": "real"
+ },
+ {
+  "say": "How does it work?",
+  "page": "/work/cortex",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "He dare.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "I don't get it, what happened?",
+  "page": "/work/cortex",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "But How does the permission work?",
+  "page": "/work/cortex",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Okay.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What's next? Anything else interesting about Fujian lately?",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "next",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "How does it handle uh what if it Uh brings in the wrong case, how does it know?",
+  "page": "/work/precedent",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Okay and",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "next",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Yes, please.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "How can you help with ai engineering?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Research.",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "research Hello",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "Do you wanna read me about some of them?",
+  "page": "/research",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "You wanna show me this paper and talk me through it?",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Do you wanna show me this paper and summarize it for me?",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What does this paper try to say?",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Hello",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me anything.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What studio is?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "You run the servers?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Okay, that's interesting. But what what other work do you do? Or do you have any research paper, blogs?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "Hello?",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Research is interesting.",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "Book the call.",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "book",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "I didn't open I don't see the booking card.",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Fo John.",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Poojan three six four five at gmail dot com",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "I don't see anything.",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Marketing.",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "I don't actually see all the cards here.",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "I don't have to see then.",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Give me a toll.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me?",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What is best project?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "okay. What's Uh I don't know, you decide on something?",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "How does this work?",
+  "page": "/work/cortex",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "no, I mean how does this NYC map agent work?",
+  "page": "/work/nyc-map-agent",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "That's interesting. How does it handle? people",
+  "page": "/work/cortex",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "what's in the research section? Do you wanna show me your research?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "Okay, show me.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Okay, show me. And tell me about it.",
+  "page": "/research",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "How does it reshuffle?",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What does that even mean?",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "N what What models Did that.",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Yeah, show me the table.",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "I'm hungry, get me McDonald's",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Deep seek uh ah okay.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "tell me about AI News.",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Lama what?",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "No How do I contact Poojan?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/contact",
+  "source": "real"
+ }
+]

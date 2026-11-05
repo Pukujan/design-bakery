@@ -1,98 +1,109 @@
 /**
- * The voice booking dialogue's parsers and state machine (backend/src/copilot/booking.ts, TASK-DB-0137).
- * Built from the call of 2026-11-05, where "Fo John" became the name John unchecked and "Poojan three six four five at gmail dot
- * com" was never read back. Runs against the compiled backend (pnpm --dir backend exec tsc).
+ * The voice booking flow (backend/src/copilot/bookingFlow.ts): explicit state, a reader per answer. The reader is a stub here, so the
+ * steps, the state and what is said are tested without a model; scripts/sim/scenarios/booking-*.json test the real model reading.
+ * Built from the call of 2026-11-05 (04:49 to 04:57 UTC), where the first, regex-and-history version lost its place.
  */
 import assert from 'node:assert/strict';
 
-const { parseName, parseSpelled, parseEmail, sayEmail, bookingTurn } = await import(new URL('../backend/lib/copilot/booking.js', import.meta.url).href);
+const { parseEmail, parseName, parseSpelled, parseSay, sayEmail } = await import(new URL('../backend/lib/copilot/booking.js', import.meta.url).href);
+const { bookingFlow, fastReading, readerWith } = await import(new URL('../backend/lib/copilot/bookingFlow.js', import.meta.url).href);
 const BASE = 'https://cal.example/book';
 
-// Names: the filler words go, a few words stay, a sentence is not a name.
+// ---- the regex parsers, now the fallback reader's words
 assert.equal(parseName('Poojan.'), 'Poojan');
 assert.equal(parseName('my name is poojan bajracharya'), 'Poojan Bajracharya');
-assert.equal(parseName("it's Fo John"), 'Fo John');
-assert.equal(parseName('call me Pujan please'), 'Pujan');
-assert.equal(parseName('I would like to talk about my AI project tomorrow'), null, 'a sentence is not a name');
-assert.equal(parseName('three six four five'), null, 'digits are not a name');
-
-// Spelled letters.
 assert.equal(parseSpelled('P U J A N'), 'Pujan');
-assert.equal(parseSpelled('p-u-j-a-n'), 'Pujan');
 assert.equal(parseSpelled('P, U, J, A, N.'), 'Pujan');
-assert.equal(parseSpelled('Pujan'), null, 'a whole word is not spelled');
-
-// Emails, as the speech recogniser writes them.
+assert.equal(parseSpelled('Pujan'), null);
 assert.equal(parseEmail('Poojan three six four five at gmail dot com'), 'poojan3645@gmail.com');
-assert.equal(parseEmail('my email is pujan 3645 at gmail dot com thanks'), 'pujan3645@gmail.com');
-assert.equal(parseEmail('P U J A N three six four five at gmail dot com'), 'pujan3645@gmail.com');
-assert.equal(parseEmail('first dot last at my company dot io'), 'first.last@mycompany.io');
-assert.equal(parseEmail('pujan underscore b at outlook dot com'), 'pujan_b@outlook.com');
+assert.equal(parseEmail("It's Teresa, T E R E S A G U A J A R D O one five oh four at gmail.com"), 'teresaguajardo1504@gmail.com', '"oh" next to digits is a zero');
 assert.equal(parseEmail('pujan3645@gmail.com'), 'pujan3645@gmail.com');
 assert.equal(parseEmail('no email here'), null);
-assert.equal(parseEmail('poojan at gmail'), null, 'no top-level domain');
-
-// Read back letter by letter, well-known domains as words.
+assert.equal(parseSay('poo jun', 'Pujan'), 'Poo-jun');
+assert.equal(parseSay("it's fine as spelled", 'Pujan'), 'Pujan');
 assert.equal(sayEmail('pujan3645@gmail.com'), 'P, U, J, A, N, 3, 6, 4, 5, at gmail dot com');
-assert.equal(sayEmail('a.b@acme.io'), 'A, dot, B, at A, C, M, E, dot, I, O');
 
-// The dialogue. `play` runs the caller's lines and returns each turn's answer.
-function play(lines) {
-  const messages = [];
-  const answers = [];
-  for (const say of lines) {
-    messages.push({ role: 'user', content: say });
-    const a = bookingTurn(messages, BASE);
-    answers.push(a);
-    messages.push({ role: 'assistant', content: a ? a.text : '(model)' });
+// ---- the fast path: a bare yes or no and a one-word name need no model
+assert.deepEqual(fastReading('confirm_name', 'Yes.'), { verdict: 'yes' });
+assert.deepEqual(fastReading('confirm_email', 'No'), { verdict: 'no' });
+assert.equal(fastReading('confirm_name', "That's P-U-J-A-N."), null, 'a spelling is not a yes: the reader decides');
+assert.deepEqual(fastReading('name', 'Poojan.'), { verdict: 'answer', name: 'Poojan' });
+assert.equal(fastReading('name', 'I just told you the name'), null);
+assert.deepEqual(fastReading('email', 'never mind'), { verdict: 'cancel' });
+
+// ---- a scripted reader: each entry is what the model would say for the next line
+function scripted(readings) {
+  const queue = [...readings];
+  return async () => queue.shift() ?? { verdict: 'other' };
+}
+async function play(lines, reader) {
+  let flow = null;
+  const turns = [];
+  for (const line of lines) {
+    const t = await bookingFlow(flow, line, { interpret: reader, bookingBase: BASE });
+    turns.push(t);
+    flow = t.flow;
   }
-  return answers;
+  return turns;
 }
 
-// Not booking, or no booking page: the dialogue stays out of it.
-assert.equal(bookingTurn([{ role: 'user', content: 'what is cortex' }], BASE), null);
-assert.equal(bookingTurn([{ role: 'user', content: 'book the call' }], undefined), null, 'nothing to book into');
-assert.equal(bookingTurn([{ role: 'user', content: 'tell me about the book you wrote' }], BASE), null);
+// not booking, or no booking page: nothing starts
+assert.equal((await bookingFlow(null, 'what is cortex', { interpret: scripted([]), bookingBase: BASE })).answer, null);
+assert.equal((await bookingFlow(null, 'book the call', { interpret: scripted([]), bookingBase: undefined })).answer, null);
+assert.equal((await bookingFlow(null, 'tell me about the book you wrote', { interpret: scripted([]), bookingBase: BASE })).answer, null);
 
-const happy = play(['Okay, book the call.', 'Poojan.', 'Yes.', 'Poojan three six four five at gmail dot com.', 'Yes that is right. Marketing.']);
-assert.equal(happy[0].go, true, 'the first turn moves to the contact page');
-assert.equal(happy[0].actions[0].path, '/contact');
-assert.match(happy[0].text, /What name should I put it under/);
-assert.match(happy[1].text, /I heard Poojan, spelled P, O, O, J, A, N\. Is that right\?/);
-assert.match(happy[2].text, /email/);
-assert.match(happy[3].text, /P, O, O, J, A, N, 3, 6, 4, 5, at gmail dot com\. Is that right\?/);
-for (const early of happy.slice(0, 4)) assert.equal(early.actions.some((a) => a.kind === 'book'), false, 'no booking before the details are confirmed');
-const book = happy[4].actions[0];
-assert.equal(book.kind, 'book');
-assert.equal(book.name, 'Poojan');
-assert.equal(book.email, 'poojan3645@gmail.com');
-assert.equal(book.topic, 'Marketing');
+// the happy path, with the state explicit at every step
+const happy = await play(['Okay, book the call.', 'Poojan', 'yes', 'poo jun', 'poojan3645 at gmail dot com', 'yes, marketing'], scripted([
+  { verdict: 'answer', name: 'Poojan' }, { verdict: 'yes' }, { verdict: 'answer', say: 'Poo-jun' }, { verdict: 'answer', email: 'poojan3645@gmail.com' }, { verdict: 'yes', area: 'Marketing' },
+]));
+assert.equal(happy[0].answer.go, true); assert.equal(happy[0].answer.actions[0].path, '/contact');
+assert.deepEqual(happy.map((t) => t.flow?.step ?? null), ['name', 'confirm_name', 'say', 'email', 'confirm_email', null]);
+assert.match(happy[1].answer.text, /I heard Poojan, spelled P, O, O, J, A, N\. Is that right\?/);
+assert.match(happy[2].answer.text, /How do you say your name\?/);
+assert.match(happy[3].answer.text, /Thanks, Poo-jun\. What's your email/);
+assert.match(happy[4].answer.text, /P, O, O, J, A, N, 3, 6, 4, 5, at gmail dot com\. Is that right\?/);
+for (const early of happy.slice(0, 5)) assert.equal(early.answer.actions.some((a) => a.kind === 'book'), false, 'no booking before the details are confirmed');
+const book = happy[5].answer.actions[0];
+assert.deepEqual([book.kind, book.name, book.email, book.topic], ['book', 'Poojan', 'poojan3645@gmail.com', 'Marketing']);
 assert.match(book.url, /name=Poojan&email=poojan3645%40gmail\.com&notes=Marketing/);
+assert.match(happy[5].answer.text, /with Poo-jun and your email/);
 
-// A no spells it again: "Fo John" is corrected by the letters, and a wrong address by saying it again.
-const fixed = play(['I want to book a consultation', 'Fo John.', 'No.', 'P U J A N.', 'Yes it is.', 'poojan three six four five at gmail dot com', "No, that's wrong", 'P U J A N three six four five at gmail dot com', 'Yes, product design']);
-assert.match(fixed[1].text, /spelled F, O, J, O, H, N/);
-assert.match(fixed[2].text, /Spell your name for me/);
-assert.match(fixed[3].text, /I heard Pujan, spelled P, U, J, A, N/);
-assert.match(fixed[4].text, /Thanks, Pujan/);
-assert.match(fixed[6].text, /Say the whole address again/);
-assert.match(fixed[7].text, /P, U, J, A, N, 3, 6, 4, 5/);
-assert.equal(fixed[8].actions[0].email, 'pujan3645@gmail.com');
-assert.equal(fixed[8].actions[0].name, 'Pujan');
+// a spelling given instead of a yes corrects the name and it is read back (the call: "That's P-U-J-A-N" had counted as a yes)
+const fixName = await play(['book the call', 'Poojan', "That's P-U-J-A-N"], scripted([{ verdict: 'answer', name: 'Poojan' }, { verdict: 'correction', name: 'Pujan' }]));
+assert.equal(fixName[2].flow.data.name, 'Pujan'); assert.equal(fixName[2].flow.step, 'confirm_name');
+assert.match(fixName[2].answer.text, /I heard Pujan, spelled P, U, J, A, N\. Is that right\?/);
 
-// The area can come later, and an unclear line is asked again, not guessed.
-const later = play(['book the call', 'Pujan', 'yes', 'pujan3645 at gmail dot com', 'yes']);
-assert.match(later[4].text, /Which area should the call cover/);
-assert.equal(later[4].actions.length, 0);
-assert.equal(bookingTurn([...[
-  ['user', 'book the call'], ['assistant', happy[0].text], ['user', 'Pujan'], ['assistant', later[1].text], ['user', 'yes'], ['assistant', later[2].text],
-  ['user', 'pujan3645 at gmail dot com'], ['assistant', later[3].text], ['user', 'yes'], ['assistant', later[4].text], ['user', 'marketing'],
-].map(([role, content]) => ({ role, content }))], BASE).actions[0].topic, 'Marketing');
-const lost = play(['book the call', 'um']);
-assert.match(lost[1].text, /did not catch that/i, 'an empty answer is asked again');
+// a whole corrected email given instead of a no is taken (the call: it answered "yes or no?" and lost the place)
+const fixMail = await play(['book the call', 'Pujan', 'yes', 'fine as spelled', 'teresagohardo at gmail.com', "it's teresaguajardo1504 at gmail.com"], scripted([
+  { verdict: 'answer', name: 'Pujan' }, { verdict: 'yes' }, { verdict: 'yes' }, { verdict: 'answer', email: 'teresagohardo@gmail.com' }, { verdict: 'correction', email: 'teresaguajardo1504@gmail.com' },
+]));
+assert.equal(fixMail[5].flow.data.email, 'teresaguajardo1504@gmail.com'); assert.equal(fixMail[5].flow.step, 'confirm_email');
 
-// Cancelling stops it.
-const cancel = play(['book the call', 'never mind']);
-assert.match(cancel[1].text, /No problem/);
+// a no asks again, in the same step: the place is kept, "Book the call." mid-flow does not start over
+const no = await play(['book the call', 'Pujan', 'yes', 'ok', 'a@b.co', 'no', 'Book the call.'], scripted([
+  { verdict: 'answer', name: 'Pujan' }, { verdict: 'yes' }, { verdict: 'yes' }, { verdict: 'answer', email: 'a@b.co' }, { verdict: 'no' }, { verdict: 'other' },
+]));
+assert.equal(no[5].flow.step, 'email'); assert.match(no[5].answer.text, /Say the whole address again/);
+assert.equal(no[6].flow.step, 'email', 'the flow stays where it was'); assert.match(no[6].answer.text, /Sorry, I didn't catch that\. Thanks, Pujan\. What's your email/);
+assert.equal(no[6].flow.data.name, 'Pujan', 'and nothing already given is asked again');
 
-console.log('copilot booking: names, spelling, emails and the dialogue ok');
+// a line that is not an answer twice leaves the flow: the router and the model take it
+const leaves = await play(['book the call', 'what does cortex do', 'what does cortex do'], scripted([{ verdict: 'other' }, { verdict: 'other' }]));
+assert.equal(leaves[1].flow.step, 'name'); assert.equal(leaves[1].flow.data.tries, 1);
+assert.equal(leaves[2].answer, null); assert.equal(leaves[2].flow, null);
+
+// a sentence is not a name ("I just told you the name")
+const sentence = await play(['book the call', 'I just told you the name'], scripted([{ verdict: 'answer', name: 'Just Told You Already' }]));
+assert.equal(sentence[1].flow.step, 'name', 'four words are not a name'); assert.match(sentence[1].answer.text, /didn't catch/);
+
+// cancel at any step ends it
+const cancel = await play(['book the call', 'Pujan', 'never mind'], scripted([{ verdict: 'answer', name: 'Pujan' }, { verdict: 'cancel' }]));
+assert.equal(cancel[2].flow, null); assert.match(cancel[2].answer.text, /No problem/);
+
+// the model is down: the regex reader carries the same flow
+const fallback = readerWith(async () => { throw new Error('down'); });
+const offline = await play(['book the call', 'Pujan', "That's P-U-J-A-N", 'yes', 'fine as spelled', 'pujan three six four five at gmail dot com', 'yes marketing'], fallback);
+assert.equal(offline[6].answer.actions[0].email, 'pujan3645@gmail.com');
+assert.equal(offline[6].answer.actions[0].name, 'Pujan', 'the spelling was taken as a correction, not a yes');
+
+console.log('copilot booking: parsers, fast path, flow state, corrections, leaving, cancel and the offline reader ok');

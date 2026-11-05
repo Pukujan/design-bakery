@@ -22,6 +22,7 @@ const ok = (cond, what) => { console.log(`${cond ? '✓' : '✗'} ${what}`); if 
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+if (args.includes('--debug')) page.on('response', async (r) => { if (r.url().includes('/api/copilot/chat')) { const req = r.request().postDataJSON(); const body = await r.text(); console.log('  req', JSON.stringify(req.messages.at(-1).content).slice(0, 56), '| flow in', req.flow?.step ?? '-', '| out', body.split('\n').filter((l) => l.includes('"flow"')).map((l) => JSON.parse(l).flow?.step ?? 'null').join('') || '-'); } });
 await page.goto(`${web}/research`, { waitUntil: 'networkidle' });
 await page.waitForTimeout(2500);
 if (!(await page.evaluate(() => typeof window.__copilot === 'object'))) { console.error('no window.__copilot: run the web app in dev mode'); process.exit(2); }
@@ -64,7 +65,7 @@ ok(p1.path === '/research/papers/db-r-2026-001', `"previous" goes back to the fi
 // 3. Booking: the dialogue, then the card on the screen with the confirmed name and email.
 const b0 = await say('Okay, book the call.');
 ok(b0.path === '/contact', `"book the call" goes to /contact (is ${b0.path})`);
-for (const line of ['Pujan.', 'Yes.', 'P U J A N three six four five at gmail dot com.']) await say(line);
+for (const line of ['Pujan.', 'Yes.', 'poo jun', 'P U J A N three six four five at gmail dot com.']) await say(line);
 ok((await page.locator('.cp-book-card').count()) === 0, 'no booking card before the details are confirmed');
 await say('Yes, that is right. Marketing.');
 const card = page.locator('.cp-book-card');
