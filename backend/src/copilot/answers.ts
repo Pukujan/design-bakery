@@ -422,6 +422,10 @@ function namesProject(question: string, projects: Project[]): boolean {
   return projects.some((project) => [norm(project.title), norm(project.slug.replace(/-/g, ' '))].some((name) => name.length >= 3 && q.includes(` ${name} `)));
 }
 
+/** Words that point at what the conversation already put on screen, and asks that need the model and its tools to read it. */
+const POINTS_BACK = /\b(this|that|these|those|it|its|them|they)\b/;
+const ASKS_FOR_DETAIL = /\b(summar(?:y|ise|ize)|explain|talk me through|walk me through|read me|tell me more|go deeper|more about|what does .* (?:say|mean)|what is .* about)\b/;
+
 export async function cachedAnswer(question: string, firstTurn: boolean, voice = false): Promise<CachedAnswer | null> {
   if (!firstTurn && refersBack(question)) return null;
   // The Contact page's "Ask the AI right now" sends "How can you help with <area>?": one fixed answer per area.
@@ -431,8 +435,13 @@ export async function cachedAnswer(question: string, firstTurn: boolean, voice =
   // from the project's own record, so it never waits on a model.
   const projectAnswer = projectAbout(question, await loadProjects());
   if (projectAnswer) return projectAnswer;
-  const intent = smallTalkIntent(question) ?? bestIntent(question, firstTurn ? 0.5 : 0.8);
+  const smallTalk = smallTalkIntent(question);
+  const intent = smallTalk ?? bestIntent(question, firstTurn ? 0.5 : 0.8);
   if (!intent) return null;
+  // Mid-conversation, a sentence that points at what was just shown ("what does this paper say", "talk me through it") or
+  // asks for a summary is about that page, not a request for the list: the canned list answered it three times in one call
+  // (2026-11-05) and the paper was never read. Thanks and small talk ("got it") are exempt: the model has no better thanks.
+  if (!firstTurn && !smallTalk && intent.id !== 'thanks' && (POINTS_BACK.test(norm(question)) || ASKS_FOR_DETAIL.test(norm(question)))) return null;
   // Mid-conversation, "hello??" means "are you there", not a new visitor: the canned
   // introduction would drop the thread.
   if (!firstTurn && intent.id === 'greeting') return null;

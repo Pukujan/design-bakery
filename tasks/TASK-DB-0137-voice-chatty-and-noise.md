@@ -163,3 +163,11 @@ A live call on 2026-11-05 took 5 to 10 s per reply (one 32 s). `workbuddy` answe
 - On a call, `byHealth` ranks by the measured time once a provider has two samples, else by the probe. The free reasoning model still stays last, failing providers after.
 - Test: group 8 in `test-copilot-truncation.mjs` (one sample does not reorder; two do; chat keeps table order; junk samples ignored).
 - Not verified on a live call. Look at `copilot.model` and `copilot.latency_ms` in Phoenix after deploy.
+
+## A follow-up about the page on screen goes to the model, not the canned list (fifteenth commit)
+
+On the call of 2026-11-05 (01:24 to 01:27 UTC) three asks about a paper got the saved research list, "11 working papers. The newest is...": "You wanna show me this paper and talk me through it?", "Do you wanna show me this paper and summarize it for me?", "What does this paper try to say?". The paper was never read. The saved intents fire from a keyword ("paper", "research") even mid-conversation.
+
+- `answers.ts` (`cachedAnswer`): after the first turn, a sentence that points back ("this", "that", "it", "them"...) or asks for a summary or explanation ("summarize", "explain", "talk me through", "what does ... say") is the model's, with its tools. Thanks and small talk are exempt.
+- `test-copilot-answers.mjs`: the real phrases must reach the model; "thanks, got it" and the plain research list question still work.
+- Also seen on that call: a text-to-speech socket timeout at 01:26:14 (retried now, voice-agent-research #146) and an 18.5 s turn on workbuddy before the speed ranking (#213) deployed.
