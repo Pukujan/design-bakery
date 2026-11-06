@@ -4,6 +4,7 @@ import { ArrowUp, ChevronUp, Square, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { previewOf } from './replyPeek';
 import { copilot, useCopilot } from './store';
+import { TurnstileSlot } from './TurnstileSlot';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
 
@@ -40,6 +41,7 @@ export function MiniCopilot({ onRestore, onClose }: { onRestore: () => void; onC
         <span className="cp-mini-preview">{previewOf(messages)}</span>
         <ChevronUp size={18} aria-hidden="true" />
       </button>
+      <TurnstileSlot />
       <form className="cp-mini-form" onSubmit={submit}>
         <label htmlFor="cp-ask-mini" className="sr-only">
           Ask about my work
