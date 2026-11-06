@@ -5,7 +5,6 @@
     "title": "Accuracy is not enough"
   },
   "rubric": {
-    "maxQuestionTurns": 3,
     "proofWithin": 2,
     "maxTurnMs": 10000,
     "noRepeatedReplies": true
@@ -40,7 +39,9 @@
       "say": "Which project is most relevant for a legal AI team?",
       "expect": {
         "minChars": 60,
-        "textMatch": "Precedent|legal"
+        "judge": {
+          "J-4": "names Precedent, the legal AI project"
+        }
       }
     },
     {
@@ -59,7 +60,9 @@
       "say": "Book a call with him.",
       "expect": {
         "navigatesTo": "/contact",
-        "textMatch": "name"
+        "booking": {
+          "step": "ask_name"
+        }
       }
     }
   ]

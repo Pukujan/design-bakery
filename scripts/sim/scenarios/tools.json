@@ -25,9 +25,11 @@
         },
         "maxMs": 7000,
         "minChars": 180,
-        "textNotMatch": "^(here it is|here you go)[.!]?$",
         "actions": [
           "cite"
+        ],
+        "judge": [
+          "J-2"
         ]
       }
     },

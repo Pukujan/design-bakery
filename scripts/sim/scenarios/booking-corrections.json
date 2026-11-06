@@ -9,10 +9,12 @@
       "say": "I want to book a consultation.",
       "expect": {
         "navigatesTo": "/contact",
-        "textMatch": "name",
         "noActions": [
           "book"
-        ]
+        ],
+        "booking": {
+          "step": "ask_name"
+        }
       }
     },
     {
@@ -21,7 +23,9 @@
         "noActions": [
           "book"
         ],
-        "asksToConfirm": true
+        "booking": {
+          "step": "confirm_name"
+        }
       }
     },
     {
@@ -30,7 +34,9 @@
         "noActions": [
           "book"
         ],
-        "textMatch": "spell"
+        "booking": {
+          "step": "ask_name"
+        }
       }
     },
     {
@@ -39,10 +45,12 @@
         "noActions": [
           "book"
         ],
-        "spells": [
-          "pujan"
-        ],
-        "asksToConfirm": true
+        "booking": {
+          "step": "confirm_name",
+          "has": {
+            "name": "Pujan"
+          }
+        }
       }
     },
     {
@@ -51,7 +59,9 @@
         "noActions": [
           "book"
         ],
-        "textMatch": "How do you say your name"
+        "booking": {
+          "step": "ask_pronunciation"
+        }
       }
     },
     {
@@ -60,7 +70,9 @@
         "noActions": [
           "book"
         ],
-        "textMatch": "email"
+        "booking": {
+          "step": "ask_email"
+        }
       }
     },
     {
@@ -69,10 +81,12 @@
         "noActions": [
           "book"
         ],
-        "spells": [
-          "poojan3645"
-        ],
-        "asksToConfirm": true
+        "booking": {
+          "step": "confirm_email",
+          "has": {
+            "email": "poojan3645@gmail.com"
+          }
+        }
       }
     },
     {
@@ -81,10 +95,12 @@
         "noActions": [
           "book"
         ],
-        "spells": [
-          "pujan3645"
-        ],
-        "asksToConfirm": true
+        "booking": {
+          "step": "confirm_email",
+          "has": {
+            "email": "pujan3645@gmail.com"
+          }
+        }
       }
     },
     {

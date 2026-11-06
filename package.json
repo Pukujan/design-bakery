@@ -22,6 +22,8 @@
     "test:railway-build": "node scripts/test-railway-build.mjs",
     "test:homepage-content": "node scripts/test-homepage-content-stability.mjs",
     "sim:call": "node scripts/sim/call-sim.mjs",
+    "sim:spec": "node scripts/sim/spec-check.mjs",
+    "test:sim-harness": "node scripts/test-sim-harness.mjs",
     "sim:browser": "node scripts/sim/browser-call.mjs",
     "test:copilot-order": "node scripts/test-copilot-order.mjs",
     "test:voice-redial": "node scripts/test-voice-redial.mjs",

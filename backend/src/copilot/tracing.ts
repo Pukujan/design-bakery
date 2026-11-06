@@ -61,6 +61,8 @@ export class TurnTrace {
   /** Why the model stopped (stop, length, tool-calls...), and whether the reply was cut off and trimmed to a whole sentence. */
   finishReason = 'unknown';
   truncated = false;
+  /** The tools the model was offered this turn, after the channel, the booking step and the lane narrowed them (copilot-spec.md O-1 to O-4). */
+  offered: string[] = [];
   private steps = new Map<string, Step>();
 
   constructor(readonly session: string) {}
@@ -99,6 +101,7 @@ export class TurnTrace {
       'copilot.channel': this.channel,
       'copilot.lane': this.lane,
       'copilot.actions': this.actions.join(' '),
+      'copilot.offered': this.offered.join(' '),
       'copilot.citations': this.citations.join(' | '),
       'copilot.context_tokens': this.contextTokens,
       'copilot.summary_used': this.summaryUsed,

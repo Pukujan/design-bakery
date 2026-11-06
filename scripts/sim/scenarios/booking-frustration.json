@@ -9,7 +9,9 @@
       "say": "Book the call.",
       "expect": {
         "navigatesTo": "/contact",
-        "textMatch": "name"
+        "booking": {
+          "step": "ask_name"
+        }
       }
     },
     {
@@ -18,9 +20,12 @@
         "noActions": [
           "book"
         ],
-        "spells": [
-          "poojan"
-        ]
+        "booking": {
+          "step": "confirm_name",
+          "has": {
+            "name": "Poojan"
+          }
+        }
       }
     },
     {
@@ -29,7 +34,12 @@
         "noActions": [
           "book"
         ],
-        "textNotMatch": "Just Told|What name should I put it under"
+        "booking": {
+          "step": "confirm_name",
+          "has": {
+            "name": "Poojan"
+          }
+        }
       }
     },
     {
@@ -38,13 +48,17 @@
         "noActions": [
           "book"
         ],
-        "textMatch": "How do you say your name"
+        "booking": {
+          "step": "ask_pronunciation"
+        }
       }
     },
     {
       "say": "Fine as spelled.",
       "expect": {
-        "textMatch": "email"
+        "booking": {
+          "step": "ask_email"
+        }
       }
     },
     {
@@ -53,7 +67,12 @@
         "noActions": [
           "book"
         ],
-        "textNotMatch": "What name should I put it under"
+        "booking": {
+          "step": "ask_email",
+          "has": {
+            "name": "Poojan"
+          }
+        }
       }
     },
     {
@@ -62,10 +81,12 @@
         "noActions": [
           "book"
         ],
-        "spells": [
-          "pujan3645"
-        ],
-        "asksToConfirm": true
+        "booking": {
+          "step": "confirm_email",
+          "has": {
+            "email": "pujan3645@gmail.com"
+          }
+        }
       }
     },
     {

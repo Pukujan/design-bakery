@@ -9,7 +9,7 @@
 
 This is the contract for how the site copilot (AI Pujan, by voice and in the chat) behaves on every turn. It is written for one human visitor who can ask anything at any time: a question, a tour, a fast summary of everything, a booking, "next", a change of mind, an interruption, in any order and mixed together. There are no visitor types and no modes.
 
-Tests cite the ids below (`INV-*`, `MR-*`, `T-*`, `O-*`, `J-*`). A change in behaviour changes this file in the same PR. Every status line says what holds today and what is planned; "planned" means not built.
+Tests cite the ids below (`INV-*`, `EX-*`, `MR-*`, `T-*`, `O-*`, `J-*`). A change in behaviour changes this file in the same PR. Every status line says what holds today and what is planned; "planned" means not built.
 
 ## 1. Scope
 
@@ -100,32 +100,32 @@ Checked by code on every turn of every test run, from events, thread state and t
 
 | Id | Invariant | Evidence | Status |
 |----|-----------|----------|--------|
-| INV-1 | Nothing traps the person: the offered tools match O-1 to O-4 in every state. | the offered tool names on the turn's trace | the rule holds in `callTools`; the trace does not record offered tools yet |
-| INV-2 | Detours do not disturb: a turn that calls none of a thread's tools leaves that thread unchanged (T-3). | thread state before and after; no `flow` event means unchanged | holds for booking in the booking scenarios; not checked as a rule |
-| INV-3 | Only tools act: page moves, highlights, cards, links and the booking button reach the page only as `action` events from a tool. The `book` action comes only from the last booking step, after the name, its spelling, how it is said, the email and the area are all confirmed. | `action` and `step` events; `finish()` in `tools.ts` | holds by code |
-| INV-4 | Heard as said: the stored name and email equal what the person said or spelled, with the last correction winning. A common spelling never replaces the one heard. | the `book` action's fields | booking-corrections and booking-call-1105 3 of 3; booking 2 of 3 |
-| INV-5 | Within limits: tool steps at most the lane's `maxSteps`; time and tokens within the targets in §6.1. | `step` events, the trace's timings and token counts | steps hold by code; tokens over target |
-| INV-6 | Grounded: a fact about the work comes from the brief, a tool result or a stored summary. A summary of a page comes with a `cite` per passage. | the trace's tool outputs; `cite` events; J-3 for the words | `cite` holds for `summarize_page`; the rest is unchecked |
-| INV-7 | Quiet when not addressed: after `not_for_me` there is no text and one `ignored` event; never when `toMe`. | events | holds by code |
-| INV-8 | Few questions back: at most one question per reply, and at most 3 in 10 replies end in a question. Booking steps, which must ask, do not count. | the last character of each reply | fails: recruiter-checklist ends 4 to 6 of 10 replies in a question |
-| INV-9 | A reply cut off by the token limit is never sent as complete: it is pulled back to its last whole sentence. | `truncation.ts`; the trace's `truncated` | holds by code |
+| INV-1 | Nothing traps the person: the offered tools match O-1 to O-4 in every state. | the offered tool names (`copilot.offered` on the trace; the test-only `debug` event, §10) | holds: 35 of 35 runs (baseline of 2026-11-05: `sim:call --all --runs 2` and `sim:spec --set smoke`, 35 runs) |
+| INV-2 | Detours do not disturb: a turn that calls none of a thread's tools leaves that thread unchanged (T-3). | thread state before and after; no `flow` event means unchanged | holds: 35 of 35 runs, for the booking and the page |
+| INV-3 | Only tools act: page moves, highlights, cards, links and the booking button reach the page only as `action` events from a tool. The `book` action comes only from the last booking step, after the name, its spelling, how it is said, the email and the area are all confirmed. A tool that tells the model it acted has sent that action (`share_link`, `step_list`, `tour_next`). | `action` and `step` events, the tool results in the `debug` event; `finish()` in `tools.ts` | holds in 35 of 35 runs; but on a call `share_link` returns ok and its link is dropped (§12) |
+| INV-4 | Heard as said: the stored name and email equal what the person said or spelled, with the last correction winning. A common spelling never replaces the one heard. | the `book` action's fields, and the booking's fields after each step (a scenario's `book` and `booking.has`) | fails: 7 of 8 runs; at a booking step the model can fill in an answer from a line that is not one (§12) |
+| INV-5 | Within limits: tool steps at most the lane's `maxSteps`; time and tokens within the targets in §6.1. | `step` events, the trace's timings and token counts | steps hold in 35 of 35 runs; tokens over target (§6.1) |
+| INV-6 | Grounded: a fact about the work comes from the brief, a tool result or a stored summary. A summary of a page comes with a `cite` per passage. | the trace's tool outputs; `cite` events; J-3 for the words | `cite` holds for `summarize_page` in 35 of 35 runs; J-3 passed where asked |
+| INV-7 | Quiet when not addressed: after `not_for_me` there is no text and one `ignored` event; never when `toMe`. | events | holds by code; the baseline had one line for someone else, handled right |
+| INV-8 | Few questions back: at most one question per reply, and at most 3 in 10 replies end in a question. Booking steps, which must ask, do not count. | the last character of each reply | fails in 4 of 22 scenario runs: recruiter-checklist ended 4 of 10 replies in a question, recruiter-deep-dive 3 of 7, tools 2 of 4 (twice) |
+| INV-9 | A reply cut off by the token limit is never sent as complete: it is pulled back to its last whole sentence. | `truncation.ts`; the trace's `truncated` | holds by code (`test:copilot-truncation`); no reply was cut in the baseline |
 
 ### 6.1 Targets
 
-Targets, not measurements. They become gate thresholds once the harness measures them.
+"Today" is the baseline of 2026-11-05 (190 scenario turns). The targets become gate thresholds in the merge gate.
 
 | What | Today | Target |
 |------|-------|--------|
-| Input tokens per turn | about 8 to 9k | about half, once retrieval replaces most of the brief |
-| A voice turn, line to full reply | 1 to 4 s on DeepSeek in the scenarios | under 4 s for 9 turns in 10 |
+| Tokens per turn, all model calls | median about 20k: a turn that uses a tool makes two calls of about 10k each; a turn with no tool is about 10k | about half, once retrieval replaces most of the brief |
+| A voice turn, line to full reply (backend only, no speech) | median 2.0 s, 9 in 10 under 2.8 s, 185 of 190 under 4 s | under 4 s for 9 turns in 10 (met) |
 | A stored summary, line to first word | not built | under 1.5 s |
 
 ## 7. Wording checks
 
 Only where code does not write the words, and never by regex.
 
-- **Exact:** the booking lines come from `nextStep` in `bookingState.ts`, so a booking turn's reply contains that step's line exactly.
-- **Judge:** everything else goes to a small judge model with a rubric kept in the lane's `copilot_<lane>_judge_settings` table. The judge sees the turn's line, reply, tool calls and tool outputs.
+- **Exact (EX-1):** the booking lines come from `nextStep` in `bookingState.ts`, so a turn that called a booking tool says the line that tool returned, word for word. Case, punctuation and spacing are ignored. Today 16 of 22 runs pass: the model rewords short lines ("Say it slowly" becomes "Slowly").
+- **Judge:** everything else goes to a small judge model (DeepSeek flash, thinking off, temperature 0) with the rubric in `scripts/sim/judge.json`, which is versioned in the repo (D-5). The judge sees the turn's line, reply, tool calls and tool outputs, and the actions the page received. For J-3 it also sees the site brief. J-1 is asked on every reply, J-2 on every summary, and a scenario step asks for any other id, with a note for that turn (`"judge": { "J-4": "names Precedent" }`). A check the judge did not answer is reported as not checked, never as a pass.
 
 | Id | The judge checks that |
 |----|------------------------|
@@ -137,18 +137,18 @@ Only where code does not write the words, and never by regex.
 
 ## 8. Metamorphic relations
 
-An AI reply has no single right wording, so most tests compare two runs. A relation changes a conversation in a way that should not matter, runs both, and compares their **trajectories**: per turn, the set of tools called, the actions (kind and path), and the thread state after it. Reply text is never compared directly; facts are compared by the judge where a relation needs it.
+An AI reply has no single right wording, so most tests compare two runs. A relation changes a conversation in a way that should not matter, runs both, and compares their **trajectories**: per turn, the set of tools that act (lookups such as `search_site` and `read_paper` are left out, since two runs may look things up differently and still agree), the actions (kind and path), and the thread state after it (the booking's step and which fields it holds, and the page). Reply text is never compared directly; facts are compared by the judge where a relation needs it.
 
 | Id | Change | Must match | Applies to | Status |
 |----|--------|------------|------------|--------|
-| MR-1 | The same request said another way | the turn's tools and thread change | every request kind | testable today |
-| MR-2 | An unrelated exchange inserted anywhere | the final state of every thread, and the next on-thread line still moves it | booking, list stepping; tours once built | testable today for booking |
-| MR-3 | Fillers, a known mishearing, a half line | the turn's tools and actions | every request kind | testable today |
+| MR-1 | The same request said another way | the turn's tools and thread change | every request kind | holds: 4 of 4 |
+| MR-2 | An unrelated exchange inserted anywhere | the final state of every thread, and the next on-thread line still moves it | booking, list stepping; tours once built | fails for tours: after a detour, "keep going" can go to `step_list` or another stop (1 and 2 of 3 cases in two runs) |
+| MR-3 | Fillers, a known mishearing, a false start | the turn's tools and actions | every request kind | built; no smoke seed has drawn it yet |
 | MR-4 | Tour, pause, anything, resume | the same stops as the tour without the pause | tours | needs tour state |
-| MR-5 | Two independent questions in either order | the tools called and the facts given (judge) | questions | testable today |
-| MR-6 | The same request twice | the same facts; no thread restarts | every request kind | testable today |
-| MR-7 | The same conversation on another lane | the trajectory, within that lane's tool list | lane switching | testable today (strong and hybrid) |
-| MR-8 | "Summarise this" on a page, against "summarise <that page>" from home | the same summary source and cites | summaries | testable today |
+| MR-5 | Two independent questions in either order | the tools called (the facts are planned for the judge) | questions | holds: 2 of 2 |
+| MR-6 | The same request twice | the same tools; no thread restarts or moves | every request kind | fails: "Book a call" again at the pronunciation step filled in a made-up pronunciation, 2 of 2 |
+| MR-7 | The same conversation on another lane | the trajectory, within that lane's tool list | lane switching | built (strong and hybrid, in the full set); not run yet |
+| MR-8 | "Summarise this" on a page, against "summarise <that page>" from home | the same summary source and cites | summaries | holds: 2 of 2 |
 | MR-9 | A reply cut by a barge-in, then "go on" | goes on from where it was cut, without starting over (judge) | voice | needs the cut note |
 
 Models do not answer the same way twice, so every case runs 3 times and each id is scored as a pass rate. The gate is a rate per id, not a single run.
@@ -159,20 +159,25 @@ Fixed scenarios cover known calls; generated ones cover what nobody wrote down.
 
 - **Base flows:** booking, tour, stepping through a list, a summary, free questions, small talk.
 - **Insertions:** an off-topic question, a hard question, small talk, a complaint, "wait", "stop", a line for someone else, a page request.
-- **Noise:** fillers, mishearings taken from real calls (the call of 2026-11-05), half lines.
+- **Noise:** fillers, mishearings taken from real calls (the call of 2026-11-05), false starts ("show me, show me Precedent"). Noise never touches a booking answer, which must be heard as said (INV-4).
 - **Paraphrases:** written once by a model, reviewed, and kept in files, so runs stay comparable and cheap.
 - **Seeded:** the same seed gives the same conversation.
-- **Shrunk:** a failing conversation loses lines one at a time while it still fails; the smallest is kept.
-- **Kept:** each shrunk failure is saved to `copilot_<lane>_replay_cases` with the ids it broke, and grouped in `copilot_<lane>_eval_sets` (migration `013_copilot_lanes.sql`). A real turn flagged into `copilot_<lane>_flagged_turns` becomes a replay case the same way.
+- **Shrunk:** a failing conversation loses its changes (insertions and noise) one at a time while it still fails, within a budget of 6 reruns; the smallest is kept.
+- **Kept:** with `--save`, each failure is saved to `copilot_<lane>_replay_cases` (migration `013_copilot_lanes.sql`) with its lines, its changes and the ids it broke; a case of the same name is updated. Grouping cases in `copilot_<lane>_eval_sets`, and turning a real turn flagged into `copilot_<lane>_flagged_turns` into a replay case, are planned.
 
-**Cost:** at about 9k tokens a turn, 8 conversations (a smoke set) are about 0.6M tokens, and 30 (the full set) about 2M, the production daily cap. Test runs go to a local server with their own budget, never the production one.
+**Cost:** at about 20k tokens a turn, the scenario baseline (`sim:call --all --runs 2`, 190 turns) is about 3.8M tokens and the judge about 0.1M more; the smoke set of relations is about 50 turns, 1M. Test runs go to a local server with their own budget, never the production one.
 
 ## 10. Where the tests live
 
-- Scenarios: `scripts/sim/scenarios/*.json`, run by `scripts/sim/call-sim.mjs` against the real models. Each check names the ids it covers (`"covers": ["INV-2", "MR-2"]`, planned).
-- Code checks: `pnpm test:copilot-tools`, `pnpm test:copilot-lanes`, `pnpm check:lanes`.
-- Traces: every turn goes to Phoenix through Octo, with its lane, model, tools and tokens.
-- To convert: 37 scenario checks match reply wording by regex today (26 `textMatch`, 11 `textNotMatch`). Each becomes a state check, an exact booking line, or a judge check.
+Both runners play conversations through a local backend's real `/api/copilot/chat`, with the real models and site data, and score every id as a pass rate over runs.
+
+- **Scenarios:** `scripts/sim/scenarios/*.json`, run by `pnpm sim:call --all [--runs 3]`. Every turn is checked against the invariants and EX-1, then its step's own checks (actions, tools, the booking's step and fields, time, length), then the judge.
+- **Relations and generated conversations:** `pnpm sim:spec [--set smoke|full] [--seed 1] [--shrink] [--save]`. The fixed cases and the pools they draw on are in `scripts/sim/pools/` (`relations.json`, `flows.json`, `detours.json`, `noise.json`).
+- **The checks themselves:** `scripts/sim/lib/` (`spec.mjs` holds this file's tool rules, written down apart from the backend so the tests do not reuse the code they test). `pnpm test:sim-harness` tests them offline, with no model, in CI.
+- **The debug event:** a backend started with `COPILOT_DEBUG_EVENTS=1` (the local `api-voice` launch config) sends one `debug` event per turn: the lane, its step limit, the tools offered, what each tool returned, whether the reply was cut, and the tokens. Only then may a request name its lane, which MR-7 needs. Production never sets it.
+- **Code checks:** `pnpm test:copilot-tools`, `pnpm test:copilot-lanes`, `pnpm check:lanes`.
+- **Traces:** every turn goes to Phoenix through Octo, with its lane, model, the tools offered and called, and tokens.
+- **No wording by pattern:** the 60 scenario checks that matched reply wording (26 `textMatch`, 11 `textNotMatch`, 11 `spells`, 10 `asksToConfirm`, 2 `firstReplyMatches`) became state checks, EX-1 or judge checks. The runner refuses a scenario that still has one.
 
 ## 11. Decisions
 
@@ -182,16 +187,21 @@ Fixed scenarios cover known calls; generated ones cover what nobody wrote down.
 | D-2 | Paraphrases and noise are frozen in files, not made fresh per run. | The same input on every run, so a change in the score comes from the code or the model, not from the test. |
 | D-3 | A booking re-asks its step after a detour; a tour waits to be asked (T-5). | A person mid-booking has given details and is waiting on one answer; a person on a tour may have moved on. |
 | D-4 | An open, running tour owns "next"; otherwise the list does (T-6). | One meaning per word in each state, decided by state the model is shown, not by matching the word. |
+| D-5 | The judge's rubric lives in the repo (`scripts/sim/judge.json`, with a version), not in the `judge_settings` table. | A rubric change is reviewed like code, and a pass rate can be traced to the rubric version that produced it. |
 
 ## 12. Known gaps
 
 - The prompts contradict INV-8. The base prompt, sent on both channels, asks for small talk to "end with a short question or hook". The voice note forbids handing the turn back, yet also says to end only "about a third of replies" on a throwaway line instead of a question, which allows two in three to end in one. This likely feeds the INV-8 failures.
-- `tour_next` finds the next stop by looking for stop titles in what was already said: a stop mentioned in passing is skipped, and nothing can pause or resume a tour.
-- The trace does not record which tools were offered, so INV-1 cannot be checked yet.
-- Nothing writes to the lane tables yet.
+- `tour_next` finds the next stop by looking for stop titles in what was already said: a stop mentioned in passing is skipped, and nothing can pause or resume a tour. MR-2 shows it: after a detour, "keep going" goes to `step_list` or to another stop.
+- A booking step takes a line that is not an answer as one. "I just told you the name" was taken as a yes to the spelling, "Yes, that's right" and a repeated "Book a call" became a pronunciation ("Poo-jun") nobody said, and a bare "No." at the name step cancelled the booking. The step's tool is the only one offered besides repeat and cancel, so the model reaches for it (INV-4, MR-6).
+- On a call, `share_link` is offered and returns ok, but `route.ts` drops `link` actions on a call and the page shows no chips there, so the reply says a link is "under the answer" and nothing appears.
+- The model rewords short booking lines (EX-1, 16 of 22 runs), so a line the code wrote is not always what is said.
+- A turn that uses a tool costs about 20k tokens, so the production cap of 2M a day is about 100 turns.
+- Only `sim:spec --save` writes to the lane tables (replay cases); nothing writes flagged turns or eval sets yet.
 - The page's built-in fallback answers, used only when every model is down, still match wording.
 - No real spoken call has been tested since tools replaced the matching.
 
 ## Revision history
 
 - 2026-11-05: First version.
+- 2026-11-05: The test harness is built (§10). Added EX-1 and D-5; the judge's rubric is a repo file; MR-3 uses false starts; trajectories leave out lookups; INV-1 and INV-2 are checked on every test turn.

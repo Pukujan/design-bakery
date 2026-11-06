@@ -1,0 +1,20 @@
+{
+  "_about": "Fixed metamorphic cases (copilot-spec.md §8). Paraphrases were written once and are reviewed here, so every run gets the same input.",
+  "sets": {
+    "smoke": { "generated": 4, "fixed": ["p-contact", "p-next", "order-roles", "repeat-book", "here-vs-named"] },
+    "full": { "generated": 12, "fixed": "all" }
+  },
+  "cases": [
+    { "id": "p-contact", "relation": "MR-1", "startPage": { "path": "/", "title": "Home" }, "base": "How do I contact you?", "variants": ["What's the best way to reach you?", "How can I get in touch with you?"] },
+    { "id": "p-book", "relation": "MR-1", "startPage": { "path": "/", "title": "Home" }, "base": "Book a call.", "variants": ["I'd like a free consultation.", "Can we set up a call?"] },
+    { "id": "p-next", "relation": "MR-1", "startPage": { "path": "/research/papers/db-r-2026-001", "title": "Cortex reliability kernel: composition status and evidence boundaries" }, "base": "Next.", "variants": ["Next one.", "Go on to the next paper."] },
+    { "id": "p-summary", "relation": "MR-1", "startPage": { "path": "/research/papers/db-r-2026-010", "title": "Accuracy is not enough" }, "base": "Summarise this paper.", "variants": ["What's this paper about?", "Give me the gist of this one."] },
+    { "id": "p-research", "relation": "MR-1", "startPage": { "path": "/", "title": "Home" }, "base": "Show me your research.", "variants": ["Take me to your research.", "Where are your papers?"] },
+    { "id": "order-roles", "relation": "MR-5", "startPage": { "path": "/", "title": "Home" }, "lines": ["Where are you based?", "What kind of roles are you looking for?"] },
+    { "id": "repeat-roles", "relation": "MR-6", "mode": "same", "startPage": { "path": "/", "title": "Home" }, "lines": ["What kind of roles are you looking for?", "What kind of roles are you looking for?"], "first": 0, "second": 1 },
+    { "id": "repeat-book", "relation": "MR-6", "mode": "keeps", "startPage": { "path": "/", "title": "Home" }, "lines": ["Book a call.", "Poojan.", "Yes.", "Book a call."], "first": 0, "second": 3 },
+    { "id": "lanes-questions", "relation": "MR-7", "flow": "questions", "lanes": ["hybrid", "strong"] },
+    { "id": "lanes-booking", "relation": "MR-7", "flow": "booking", "lanes": ["hybrid", "strong"] },
+    { "id": "here-vs-named", "relation": "MR-8", "page": { "path": "/research/papers/db-r-2026-010", "title": "Accuracy is not enough" }, "from": { "path": "/", "title": "Home" }, "here": "Summarise this paper.", "named": "Summarise your paper Accuracy is not enough." }
+  ]
+}
