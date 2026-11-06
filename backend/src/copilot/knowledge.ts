@@ -245,7 +245,7 @@ export async function sectionsForPath(pagePath: string): Promise<Section[] | nul
   const paper = /^\/research\/papers\/(db-r-\d{4}-\d{3})$/.exec(clean);
   if (paper) {
     const body = await readPaper(paper[1]);
-    return body ? sectionsOfMarkdown(body, { levels: [1, 2, 3] }) : null;
+    return body ? sectionsOfMarkdown(body, { levels: [1, 2, 3], visuals: true }) : null;
   }
   if (/^\/work\/[^/]+$/.test(clean)) {
     const project = (await loadProjects()).find((p) => projectPath(p) === clean);
