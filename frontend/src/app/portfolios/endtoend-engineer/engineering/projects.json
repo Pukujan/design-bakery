@@ -1,25 +1,70 @@
 [
   {
     "id": 16,
-    "slug": "website-copilot",
-    "title": "Website Copilot",
+    "slug": "maybe",
+    "title": "Maybe",
     "category": "shipped",
-    "tagline": "A voice call that helps visitors finish the form",
-    "description": "Visitors give up on long forms and help pages, and a chatbot that guesses makes it worse. Website Copilot is a voice call on the page: it asks one question at a time, fills each field only after the visitor confirms, and never presses Submit. Answers come from the company's own documents, or it says it doesn't know. It runs on open models and keeps customer data in house. The live demo puts the same fictional sites side by side, with and without the call.",
-    "tech": ["Voice Agents", "RAG", "Form Filling", "Open Models", "Octo", "React"],
-    "color": "#0A1A17",
-    "accentColor": "#34D399",
+    "tagline": "A helper you talk to when a letter, a form or a manual is too much",
+    "description": "A letter that makes no sense, a form with fifty boxes, a manual nobody has time to read. Maybe is a helper you talk to on the page, out loud, the way you'd ask a friend: it reads the letter with you line by line, puts the right manual page on screen, and fills in the form as you talk it through. It fills a field only after you confirm and never presses Submit. Answers come from the site's own documents with the source shown, or it says it doesn't know. It is built for the people the web leaves out: 1 in 4 U.S. adults lives with a disability, and 95 of the top million home pages fail basic accessibility checks. Maybe Home and Riley are Maybe for one job each.",
+    "tech": ["Voice Agents", "RAG", "Accessibility", "Form Filling", "Open Models", "Octo"],
+    "color": "#17110A",
+    "accentColor": "#F5B544",
     "startedAt": "2026-10-28",
     "startedAtSource": "GitHub repo creation date of Pukujan/voice-agent-research (2026-10-29T03:37:53Z, which is 2026-10-28 US Eastern)",
     "status": "ongoing",
     "stats": [
-      {"label": "Never presses Submit", "icon": "Award"},
-      {"label": "Answers from your documents or says it doesn't know", "icon": "Sparkles"},
-      {"label": "Live demo, with and without the call", "icon": "TrendingUp"}
+      {"label": "Reads it with you, line by line", "icon": "Sparkles"},
+      {"label": "Fills a field only after you confirm; never presses Submit", "icon": "Award"},
+      {"label": "Answers show their source, or it says it doesn't know", "icon": "TrendingUp"}
     ],
     "links": [
-      {"label": "Live Demo", "url": "https://copilot.design-bakery.com/#demos"},
-      {"label": "Concept Video", "url": "https://copilot.design-bakery.com/#video"}
+      {"label": "Live Site", "url": "https://maybe.design-bakery.com/"},
+      {"label": "Talk to It", "url": "https://maybe.design-bakery.com/tax"}
+    ]
+  },
+  {
+    "id": 19,
+    "slug": "maybe-home",
+    "title": "Maybe Home",
+    "category": "shipped",
+    "tagline": "Your first New York home. Just ask.",
+    "description": "Buying a first home in New York comes with words nobody explains: board package, proprietary lease, flip tax, sponsor unit. Maybe Home answers them by voice or text, in English or Spanish, and walks a first-time buyer through the eight steps from budget to keys. Every answer comes from a written guide. There is a glossary of the words in listings, a four-question readiness check that saves nothing, and the city and state programs that help with a down payment. It is Maybe for one job, hosted on its own.",
+    "tech": ["Voice Agents", "RAG", "Bilingual", "Maps", "React"],
+    "color": "#0A1220",
+    "accentColor": "#60A5FA",
+    "startedAt": "2026-11-03",
+    "startedAtSource": "GitHub repo creation date of pukujan-lab-2/first-home-nyc (2026-11-04T00:19:08Z, which is 2026-11-03 US Eastern)",
+    "status": "ongoing",
+    "stats": [
+      {"label": "Eight steps from maybe to keys", "icon": "TrendingUp"},
+      {"label": "Every answer from a written guide", "icon": "Sparkles"},
+      {"label": "English and Spanish, by voice or text", "icon": "Award"}
+    ],
+    "links": [
+      {"label": "Live Site", "url": "https://home.design-bakery.com/"}
+    ]
+  },
+  {
+    "id": 20,
+    "slug": "riley",
+    "title": "Riley",
+    "category": "shipped",
+    "tagline": "A phone screener that tells nurses when they'll hear back",
+    "description": "Nurses apply and hear nothing: an experienced RN takes 83 days to recruit, and 61% of job seekers are ghosted after an interview. Riley screens applicants for a hospital's nursing jobs by phone or text. A candidate answers a few questions in their own words and leaves with a date from the recruiter, not a portal, and a reply within 48 hours. Where a keyword filter would count a missing word as no, Riley asks. A person makes every decision, and the recruiter's queue shows who has everything and who is missing one thing. It is Maybe for one job, built for the NYC Voice Agent Hackathon in November 2026; the hospital and people in the demo are made up.",
+    "tech": ["Voice Agents", "LiveKit", "Telephony", "Recruiting", "React"],
+    "color": "#1A0A12",
+    "accentColor": "#FB7185",
+    "startedAt": "2026-11-04",
+    "startedAtSource": "GitHub repo creation date of pukujan-lab-2/nurse-screen (2026-11-04T22:01:55Z, which is 2026-11-04 US Eastern)",
+    "status": "ongoing",
+    "stats": [
+      {"label": "A reply within 48 hours, every time", "icon": "Award"},
+      {"label": "Asks instead of filtering people out", "icon": "Sparkles"},
+      {"label": "A person makes every decision", "icon": "TrendingUp"}
+    ],
+    "links": [
+      {"label": "Live Site", "url": "https://riley.design-bakery.com/"},
+      {"label": "Call Riley", "url": "tel:+16317090065"}
     ]
   },
   {

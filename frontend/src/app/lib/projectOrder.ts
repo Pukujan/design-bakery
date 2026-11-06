@@ -50,7 +50,9 @@ const CATEGORY_RANK: Record<ProjectCategory, number> = {
  * research, experiments, and client work.
  */
 const ALL_LEAD_TITLES = [
-  'Website Copilot',
+  'Maybe',
+  'Maybe Home',
+  'Riley',
   'NYC Map Agent',
   'Octo',
   'Ekagajpatra',
@@ -61,7 +63,7 @@ const ALL_LEAD_TITLES = [
 ];
 
 const WITHIN_CATEGORY: Record<ProjectCategory, readonly string[]> = {
-  shipped: ['Website Copilot', 'NYC Map Agent', 'Ekagajpatra', 'Study OS', 'Precedent'],
+  shipped: ['Maybe', 'Maybe Home', 'Riley', 'NYC Map Agent', 'Ekagajpatra', 'Study OS', 'Precedent'],
   systems: [
     'Octo',
     'Agent Custom Setup',
