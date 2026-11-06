@@ -128,5 +128,46 @@ const make = (extra = {}) => {
   assert.equal(actions.filter((a) => a.kind === 'ask').length, 2, 'a second call adds no buttons');
 }
 
+// 7. A message to Pujan: posted to the Apps Script with the token, through its redirect; unset or failing, a mailto link instead.
+{
+  const { createServer } = await import('node:http');
+  const got = [];
+  const server = createServer((req, res) => {
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', (c) => { body += c; });
+      req.on('end', () => {
+        got.push(JSON.parse(body));
+        // Apps Script answers a POST with a 302 to where the result is read.
+        res.writeHead(302, { location: '/result' }).end();
+      });
+    } else res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ ok: got.at(-1)?.token === 'test-token' }));
+  });
+  await new Promise((done) => server.listen(0, '127.0.0.1', done));
+  const msg = { name: 'Ada', email: 'ada@example.com', message: 'Hi Pujan, can we talk about voice agents?' };
+
+  delete process.env.CONTACT_MAIL_URL;
+  let { tool, actions } = make({ voice: false });
+  let r = await run(tool, 'send_message', msg);
+  assert.equal(r.ok, false, 'not set up: nothing is claimed as sent');
+  assert.ok(actions.some((a) => a.kind === 'link' && a.url.startsWith('mailto:')), 'not set up: an email link instead');
+
+  process.env.CONTACT_MAIL_URL = `http://127.0.0.1:${server.address().port}/exec`;
+  process.env.CONTACT_MAIL_TOKEN = 'test-token';
+  ({ tool } = make({ voice: false, page: { path: '/contact' } }));
+  r = await run(tool, 'send_message', msg);
+  assert.equal(r.ok, true, JSON.stringify(r));
+  assert.deepEqual(got.at(-1), { token: 'test-token', ...msg, page: '/contact' });
+  assert.equal((await run(tool, 'send_message', msg)).ok, false, 'one message per reply');
+  assert.equal(got.length, 1);
+
+  process.env.CONTACT_MAIL_TOKEN = 'wrong';
+  ({ tool, actions } = make({ voice: false }));
+  r = await run(tool, 'send_message', msg);
+  assert.equal(r.ok, false, 'a refused token is a failure, not a sent message');
+  assert.ok(actions.some((a) => a.kind === 'link'));
+  server.close();
+}
+
 assert.equal(state.sayEmail('a.b_c@gmail.com'), 'A, dot, B, underscore, C, at gmail dot com');
-console.log('copilot tools: booking steps, list stepping, tour, not_for_me, chat buttons');
+console.log('copilot tools: booking steps, list stepping, tour, not_for_me, chat buttons, send_message');

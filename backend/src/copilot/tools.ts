@@ -9,6 +9,7 @@ import type { Citations } from './citations.js';
 import { buildPassages, checkQuote, findSection, MAX_PASSAGES, QUOTE_MAX, SUMMARY_PASSAGES } from './sections.js';
 import { CONSULT_SERVICES,  nextStep, type BookingFlow, type BookingState } from './bookingState.js';
 import { neighbour, nextTourStop } from './walk.js';
+import { sendContactMessage } from './contactMail.js';
 import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, sectionsForPath, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
 
 export { CONSULT_SERVICES };
@@ -55,6 +56,7 @@ export type BookingHold = { get: () => BookingFlow | null; set: (flow: BookingFl
 export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean; citations?: Citations; voice?: boolean; page?: { path: string }; said?: string; booking?: BookingHold; notForMe?: () => void }) {
   const citations = options.citations;
   let buttonsShown = false;
+  let messageSent = false;
   /** Applies one step's slots to the booking state and says what comes next. */
   const step = (patch: Partial<BookingState>) => {
     if (!options.booking) return { ok: false, error: 'booking is only done on a call' };
@@ -392,6 +394,27 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
         const topic = [who.service, who.topic].filter(Boolean).join(': ') || undefined;
         emit({ kind: 'book', url: bookingUrl(base, { ...who, topic }), name: who.name, email: who.email, topic });
         return { ok: true };
+      },
+    }),
+
+    send_message: tool({
+      description:
+        'Email a message from the visitor to me (Pujan). Use it when they want to send me a message, leave a note, or reach me without booking a call. You need three things: their name, their email address so I can reply, and the message. Whatever they have said they want to tell or ask me is the message: do not ask for it again. Send their own words; do not add a greeting or a signature (the email carries their name). Ask only for what is missing. Before calling, read the exact message, name and email back in one short line and ask if you should send it; call this only after they say yes to that read-back, with the same words you read back. After it succeeds, tell them it is sent and I will reply by email; never say it is sent unless this returned ok.',
+      inputSchema: z.object({
+        name: z.string().min(1).max(80),
+        email: z.string().email().max(200),
+        message: z.string().min(2).max(4000),
+      }),
+      execute: async ({ name, email, message }) => {
+        if (messageSent) return { ok: false, error: 'a message was already sent in this reply' };
+        const result = await sendContactMessage({ name, email, message, page: options.page?.path });
+        if (result.ok) {
+          messageSent = true;
+          return { ok: true };
+        }
+        emit({ kind: 'link', label: 'Email me', url: 'mailto:pujan3645@gmail.com' });
+        const why = result.reason === 'not_set_up' ? 'Sending is not set up yet' : result.reason === 'daily_limit' ? 'Too many messages today' : 'Sending failed';
+        return { ok: false, note: `${why}; an email link was shown instead. Tell them, and that the link opens their own mail app.` };
       },
     }),
   };

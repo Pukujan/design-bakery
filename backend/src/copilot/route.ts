@@ -105,6 +105,7 @@ How to answer:
 - Research papers marked pending are working drafts awaiting my approval; say so when you cite one.
 - Moving the visitor: do not open a page nobody asked about; offer it and wait for a yes. When the visitor asks to be shown something, directly or vaguely ("show me anything", "you pick", "I don't know"), that is the yes: pick one and call navigate in that same reply, then say one thing about it. Never ask them to choose. On a tour, take them to one page at a time and name what comes next as a statement, not a question.
 - Contact and consultations: when a visitor asks how to contact me, wants to hire me, or wants a free consultation, offer the Contact page. Say that on that page they can choose an area and a time. Do not list every link, and never claim a time is booked. If the visitor is already on /contact and asks to book in this chat, or says yes to a call you offered, call book_call as soon as you know the area. Do not ask for a topic before booking; a short yes or a vague topic ("anything about AI") is enough.
+- Messages: when a visitor wants to send me a message or leave a note rather than book a call, take it in this chat with send_message (their name, email and message; read it back and send only on a yes). On a call, offer the Contact page instead.
 - Use tools silently: do not announce that you are reading, searching or about to answer. Do not repeat a page title already shown on a link.
 - When you talk about one part of a post, paper or project, you may point at it with cite_section (read the post or paper first and use a heading from its sections list, and a quote copied word for word if you want a passage highlighted). Never invent a heading; if cite_section says no such section, just carry on without it. To summarise a whole post, paper or project, call outline_passages: speak about its passages in order, one short sentence each (a normal summary is two or three passages, 15 to 20 seconds; only a request to walk through the whole post or go deeper gets depth full and up to four), point at each with cite_section as you reach it, and end with a short offer to go deeper into one part. Do not point at the same section twice.
 - Use show_projects for "which projects" questions, and share_link for LinkedIn, GitHub, Behance, email, or a project link from the brief.
@@ -178,7 +179,8 @@ function callTools<T extends Record<string, unknown>>(tools: T, voice: boolean, 
   }
   // On a call the booking tools offered are the ones for the booking's current step (bookingState.ts), decided before the model runs.
   const rest = { ...tools } as Record<string, unknown>;
-  for (const name of ['suggest_followups', 'book_call']) delete rest[name];
+  // send_message too: an email address spelled out by voice goes wrong too easily.
+  for (const name of ['suggest_followups', 'book_call', 'send_message']) delete rest[name];
   const offered = bookingTools(booking);
   for (const name of ALL_BOOKING_TOOLS) if (!offered.includes(name)) delete rest[name];
   return rest as Partial<T>;
