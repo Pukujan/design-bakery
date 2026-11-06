@@ -250,3 +250,14 @@ The owner's rule after the call of 2026-11-05: no regex deciding what a visitor 
 
 - Order of work: the test harness first (state checks, the invariant checker, metamorphic pairs, the generator), then explicit threads, tours with state, stored summaries, retrieval, and the cut note from `voice-agent/`.
 - Found while writing it: the prompts contradict INV-8 (the base prompt asks small talk to end with a question; the voice note forbids hand-backs but lets two in three replies end in a question), a likely cause of INV-8 failing, and the trace does not record the offered tools (INV-1 cannot be checked yet).
+
+## The spec harness, and what its first baseline found
+
+The spec's tests are built (`scripts/sim/`, [copilot-spec.md](../additionals/doc/copilot-spec.md) §10). Every turn is checked against the invariants from events, thread state and a test-only `debug` event (the tools offered, what each returned, the lane, tokens; sent only when the backend runs with `COPILOT_DEBUG_EVENTS=1`). Wording is checked only by the exact booking line (EX-1) or a judge (DeepSeek flash, rubric `scripts/sim/judge.json` v2). The 60 regex wording checks in the scenarios are gone and the runner refuses any that come back.
+
+- `pnpm sim:call --all [--runs N]`: the ten scenarios, scored as a pass rate per id. `pnpm sim:spec [--set smoke|full] [--shrink] [--save]`: metamorphic pairs (MR-1, 2, 3, 5, 6, 7, 8) from fixed cases and seeded generated conversations; a failing generated case shrinks and, with `--save`, is kept in `copilot_<lane>_replay_cases` (replay cases 1 and 2 are in `copilot_hybrid_replay_cases`).
+- `pnpm test:sim-harness`: 21 offline tests of the checks themselves, in CI.
+- The judge was calibrated on the baseline's own replies: rubric v1 failed J-1 on 14 of 190 replies, mostly offers ("Want me to open Contact?") and page moves it did not recognise; v2 fails 3 on the same replies, one of them real.
+- Baseline (2026-11-05, 35 runs): INV-1, 2, 3, 5, 6 hold in every run; MR-1, MR-5 and MR-8 hold. A voice turn is a median 2.0 s (185 of 190 under 4 s). A turn costs about 20k tokens, not 8 to 9k: a tool turn makes two model calls of about 10k.
+- Found: a booking step takes a non-answer as an answer (a made-up pronunciation from "Yes, that's right" or a repeated "Book a call"; "No." at the name step cancels), INV-4 7 of 8 and MR-6 0 of 2; on a call `share_link` returns ok but the link is dropped; the model rewords short booking lines (EX-1 16 of 22); after a detour a tour's "keep going" goes elsewhere (MR-2); 4 of 22 runs end too many replies in a question (INV-8).
+- Not fixed here: each is a backend change for its own PR. Not verified on a real spoken call.

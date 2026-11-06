@@ -28,7 +28,7 @@ import { takeDurableCopilotLimit, durableLimitConfigured } from './durableLimit.
 import { ALL_BOOKING_TOOLS, bookingTools, describe, type BookingFlow } from './bookingState.js';
 import { latestNews, newsBlock } from './news.js';
 import { laneNameFor, loadLane } from './lanes/loader.js';
-import type { Lane } from './lanes/types.js';
+import { LANE_NAMES, type Lane } from './lanes/types.js';
 import { createTextFilter } from './textFilter.js';
 import { contextBudget, estimateTokens, fitHistory, sanitizeSummary, summarize, summaryBlock, SUMMARY_MAX_CHARS } from './memory.js';
 import { isCutOff, trimToLastSentence } from './truncation.js';
@@ -42,7 +42,25 @@ export type CopilotEvent =
   /** On a call, the model found the line was said to someone else in the visitor's room (the not_for_me tool): no reply, and the page greys it out. */
   | { type: 'ignored'; reason: string }
   | { type: 'flow'; flow: BookingFlow | null }
+  /** Tests only (COPILOT_DEBUG_EVENTS=1): what the turn offered and what each tool returned, for the spec's checks (copilot-spec.md). */
+  | { type: 'debug'; lane: string; maxSteps: number; offered: string[]; results: ToolResult[]; truncated: boolean; inputTokens: number; outputTokens: number }
   | { type: 'error'; message: string };
+
+/** A tool's result as a test sees it: whether it worked, the line it gave to say, its refusal, how many passages it returned, and the start of its output (for the judge). */
+type ToolResult = { name: string; ok?: boolean; say?: string; error?: string; next?: string; passages?: number; output?: string };
+function asResult(name: string, output: unknown): ToolResult {
+  if (!output || typeof output !== 'object') return { name };
+  const o = output as Record<string, unknown>;
+  return {
+    name,
+    ...(typeof o.ok === 'boolean' ? { ok: o.ok } : {}),
+    ...(typeof o.say === 'string' ? { say: o.say } : {}),
+    ...(typeof o.error === 'string' ? { error: o.error } : {}),
+    ...(typeof o.next === 'string' ? { next: o.next } : {}),
+    ...(Array.isArray(o.passages) ? { passages: o.passages.length } : {}),
+    output: JSON.stringify(o).slice(0, 1500),
+  };
+}
 
 const chatBody = z.object({
   messages: z
@@ -59,6 +77,8 @@ const chatBody = z.object({
   }).nullable().optional(),
   /** The visitor tapped "Answer this" on a line the call had not answered: it is for me, so the model is not offered not_for_me. */
   toMe: z.boolean().optional(),
+  /** Tests only: run this turn on a named lane (the spec's lane-swap relation). Ignored unless COPILOT_DEBUG_EVENTS=1. */
+  lane: z.enum(LANE_NAMES).optional(),
   /** Rolling notes on the older part of a long chat, kept by the browser. Untrusted: capped, sanitised, quoted as data (memory.ts). */
   summary: z.string().max(SUMMARY_MAX_CHARS).optional(),
   /** How many earlier turns the summary stands for, for the trace only. */
@@ -332,7 +352,9 @@ copilotRouter.post('/chat', async (req, res) => {
     console.warn('[copilot] no durable rate limiter configured; in-memory limits only');
   }
   // The lane for this channel (lanes/): its providers, its limits, its tool list and its model fixes. The others are not loaded.
-  const lane = await loadLane(laneNameFor(voice ? 'voice' : 'chat'));
+  // A test run (COPILOT_DEBUG_EVENTS=1) may name the lane and is sent a debug event; a public request can do neither.
+  const debugEvents = process.env.COPILOT_DEBUG_EVENTS === '1';
+  const lane = await loadLane(debugEvents && parsed.data.lane ? parsed.data.lane : laneNameFor(voice ? 'voice' : 'chat'));
   turn.lane = lane.manifest.name;
   const channel = voice ? 'voice' : 'chat';
   const providers = chain(voice, lane);
@@ -377,11 +399,7 @@ copilotRouter.post('/chat', async (req, res) => {
       index === fit.messages.length - 1 && m.role === 'user' ? { role: 'user', content: `${m.content}${where}` } : { role: m.role, content: m.content },
     );
     const citations = createCitations();
-    const result = streamText({
-      model,
-      system,
-      messages: history,
-      tools: onlyLaneTools(lane, callTools(makeTools(
+    const offered = onlyLaneTools(lane, callTools(makeTools(
         // On a call the model moves the page itself and sends no buttons; project cards and the booking button are what a call shows.
         (action) => {
           if (voice && action.kind !== 'navigate' && action.kind !== 'cite' && action.kind !== 'book' && action.kind !== 'projects') return;
@@ -392,7 +410,17 @@ copilotRouter.post('/chat', async (req, res) => {
           booking: { get: () => booking, set: (next) => { booking = next; bookingTouched = true; } },
           notForMe: () => { if (!toMe) ignoredLine = true; },
         },
-      ), voice, booking)),
+      ), voice, booking));
+    turn.offered = Object.keys(offered);
+    const results: ToolResult[] = [];
+    const debug = () => {
+      if (debugEvents) send({ type: 'debug', lane: lane.manifest.name, maxSteps: lane.manifest.limits.maxSteps[channel], offered: turn.offered, results, truncated: turn.truncated, inputTokens: turn.inputTokens, outputTokens: turn.outputTokens });
+    };
+    const result = streamText({
+      model,
+      system,
+      messages: history,
+      tools: offered,
       // Each step is a model round trip: on a call six of them took 18 to 32 s. Four leave room for a read, a page move and a pointer.
       stopWhen: stepCountIs(lane.manifest.limits.maxSteps[channel]),
       // The prompt keeps replies short; this is the ceiling, with room above a visible reply for a model that still thinks.
@@ -414,9 +442,11 @@ copilotRouter.post('/chat', async (req, res) => {
       } else if (part.type === 'tool-result') {
         filter.toolResult();
         turn.stepEnd(part.toolCallId, true, part.output);
+        results.push(asResult(part.toolName, part.output));
         send({ type: 'step', name: part.toolName, status: 'done' });
       } else if (part.type === 'tool-error') {
         turn.stepEnd(part.toolCallId, false);
+        results.push({ name: part.toolName, ok: false });
         send({ type: 'step', name: part.toolName, status: 'error' });
       } else if (part.type === 'error') {
         throw part.error;
@@ -434,6 +464,7 @@ copilotRouter.post('/chat', async (req, res) => {
       turn.model = turn.model || 'addressee';
       turn.actions.push('ignored');
       send({ type: 'ignored', reason: 'said to someone else' });
+      debug();
       send({ type: 'done', model: turn.model });
       turn.finish('done');
       return;
@@ -457,6 +488,7 @@ copilotRouter.post('/chat', async (req, res) => {
         : turn.actions.some((a) => a.startsWith('navigate') || a === 'cite') ? 'Here it is.' : 'Here you go.';
       send({ type: 'text', text: turn.output });
     }
+    debug();
     send({ type: 'done', model: turn.model });
     turn.finish(empty ? 'error' : 'done');
   } catch (error) {

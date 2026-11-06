@@ -9,7 +9,9 @@
       "say": "Tarity Middle School, can you Book it for me.",
       "expect": {
         "navigatesTo": "/contact",
-        "textMatch": "name"
+        "booking": {
+          "step": "ask_name"
+        }
       }
     },
     {
@@ -18,9 +20,12 @@
         "noActions": [
           "book"
         ],
-        "spells": [
-          "poojan"
-        ]
+        "booking": {
+          "step": "confirm_name",
+          "has": {
+            "name": "Poojan"
+          }
+        }
       }
     },
     {
@@ -29,23 +34,28 @@
         "noActions": [
           "book"
         ],
-        "spells": [
-          "pujan"
-        ],
-        "asksToConfirm": true,
-        "textNotMatch": "email"
+        "booking": {
+          "step": "confirm_name",
+          "has": {
+            "name": "Pujan"
+          }
+        }
       }
     },
     {
       "say": "Yes.",
       "expect": {
-        "textMatch": "How do you say your name"
+        "booking": {
+          "step": "ask_pronunciation"
+        }
       }
     },
     {
       "say": "It's fine as spelled.",
       "expect": {
-        "textMatch": "email"
+        "booking": {
+          "step": "ask_email"
+        }
       }
     },
     {
@@ -54,10 +64,12 @@
         "noActions": [
           "book"
         ],
-        "spells": [
-          "teresagohardo"
-        ],
-        "asksToConfirm": true
+        "booking": {
+          "step": "confirm_email",
+          "has": {
+            "email": "teresagohardo@gmail.com"
+          }
+        }
       }
     },
     {
@@ -66,11 +78,12 @@
         "noActions": [
           "book"
         ],
-        "spells": [
-          "teresaguajardo1504"
-        ],
-        "asksToConfirm": true,
-        "textNotMatch": "did not catch|didn't catch"
+        "booking": {
+          "step": "confirm_email",
+          "has": {
+            "email": "teresaguajardo1504@gmail.com"
+          }
+        }
       }
     },
     {
@@ -79,7 +92,9 @@
         "noActions": [
           "book"
         ],
-        "textMatch": "Which area"
+        "booking": {
+          "step": "ask_area"
+        }
       }
     },
     {

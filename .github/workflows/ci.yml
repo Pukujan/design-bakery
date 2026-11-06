@@ -72,6 +72,9 @@ jobs:
       - name: Check the copilot's lanes are separate and complete
         run: pnpm check:lanes && pnpm test:copilot-lanes
 
+      - name: Check the copilot's spec harness offline
+        run: pnpm test:sim-harness
+
       - name: Check the copilot's session memory
         run: pnpm test:copilot-memory
 

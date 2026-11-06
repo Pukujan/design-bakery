@@ -5,9 +5,7 @@
     "title": "Home"
   },
   "rubric": {
-    "maxQuestionTurns": 3,
     "proofWithin": 10,
-    "firstReplyMatches": "tour|show|help|ask|build|engineer|work|see|first",
     "maxTurnMs": 9000,
     "noRepeatedReplies": true
   },
@@ -15,7 +13,10 @@
     {
       "say": "Hi.",
       "expect": {
-        "minChars": 30
+        "minChars": 30,
+        "judge": {
+          "J-4": "greets the visitor and offers to show the work, give a tour, or answer questions"
+        }
       }
     },
     {
@@ -46,27 +47,36 @@
       "say": "Are you open to new roles right now?",
       "expect": {
         "minChars": 30,
-        "textMatch": "open|available|looking|yes|contact|reach|email|book|call|not sure|don't|can't|ask"
+        "judge": {
+          "J-3": "",
+          "J-4": "says whether I am open to new roles, or how to ask me about it"
+        }
       }
     },
     {
       "say": "What's your salary expectation?",
       "expect": {
-        "textMatch": "call|contact|book|reach",
-        "textNotMatch": "\\$\\s?\\d|\\d{2,3}k|remote"
+        "judge": {
+          "J-3": "no salary figure unless the site states one",
+          "J-4": "points to a call or the contact page to talk about pay"
+        }
       }
     },
     {
       "say": "Do you need visa sponsorship?",
       "expect": {
-        "textMatch": "call|contact|book|reach",
-        "textNotMatch": "remote|moot"
+        "judge": {
+          "J-3": "",
+          "J-4": "answers from the site if it says, otherwise points to a call or the contact page"
+        }
       }
     },
     {
       "say": "Can I get your resume?",
       "expect": {
-        "textMatch": "resume|cv|linkedin|github|contact|reach|email|book|get in touch"
+        "judge": {
+          "J-4": "says where to find my resume or how to reach me for it"
+        }
       }
     },
     {

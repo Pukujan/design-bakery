@@ -12,8 +12,12 @@
         "noActions": [
           "book"
         ],
-        "textMatch": "name",
-        "textNotMatch": "card"
+        "booking": {
+          "step": "ask_name"
+        },
+        "judge": [
+          "J-1"
+        ]
       }
     },
     {
@@ -22,10 +26,12 @@
         "noActions": [
           "book"
         ],
-        "spells": [
-          "poojan"
-        ],
-        "asksToConfirm": true
+        "booking": {
+          "step": "confirm_name",
+          "has": {
+            "name": "Poojan"
+          }
+        }
       }
     },
     {
@@ -34,7 +40,9 @@
         "noActions": [
           "book"
         ],
-        "textMatch": "How do you say your name"
+        "booking": {
+          "step": "ask_pronunciation"
+        }
       }
     },
     {
@@ -43,8 +51,12 @@
         "noActions": [
           "book"
         ],
-        "textMatch": "email",
-        "textNotMatch": "card"
+        "booking": {
+          "step": "ask_email"
+        },
+        "judge": [
+          "J-1"
+        ]
       }
     },
     {
@@ -53,11 +65,12 @@
         "noActions": [
           "book"
         ],
-        "spells": [
-          "poojan3645"
-        ],
-        "textMatch": "gmail dot com",
-        "asksToConfirm": true
+        "booking": {
+          "step": "confirm_email",
+          "has": {
+            "email": "poojan3645@gmail.com"
+          }
+        }
       }
     },
     {
@@ -75,7 +88,6 @@
           "email": "poojan3645@gmail.com",
           "topic": "Marketing"
         },
-        "textMatch": "Poo-jun",
         "pageAfter": "/contact"
       }
     },
@@ -85,7 +97,12 @@
         "noActions": [
           "book"
         ],
-        "textNotMatch": "booking card is up"
+        "booking": {
+          "step": "closed"
+        },
+        "judge": [
+          "J-1"
+        ]
       }
     }
   ]

@@ -5,9 +5,7 @@
     "title": "Home"
   },
   "rubric": {
-    "maxQuestionTurns": 3,
     "proofWithin": 3,
-    "firstReplyMatches": "tour|show|help|build|engineer|work|ask|see|first",
     "maxTurnMs": 9000,
     "noRepeatedReplies": true
   },
@@ -15,14 +13,19 @@
     {
       "say": "Hello.",
       "expect": {
-        "minChars": 30
+        "minChars": 30,
+        "judge": {
+          "J-4": "greets the visitor and offers to show the work, give a tour, or answer questions"
+        }
       }
     },
     {
       "say": "I don't know anything about this. What is this?",
       "expect": {
         "minChars": 60,
-        "textMatch": "engineer|AI|build|portfolio|studio|product"
+        "judge": {
+          "J-4": "says what this is: the portfolio of an AI engineer and what he builds"
+        }
       }
     },
     {

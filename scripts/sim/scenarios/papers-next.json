@@ -14,8 +14,7 @@
     {
       "say": "Next.",
       "expect": {
-        "navigatesTo": "/research/papers/db-r-2026-001",
-        "textMatch": "After this"
+        "navigatesTo": "/research/papers/db-r-2026-001"
       }
     },
     {
@@ -96,8 +95,10 @@
         "noActions": [
           "navigate"
         ],
-        "textMatch": "last paper",
-        "pageAfter": "/research/papers/db-r-2026-011"
+        "pageAfter": "/research/papers/db-r-2026-011",
+        "judge": {
+          "J-4": "says this is the last paper and there is no next one"
+        }
       }
     },
     {
