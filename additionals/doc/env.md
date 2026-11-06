@@ -41,6 +41,12 @@ pnpm run dev:api      # backend only
 
 See [docs/self-hosting.md](../../docs/self-hosting.md).
 
+### Copilot bot check (Turnstile)
+
+`TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` in `deploy/vps/.env.api` turn on Cloudflare Turnstile for the chat (`backend/src/copilot/guard.ts`): every chat call needs a signed pass, given only after the check. Addresses in `COPILOT_RATE_EXEMPT_IPS` (the owner's) skip it. The widget runs in interaction-only mode, so most visitors never see it. When it does ask, it appears in the chat itself, just above the box the visitor typed in, with a line saying why (`frontend/src/app/modules/copilot/TurnstileSlot.tsx`). It falls back to the page corner only when no chat is on screen.
+
+To see it locally, run the API with Cloudflare's public test keys, `TURNSTILE_SITE_KEY=3x00000000000000000000FF` (always asks for a click) and `TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA` (always passes), and with `COPILOT_RATE_EXEMPT_IPS` unset.
+
 ## Get the Supabase anon key
 
 Use the same Supabase project as `backend/.env` (`SUPABASE_URL`).

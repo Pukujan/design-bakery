@@ -30,7 +30,7 @@ To change the script later: Deploy → Manage deployments → edit → New versi
 ## Check
 
 ```bash
-curl -sL -X POST "$CONTACT_MAIL_URL" -H 'content-type: application/json' -d "{\"token\":\"$CONTACT_MAIL_TOKEN\",\"name\":\"Test\",\"email\":\"test@example.com\",\"message\":\"Hello from the setup check\"}"
+curl -sL "$CONTACT_MAIL_URL" -H 'content-type: application/json' -d "{\"token\":\"$CONTACT_MAIL_TOKEN\",\"name\":\"Test\",\"email\":\"test@example.com\",\"message\":\"Hello from the setup check\"}"
 ```
 
-It answers `{"ok":true}` and the email arrives. A wrong token answers `{"ok":false,"error":"unauthorized"}`.
+Leave out `-X POST`: Google answers with a redirect, and curl must follow it with a GET (`-d` already makes the first request a POST). It answers `{"ok":true}` and the email arrives. A wrong token answers `{"ok":false,"error":"unauthorized"}`.

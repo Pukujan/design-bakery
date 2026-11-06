@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ArrowUp, Compass, MessageCircle, Square } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { TurnstileSlot } from './TurnstileSlot';
 import { useProjectRecords } from '../../lib/portfolioDocs';
 import { PLACEHOLDER_QUESTIONS, SUGGESTIONS } from '../lab/copilotAnswers';
 import { chipKindOf, openLabel } from './chips';
@@ -283,7 +284,12 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
       onBlur={
         variant === 'hero'
           ? (event) => {
-              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setEngaged(false);
+              // Focus going into an iframe (the human check) has no relatedTarget, so look once it has landed.
+              const box = event.currentTarget;
+              if (box.contains(event.relatedTarget as Node | null)) return;
+              window.setTimeout(() => {
+                if (!box.contains(document.activeElement)) setEngaged(false);
+              }, 0);
             }
           : undefined
       }
@@ -346,6 +352,7 @@ export function CopilotChat({ variant }: { variant: 'hero' | 'dock' }) {
         )}
       </AnimatePresence>
 
+      <TurnstileSlot />
       <form className="lab-composer" onSubmit={submit} onClick={() => inputRef.current?.focus()}>
         <label htmlFor={id} className="sr-only">
           Ask about my work

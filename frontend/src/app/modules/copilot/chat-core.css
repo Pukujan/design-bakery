@@ -163,3 +163,22 @@
 @media (prefers-reduced-motion: reduce) {
   .cp-peek-dot.is-busy { animation: none; }
 }
+
+/* The human check (TurnstileSlot): takes no space until Turnstile asks the visitor to click, then sits above the composer with its note.
+   It stays display:block so turnstile.ts can tell it is on screen. */
+.cp-turnstile-slot {
+  display: block;
+  max-width: 100%;
+}
+.cp-turnstile-note {
+  display: none;
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  color: var(--lab-muted, var(--lab-paper));
+}
+.cp-turnstile-slot.is-asking {
+  margin: 0 0 10px;
+}
+.cp-turnstile-slot.is-asking .cp-turnstile-note {
+  display: block;
+}
