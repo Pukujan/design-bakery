@@ -86,7 +86,18 @@ export function endsWithQuestion(text) {
   return i >= 0 && t[i] === '?';
 }
 
-export const countQuestions = (text) => Array.from(String(text ?? '')).filter((c) => c === '?').length;
+/** Question marks outside double quotes: a question quoted back from the visitor (a read-back) is not one we asked. */
+export function countQuestions(text) {
+  let quoted = false;
+  let n = 0;
+  for (const c of String(text ?? '')) {
+    if (c === '"') quoted = !quoted;
+    else if (c === '“') quoted = true;
+    else if (c === '”') quoted = false;
+    else if (c === '?' && !quoted) n += 1;
+  }
+  return n;
+}
 
 export function endsWholeSentence(text) {
   const t = String(text ?? '').trim();

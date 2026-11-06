@@ -60,6 +60,7 @@ export function checkStep(step, t) {
     }
   }
   if (e.maxSteps !== undefined && t.steps.length > e.maxSteps) out.push(fail(t, `${t.steps.length} tool steps, over ${e.maxSteps}: [${t.steps}]`));
+  for (const name of e.tools ?? []) if (!t.steps.includes(name)) out.push(fail(t, `expected the ${name} tool, steps [${t.steps}]`));
   for (const name of e.noTools ?? []) if (t.steps.includes(name)) out.push(fail(t, `must not use the ${name} tool, steps [${t.steps}]`));
   for (const [name, max] of Object.entries(e.maxTool ?? {})) if (t.steps.filter((x) => x === name).length > max) out.push(fail(t, `${name} used more than ${max} time(s): [${t.steps}]`));
   if (e.minChars && t.text.trim().length < e.minChars) out.push(fail(t, `reply too short (${t.text.trim().length} chars, wanted ${e.minChars}): "${t.text.trim()}"`));

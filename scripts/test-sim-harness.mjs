@@ -34,6 +34,8 @@ await test('plain text and saying a line', () => {
   assert.ok(endsWithQuestion('Is that right?"'));
   assert.ok(!endsWithQuestion('Done. Tap it.'));
   assert.equal(countQuestions('One? Two?'), 2);
+  assert.equal(countQuestions('From Ada: "Can we talk next week?" Should I send that?'), 1, 'a quoted question is not one asked');
+  assert.equal(countQuestions('She asked “Is it free?” Want me to send it?'), 1);
 });
 
 await test('the booking step and the tools O-2 allows', () => {
