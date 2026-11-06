@@ -23,6 +23,10 @@ type Env = Record<string, string | undefined>;
 
 /** In the order smart tries them. Each model can be changed with its *_MODEL variable. */
 const TABLE = [
+  // Haiku first (TASK-DB-0147): about 0.45 s to the first word and 1 s for a short answer, through Anthropic's
+  // OpenAI-compatible endpoint, against about 1.7 s for DeepSeek's probe. Paid, so the daily token budget (COPILOT_DAILY_TOKENS)
+  // is what caps it; unset SMART_ANTHROPIC_KEY and the chain is as before.
+  { id: 'haiku', label: 'Claude Haiku (Anthropic)', keyEnv: 'SMART_ANTHROPIC_KEY', modelEnv: 'SMART_ANTHROPIC_MODEL', model: 'claude-haiku-5-5', target: 'https://api.anthropic.com/v1' },
   // InferHub sells the same model through several seats and a seat can have no offers for a day ("no available provider for cb/..."
   // on 2026-11-05), so DeepSeek is two entries on two seats: a seat that is down fails its probe and the other goes first.
   { id: 'deepseek', label: 'DeepSeek (InferHub)', keyEnv: 'SMART_DEEPSEEK_KEY', modelEnv: 'SMART_DEEPSEEK_MODEL', model: 'ali/deepseek-v4.1-flash', target: 'https://api.inferhub.dev/v1' },

@@ -41,6 +41,10 @@ pnpm run dev:api      # backend only
 
 See [docs/self-hosting.md](../../docs/self-hosting.md).
 
+### Copilot models
+
+The chat and voice copilot try hosted models in order (`backend/src/copilot/providers.ts`); a model is used only when its key is set in `deploy/vps/.env.api`. `SMART_ANTHROPIC_KEY` (an Anthropic API key) puts Claude Haiku (`claude-haiku-5-5`, change with `SMART_ANTHROPIC_MODEL`) first: about 1 s for a short answer, against about 2 to 3.5 s for DeepSeek. It is paid, and `COPILOT_DAILY_TOKENS` caps the day. Then come `SMART_DEEPSEEK_KEY`, `SMART_QWEN_KEY`, `SMART_WORKBUDDY_KEY` and `SMART_OPENROUTER_KEY`, and LFM3 on the Pro (`INFERHUB_API_KEY`) last. Unset the Anthropic key to go back to DeepSeek first.
+
 ### Copilot bot check (Turnstile)
 
 `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` in `deploy/vps/.env.api` turn on Cloudflare Turnstile for the chat (`backend/src/copilot/guard.ts`): every chat call needs a signed pass, given only after the check. Addresses in `COPILOT_RATE_EXEMPT_IPS` (the owner's) skip it. The widget runs in interaction-only mode, so most visitors never see it. When it does ask, it appears in the chat itself, just above the box the visitor typed in, with a line saying why (`frontend/src/app/modules/copilot/TurnstileSlot.tsx`). It falls back to the page corner only when no chat is on screen.
