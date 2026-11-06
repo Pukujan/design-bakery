@@ -46,6 +46,10 @@ Required CI and GitHub auto-merge are mandatory. Arm auto-merge only after the i
 
 New continuity-managed source paths (tasks, claims, adopter folders, new prose filenames) use pronounceable words a newcomer can say aloud. See `docs/CONTINUITY_PATH_NAMING.md`. Keep existing public paths stable; do not rewrite merged history for naming alone. Generated artifact/media filenames belong to CGM ([content-generation-modules#26](https://github.com/Pukujan/content-generation-modules/issues/26)) — pin and apply that helper when generating content; do not reimplement it in PCM.
 
+## Docs travel with the code
+
+A pull request that changes code must also update a `README.md` (any folder's) or a doc under `docs/`, `additionals/doc/` or `additionals/guidelines/`, or `HANDOFF.md` / `AGENTS.md`. CI enforces it (`.github/workflows/docs-check.yml`, `scripts/check-docs-updated.mjs`). Task and checkpoint notes and lockfiles do not count either way. When nothing needs documenting, add the `no-docs-needed` label or a body line `No docs needed: <why>`; editing the body re-runs the check.
+
 ## Workspace mode: single checkout
 
 Use the main checkout for sequential work. Do not create clones or linked worktrees. This is the strictest and simplest option when parallel isolation is not needed.
