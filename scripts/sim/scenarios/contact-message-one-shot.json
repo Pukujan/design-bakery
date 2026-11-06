@@ -1,0 +1,9 @@
+{
+  "name": "a typed chat: the visitor gives everything and says send in one message; it is read back first and goes only after the yes",
+  "voice": false,
+  "rubric": { "maxQuestionTurns": 2 },
+  "steps": [
+    { "say": "Please send Pujan a message from me. My name is Grace Hopper, my email is grace@example.com, and the message is: I'd like to hire you for a RAG project in January.", "expect": { "notDone": ["send_message"] } },
+    { "say": "yes", "expect": { "tools": ["send_message"], "done": ["send_message"] } }
+  ]
+}

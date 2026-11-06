@@ -62,6 +62,10 @@ export function checkStep(step, t) {
   if (e.maxSteps !== undefined && t.steps.length > e.maxSteps) out.push(fail(t, `${t.steps.length} tool steps, over ${e.maxSteps}: [${t.steps}]`));
   for (const name of e.tools ?? []) if (!t.steps.includes(name)) out.push(fail(t, `expected the ${name} tool, steps [${t.steps}]`));
   for (const name of e.noTools ?? []) if (t.steps.includes(name)) out.push(fail(t, `must not use the ${name} tool, steps [${t.steps}]`));
+  // A tool that went through (ok), as opposed to one the code refused: a refused send is not a sent message.
+  const went = (name) => t.results.some((r) => r.name === name && r.ok === true);
+  for (const name of e.done ?? []) if (!went(name)) out.push(fail(t, `expected ${name} to go through, results ${JSON.stringify(t.results)}`));
+  for (const name of e.notDone ?? []) if (went(name)) out.push(fail(t, `${name} must not go through on this turn`));
   for (const [name, max] of Object.entries(e.maxTool ?? {})) if (t.steps.filter((x) => x === name).length > max) out.push(fail(t, `${name} used more than ${max} time(s): [${t.steps}]`));
   if (e.minChars && t.text.trim().length < e.minChars) out.push(fail(t, `reply too short (${t.text.trim().length} chars, wanted ${e.minChars}): "${t.text.trim()}"`));
   if (e.noQuestionEnd && endsWithQuestion(t.text)) out.push(fail(t, `reply should not end with a question: "${t.text.slice(-100)}"`));

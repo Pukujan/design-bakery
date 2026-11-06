@@ -154,7 +154,16 @@ const make = (extra = {}) => {
 
   process.env.CONTACT_MAIL_URL = `http://127.0.0.1:${server.address().port}/exec`;
   process.env.CONTACT_MAIL_TOKEN = 'test-token';
-  ({ tool } = make({ voice: false, page: { path: '/contact' } }));
+  // No read-back in my last reply (or it named something else): nothing is sent, whatever the model says.
+  ({ tool } = make({ voice: false }));
+  r = await run(tool, 'send_message', msg);
+  assert.equal(r.ok, false, 'no read-back: not sent');
+  ({ tool } = make({ voice: false, lastReply: 'From Ada at ada@example.com: "Hi Pujan, can we talk about agents?" Send it?' }));
+  assert.equal((await run(tool, 'send_message', msg)).ok, false, 'a different message was read back: not sent');
+  assert.equal(got.length, 0);
+
+  const readBack = 'Here it is, from Ada at ADA@example.com: \u201cHi Pujan, can we\n talk about voice agents?\u201d Shall I send it?';
+  ({ tool } = make({ voice: false, page: { path: '/contact' }, lastReply: readBack }));
   r = await run(tool, 'send_message', msg);
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.deepEqual(got.at(-1), { token: 'test-token', ...msg, page: '/contact' });
@@ -162,7 +171,7 @@ const make = (extra = {}) => {
   assert.equal(got.length, 1);
 
   process.env.CONTACT_MAIL_TOKEN = 'wrong';
-  ({ tool, actions } = make({ voice: false }));
+  ({ tool, actions } = make({ voice: false, lastReply: readBack }));
   r = await run(tool, 'send_message', msg);
   assert.equal(r.ok, false, 'a refused token is a failure, not a sent message');
   assert.ok(actions.some((a) => a.kind === 'link'));

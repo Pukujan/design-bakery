@@ -9,7 +9,7 @@ import type { Citations } from './citations.js';
 import { buildPassages, checkQuote, findSection, MAX_PASSAGES, QUOTE_MAX, SUMMARY_PASSAGES } from './sections.js';
 import { CONSULT_SERVICES,  nextStep, type BookingFlow, type BookingState } from './bookingState.js';
 import { neighbour, nextTourStop } from './walk.js';
-import { sendContactMessage } from './contactMail.js';
+import { contactMailConfigured, sendContactMessage } from './contactMail.js';
 import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, sectionsForPath, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
 
 export { CONSULT_SERVICES };
@@ -38,6 +38,21 @@ async function knownPath(path: string): Promise<boolean> {
   return blogs.some((b) => `/blogs/${b.id}` === clean);
 }
 
+/** True when every part appears in the text, ignoring case, spacing and quote marks. */
+function readBack(text: string, parts: string[]): boolean {
+  const flat = (t: string) => {
+    let out = '';
+    for (const ch of t.toLowerCase()) {
+      if (ch === '"' || ch === '\u201c' || ch === '\u201d') continue;
+      if (ch.trim() !== '') out += ch;
+      else if (out !== '' && !out.endsWith(' ')) out += ' ';
+    }
+    return out.trimEnd();
+  };
+  const said = flat(text);
+  return parts.every((part) => said.includes(flat(part)));
+}
+
 /** The booking page with what the visitor already said filled in (Cal.com reads these). */
 export function bookingUrl(base: string, who: { name?: string; email?: string; topic?: string }): string {
   const url = new URL(base);
@@ -53,7 +68,7 @@ export function bookingUrl(base: string, who: { name?: string; email?: string; t
  */
 export type BookingHold = { get: () => BookingFlow | null; set: (flow: BookingFlow | null) => void };
 
-export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean; citations?: Citations; voice?: boolean; page?: { path: string }; said?: string; booking?: BookingHold; notForMe?: () => void }) {
+export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean; citations?: Citations; voice?: boolean; page?: { path: string }; said?: string; lastReply?: string; booking?: BookingHold; notForMe?: () => void }) {
   const citations = options.citations;
   let buttonsShown = false;
   let messageSent = false;
@@ -399,7 +414,7 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
 
     send_message: tool({
       description:
-        'Email a message from the visitor to me (Pujan). Use it when they want to send me a message, leave a note, or reach me without booking a call. You need three things: their name, their email address so I can reply, and the message. Whatever they have said they want to tell or ask me is the message: do not ask for it again. Send their own words; do not add a greeting or a signature (the email carries their name). Ask only for what is missing. Before calling, read the exact message, name and email back in one short line and ask if you should send it; call this only after they say yes to that read-back, with the same words you read back. After it succeeds, tell them it is sent and I will reply by email; never say it is sent unless this returned ok.',
+        'Email a message from the visitor to me (Pujan). Use it when they want to send me a message, leave a note, or reach me without booking a call. You need three things: their name, their email address so I can reply, and the message. Whatever they have said they want to tell or ask me is the message: do not ask for it again. Send their own words; do not add a greeting or a signature (the email carries their name). Ask only for what is missing. Before calling, read the exact message, name and email back in one short line and ask if you should send it; call this only in a later reply, after they say yes to that read-back, with the same words you read back (it refuses otherwise). After it succeeds, tell them it is sent and I will reply by email; never say it is sent unless this returned ok.',
       inputSchema: z.object({
         name: z.string().min(1).max(80),
         email: z.string().email().max(200),
@@ -407,6 +422,11 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
       }),
       execute: async ({ name, email, message }) => {
         if (messageSent) return { ok: false, error: 'a message was already sent in this reply' };
+        // The visitor must have seen the exact message and email in my last reply and answered it: a read-back and a
+        // send in the same reply never reaches Gmail. (Unset, the email link below shows straight away.)
+        if (contactMailConfigured() && !readBack(options.lastReply ?? '', [email, message])) {
+          return { ok: false, note: 'Not sent. Read the exact message, name and email back to them in one short line and ask if you should send it, then stop. Send it in your next reply, after they say yes. Do not say it is sent.' };
+        }
         const result = await sendContactMessage({ name, email, message, page: options.page?.path });
         if (result.ok) {
           messageSent = true;

@@ -5,7 +5,7 @@
   "startPage": { "path": "/contact", "title": "Contact" },
   "steps": [
     { "say": "I'd like to send Pujan a message", "expect": { "noTools": ["send_message"] } },
-    { "say": "I'm Ada Lovelace, ada@example.com. Can we talk about a voice agent for my clinic next week?", "expect": { "noTools": ["send_message"] } },
-    { "say": "Yes, send it", "expect": { "tools": ["send_message"] } }
+    { "say": "I'm Ada Lovelace, ada@example.com. Can we talk about a voice agent for my clinic next week?", "expect": { "notDone": ["send_message"] } },
+    { "say": "Yes, send it", "expect": { "tools": ["send_message"], "done": ["send_message"] } }
   ]
 }

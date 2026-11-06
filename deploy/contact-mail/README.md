@@ -4,7 +4,7 @@ A visitor can ask AI Pujan, in the chat, to send Pujan a message. The copilot's 
 
 - **Permission:** the script only sends mail as the account (`MailApp`). It cannot read the inbox.
 - **Secret:** the API holds the web app's URL and a token; the script refuses a post without the token. A leak lets someone email Pujan, nothing more. Revoke by changing the `TOKEN` property or archiving the deployment.
-- **Limits:** Google allows 100 emails a day on a personal account. The API also sends at most 20 a day and one per chat reply, and only after the visitor confirmed the read-back.
+- **Limits:** Google allows 100 emails a day on a personal account. The API also sends at most 20 a day and one per chat reply, and only after the visitor confirmed the read-back: the API refuses a send unless the copilot's previous reply showed the exact message and email.
 - **Chat only:** voice calls don't offer it (an email address spelled by voice goes wrong too easily).
 - **Not stored:** the email in Gmail is the record; nothing is written to Octo.
 
