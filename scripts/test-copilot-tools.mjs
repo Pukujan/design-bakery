@@ -154,7 +154,7 @@ const make = (extra = {}) => {
 
   process.env.CONTACT_MAIL_URL = `http://127.0.0.1:${server.address().port}/exec`;
   process.env.CONTACT_MAIL_TOKEN = 'test-token';
-  ({ tool, actions } = make({ voice: false, page: { path: '/contact' } }));
+  ({ tool } = make({ voice: false, page: { path: '/contact' } }));
   r = await run(tool, 'send_message', msg);
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.deepEqual(got.at(-1), { token: 'test-token', ...msg, page: '/contact' });
