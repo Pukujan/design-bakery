@@ -54,6 +54,7 @@ export type BookingHold = { get: () => BookingFlow | null; set: (flow: BookingFl
 
 export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean; citations?: Citations; voice?: boolean; page?: { path: string }; said?: string; booking?: BookingHold; notForMe?: () => void }) {
   const citations = options.citations;
+  let buttonsShown = false;
   /** Applies one step's slots to the booking state and says what comes next. */
   const step = (patch: Partial<BookingState>) => {
     if (!options.booking) return { ok: false, error: 'booking is only done on a call' };
@@ -223,11 +224,23 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
     }),
 
     suggest_followups: tool({
-      description: 'Offer up to three short follow-up questions as buttons under your answer, each something the visitor might ask next about the same topic (for example "What is it built with?"). Each is sent as their message when clicked, so write it as the visitor would say it. Not for opening pages: use navigate or show_projects for that.',
-      inputSchema: z.object({ questions: z.array(z.string().min(3).max(80)).min(1).max(3) }),
-      execute: async ({ questions }) => {
+      description: 'The buttons under your answer. questions: up to three short follow-up questions, each something the visitor might ask next (for example "What is it built with?"); each is sent as their message when clicked, so write it as the visitor would say it. pages: up to two pages of this site worth opening next (same paths as navigate), each a button that opens it only when pressed; nothing moves now. A page button is how a chat offers a page.',
+      inputSchema: z.object({
+        questions: z.array(z.string().min(3).max(80)).min(1).max(3),
+        pages: z.array(z.object({ path: z.string().max(200), label: z.string().min(2).max(40) })).max(2).optional(),
+      }),
+      execute: async ({ questions, pages = [] }) => {
+        // One set of buttons per reply: a second call would stack them twice.
+        if (buttonsShown) return { ok: false, error: 'the buttons for this reply are already shown' };
+        buttonsShown = true;
+        // A page button that would lead nowhere is left out, and the model is told which.
+        const unknown: string[] = [];
+        for (const page of pages) {
+          if (await knownPath(page.path)) emit({ kind: 'navigate', path: page.path, label: page.label });
+          else unknown.push(page.path);
+        }
         for (const text of questions) emit({ kind: 'ask', text });
-        return { ok: true };
+        return unknown.length ? { ok: true, left_out: unknown, error: 'not pages on this site' } : { ok: true };
       },
     }),
 

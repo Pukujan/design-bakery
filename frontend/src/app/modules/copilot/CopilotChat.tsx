@@ -176,8 +176,20 @@ function IgnoredLine({ message }: { message: CopilotMessage }) {
   );
 }
 
+/** One button per place: a page button for a project already shown as a card, or a page offered twice, is left out. */
+function withoutRepeats(actions: CopilotAction[]): CopilotAction[] {
+  const seen = new Set(actions.flatMap((a) => (a.kind === 'projects' ? a.slugs.map((slug) => `/work/${slug}`) : [])));
+  return actions.filter((a) => {
+    if (a.kind !== 'navigate') return true;
+    if (seen.has(a.path)) return false;
+    seen.add(a.path);
+    return true;
+  });
+}
+
 function AssistantMessage({ message }: { message: CopilotMessage }) {
   const waiting = message.streaming && !message.text && message.steps.length === 0;
+  const actions = withoutRepeats(message.actions);
   return (
     <div className="lab-msg lab-msg--copilot">
       {waiting && (
@@ -196,9 +208,9 @@ function AssistantMessage({ message }: { message: CopilotMessage }) {
           {message.streaming && <span className="lab-caret" aria-hidden="true" />}
         </p>
       )}
-      {message.actions.length > 0 && (
+      {actions.length > 0 && (
         <div className="lab-msg-extras">
-          {message.actions.map((action, index) => (
+          {actions.map((action, index) => (
             <ActionView key={index} action={action} />
           ))}
         </div>

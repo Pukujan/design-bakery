@@ -11,7 +11,7 @@
  * browser falls back to its built-in answers.
  */
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-import { stepCountIs, streamText, type ModelMessage } from 'ai';
+import { generateText, stepCountIs, streamText, type LanguageModel, type ModelMessage, type StopCondition, type Tool, type ToolSet } from 'ai';
 import { Router, type Request } from 'express';
 import { z } from 'zod';
 import { byHealth, healthReport, noteLatency, startWatcher } from './health.js';
@@ -47,7 +47,7 @@ export type CopilotEvent =
   | { type: 'error'; message: string };
 
 /** A tool's result as a test sees it: whether it worked, the line it gave to say, its refusal, how many passages it returned, and the start of its output (for the judge). */
-type ToolResult = { name: string; ok?: boolean; say?: string; error?: string; next?: string; passages?: number; output?: string };
+type ToolResult = { name: string; ok?: boolean; say?: string; error?: string; next?: string; passages?: number; output?: string; backstop?: boolean };
 function asResult(name: string, output: unknown): ToolResult {
   if (!output || typeof output !== 'object') return { name };
   const o = output as Record<string, unknown>;
@@ -103,8 +103,8 @@ How to answer:
 - Keep replies short: one or two sentences, under 45 words. For a summary, at most three short points. Give more detail only when asked.
 - Only state facts from the site brief or your tools; they hold only content already published on this site. If the site does not say, say so and suggest what it does cover. Never invent employers, dates, numbers or links.
 - Research papers marked pending are working drafts awaiting my approval; say so when you cite one.
-- Moving the visitor: do not open a page nobody asked about; offer it in words ("Want me to open the Work page?") and wait for a yes. When the visitor asks to be shown something, directly or vaguely ("show me anything", "you pick", "I don't know"), that is the yes: pick one and call navigate in that same reply, then say one thing about it. Never ask them to choose. On a tour, take them to one page at a time and name what comes next as a statement, not a question.
-- Contact and consultations: when a visitor asks how to contact me, wants to hire me, or wants a free consultation, offer the Contact page with "Want me to open the Contact page?". Say that on that page they can choose an area and a time. Do not list every link, and never claim a time is booked. If the visitor is already on /contact and asks to book in this chat, or says yes to a call you offered, call book_call as soon as you know the area. Do not ask for a topic before booking; a short yes or a vague topic ("anything about AI") is enough.
+- Moving the visitor: do not open a page nobody asked about; offer it and wait for a yes. When the visitor asks to be shown something, directly or vaguely ("show me anything", "you pick", "I don't know"), that is the yes: pick one and call navigate in that same reply, then say one thing about it. Never ask them to choose. On a tour, take them to one page at a time and name what comes next as a statement, not a question.
+- Contact and consultations: when a visitor asks how to contact me, wants to hire me, or wants a free consultation, offer the Contact page. Say that on that page they can choose an area and a time. Do not list every link, and never claim a time is booked. If the visitor is already on /contact and asks to book in this chat, or says yes to a call you offered, call book_call as soon as you know the area. Do not ask for a topic before booking; a short yes or a vague topic ("anything about AI") is enough.
 - Use tools silently: do not announce that you are reading, searching or about to answer. Do not repeat a page title already shown on a link.
 - When you talk about one part of a post, paper or project, you may point at it with cite_section (read the post or paper first and use a heading from its sections list, and a quote copied word for word if you want a passage highlighted). Never invent a heading; if cite_section says no such section, just carry on without it. To summarise a whole post, paper or project, call outline_passages: speak about its passages in order, one short sentence each (a normal summary is two or three passages, 15 to 20 seconds; only a request to walk through the whole post or go deeper gets depth full and up to four), point at each with cite_section as you reach it, and end with a short offer to go deeper into one part. Do not point at the same section twice.
 - Use show_projects for "which projects" questions, and share_link for LinkedIn, GitHub, Behance, email, or a project link from the brief.
@@ -133,6 +133,41 @@ Be good company, not a brochure:
 - Do not end every reply with a question or an offer. In about a third of replies, end on a dry, witty or mildly sarcastic throwaway line instead, for no reason at all (in the spirit of "Honestly, that's more drama than most product launches." Make up your own; never reuse that one). Offers to open a page are rare: at most one every few turns, and never two turns running.
 - Gentle, good-natured teasing of famous tech figures, their products and the AI hype is fine when asked; poke at the public persona, never accuse them of anything or invent facts.
 - For a real question or a worried visitor, drop the jokes and answer straight.`
+
+/**
+ * Added to the prompt in a text chat whose lane has suggest_followups: every reply leaves buttons to press, and a page is offered
+ * as a button. The fixed answers that used to bring their own buttons are gone (#221), so without this the model rarely made any.
+ */
+const CHAT_NOTE = `This is a text chat, and every reply leaves the visitor buttons to press. In the same reply as your words, call suggest_followups once: two or three short questions they might ask next, written as they would type them, and, when a page would help, up to two pages to open (for example /#work "See the work", /work/precedent "Open Precedent", /contact "Contact page"). A page button is how you offer a page in a chat: do not also ask "Want me to open...?" in words, and call navigate only when they asked to go there or said yes. Never list the buttons in your words.`;
+
+/** Tools that only put something on the page; their result gives the model nothing new to say. */
+const SHOWS_ONLY = ['suggest_followups', 'show_projects', 'share_link', 'navigate', 'cite_section'];
+
+/**
+ * A chat reply is done once its words are written and its buttons are out: another round trip would only add a second
+ * paragraph below the buttons. A step that also read something (a post, a summary) still goes on, so the answer is not cut.
+ */
+const answeredWithButtons: StopCondition<ToolSet> = ({ steps }) => {
+  const calls = steps.at(-1)?.toolCalls ?? [];
+  return calls.some((call) => call.toolName === 'suggest_followups') && calls.every((call) => SHOWS_ONLY.includes(call.toolName)) && steps.some((step) => step.text.trim() !== '');
+};
+
+/** The one call a chat reply gets when the model wrote it without buttons: the reply is done, and this call can only make them. */
+const BUTTONS_ONLY = `You are AI Pujan on design-bakery.com, the portfolio of Pujan Bajracharya, an AI engineer, and you speak as him. The reply below is already written. Call suggest_followups for it: two or three short questions the visitor might ask next, written as they would type them, and up to two pages of the site worth opening next (/#about, /#experience, /#work, /blogs, /research, /contact).`;
+
+async function backstopButtons(model: LanguageModel, suggest: Tool, question: string, answer: string, page: { path: string } | undefined, signal: AbortSignal) {
+  await generateText({
+    model,
+    system: BUTTONS_ONLY,
+    prompt: `The visitor is on ${page?.path ?? '/'}.\nThe visitor wrote: ${question}\nI replied: ${answer}`,
+    tools: { suggest_followups: suggest },
+    toolChoice: { type: 'tool', toolName: 'suggest_followups' },
+    stopWhen: stepCountIs(1),
+    maxOutputTokens: 300,
+    // The reply is already on screen: buttons that take longer than this are not worth holding the stream for.
+    abortSignal: AbortSignal.any([signal, AbortSignal.timeout(8000)]),
+  });
+}
 
 /** On a call there are no follow-up buttons: the tool that makes them only costs a model round trip and its suggestions go nowhere. */
 function callTools<T extends Record<string, unknown>>(tools: T, voice: boolean, booking: BookingFlow | null): Partial<T> {
@@ -387,7 +422,9 @@ copilotRouter.post('/chat', async (req, res) => {
     // cache hit instead of re-billing the brief on every step of a tool loop.
     const listHint = page ? listHintFor(page.path) : '';
     const where = `${page ? `\n\n[The visitor is on ${page.path} ("${page.title}").${listHint}]` : ''}${voice && booking ? `\n[Booking in progress: ${describe(booking.data)}]` : ''}`;
-    const system = `${voice ? `${SYSTEM}\n\n${VOICE_NOTE}` : SYSTEM}${lane.promptNote ? `\n\n${lane.promptNote}` : ''}\n\n# Site brief\n${brief}${newsBlock(news)}${summaryBlock(summary)}`;
+    // The chat note asks for suggest_followups, so it goes only where that tool is offered (the small lane has none).
+    const buttons = !voice && (lane.manifest.tools === 'all' || lane.manifest.tools.includes('suggest_followups'));
+    const system = `${voice ? `${SYSTEM}\n\n${VOICE_NOTE}` : buttons ? `${SYSTEM}\n\n${CHAT_NOTE}` : SYSTEM}${lane.promptNote ? `\n\n${lane.promptNote}` : ''}\n\n# Site brief\n${brief}${newsBlock(news)}${summaryBlock(summary)}`;
     // Fit the history to the token budget. The routing above used the full list; the newest turns stay verbatim here,
     // so a pending offer (always in the last two) and the question itself are never cut.
     const fit = fitHistory(messages, estimateTokens(system) + estimateTokens(where) + 300, contextBudget());
@@ -422,7 +459,7 @@ copilotRouter.post('/chat', async (req, res) => {
       messages: history,
       tools: offered,
       // Each step is a model round trip: on a call six of them took 18 to 32 s. Four leave room for a read, a page move and a pointer.
-      stopWhen: stepCountIs(lane.manifest.limits.maxSteps[channel]),
+      stopWhen: buttons ? [stepCountIs(lane.manifest.limits.maxSteps[channel]), answeredWithButtons] : stepCountIs(lane.manifest.limits.maxSteps[channel]),
       // The prompt keeps replies short; this is the ceiling, with room above a visible reply for a model that still thinks.
       maxOutputTokens: lane.manifest.limits.maxOutputTokens[channel],
       abortSignal: abort.signal,
@@ -487,6 +524,25 @@ copilotRouter.post('/chat', async (req, res) => {
         ? 'I lost my train of thought there. Could you ask that again?'
         : turn.actions.some((a) => a.startsWith('navigate') || a === 'cite') ? 'Here it is.' : 'Here you go.';
       send({ type: 'text', text: turn.output });
+    }
+    // The prompt asks for buttons on every chat reply, and most replies have them; one that came without gets them here.
+    if (buttons && !empty && offered.suggest_followups && !turn.actions.includes('ask') && !abort.signal.aborted) {
+      // Sent as a step like any tool call, so the page and the trace see which tool made the buttons.
+      turn.stepStart('backstop', 'suggest_followups', {});
+      send({ type: 'step', name: 'suggest_followups', status: 'start' });
+      try {
+        await backstopButtons(model, offered.suggest_followups, question, turn.output, page, abort.signal);
+        turn.stepEnd('backstop', true);
+        results.push({ name: 'suggest_followups', ok: true, backstop: true });
+        send({ type: 'step', name: 'suggest_followups', status: 'done' });
+      } catch (error) {
+        turn.stepEnd('backstop', false);
+        results.push({ name: 'suggest_followups', ok: false, backstop: true });
+        if (!abort.signal.aborted) {
+          send({ type: 'step', name: 'suggest_followups', status: 'error' });
+          console.warn('[copilot] no follow-up buttons:', error instanceof Error ? error.message.slice(0, 200) : 'unknown');
+        }
+      }
     }
     debug();
     send({ type: 'done', model: turn.model });

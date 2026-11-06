@@ -26,6 +26,9 @@ export const ACTION_SOURCES = {
 };
 
 /** Tools that, when they return ok, have sent the page this kind of action (INV-3: what a tool says it did reached the page). */
+/** A navigate action without `go` is a button that opens the page only when pressed: in a chat, suggest_followups makes those (INV-3). */
+export const BUTTON_SOURCES = { navigate: ['suggest_followups'] };
+
 export const EMITS_ON_OK = { share_link: 'link', step_list: 'navigate', tour_next: 'navigate' };
 
 /** Tools that may move the page thread (§4). */
