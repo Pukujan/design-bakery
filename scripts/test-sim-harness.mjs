@@ -80,6 +80,17 @@ await test('INV-3: only tools act, and the button only after every step is confi
   assert.deepEqual(checkTurn(T({ flowBefore: ready, steps: ['booking_give_area'], actions: [book], offered: null })), []);
 });
 
+await test('INV-10: a chat reply leaves follow-up buttons; a page button comes from suggest_followups', () => {
+  const chat = (o) => T({ voice: false, offered: [...STEADY, 'suggest_followups', 'book_call'], ...o });
+  assert.deepEqual(ids(checkTurn(chat({ steps: ['show_projects'], actions: [{ kind: 'projects', slugs: ['x'] }] }))), ['INV-10']);
+  const asks = [{ kind: 'navigate', path: '/#work', label: 'See the work' }, { kind: 'ask', text: 'What is it built with?' }];
+  assert.deepEqual(checkTurn(chat({ steps: ['suggest_followups'], actions: asks })), []);
+  assert.deepEqual(ids(checkTurn(chat({ steps: ['suggest_followups'], actions: [{ ...asks[0], go: true }, asks[1]] }))), ['INV-3'], 'a page move is not a button');
+  assert.deepEqual(checkTurn(chat({ offered: STEADY })), [], 'a lane without suggest_followups is not held to it');
+  assert.deepEqual(checkTurn(chat({ ignored: true, text: '', steps: ['not_for_me'] })), []);
+  assert.deepEqual(checkTurn(T()), [], 'a call has no buttons');
+});
+
 await test('INV-5, INV-6, INV-7, INV-8 and INV-9 on one turn', () => {
   assert.deepEqual(ids(checkTurn(T({ steps: ['search_site', 'search_site', 'read_paper', 'read_paper', 'search_site', 'search_site'] }))), ['INV-5']);
   const summary = T({ steps: ['summarize_page'], results: [{ name: 'summarize_page', ok: true, passages: 3 }], actions: [{ kind: 'cite', path: '/' }] });

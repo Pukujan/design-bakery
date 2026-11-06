@@ -3,7 +3,7 @@
  * None of them reads the reply's wording. Each failure is { id, turn, msg }.
  */
 import {
-  ACTION_SOURCES, BOOKING_TOOLS, CHAT_ONLY, EMITS_ON_OK, PAGE_MOVERS, VOICE_ONLY,
+  ACTION_SOURCES, BOOKING_TOOLS, BUTTON_SOURCES, CHAT_ONLY, EMITS_ON_OK, PAGE_MOVERS, VOICE_ONLY,
   bookingStep, bookingToolsFor, countQuestions, endsWholeSentence, endsWithQuestion, same, says,
 } from './spec.mjs';
 
@@ -45,8 +45,8 @@ export function checkTurn(t, first) {
   }
   // INV-3: only tools act.
   for (const a of t.actions) {
-    const sources = ACTION_SOURCES[a.kind];
-    if (!sources) continue;
+    if (!ACTION_SOURCES[a.kind]) continue;
+    const sources = [...ACTION_SOURCES[a.kind], ...(a.go ? [] : BUTTON_SOURCES[a.kind] ?? [])];
     if (!t.steps.some((s) => sources.includes(s))) out.push(fail('INV-3', t, `a ${a.kind} action with no tool that makes one (tools [${t.steps}])`));
   }
   // A tool that told the model it acted, acted: otherwise the reply describes a link or a move the page never got.
@@ -77,6 +77,11 @@ export function checkTurn(t, first) {
   if (countQuestions(t.text) > 1) out.push(fail('INV-8', t, `${countQuestions(t.text)} questions in one reply: "${t.text.slice(0, 140)}"`));
   // INV-9: a reply cut off by the token limit is pulled back to a whole sentence.
   if (t.truncated && t.text.trim() && !endsWholeSentence(t.text)) out.push(fail('INV-9', t, `cut off and not ended on a whole sentence: "…${t.text.slice(-60)}"`));
+  // INV-10: a chat reply leaves something to press. Where the lane offers suggest_followups, every answer has follow-up questions.
+  const canButton = !t.offered || t.offered.includes('suggest_followups');
+  if (!t.voice && canButton && !t.ignored && t.text.trim() && !t.actions.some((a) => a.kind === 'ask')) {
+    out.push(fail('INV-10', t, `a chat reply with no follow-up buttons (tools [${t.steps}], actions [${t.actions.map((a) => a.kind)}])`));
+  }
   // §7, exact: a turn that called a booking tool says that tool's line.
   const lines = t.results.filter((r) => BOOKING_TOOLS.includes(r.name) && r.ok !== false && r.say);
   const line = lines.at(-1)?.say;

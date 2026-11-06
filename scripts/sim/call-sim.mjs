@@ -1,7 +1,8 @@
 /**
- * A call simulator: plays scripted conversations through the copilot's real backend in voice mode (the same /api/copilot/chat
- * the voice agent calls, with the real model chain, tools and site data) and checks every turn against the spec
- * (additionals/doc/copilot-spec.md): the invariants on every turn, each step's own expectations, and the judge for wording.
+ * A call simulator: plays scripted conversations through the copilot's real backend in voice mode, or as a typed chat when a
+ * scenario says "voice": false (the same /api/copilot/chat the voice agent and the chat box call, with the real model chain,
+ * tools and site data) and checks every turn against the spec (additionals/doc/copilot-spec.md): the invariants on every
+ * turn, each step's own expectations, and the judge for wording.
  *
  *   node scripts/sim/call-sim.mjs scripts/sim/scenarios/booking.json [more.json ...] [--all]
  *        [--base http://localhost:8787] [--runs 3] [--lane hybrid] [--no-judge] [--verbose] [--out report.json]
@@ -42,7 +43,7 @@ for (const file of files) {
   const scenario = JSON.parse(await readFile(file, 'utf8'));
   validateScenario(scenario, file.pathname.split('/').at(-1));
   for (let run = 1; run <= runs; run += 1) {
-    const turns = await runConversation(client, scenario, { lane });
+    const turns = await runConversation(client, scenario, { lane, voice: scenario.voice ?? true });
     if (!warned && !turns.some((t) => t.offered)) {
       warned = true;
       console.warn('[sim] the backend sent no debug events: start it with COPILOT_DEBUG_EVENTS=1, or INV-1, INV-5, INV-6, EX-1 and the judge\'s view of the tools are not checked');

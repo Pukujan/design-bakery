@@ -1,0 +1,11 @@
+{
+  "name": "a typed chat on the home page: every answer leaves buttons to press, and a page is offered as a button",
+  "voice": false,
+  "startPage": { "path": "/", "title": "Home" },
+  "steps": [
+    { "say": "What has Pujan built?", "expect": { "actions": ["ask"] } },
+    { "say": "Tell me about Precedent", "expect": { "actions": ["ask"] } },
+    { "say": "Are you a real person?", "expect": { "actions": ["ask"] } },
+    { "say": "How can I contact you?", "expect": { "actions": ["ask"] } }
+  ]
+}

@@ -50,4 +50,4 @@ export class Tally {
 }
 
 /** The ids a conversation was checked against, so a pass is counted as well as a failure. */
-export const INVARIANT_IDS = ['INV-1', 'INV-2', 'INV-3', 'INV-5', 'INV-6', 'INV-7', 'INV-8', 'INV-9', 'EX-1'];
+export const INVARIANT_IDS = ['INV-1', 'INV-2', 'INV-3', 'INV-5', 'INV-6', 'INV-7', 'INV-8', 'INV-9', 'INV-10', 'EX-1'];

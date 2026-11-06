@@ -4,7 +4,7 @@
 |-------|-------|
 | **Document date** | 2026-11-05 |
 | **Created** | 2026-11-05 |
-| **Last updated** | 2026-11-05 |
+| **Last updated** | 2026-11-06 |
 | **Task** | [TASK-DB-0137](../../tasks/TASK-DB-0137-voice-chatty-and-noise.md) |
 
 This is the contract for how the site copilot (AI Pujan, by voice and in the chat) behaves on every turn. It is written for one human visitor who can ask anything at any time: a question, a tour, a fast summary of everything, a booking, "next", a change of mind, an interruption, in any order and mixed together. There are no visitor types and no modes.
@@ -82,7 +82,7 @@ threads: { booking?: BookingState; tour?: { route: string; stop: number; paused:
 | Show | `show_projects`, `share_link` | both | today |
 | Book a call | `booking_start`, `booking_give_name`, `booking_confirm_name`, `booking_give_pronunciation`, `booking_give_email`, `booking_confirm_email`, `booking_give_area`, `booking_repeat`, `booking_cancel` | voice | today |
 | Book a call | `book_call` | chat | today |
-| Follow-up buttons | `suggest_followups` | chat | today |
+| Follow-up buttons | `suggest_followups`: two or three follow-up questions, and up to two pages offered as buttons that move nothing until pressed. The chat prompt asks for it on every reply; a reply that came without it gets one small call that can only make them (`route.ts`, the backstop). | chat | today |
 | Not for me | `not_for_me` | voice | today |
 
 ### Offer rules
@@ -109,6 +109,7 @@ Checked by code on every turn of every test run, from events, thread state and t
 | INV-7 | Quiet when not addressed: after `not_for_me` there is no text and one `ignored` event; never when `toMe`. | events | holds by code; the baseline had one line for someone else, handled right |
 | INV-8 | Few questions back: at most one question per reply, and at most 3 in 10 replies end in a question. Booking steps, which must ask, do not count. | the last character of each reply | fails in 4 of 22 scenario runs: recruiter-checklist ended 4 of 10 replies in a question, recruiter-deep-dive 3 of 7, tools 2 of 4 (twice) |
 | INV-9 | A reply cut off by the token limit is never sent as complete: it is pulled back to its last whole sentence. | `truncation.ts`; the trace's `truncated` | holds by code (`test:copilot-truncation`); no reply was cut in the baseline |
+| INV-10 | Something to press: in a chat, every reply that answers leaves follow-up questions (`ask` actions), in any lane that offers `suggest_followups`. A page button (a `navigate` action without `go`) comes only from `suggest_followups` and moves nothing. | `ask` and `navigate` actions, the `step` events | holds: 2 of 2 runs of `chat-buttons.json`, and 12 of 12 hand-run home-page lines (2026-11-06); before the fix, neither of the 2 lines tried had any (one got project cards only, one moved the page) |
 
 ### 6.1 Targets
 
@@ -199,9 +200,11 @@ Both runners play conversations through a local backend's real `/api/copilot/cha
 - A turn that uses a tool costs about 20k tokens, so the production cap of 2M a day is about 100 turns.
 - Only `sim:spec --save` writes to the lane tables (replay cases); nothing writes flagged turns or eval sets yet.
 - The page's built-in fallback answers, used only when every model is down, still match wording.
+- In a chat the model sometimes calls `navigate` for a question that did not ask to go anywhere ("What's your work experience?" moved the page to `/#experience`), and after `summarize_page` it may say the page "is open" when in a chat it is not. Since #221 nothing but the prompt holds the chat to opening a page only on a yes.
 - No real spoken call has been tested since tools replaced the matching.
 
 ## Revision history
 
 - 2026-11-05: First version.
+- 2026-11-06: Chat buttons are back. #221 removed the fixed answers that brought their own buttons, and the prompt never asked for `suggest_followups`, so most chat replies had none. Added INV-10, page buttons in `suggest_followups`, the backstop call, and `scripts/sim/scenarios/chat-buttons.json` (a scenario may now say `"voice": false`).
 - 2026-11-05: The test harness is built (§10). Added EX-1 and D-5; the judge's rubric is a repo file; MR-3 uses false starts; trajectories leave out lookups; INV-1 and INV-2 are checked on every test turn.

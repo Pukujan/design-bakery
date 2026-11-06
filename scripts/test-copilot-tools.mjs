@@ -110,5 +110,23 @@ const make = (extra = {}) => {
   assert.equal(ignored, true);
 }
 
+// 6. A chat reply's buttons: follow-up questions, and pages offered as buttons that move nothing until pressed (#221 lost them).
+{
+  const { tool, actions } = make({ voice: false });
+  const r = await run(tool, 'suggest_followups', {
+    questions: ['What is it built with?', 'Is there a demo?'],
+    pages: [{ path: '/#work', label: 'See the work' }, { path: '/no-such-page', label: 'Nowhere' }],
+  });
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.left_out, ['/no-such-page'], 'a page that is not on the site is left out, and the model is told');
+  assert.deepEqual(actions.filter((a) => a.kind === 'ask').map((a) => a.text), ['What is it built with?', 'Is there a demo?']);
+  const pages = actions.filter((a) => a.kind === 'navigate');
+  assert.deepEqual(pages.map((a) => a.path), ['/#work'], 'only the real page becomes a button');
+  assert.equal(pages[0].go, undefined, 'a page button does not move the page');
+  const again = await run(tool, 'suggest_followups', { questions: ['Anything else?'] });
+  assert.equal(again.ok, false, 'one set of buttons per reply');
+  assert.equal(actions.filter((a) => a.kind === 'ask').length, 2, 'a second call adds no buttons');
+}
+
 assert.equal(state.sayEmail('a.b_c@gmail.com'), 'A, dot, B, underscore, C, at gmail dot com');
-console.log('copilot tools: booking steps, list stepping, tour, not_for_me');
+console.log('copilot tools: booking steps, list stepping, tour, not_for_me, chat buttons');
