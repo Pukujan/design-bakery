@@ -368,6 +368,8 @@ copilotRouter.post('/chat', async (req, res) => {
   void before;
   // What AI Pujan has already said, so a tour moves on to somewhere new (tour_next).
   const said = messages.filter((m) => m.role === 'assistant').slice(-12).map((m) => m.content).join(' ');
+  // The reply the visitor just answered: send_message checks the read-back is in it.
+  const lastReply = messages.slice(0, -1).filter((m) => m.role === 'assistant').at(-1)?.content ?? '';
   let booking: BookingFlow | null = (parsed.data.flow ?? null) as BookingFlow | null;
   let bookingTouched = false;
   let ignoredLine = false;
@@ -445,7 +447,7 @@ copilotRouter.post('/chat', async (req, res) => {
           send({ type: 'action', action: withChip(action) });
         },
         {
-          canNavigate: true, citations, voice, page, said,
+          canNavigate: true, citations, voice, page, said, lastReply,
           booking: { get: () => booking, set: (next) => { booking = next; bookingTouched = true; } },
           notForMe: () => { if (!toMe) ignoredLine = true; },
         },
