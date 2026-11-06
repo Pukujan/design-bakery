@@ -82,6 +82,7 @@ threads: { booking?: BookingState; tour?: { route: string; stop: number; paused:
 | Show | `show_projects`, `share_link` | both | today |
 | Book a call | `booking_start`, `booking_give_name`, `booking_confirm_name`, `booking_give_pronunciation`, `booking_give_email`, `booking_confirm_email`, `booking_give_area`, `booking_repeat`, `booking_cancel` | voice | today |
 | Book a call | `book_call` | chat | today |
+| Send me a message | `send_message`: name, email and message, read back and sent only on a yes; emailed through an Apps Script web app in Pujan's Google account (`deploy/contact-mail/`). Unset, or over 20 a day, it shows a `mailto:` link instead. | chat | today |
 | Follow-up buttons | `suggest_followups`: two or three follow-up questions, and up to two pages offered as buttons that move nothing until pressed. The chat prompt asks for it on every reply; a reply that came without it gets one small call that can only make them (`route.ts`, the backstop). | chat | today |
 | Not for me | `not_for_me` | voice | today |
 
@@ -107,7 +108,7 @@ Checked by code on every turn of every test run, from events, thread state and t
 | INV-5 | Within limits: tool steps at most the lane's `maxSteps`; time and tokens within the targets in §6.1. | `step` events, the trace's timings and token counts | steps hold in 35 of 35 runs; tokens over target (§6.1) |
 | INV-6 | Grounded: a fact about the work comes from the brief, a tool result or a stored summary. A summary of a page comes with a `cite` per passage. | the trace's tool outputs; `cite` events; J-3 for the words | `cite` holds for `summarize_page` in 35 of 35 runs; J-3 passed where asked |
 | INV-7 | Quiet when not addressed: after `not_for_me` there is no text and one `ignored` event; never when `toMe`. | events | holds by code; the baseline had one line for someone else, handled right |
-| INV-8 | Few questions back: at most one question per reply, and at most 3 in 10 replies end in a question. Booking steps, which must ask, do not count. | the last character of each reply | fails in 4 of 22 scenario runs: recruiter-checklist ended 4 of 10 replies in a question, recruiter-deep-dive 3 of 7, tools 2 of 4 (twice) |
+| INV-8 | Few questions back: at most one question per reply, and at most 3 in 10 replies end in a question. Booking steps, which must ask, do not count, and a question quoted back from the visitor is not one asked. | the last character of each reply | fails in 4 of 22 scenario runs: recruiter-checklist ended 4 of 10 replies in a question, recruiter-deep-dive 3 of 7, tools 2 of 4 (twice) |
 | INV-9 | A reply cut off by the token limit is never sent as complete: it is pulled back to its last whole sentence. | `truncation.ts`; the trace's `truncated` | holds by code (`test:copilot-truncation`); no reply was cut in the baseline |
 | INV-10 | Something to press: in a chat, every reply that answers leaves follow-up questions (`ask` actions), in any lane that offers `suggest_followups`. A page button (a `navigate` action without `go`) comes only from `suggest_followups` and moves nothing. | `ask` and `navigate` actions, the `step` events | holds: 2 of 2 runs of `chat-buttons.json`, and 12 of 12 hand-run home-page lines (2026-11-06); before the fix, neither of the 2 lines tried had any (one got project cards only, one moved the page) |
 
@@ -206,5 +207,6 @@ Both runners play conversations through a local backend's real `/api/copilot/cha
 ## Revision history
 
 - 2026-11-05: First version.
+- 2026-11-06: A visitor can send Pujan a message from the chat (`send_message`, `deploy/contact-mail/`).
 - 2026-11-06: Chat buttons are back. #221 removed the fixed answers that brought their own buttons, and the prompt never asked for `suggest_followups`, so most chat replies had none. Added INV-10, page buttons in `suggest_followups`, the backstop call, and `scripts/sim/scenarios/chat-buttons.json` (a scenario may now say `"voice": false`).
 - 2026-11-05: The test harness is built (§10). Added EX-1 and D-5; the judge's rubric is a repo file; MR-3 uses false starts; trajectories leave out lookups; INV-1 and INV-2 are checked on every test turn.
