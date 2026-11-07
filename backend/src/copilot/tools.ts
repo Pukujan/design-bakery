@@ -149,7 +149,7 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
     }),
 
     cite_section: tool({
-      description: `Point at a section of a blog post, research paper or project while you talk about it: the page scrolls to that heading, the cursor taps it, and a short passage is highlighted. path is /blogs/<id>, /research/papers/<id> or /work/<slug>. you must have read the post or paper this turn (read_blog or read_paper), or it is refused. heading must be a heading you saw in its "sections" list (a project page has What it is, Highlights, Built with, Go deeper). quote is optional: a passage of at most ${QUOTE_MAX} characters copied word for word from that section. If it returns ok false, do not retry with a made-up heading; just keep talking.`,
+      description: `Point at a section of a blog post, research paper or project while you talk about it: the page scrolls to that heading, the cursor taps it, and a short passage is highlighted. path is /blogs/<id>, /research/papers/<id> or /work/<slug>. you must have read the post or paper this turn (read_blog or read_paper), or it is refused. heading must be a heading you saw in its "sections" list (a project page has What it is, Highlights, Built with, Go deeper). A paper's charts and diagrams are in that list too, as headings starting "Figure" or "Diagram": when one shows what you are saying, point at it rather than the text, since seeing the chart says more. quote is optional: a passage of at most ${QUOTE_MAX} characters copied word for word from that section. If it returns ok false, do not retry with a made-up heading; just keep talking.`,
       inputSchema: z.object({ path: z.string().max(200), heading: z.string().min(1).max(200), quote: z.string().max(400).optional() }),
       execute: async ({ path, heading, quote }) => {
         const clean = path.split('#')[0];
@@ -205,7 +205,7 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
     }),
 
     summarize_page: tool({
-      description: 'Summarise the post, paper or project the visitor is on (or one you name by path), in one step: it returns what the page is about and the passages to speak, and the page follows them by itself. Then SAY the summary: one short sentence per passage, three at most, about 20 seconds, ending with a short offer to go deeper. Prefer this over read_paper, read_blog and outline_passages for any "summarise this", "what is this about", "explain this".',
+      description: 'Summarise the post, paper or project the visitor is on (or one you name by path), in one step: it returns what the page is about and the passages to speak, and the page follows them by itself. Then SAY the summary: one short sentence per passage, three at most, about 20 seconds, ending with a short offer to go deeper. A passage whose heading starts "Figure" or "Diagram" is a chart the page is showing: say what it shows. Prefer this over read_paper, read_blog and outline_passages for any "summarise this", "what is this about", "explain this".',
       inputSchema: z.object({ path: z.string().max(200).optional() }),
       execute: async ({ path }) => {
         const clean = (path ?? options.page?.path ?? '').split('#')[0];

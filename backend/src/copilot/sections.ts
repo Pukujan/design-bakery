@@ -26,23 +26,70 @@ function plainBlock(text: string): string {
   );
 }
 
-/** The sections of a markdown document: each heading with the text blocks under it until the next heading. */
-export function sectionsOfMarkdown(markdown: string, options: { levels: number[]; stripNumber?: boolean }): Section[] {
+/** Level of a chart or diagram section; deeper than any heading, so a summary's main passages stay headings. */
+export const VISUAL_LEVEL = 7;
+
+/** The text between `before` and `after` in a line, or '' when either is missing. */
+function between(line: string, before: string, after: string): string {
+  const start = line.indexOf(before);
+  if (start < 0) return '';
+  const end = line.indexOf(after, start + before.length);
+  return end < 0 ? '' : line.slice(start + before.length, end);
+}
+
+/** "Figure 1. A judge's score depends on skips. Hollow dot: …" → "Figure 1. A judge's score depends on skips." */
+function captionTitle(caption: string): string {
+  const label = caption.indexOf('. ');
+  const end = label < 0 ? -1 : caption.indexOf('. ', label + 2);
+  const title = end < 0 ? caption : caption.slice(0, end + 1);
+  return title.length > QUOTE_MAX ? `${title.slice(0, QUOTE_MAX - 1).trimEnd()}…` : title;
+}
+
+/**
+ * The sections of a markdown document: each heading with the text blocks under it until the next heading. With
+ * `visuals`, a paper's charts and diagrams are sections too (TASK-DB-0146), in page order: a `<figure data-figure="NAME">`
+ * is `figure-NAME`, titled by its caption's first sentence, and the Nth ```mermaid block is `diagram-N`. The paper page
+ * gives the rendered figures and diagrams the same ids (PaperFigure.tsx, ResearchPaperPage.tsx). The surrounding
+ * section keeps its text, so a quote from a caption still works there as before.
+ */
+export function sectionsOfMarkdown(markdown: string, options: { levels: number[]; stripNumber?: boolean; visuals?: boolean }): Section[] {
   const anchors = headingAnchors(markdown, { levels: options.levels, stripNumber: options.stripNumber });
   const sections: Section[] = [];
   let current: Section | null = null;
   let anchorIndex = 0;
   let fence: string | null = null;
   let paragraph: string[] = [];
+  let figure: Section | null = null;
+  let diagrams = 0;
   const flush = () => {
     const block = plainBlock(paragraph.join(' '));
     if (current && block) current.blocks.push(block);
     paragraph = [];
   };
   for (const line of markdown.split('\n')) {
+    if (options.visuals && !fence) {
+      const name = between(line, 'data-figure="', '"');
+      if (line.includes('<figure') && name) {
+        figure = { id: `figure-${name}`, heading: '', level: VISUAL_LEVEL, blocks: [] };
+      }
+      const caption = squash(between(line, '<figcaption>', '</figcaption>'));
+      if (figure && caption) {
+        figure.heading = captionTitle(caption);
+        figure.blocks.push(caption);
+      }
+      if (figure && line.includes('</figure>')) {
+        if (!figure.heading) figure.heading = current ? `Figure: ${current.heading}` : 'Figure';
+        sections.push(figure);
+        figure = null;
+      }
+    }
     const marker = /^\s*(```|~~~)/.exec(line)?.[1];
     if (marker) {
       flush();
+      if (options.visuals && fence === null && line.trim().slice(marker.length).trim().toLowerCase() === 'mermaid') {
+        diagrams += 1;
+        sections.push({ id: `diagram-${diagrams}`, heading: current ? `Diagram: ${current.heading}` : `Diagram ${diagrams}`, level: VISUAL_LEVEL, blocks: [] });
+      }
       fence = fence === null ? marker : fence === marker ? null : fence;
       continue;
     }
@@ -138,6 +185,19 @@ export function buildPassages(sections: Section[], max = SUMMARY_PASSAGES): Pass
   const top = Math.min(...usable.map((s) => s.level), 6);
   const main = usable.filter((s) => s.level === top || (s.level === top + 1 && usable.filter((u) => u.level === top).length < 2));
   const pool = main.length >= 2 ? main : usable;
-  const picked = pool.length <= limit ? pool : Array.from({ length: limit }, (_, i) => pool[Math.round((i * (pool.length - 1)) / (limit - 1))]);
-  return [...new Set(picked)].map((s) => ({ heading: s.heading, anchor: s.id, quote: firstSentence(s) }));
+  const picked = [...new Set(pool.length <= limit ? pool : Array.from({ length: limit }, (_, i) => pool[Math.round((i * (pool.length - 1)) / (limit - 1))]))];
+  // A paper with charts or diagrams shows one in its summary (TASK-DB-0146): the first visual takes the place of the
+  // passage nearest it (never the opening one), and the passages stay in reading order.
+  const visual = usable.find((s) => s.level === VISUAL_LEVEL);
+  if (visual && !picked.some((s) => s.level === VISUAL_LEVEL)) {
+    const at = (s: Section) => sections.indexOf(s);
+    if (picked.length < limit) picked.push(visual);
+    else if (picked.length > 1) {
+      const rest = picked.slice(1);
+      const nearest = rest.reduce((a, b) => (Math.abs(at(b) - at(visual)) < Math.abs(at(a) - at(visual)) ? b : a));
+      picked[picked.indexOf(nearest)] = visual;
+    }
+    picked.sort((a, b) => at(a) - at(b));
+  }
+  return picked.map((s) => ({ heading: s.heading, anchor: s.id, quote: firstSentence(s) }));
 }

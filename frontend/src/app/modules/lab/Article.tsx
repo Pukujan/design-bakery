@@ -122,12 +122,31 @@ function componentsFor(flow: boolean): Components {
   };
 }
 
+/**
+ * Charts and diagrams get ids the copilot can point at (TASK-DB-0146), the same ones its sections use
+ * (backend/src/copilot/sections.ts): a paper's `<figure data-figure="NAME">` is `figure-NAME`, the Nth diagram `diagram-N`.
+ */
+function applyVisualIds(root: HTMLElement | null) {
+  if (!root) return;
+  for (const figure of root.querySelectorAll<HTMLElement>('figure[data-figure]')) {
+    figure.id = `figure-${figure.dataset.figure}`;
+    figure.dataset.copilotVisual = 'figure';
+  }
+  root.querySelectorAll<HTMLElement>('figure.article-diagram').forEach((diagram, index) => {
+    diagram.id = `diagram-${index + 1}`;
+    diagram.dataset.copilotVisual = 'diagram';
+  });
+}
+
 /** Markdown in the lab's type and colours. Text flows round the bodies unless `flow` is off. */
 export function Article({ source, flow = true }: { source: string; flow?: boolean }) {
   const components = useMemo(() => componentsFor(flow), [flow]);
   const root = useRef<HTMLDivElement>(null);
   // Anchors come from the heading text in reading order (repeats get -2, -3), the same rule the copilot uses to cite a section.
-  useLayoutEffect(() => applyHeadingIds(root.current), [source, flow]);
+  useLayoutEffect(() => {
+    applyHeadingIds(root.current);
+    applyVisualIds(root.current);
+  }, [source, flow]);
   return (
     <div className="article" ref={root}>
       <ReactMarkdown remarkPlugins={[remarkGfm, remarkGithubAlerts]} rehypePlugins={[rehypeRaw]} components={components}>
