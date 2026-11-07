@@ -824,6 +824,34 @@ async function getPass(force = false, signal?: AbortSignal): Promise<string> {
   return pass.value;
 }
 
+/**
+ * Sends the contact page's message form through the API (TASK-DB-0148), with the chat's visitor pass, so the same
+ * human check guards it. True only when the API says it was emailed.
+ */
+export async function sendSiteMessage(body: { name: string; email: string; message: string; area?: string }): Promise<boolean> {
+  const send = async (force: boolean) =>
+    fetch(`${base()}/api/copilot/message`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-copilot-pass': await getPass(force) },
+      body: JSON.stringify(body),
+    });
+  let res = await send(false);
+  // An expired pass is renewed once.
+  if (res.status === 401) res = await send(true);
+  const data = (await res.json().catch(() => null)) as { ok?: unknown } | null;
+  return res.ok && data?.ok === true;
+}
+
+/** Whether the API can email a message (the contact form shows as not open otherwise). */
+export async function siteMessagesOpen(): Promise<boolean> {
+  try {
+    const config = (await (await fetch(`${base()}/api/copilot/config`)).json()) as { messages?: unknown };
+    return config.messages === true;
+  } catch {
+    return false;
+  }
+}
+
 /** Obtain a short-lived room grant using the same visitor pass as text chat. */
 /** The API gives the voice service two tries of 25 seconds each when it has to wake up, so the page waits for both. */
 const GRANT_MS = 55_000;
