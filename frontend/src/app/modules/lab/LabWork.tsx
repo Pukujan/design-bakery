@@ -13,7 +13,9 @@ const EASE = [0.2, 0.7, 0.1, 1] as const;
  * without an entry shows the typographic poster instead.
  */
 const PROJECT_MEDIA: Record<number, string> = {
-  16: 'website-copilot',
+  16: 'maybe',
+  19: 'maybe-home',
+  20: 'riley',
   7: 'study-os',
   1: 'cortex',
   6: 'fossil',
