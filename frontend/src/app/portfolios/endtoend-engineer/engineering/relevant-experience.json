@@ -1,7 +1,7 @@
 {
   "headingLeft": "RELEVANT",
   "headingRight": "EXPERIENCE",
-  "subtitle": "Where I learned the trade: production AI, full-stack product work and front-end engineering.",
+  "subtitle": "Product engineering all the way through: production AI, full-stack products and front-end work.",
   "resumeButtonLabel": "Download My Resume",
   "experiences": [
     {
@@ -13,21 +13,25 @@
       "icon": "Rocket",
       "color": "#6366F1",
       "accentColor": "#A78BFA",
-      "collapsedSummary": "I take products from research to launch for clients and for myself: voice agents, answer engines over a company's documents, map and data apps, and the platform and agent tooling underneath them.",
-      "expandedSummary": "I take products from research to launch for clients and for myself: voice agents, answer engines over a company's documents, map and data apps, and the platform and agent tooling underneath them.",
-      "highlights": [],
-      "tags": ["Product Studio", "Voice Agents", "RAG", "Full-Stack", "Self-Hosted Infrastructure", "Evals"]
+      "collapsedSummary": "I work directly with the people who have the problem: licensed paralegals and litigators, licensed real estate agents, designers and artists, and AI engineers. I learn how their work actually runs, then build a solution they can use and show, from discovery to production in weeks, not months.",
+      "expandedSummary": "I work directly with the people who have the problem: licensed paralegals and litigators, licensed real estate agents, designers and artists, and AI engineers. I learn how their work actually runs, then build a solution they can use and show, from discovery to production in weeks, not months. What I build: voice agents, answer engines over a company's documents, map and data apps, and the platform and agent tooling underneath them.",
+      "highlights": [
+        "Discovery with the people doing the work: I sit with their process, find the step that costs them the most, and agree with them on what done looks like.",
+        "Build for their particular problem: a working product they can use and present, not a slide.",
+        "Discovery to production in weeks: then I measure it and improve it with them."
+      ],
+      "tags": ["Product Studio", "Forward Deployed", "Discovery to Production", "Voice Agents", "RAG", "Full-Stack", "Evals"]
     },
     {
       "id": 1,
       "company": "Nepasoft LLC",
-      "role": "AI/ML Engineer",
+      "role": "AI Product Engineer",
       "period": "Mar 2024 - Dec 2025 · 1 yr 10 mos",
       "location": "Fairfax, Virginia · Remote",
       "icon": "Brain",
       "color": "#9B6DD6",
       "accentColor": "#B5A8FF",
-      "collapsedSummary": "Progressed from Data Annotation Associate to AI/ML Engineer on production document processing systems for large regulated legal, healthcare, and insurance environments, improving accuracy up to 99% on internal benchmarks.",
+      "collapsedSummary": "Progressed from Data Annotation Associate to AI Product Engineer on production document processing systems for large regulated legal, healthcare, and insurance environments, improving accuracy up to 99% on internal benchmarks.",
       "expandedSummary": "Worked on AI orchestration, RAG pipelines, OCR workflows, document classification, extraction systems, validation workflows, and governance-sensitive datasets across legal, healthcare, insurance, OCR, and geospatial domains.",
       "highlights": [
         "Built and optimized RAG pipelines, multi-document ingestion systems, and model-output validation workflows using Python, LangChain, PyTorch, and LangGraph.",
@@ -41,21 +45,21 @@
     {
       "id": 4,
       "company": "Ekagajpatra",
-      "role": "Lead Product Designer / Full-Stack Developer",
+      "role": "Lead Product Engineer · Design & Full-Stack",
       "period": "Feb 2023 - Apr 2024 · 1 yr 3 mos",
       "location": "Nepal",
       "icon": "Lightbulb",
       "color": "#0D9488",
       "accentColor": "#14B8A6",
       "collapsedSummary": "Led product design and full-stack development for a civic-tech platform serving 35,000+ users through guided digital workflows.",
-      "expandedSummary": "Led product design and full-stack development for a civic-tech platform serving 35,000+ users through guided digital workflows.",
+      "expandedSummary": "Led product design and full-stack development for a civic-tech platform serving 35,000+ users through guided digital workflows. Used AI (ChatGPT) to speed up design and frontend delivery: wireframes became working frontend code the same day, saving days of work.",
       "highlights": [],
       "tags": ["Product Engineering", "Full-Stack", "Workflow UX", "Next.js", "0→1 Product"]
     },
     {
       "id": 5,
       "company": "Perpetual Motion Nepal",
-      "role": "Frontend Developer",
+      "role": "Frontend Product Engineer",
       "period": "May 2023 - Apr 2025 · 2 yrs",
       "location": "Nepal",
       "icon": "Code",
@@ -69,14 +73,14 @@
     {
       "id": 2,
       "company": "The Fitzgerald Law Firm",
-      "role": "AI Workflow Systems",
+      "role": "Forward Deployed Engineer · Legal AI",
       "period": "Feb 2026 - Jun 2026 · 5 mos",
       "location": "United States",
       "icon": "Shield",
       "color": "#4169E1",
       "accentColor": "#8EA7FF",
-      "collapsedSummary": "Developed AI workflow research around docketing, document intelligence, court filing signals, rule lookup, and privacy-safe legal automation.",
-      "expandedSummary": "Developed AI workflow research around docketing, document intelligence, court filing signals, rule lookup, and privacy-safe legal automation.",
+      "collapsedSummary": "Embedded with a litigation team: ran high-volume docketing in TrialWorks and NYSCEF, and built prototypes from what I saw there: a motion docketing agent (RAG), a judge and part rules reference, and a CPLR procedure map, all on de-identified data.",
+      "expandedSummary": "Embedded with a litigation team: ran high-volume docketing in TrialWorks and NYSCEF, and built prototypes from what I saw there: a motion docketing agent (RAG), a judge and part rules reference, and a CPLR procedure map, all on de-identified data.",
       "highlights": [],
       "tags": ["AI Workflow", "Legal AI", "Document Intelligence", "RAG", "Human Review"]
     }
