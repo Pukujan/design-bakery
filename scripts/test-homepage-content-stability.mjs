@@ -54,7 +54,7 @@ assert.equal(
   'I take a product from the first question to running in production.',
 );
 // Every project keeps a start date as evidence. The carousel does not sort by it:
-// the default All view leads with the live products (Website Copilot, NYC Map Agent), then Octo,
+// the default All view leads with the live products (Maybe, Maybe Home, Riley, NYC Map Agent), then Octo,
 // Ekagajpatra, Study OS, Agent Custom Setup, Eval Lab and Precedent, then the remaining shipped
 // products and system features.
 for (const project of projects) {
@@ -73,7 +73,9 @@ const rendered = orderProjectsForShowcase(projects, 'all');
 assert.deepEqual(
   rendered.map((project) => project.title),
   [
-    'Website Copilot',
+    'Maybe',
+    'Maybe Home',
+    'Riley',
     'NYC Map Agent',
     'Octo',
     'Ekagajpatra',
@@ -94,7 +96,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   orderProjectsForShowcase(projects, 'shipped').map((project) => project.title),
-  ['Website Copilot', 'NYC Map Agent', 'Ekagajpatra', 'Study OS', 'Precedent'],
+  ['Maybe', 'Maybe Home', 'Riley', 'NYC Map Agent', 'Ekagajpatra', 'Study OS', 'Precedent'],
 );
 assert.deepEqual(
   orderProjectsForShowcase(projects, 'systems').map((project) => project.title),
@@ -179,20 +181,37 @@ assert.ok(
   ),
   'Voidfeed should link to the absolute URL of its live app',
 );
-assert.equal(rendered[0].title, 'Website Copilot', 'the default All view features Website Copilot');
-const copilot = projects.find((p) => p.title === 'Website Copilot');
-assert.ok(copilot, 'Website Copilot should be in the showcase');
-assert.equal(copilot.id, 16, 'Website Copilot takes the next free project id');
-assert.equal(copilot.startedAt, '2026-10-28', 'Website Copilot startedAt is its repo creation date');
-assert.equal(copilot.category, 'shipped', 'Website Copilot is a live product');
-assert.deepEqual(
-  copilot.links.map((link) => link.url),
-  ['https://copilot.design-bakery.com/#demos', 'https://copilot.design-bakery.com/#video'],
-  'Website Copilot links its live demo and concept video only',
+assert.equal(rendered[0].title, 'Maybe', 'the default All view features Maybe');
+const copilot = projects.find((p) => p.title === 'Maybe');
+assert.ok(copilot, 'Maybe (formerly Website Copilot) should be in the showcase');
+assert.equal(copilot.id, 16, 'Maybe keeps the Website Copilot id');
+assert.equal(copilot.slug, 'website-copilot', 'Maybe keeps its /work/website-copilot address');
+assert.equal(copilot.startedAt, '2026-10-28', 'Maybe startedAt is its repo creation date');
+assert.equal(copilot.category, 'shipped', 'Maybe is a live product');
+assert.ok(
+  copilot.links.every((link) => link.url.startsWith('https://maybe.design-bakery.com')),
+  'Maybe links its own site only',
 );
 assert.ok(
   !copilot.links.some((link) => link.url.includes('github.com')),
-  'Website Copilot must not link a GitHub repo (owner decision)',
+  'Maybe must not link a GitHub repo (owner decision)',
+);
+for (const [title, id, site] of [
+  ['Maybe Home', 19, 'https://home.design-bakery.com'],
+  ['Riley', 20, 'https://riley.design-bakery.com'],
+]) {
+  const project = projects.find((p) => p.title === title);
+  assert.ok(project, `${title} should be in the showcase`);
+  assert.equal(project.id, id, `${title} takes the next free project id`);
+  assert.equal(project.category, 'shipped', `${title} is a live product`);
+  assert.ok(
+    project.links.some((link) => link.label === 'Live Site' && link.url === site),
+    `${title} should link its live site`,
+  );
+}
+assert.ok(
+  !projects.find((p) => p.title === 'Maybe Home').links.some((link) => link.url.includes('github.com')),
+  'Maybe Home must not link its private repo',
 );
 const precedent = projects.find((p) => p.title === 'Precedent');
 assert.ok(precedent, 'Precedent should be in the showcase');
