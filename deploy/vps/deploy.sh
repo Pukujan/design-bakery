@@ -15,6 +15,8 @@
 #   deploy/vps/deploy.sh --no-edge            # drop the tunnel network for this run
 #   deploy/vps/deploy.sh --with-api           # also build/swap the API container
 #   deploy/vps/deploy.sh --no-api             # web only, even if the API is enabled
+#   deploy/vps/deploy.sh --with-voice         # also build/swap the voice call worker
+#   deploy/vps/deploy.sh --no-voice           # leave the voice worker as it is
 #   deploy/vps/deploy.sh --no-pull            # use the local checkout as-is
 #
 # With the site tunnel-fronted, set WITH_EDGE=1 in deploy/vps/.env so every
@@ -26,6 +28,10 @@
 #
 # The API container is deployed when WITH_API=1 or deploy/vps/.env.api exists;
 # --with-api / --no-api override that for a single run.
+#
+# The voice call worker (voice-agent/, TASK-DB-0152) is deployed when WITH_VOICE=1 or
+# deploy/vps/.env.voice exists. It goes last and never fails the deploy: if the new worker does
+# not register with LiveKit, the previous worker image is put back and the web/API deploy stands.
 #
 # Config comes from deploy/vps/.env (see .env.example) and/or the environment.
 set -euo pipefail
@@ -41,6 +47,7 @@ REPO_DIR=${DEPLOY_REPO_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}
 COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
 EDGE_OVERLAY="$SCRIPT_DIR/docker-compose.edge.yml"
 API_ENV_FILE="$SCRIPT_DIR/.env.api"
+VOICE_ENV_FILE="$SCRIPT_DIR/.env.voice"
 ENV_FILE="$SCRIPT_DIR/.env"
 STATE_FILE=${DEPLOY_STATE_FILE:-$SCRIPT_DIR/.deploy-state}
 LOG_FILE=${DEPLOY_LOG_FILE:-$SCRIPT_DIR/deploy.log}
@@ -52,6 +59,10 @@ IMAGE_REPO=${DESIGN_BAKERY_IMAGE_REPO:-design-bakery-web}
 CONTAINER=${DESIGN_BAKERY_CONTAINER:-design-bakery-web}
 API_IMAGE_REPO=${DESIGN_BAKERY_API_IMAGE_REPO:-design-bakery-api}
 API_CONTAINER=${DESIGN_BAKERY_API_CONTAINER:-design-bakery-api}
+VOICE_IMAGE_REPO=${DESIGN_BAKERY_VOICE_IMAGE_REPO:-design-bakery-voice}
+VOICE_CONTAINER=${DESIGN_BAKERY_VOICE_CONTAINER:-design-bakery-voice}
+# The worker loads its voice and turn models, then registers with LiveKit.
+VOICE_TIMEOUT=${VOICE_TIMEOUT:-120}
 HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-90}
 HEALTH_PATH=${HEALTH_PATH:-/healthz}
 # The API image is ~1 GB and Node cold-starts slower than Caddy, so it gets its own
@@ -69,13 +80,15 @@ WITH_EDGE_FLAG=""
 # Empty for the same reason; resolved after .env is sourced.
 WITH_API=""
 WITH_API_FLAG=""
+WITH_VOICE=""
+WITH_VOICE_FLAG=""
 AUTO_ROLLBACK=1
 
 log() { printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" | tee -a "$LOG_FILE"; }
 die() { log "ERROR: $*"; exit 1; }
 
 usage() {
-	sed -n '2,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+	sed -n '2,34p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 	exit "${1:-0}"
 }
 
@@ -87,6 +100,8 @@ while [ $# -gt 0 ]; do
 		--no-edge) WITH_EDGE_FLAG=0; shift ;;
 		--with-api) WITH_API_FLAG=1; shift ;;
 		--no-api) WITH_API_FLAG=0; shift ;;
+		--with-voice) WITH_VOICE_FLAG=1; shift ;;
+		--no-voice) WITH_VOICE_FLAG=0; shift ;;
 		--no-rollback) AUTO_ROLLBACK=0; shift ;;
 		--port) WEB_HOST_PORT=${2:?--port needs a value}; shift 2 ;;
 		-h|--help) usage 0 ;;
@@ -128,6 +143,13 @@ if [ "$WITH_API" = "1" ]; then
 else
 	log "API: disabled (no $API_ENV_FILE, WITH_API unset)"
 fi
+
+if [ -z "$WITH_VOICE_FLAG" ] && [ -z "$WITH_VOICE" ]; then
+	if [ -f "$VOICE_ENV_FILE" ]; then WITH_VOICE=1; else WITH_VOICE=0; fi
+fi
+[ -n "$WITH_VOICE_FLAG" ] && WITH_VOICE=$WITH_VOICE_FLAG
+WITH_VOICE=${WITH_VOICE:-0}
+log "voice worker: $([ "$WITH_VOICE" = "1" ] && echo enabled || echo "disabled (no $VOICE_ENV_FILE, WITH_VOICE unset)")"
 
 COMPOSE=(docker compose -f "$COMPOSE_FILE")
 if [ "$WITH_EDGE" = "1" ]; then
@@ -342,6 +364,56 @@ wait_api_healthy() {
 	return 1
 }
 
+# The voice worker is up once it has registered with LiveKit (its log says so); a crash or a
+# refused connection never gets that far.
+wait_voice_registered() { # <docker logs --since value>
+	local deadline=$((SECONDS + VOICE_TIMEOUT))
+	while [ $SECONDS -lt $deadline ]; do
+		if docker logs --since "$1" "$VOICE_CONTAINER" 2>&1 | grep -q 'registered worker'; then return 0; fi
+		[ "$(docker inspect -f '{{.State.Running}}' "$VOICE_CONTAINER" 2>/dev/null)" = "true" ] || return 1
+		sleep 3
+	done
+	return 1
+}
+
+# Records the worker's live tag in .env, like write_tags does for web and API.
+write_voice_tag() { # <voice image>
+	local tmp="$ENV_FILE.tmp"
+	{
+		grep -v '^DESIGN_BAKERY_VOICE_IMAGE=' "$ENV_FILE" 2>/dev/null || true
+		echo "DESIGN_BAKERY_VOICE_IMAGE=$1"
+	} >"$tmp" && mv "$tmp" "$ENV_FILE"
+}
+
+# Last, after web and API are live. Never fails the deploy: a worker that does not come up is
+# swapped back to the previous image. A call in progress is not cut: the old worker drains it
+# (AGENT_DRAIN_S) before it exits.
+deploy_voice() {
+	[ "$WITH_VOICE" = "1" ] || return 0
+	local previous new since
+	previous=$(docker inspect -f '{{.Config.Image}}' "$VOICE_CONTAINER" 2>/dev/null || true)
+	new="$VOICE_IMAGE_REPO:$SHORT-$(date -u +%Y%m%dT%H%M%SZ)"
+	log "building $new"
+	if ! DESIGN_BAKERY_VOICE_IMAGE="$new" compose --profile voice build --pull voice; then
+		log "WARN voice build failed for $SHORT; still running ${previous:-<none>}"
+		return 0
+	fi
+	docker tag "$new" "$VOICE_IMAGE_REPO:$SHORT"
+	since=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+	log "starting voice worker with $new"
+	DESIGN_BAKERY_VOICE_IMAGE="$new" compose --profile voice up -d --no-deps voice
+	if wait_voice_registered "$since"; then
+		write_voice_tag "$new"
+		log "voice worker registered with LiveKit: $new"
+		return 0
+	fi
+	log "WARN voice worker did not register within ${VOICE_TIMEOUT}s"
+	if [ -n "$previous" ] && docker image inspect "$previous" >/dev/null 2>&1; then
+		log "putting the voice worker back on $previous"
+		DESIGN_BAKERY_VOICE_IMAGE="$previous" compose --profile voice up -d --no-deps voice
+	fi
+}
+
 # ---------------------------------------------------------------------------- deploy
 log "=== deploy start (ref=$REF, repo=$REPO_DIR, port=$WEB_HOST_PORT, api=$WITH_API, edge=$WITH_EDGE) ==="
 
@@ -418,6 +490,7 @@ if [ "$API_HEALTHY" = "1" ] && wait_healthy; then
 		if api_content_smoke; then
 			state_write "$SHA" "$NEW_IMAGE" "$PREVIOUS_IMAGE" "$(api_state_current "$NEW_API_IMAGE")" "$(api_state_previous "$PREVIOUS_API_IMAGE")"
 			write_tags "$NEW_IMAGE" "$(api_state_current "$NEW_API_IMAGE")"
+			deploy_voice
 			log "deploy OK: $SHORT -> $NEW_IMAGE"
 			log "rollback with: deploy/vps/rollback.sh"
 			exit 0

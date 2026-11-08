@@ -173,6 +173,21 @@ serves them (`backend/src/api/ogPreview.ts`) and the Caddyfile routes those path
 - **Only touch this stack.** Other services share the VPS (Octo, Komodo, Precedent, ACS,
   the copilot voice stack and more; see `vps/PLAN.md`). This deploy touches only its own
   containers, image tags and ports 8085 / 8789.
-- **The voice call** is a separate service, `copilot.design-bakery.com` (Komodo stack
-  `copilot` on the same VPS). The API asks it for a call token (`/api/copilot/voice`).
+- **The voice call.** The call's audio goes through the copilot stack's LiveKit server
+  (`copilot.design-bakery.com`, Komodo stack `copilot` on the same VPS); this stack does not run one.
+  Who answers depends on `.env.api`:
+  - With `VOICE_LIVEKIT_KEY` and `VOICE_LIVEKIT_SECRET` set (the copilot LiveKit's keys), the API mints the
+    call token itself (`backend/src/copilot/voiceToken.ts`) and asks for this repo's worker by name,
+    `design-bakery-voice`. That worker is the `voice` service here (`voice-agent/`, TASK-DB-0152). It is
+    behind the compose profile `voice` and deployed by `deploy.sh` once `deploy/vps/.env.voice` exists
+    (from `.env.voice.example`). It joins the `copilot_default` network to reach `copilot-livekit:7880`
+    and the Pro's speech server through the host's tunnel at `host.docker.internal:18799`. It goes last
+    in a deploy and never fails one: a worker that does not register with LiveKit within
+    `VOICE_TIMEOUT` (120 s) is put back on its previous image. `rollback.sh` leaves it alone.
+  - Without them, the API asks the copilot stack for a token (`/api/voice/token`) and that stack's own
+    worker answers.
+
+  To switch calls to this repo's worker: create `.env.voice`, deploy, check that `docker logs
+  design-bakery-voice` says `registered worker`, then add the two `VOICE_LIVEKIT_*` lines to `.env.api`
+  and deploy again. To switch back, remove those two lines and deploy.
 - **Disk:** two images per deploy (~1.2 GB together); prune old tags (§3).

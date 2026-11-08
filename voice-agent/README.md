@@ -75,6 +75,13 @@ docker run --rm --network container:livekit-dev -e LIVEKIT_URL=ws://127.0.0.1:78
 
 The log says `hush on | voice match on` when a call starts.
 
+## On the VPS
+
+The worker is the `voice` service in `deploy/vps/docker-compose.yml` (profile `voice`), deployed by `deploy/vps/deploy.sh` with
+the rest of the site once `deploy/vps/.env.voice` exists. It uses the copilot stack's LiveKit (`ws://copilot-livekit:7880` on the
+`copilot_default` network) and the Pro's speech server through the VPS's tunnel (`http://host.docker.internal:18799`). Calls reach
+it only when the API mints the tokens (`VOICE_LIVEKIT_*` in `.env.api`). How to switch over and back: `docs/self-hosting.md` §5.
+
 ## Test it
 
 ```bash

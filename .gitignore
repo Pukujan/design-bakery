@@ -21,6 +21,7 @@ deploy/railway.env
 # deploy kit (deploy/vps/) — machine-local state on the VPS (TASK-DB-0055)
 deploy/vps/.env
 deploy/vps/.env.api
+deploy/vps/.env.voice
 deploy/vps/.deploy-state
 deploy/vps/.deploy.lock
 deploy/vps/*.log

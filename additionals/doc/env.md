@@ -45,6 +45,10 @@ See [docs/self-hosting.md](../../docs/self-hosting.md).
 
 The chat and voice copilot try hosted models in order (`backend/src/copilot/providers.ts`); a model is used only when its key is set in `deploy/vps/.env.api`. `SMART_ANTHROPIC_KEY` (an Anthropic API key) puts Claude Haiku (`claude-haiku-5-5`, change with `SMART_ANTHROPIC_MODEL`) first, in chat and on a call alike (on a call the others behind it are ranked by measured reply time): about 1 s for a short answer, against about 2 to 3.5 s for DeepSeek. It is paid, and `COPILOT_DAILY_TOKENS` caps the day. Then come `SMART_DEEPSEEK_KEY`, `SMART_QWEN_KEY`, `SMART_WORKBUDDY_KEY` and `SMART_OPENROUTER_KEY`, and LFM3 on the Pro (`INFERHUB_API_KEY`) last. Unset the Anthropic key to go back to DeepSeek first.
 
+### Copilot voice call
+
+`VOICE_LIVEKIT_KEY` and `VOICE_LIVEKIT_SECRET` in `deploy/vps/.env.api` (the copilot stack's LiveKit keys) make the API mint call tokens itself, for this repo's worker `voice-agent/` (`backend/src/copilot/voiceToken.ts`). Without them the copilot stack's own worker answers. `VOICE_AGENT_NAME` (default `design-bakery-voice`) names the worker the token asks for, `VOICE_LIVEKIT_PUBLIC_URL` (default `wss://copilot.design-bakery.com`) is the address the page dials, and `VOICE_STACK` (default `english-fast`) is the voice stack. The worker's own secrets are in `deploy/vps/.env.voice` (`.env.voice.example`); `docs/self-hosting.md` §5 has the switch-over.
+
 ### Copilot bot check (Turnstile)
 
 `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` in `deploy/vps/.env.api` turn on Cloudflare Turnstile for the chat (`backend/src/copilot/guard.ts`): every chat call needs a signed pass, given only after the check. Addresses in `COPILOT_RATE_EXEMPT_IPS` (the owner's) skip it. The widget runs in interaction-only mode, so most visitors never see it. When it does ask, it appears in the chat itself, just above the box the visitor typed in, with a line saying why (`frontend/src/app/modules/copilot/TurnstileSlot.tsx`). It falls back to the page corner only when no chat is on screen.
