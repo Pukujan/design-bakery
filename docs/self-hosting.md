@@ -181,7 +181,10 @@ serves them (`backend/src/api/ogPreview.ts`) and the Caddyfile routes those path
     `design-bakery-voice`. That worker is the `voice` service here (`voice-agent/`, TASK-DB-0152). It is
     behind the compose profile `voice` and deployed by `deploy.sh` once `deploy/vps/.env.voice` exists
     (from `.env.voice.example`). It joins the `copilot_default` network to reach `copilot-livekit:7880`
-    and the Pro's speech server through the host's tunnel at `host.docker.internal:18799`. It goes last
+    and speech through the shared speech gateway at `host.docker.internal:18800` (Komodo stack
+    `speech-gateway`, TASK-DB-0154), which sends each call to a speech server (the Pro for English) and keeps
+    it there; the worker sends `X-Speech-Project: design-bakery` and `X-Speech-Call: <room>` and releases the
+    call when it ends. When every server is full the call gets the usual speech error: no cloud voice. It goes last
     in a deploy and never fails one: a worker that does not register with LiveKit within
     `VOICE_TIMEOUT` (120 s) is put back on its previous image. `rollback.sh` leaves it alone.
   - Without them, the API asks the copilot stack for a token (`/api/voice/token`) and that stack's own

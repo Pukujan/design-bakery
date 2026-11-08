@@ -48,6 +48,10 @@ from telemetry import CallTelemetry
 from voiceprint import Heard, VoicePrint, load_embedder
 
 SPEECH = os.environ.get('SPEECH_URL', 'http://127.0.0.1:8799')
+# On the VPS SPEECH_URL is the shared speech gateway (voice-agent-research docs/speech-gateway.md). Every speech request names the
+# project and the call, so the whole call stays on one speech server, and the call's place is released when it ends. A 503
+# no_room (every server full) is an ordinary speech error here: these calls use our own models only, there is no cloud voice.
+SPEECH_PROJECT = os.environ.get('SPEECH_PROJECT', 'design-bakery')
 AGENT_NAME = os.environ.get('AGENT_NAME', 'design-bakery-voice')
 VOICE_MATCH_MODEL = os.environ.get('VOICE_MATCH_MODEL', '')  # the speaker model (voiceprint.py); unset: every voice is kept
 # A short turn the recogniser was unsure of is someone else in the room, a TV or a noise, not the caller: on 2026-11-03 "Cat" (0.65),
@@ -331,6 +335,18 @@ async def load_stack(http: aiohttp.ClientSession, stack: str) -> None:
         print('stack load failed, the first request will try again:', e, flush=True)
 
 
+def speech_headers(call: str) -> dict[str, str]:
+    """The gateway's headers for one call (a speech server without the gateway ignores them)."""
+    return {'X-Speech-Project': SPEECH_PROJECT, 'X-Speech-Call': call}
+
+
+async def release_speech(http: aiohttp.ClientSession) -> None:
+    """The call ended: give its place on the speech server back now rather than after the gateway's idle time."""
+    with contextlib.suppress(Exception):
+        async with http.post(f'{SPEECH}/release', timeout=aiohttp.ClientTimeout(total=5)):
+            pass
+
+
 def voice_parts(http: aiohttp.ClientSession, voice: Voice, rates: dict, prints: VoicePrint) -> tuple[LocalSTT, LocalTTS, object]:
     """The stack's listener, voice and turn detector. lfm3-audio is one model that hears and speaks (speech/server.py runs it
     on llama.cpp), so it has no turn detector of its own: the Silero VAD ends a turn after a short silence. The engine's
@@ -344,7 +360,7 @@ def voice_parts(http: aiohttp.ClientSession, voice: Voice, rates: dict, prints: 
 async def entrypoint(ctx: JobContext):
     await ctx.connect()
     caller = await ctx.wait_for_participant()
-    http = aiohttp.ClientSession()
+    http = aiohttp.ClientSession(headers=speech_headers(ctx.room.name))  # on every /health, /stt, /tts and /load of this call
     async with http.get(f'{SPEECH}/health') as r:
         health = await r.json()
     rates = health.get('rates') or {'pocket-tts': health.get('rate', 24000)}
@@ -479,6 +495,10 @@ async def entrypoint(ctx: JobContext):
             tel.stack['language'] = voice.picked or 'heard'  # the call's record says the language it ended in
             print('language', voice.picked or 'heard', flush=True)
 
+    async def _release(_reason: str = ''):
+        await release_speech(http)
+
+    ctx.add_shutdown_callback(_release)  # before http.close below: shutdown callbacks run in the order they were added
     ctx.add_shutdown_callback(http.close)
 
     async def _sent(reason: str):

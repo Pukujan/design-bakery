@@ -94,8 +94,10 @@ services:
         required: false
     environment:
       LIVEKIT_URL: ${VOICE_LIVEKIT_URL:-ws://copilot-livekit:7880}
-      # The Pro's speech server, through the VPS's tunnel on the docker host (docs/self-hosting.md §5).
-      SPEECH_URL: ${VOICE_SPEECH_URL:-http://host.docker.internal:18799}
+      # The shared speech gateway on the docker host (Komodo stack `speech-gateway`), which picks the speech server for
+      # each call (docs/self-hosting.md §5). The worker names this project and the call on every request.
+      SPEECH_URL: ${VOICE_SPEECH_URL:-http://host.docker.internal:18800}
+      SPEECH_PROJECT: ${VOICE_SPEECH_PROJECT:-design-bakery}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

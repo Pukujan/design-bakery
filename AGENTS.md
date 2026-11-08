@@ -69,6 +69,7 @@ See **[additionals/doc/architecture.md](additionals/doc/architecture.md)** for M
 - **`pnpm run dev:web`** — Vite only.
 - **Production:** the owner's VPS + Cloudflare Tunnel; Komodo deploys it when `main` moves. Where services run is decided in `pukujan-lab-2/server-management` `vps/PLAN.md`. **[docs/self-hosting.md](docs/self-hosting.md)** (deploy/rollback). The deploy kit is `deploy/vps/`. gravebuster is not used.
 - Dev port: first free from **5300** (`vite.config.ts`).
+- **Call speech routing:** the live call's speech goes through the shared speech gateway (`voice-agent/README.md` "On the VPS"). Its routing and fallbacks are changed only in pukujan-lab-2/voice-agent-research `demo/live-site/speech/gateway/routes.toml` (see `docs/speech-gateway.md`, section "Switch or upgrade routing"), only when the user asks, and never switch cloud speech on by yourself.
 
 ## Publish kit tests
 

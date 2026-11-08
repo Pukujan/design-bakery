@@ -79,7 +79,11 @@ The log says `hush on | voice match on` when a call starts.
 
 The worker is the `voice` service in `deploy/vps/docker-compose.yml` (profile `voice`), deployed by `deploy/vps/deploy.sh` with
 the rest of the site once `deploy/vps/.env.voice` exists. It uses the copilot stack's LiveKit (`ws://copilot-livekit:7880` on the
-`copilot_default` network) and the Pro's speech server through the VPS's tunnel (`http://host.docker.internal:18799`). Calls reach
+`copilot_default` network) and speech through the shared speech gateway (`http://host.docker.internal:18800`, Komodo stack
+`speech-gateway`; pukujan-lab-2/voice-agent-research `docs/speech-gateway.md`). Every speech request carries
+`X-Speech-Project: design-bakery` (`SPEECH_PROJECT`) and `X-Speech-Call: <room>`, so a call stays on one speech server, and the
+call's place is released (`POST /release`) when it ends. A 503 `no_room` (every server full) is an ordinary speech error: there is
+no cloud fallback. Calls reach
 it only when the API mints the tokens (`VOICE_LIVEKIT_*` in `.env.api`). How to switch over and back: `docs/self-hosting.md` §5.
 
 ## Test it
