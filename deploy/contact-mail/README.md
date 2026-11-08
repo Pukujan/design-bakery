@@ -1,11 +1,13 @@
 # Contact mail
 
-A visitor can ask AI Pujan, in the chat, to send Pujan a message. The copilot's `send_message` tool (`backend/src/copilot/contactMail.ts`) posts it to a Google Apps Script web app in Pujan's own Google account (`Code.gs`), which emails it to that account with the visitor's address as Reply-To.
+A visitor can send Pujan a message two ways: the contact page's "Leave a message" form (`POST /api/copilot/message`, `frontend/src/app/modules/consult/ConsultPage.tsx`), or by asking AI Pujan in the chat. Both go through `backend/src/copilot/contactMail.ts`, which posts it to a Google Apps Script web app in Pujan's own Google account (`Code.gs`), which emails it to that account with the visitor's address as Reply-To.
 
 - **Permission:** the script only sends mail as the account (`MailApp`). It cannot read the inbox.
 - **Secret:** the API holds the web app's URL and a token; the script refuses a post without the token. A leak lets someone email Pujan, nothing more. Revoke by changing the `TOKEN` property or archiving the deployment.
 - **Limits:** Google allows 100 emails a day on a personal account. The API also sends at most 20 a day and one per chat reply, and only after the visitor confirmed the read-back: the API refuses a send unless the copilot's previous reply showed the exact message and email.
-- **Chat only:** voice calls don't offer it (an email address spelled by voice goes wrong too easily).
+- **Not by voice:** voice calls don't offer it (an email address spelled by voice goes wrong too easily).
+- **The form:** needs the same visitor pass as the chat (the human check), at most 5 an hour per visitor and per address; it shows as "Not open yet" while the API has no `CONTACT_MAIL_URL`.
+- **Local testing:** `backend/.env` overrides the launch env (`backend/src/config/env.ts`), so a local API sends real mail when `backend/.env` has the real URL. Comment it out there to test against a fake.
 - **Not stored:** the email in Gmail is the record; nothing is written to Octo.
 
 ## Env (API)

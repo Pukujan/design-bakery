@@ -5,6 +5,7 @@
  *   POST /pass    Turnstile token in, signed visitor pass out (guard.ts)
  *   GET  /health  the profile and each smart provider's last probe, without keys
  *   POST /chat    one turn, streamed as NDJSON events (see CopilotEvent)
+ *   POST /message the contact page's message form, emailed to Pujan (contactMail.ts)
  *
  * The model chain is nyc-map-agent's (providers.ts, health.ts, model-fallback.ts).
  * When no model is configured or the daily budget is spent, /chat answers 503 and the
@@ -17,6 +18,7 @@ import { z } from 'zod';
 import { byHealth, healthReport, noteLatency, startWatcher } from './health.js';
 import { fallbackFetch } from './model-fallback.js';
 import { checkPass, clientIp, issuePass, turnstileSiteKey } from './guard.js';
+import { contactMailConfigured, sendContactMessage } from './contactMail.js';
 import { createDailyBudget, createExemptMatcher, createLimiter, limitConfigFromEnv } from './fairUse.js';
 import { siteBrief } from './knowledge.js';
 import { devProvider, pickProfile, routeFor, smartProviders, type Provider } from './providers.js';
@@ -93,6 +95,8 @@ const summaryBody = z.object({
 const summaryLimiter = createLimiter({ windowMax: 40, windowMs: 3600_000, burstMax: 3, burstMs: 60_000 });
 
 const limiter = createLimiter(limitConfigFromEnv());
+/** The contact page's message form: a few an hour from one visitor (TASK-DB-0148). The mail script's own daily cap still holds. */
+const messageLimiter = createLimiter({ windowMax: 5, windowMs: 3600_000, burstMax: 2, burstMs: 60_000 });
 const passLimiter = createLimiter({ windowMax: 20, windowMs: 3600_000, burstMax: 5, burstMs: 60_000 });
 const budget = createDailyBudget();
 
@@ -234,6 +238,7 @@ copilotRouter.get('/config', (req, res) => {
     // No site key for the owner's network: the page then asks for a pass without showing the human check.
     turnstileSiteKey: exemptReq(req) ? null : turnstileSiteKey(),
     booking: Boolean(process.env.COPILOT_BOOKING_URL?.trim()),
+    messages: contactMailConfigured(),
     live: chain().length > 0,
   });
 });
@@ -332,6 +337,29 @@ copilotRouter.post('/summarize', async (req, res) => {
   const notes = await summarize(parsed.data.previous ?? '', parsed.data.messages, providers, { onUsage: (tokens) => budget.record(tokens) });
   if (!notes) { res.status(503).json({ ok: false, code: 'SUMMARY_FAILED' }); return; }
   res.set('cache-control', 'no-store').json({ ok: true, summary: notes });
+});
+
+const messageBody = z.object({
+  name: z.string().trim().min(1).max(80),
+  email: z.string().trim().email().max(200),
+  message: z.string().trim().min(1).max(1000),
+  area: z.string().trim().max(60).optional(),
+});
+
+// The contact page's "Leave a message": the same mail path as the chat's send_message (contactMail.ts), behind the same
+// visitor pass. The visitor typed and sent it themself, so there is no read-back step here.
+copilotRouter.post('/message', async (req, res) => {
+  const session = await checkPass(req.get('x-copilot-pass'));
+  if (!session) { res.status(401).json({ ok: false, code: 'NO_PASS' }); return; }
+  const parsed = messageBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ ok: false, code: 'VALIDATION' }); return; }
+  if (!exemptReq(req) && (!messageLimiter.take(`msg:${session}`).ok || !messageLimiter.take(`msg-ip:${ipOf(req)}`).ok)) {
+    res.status(429).json({ ok: false, code: 'RATE_LIMITED' }); return;
+  }
+  const { name, email, message, area } = parsed.data;
+  const result = await sendContactMessage({ name, email, message: area ? `[${area}] ${message}` : message, page: '/contact' });
+  if (result.ok) { res.set('cache-control', 'no-store').json({ ok: true }); return; }
+  res.status(result.reason === 'daily_limit' ? 429 : 503).json({ ok: false, code: result.reason.toUpperCase() });
 });
 
 copilotRouter.post('/chat', async (req, res) => {
