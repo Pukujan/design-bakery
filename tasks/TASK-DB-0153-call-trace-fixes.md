@@ -20,13 +20,16 @@
 - `route.ts`: `send_message` is offered on a call (it still sends only after a read-back answered yes); prompt lines on tools, references and messages.
 - `voice-agent/speech_text.py` `spoken()`: an email is said as "pujan3645 at gmail dot com"; used for every line the worker says.
 - `agent.py`: the stall watchdog skips `speech-without-turn` while the copilot is speaking.
+- Browser titles: `/contact`, `/research`, each paper and each source now set their own title through `PageSeo` (from the paper's title and abstract), so the page line the copilot gets names the page too. Before, /contact had none and the research pages set `document.title` by hand.
 
 **Evidence.**
 - `test-copilot-cite.mjs` (new: unread paper is pointed at, outline emits one cite per passage in order, read section text and pointer), `test-copilot-stream.mjs` (7 cases, two new), `tools`, `truncation`, `chips`, `lanes`, `memory`, `cite-route`, `test-copilot-voice.mjs` pass. `voice-agent` unit tests: 16 pass (`tests/test_speech_text.py` new). Frontend `tsc --noEmit` and eslint clean. `test:copilot-news` fails on main too.
+- Headless Chromium (Playwright) on the dev server: /research "Research | Design Baker", a paper reached by a click "<paper title> | Research | Design Baker", /contact "Contact | Design Baker", a source likewise; /blogs and / unchanged.
 - The call's turns replayed against a local API with these changes (Haiku): "guide me through it" on db-r-2026-007 emitted 4 cites in reading order; "Show me references" read the References section, pointed at it and named three in a sentence; on /contact after a paper, "Which page am I on" said the Contact page; the message read back name, email and message and asked to send; "Give me one more" on /blogs/33 went to the next post with no narration.
 
 **Not done.**
 - The worker changes (greeting retry, stall skip, `spoken`) are tested by unit tests only; check the next real call in Phoenix (`voice.failure` with `method = copilot.greet`, `stall`).
 - Three stalls happened while the copilot was listening; their cause is not known.
 - Replies queued while the copilot was still speaking leave no `voice.turn` span (the span is written when the voice starts); not fixed.
+- Every page also keeps `index.html`'s home-page canonical link next to Helmet's own; true on main too (blog pages), not changed here.
 - Choosing which section a free-form answer drew on is PR #205's `cite.ts`.

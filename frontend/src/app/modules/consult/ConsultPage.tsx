@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { copilot, sendSiteMessage, siteMessagesOpen } from '../copilot/store';
+import { PageSeo } from '@/seo/PageSeo';
+import { CONTACT_PAGE_SEO } from '@/seo/pageSeoConfig';
 import '../lab/lab.css';
 import './consult.css';
 
@@ -102,6 +104,7 @@ export function ConsultPage() {
 
   return (
     <div className="lab-root consult">
+      <PageSeo {...CONTACT_PAGE_SEO} />
       <main className="consult-main">
         <header className="consult-head">
           <p className="consult-intro">Free 30-minute video consultations</p>

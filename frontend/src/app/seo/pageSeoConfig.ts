@@ -51,9 +51,18 @@ export const CONTACT_PAGE_SEO: PageSeoConfig = {
   title: `Contact | ${SITE_NAME}`,
   description:
     'Contact Design Baker for engineering collaboration, product design, AI workflow systems, and fullstack development.',
-  canonicalPath: '/#contact',
+  canonicalPath: '/contact',
   ogImage: DEFAULT_OG_IMAGE_PATH,
   imageAlt: `Contact ${SITE_NAME}`,
+};
+
+export const RESEARCH_INDEX_SEO: PageSeoConfig = {
+  title: `Research | ${SITE_NAME}`,
+  description:
+    'Working papers on agent reliability, authorization, evals and retrieval, with their evidence and limits.',
+  canonicalPath: '/research',
+  ogImage: DEFAULT_OG_IMAGE_PATH,
+  imageAlt: `${SITE_NAME} research papers`,
 };
 
 export const BLOG_INDEX_SEO: PageSeoConfig = {

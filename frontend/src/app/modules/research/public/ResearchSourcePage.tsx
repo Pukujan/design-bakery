@@ -6,6 +6,8 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { getResearchSource } from '../data/researchPapers';
 import { markdownComponents } from './ResearchPaperPage';
+import { PageSeo } from '@/seo/PageSeo';
+import { SITE_NAME } from '@/seo/siteSeoDefaults';
 
 const KIND_LABEL: Record<string, string> = {
   'landscape-note': 'supporting source · landscape note',
@@ -22,7 +24,6 @@ export function ResearchSourcePage() {
   const source = sourceId ? getResearchSource(sourceId) : undefined;
 
   useEffect(() => {
-    if (source) document.title = `${source.title} · Design Bakery Research`;
     window.scrollTo({ top: 0 });
   }, [source]);
 
@@ -41,6 +42,11 @@ export function ResearchSourcePage() {
 
   return (
     <article className="min-h-screen bg-[#f7f6f2] dark:bg-[#12141a] text-neutral-900 dark:text-neutral-100">
+      <PageSeo
+        title={`${source.title} | Research | ${SITE_NAME}`}
+        description={source.summary}
+        canonicalPath={`/research/sources/${source.id}`}
+      />
       <div className="mx-auto min-w-0 max-w-3xl px-5 sm:px-6 pt-10 pb-24">
         <Link
           to="/research"

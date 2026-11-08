@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RESEARCH_PAPERS, type ResearchStatus } from '../data/researchPapers';
 import { SupportingSources } from './SupportingSources';
 import { FlowText } from '@/modules/lab/FlowText';
+import { PageSeo } from '@/seo/PageSeo';
+import { RESEARCH_INDEX_SEO } from '@/seo/pageSeoConfig';
 import '@/modules/lab/lab.css';
 import '@/modules/blog/public/list/writing.css';
 
@@ -19,10 +21,6 @@ export function ResearchListPage() {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<StatusFilter>('all');
 
-  useEffect(() => {
-    document.title = 'Research · Design Bakery';
-  }, []);
-
   const papers = useMemo(() => {
     const q = query.trim().toLowerCase();
     return RESEARCH_PAPERS.filter((paper) => {
@@ -37,6 +35,7 @@ export function ResearchListPage() {
 
   return (
     <div className="writing">
+      <PageSeo {...RESEARCH_INDEX_SEO} />
       <header className="writing-head">
         <p className="writing-kicker lab-mono">Research · {RESEARCH_PAPERS.length} papers</p>
         <h1 className="writing-title">
