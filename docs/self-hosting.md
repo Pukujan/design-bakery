@@ -194,3 +194,12 @@ serves them (`backend/src/api/ogPreview.ts`) and the Caddyfile routes those path
   design-bakery-voice` says `registered worker`, then add the two `VOICE_LIVEKIT_*` lines to `.env.api`
   and deploy again. To switch back, remove those two lines and deploy.
 - **Disk:** two images per deploy (~1.2 GB together); prune old tags (§3).
+- **Copilot search index (TASK-DB-0142):** every copilot turn retrieves from Octo RAG
+  (`backend/src/copilot/siteSearch.ts`), over one Octo document per rendered page section
+  (titled `site:<path>#<anchor>`), mapped through the `site_sections` table in the
+  workspace's Octo Postgres (`supabase/migrations/013_site_sections.sql`). The deploy does
+  not re-index yet, so after content changes (a new project, paper or published post) run
+  `docker exec design-bakery-api node scripts/sync-copilot-rag.mjs`, or from a dev checkout
+  with `backend/.env`: `pnpm --dir backend run build && pnpm sync:copilot-rag`. Unchanged
+  sections cost no Octo call, and sections whose page is gone are deleted. If Octo errors or
+  is slow, a turn falls back to the full site brief; `COPILOT_RAG=off` turns retrieval off.

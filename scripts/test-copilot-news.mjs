@@ -182,7 +182,7 @@ assert.match(system, /humour is seasoning/);
 assert.match(system, /Never accuse any real person/);
 assert.match(system, /no invented quotes|never invent quotes/i);
 assert.match(system, /small talk/);
-assert.match(system, /Only state facts from the site brief/);
+assert.match(system, /Only state facts from the site index, the passages retrieved/);
 assert.match(system, /under 45 words/);
 assert.match(voice, /at most one short, warm line/);
 assert.match(voice, /under 35 words/);

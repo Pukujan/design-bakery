@@ -60,6 +60,11 @@ export class TurnTrace {
   outputTokens = 0;
   /** Why the model stopped (stop, length, tool-calls...), and whether the reply was cut off and trimmed to a whole sentence. */
   finishReason = 'unknown';
+  /** TASK-DB-0142: how the turn's passages were found: 'rag', 'rerank-off', or 'brief' when Octo did not answer. */
+  retrieval = 'none';
+  retrievalMs = 0;
+  /** The retrieved sections' addresses, best first. */
+  retrieved: string[] = [];
   truncated = false;
   /** The tools the model was offered this turn, after the channel, the booking step and the lane narrowed them (copilot-spec.md O-1 to O-4). */
   offered: string[] = [];
@@ -107,6 +112,9 @@ export class TurnTrace {
       'copilot.summary_used': this.summaryUsed,
       'copilot.history_dropped': this.historyDropped,
       'copilot.history_kept': this.historyKept,
+      'copilot.retrieval': this.retrieval,
+      'copilot.retrieval_ms': this.retrievalMs,
+      'copilot.retrieved': this.retrieved.join(' '),
     });
     const llm = open(
       'llm',

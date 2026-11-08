@@ -75,6 +75,9 @@ jobs:
       - name: Check the copilot's spec harness offline
         run: pnpm test:sim-harness
 
+      - name: Check the copilot's site search (Octo RAG mapping, reranked calls, server cite, no regex)
+        run: pnpm test:copilot-search
+
       - name: Check the copilot's session memory
         run: pnpm test:copilot-memory
 
