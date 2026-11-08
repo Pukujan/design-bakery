@@ -16,3 +16,26 @@ Issue: [#241](https://github.com/Pukujan/design-bakery/issues/241) (leaf; parent
 - `docker compose --profile voice config` shows `SPEECH_URL: http://host.docker.internal:18800`, `SPEECH_PROJECT: design-bakery`.
 
 **Next.** Merge, check the deploy rebuilt `design-bakery-voice` with the gateway URL, then a scripted call (`scenarios.py`) and the gateway log line `call <room> (design-bakery)`.
+
+### 2026-11-08 14:35:19 UTC — claude-opus-5.5
+
+<!-- continuity:checkpoint {"agent":"claude-opus-5.5","blocked":[],"changed":["deploy/vps/docker-compose.yml, voice-agent/agent.py, voice-agent/scenarios.py, docs/self-hosting.md, voice-agent/README.md, AGENTS.md"],"completed":["Speech for the live call goes through the shared speech gateway: compose default, project and call headers, release on call end, docs"],"decisions":["no new decisions"],"evidence":["14 worker unit tests pass; fake speech server saw /health, /load, /release with both headers; compose config shows the gateway URL"],"next_action":"Open the PR, merge on green, check the deploy rebuilt design-bakery-voice, then a scripted call through the gateway","protocol_version":"0.1.0-draft","schema":"project-continuity.checkpoint.v1","task_id":"DB-0154","timestamp":"2026-11-08T14:35:19Z"} -->
+<!-- continuity:checkpoint-operation {"payload_sha256":"5525bbb5144c3bc6889e76aacb1877d7f9c133ba3dbb617dc6cf762329fe21e6","request_id":"9dd0242f667f4d469389b9e57420b2bf","schema":"project-continuity.checkpoint-operation.v1","task_id":"DB-0154"} -->
+
+Completed:
+- Speech for the live call goes through the shared speech gateway: compose default, project and call headers, release on call end, docs
+
+Evidence:
+- 14 worker unit tests pass; fake speech server saw /health, /load, /release with both headers; compose config shows the gateway URL
+
+Decisions:
+- no new decisions
+
+Changed:
+- deploy/vps/docker-compose.yml, voice-agent/agent.py, voice-agent/scenarios.py, docs/self-hosting.md, voice-agent/README.md, AGENTS.md
+
+Blocked/uncertain:
+- none
+
+Next:
+- Open the PR, merge on green, check the deploy rebuilt design-bakery-voice, then a scripted call through the gateway
