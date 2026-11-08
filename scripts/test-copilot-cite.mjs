@@ -158,4 +158,28 @@ assert.equal((await runCap('Built with')).ok, true);
 assert.equal((await runCap('Highlights')).ok, true);
 assert.equal((await runCap('Go deeper')).ok, false, 'a fourth move is refused unless the whole post was asked for');
 
+// Charts and diagrams are sections of a paper (TASK-DB-0146): ids the page gives them, and a summary shows one.
+{
+  const md = [
+    '# A paper', '', 'Opening words that set the scene for the paper.', '',
+    '## 1. Results', '', 'The results are long enough to quote here.', '',
+    '<figure class="research-figure" data-figure="score_gap">', '  <picture><img src="/x.light.wide.svg" alt="Chart" /></picture>',
+    '  <figcaption>Figure 1. Scores drop when skips count. Hollow dot: answered only.</figcaption>', '</figure>', '',
+    '## 2. Method', '', 'The method section has words as well.', '',
+    '```mermaid', 'flowchart LR', '  a --> b', '```', '',
+    '## 3. Next', '', 'What comes next is written here too.', '',
+  ].join('\n');
+  const plain = sections.sectionsOfMarkdown(md, { levels: [1, 2, 3] });
+  assert.equal(plain.some((s) => s.id.startsWith('figure-') || s.id.startsWith('diagram-')), false, 'blog posts keep headings only');
+  const all = sections.sectionsOfMarkdown(md, { levels: [1, 2, 3], visuals: true });
+  const fig = all.find((s) => s.id === 'figure-score_gap');
+  assert.equal(fig?.heading, 'Figure 1. Scores drop when skips count.');
+  assert.equal(all.find((s) => s.id === 'diagram-1')?.heading, 'Diagram: 2. Method');
+  assert.ok(sections.checkQuote(fig, 'Scores drop when skips count'), 'a caption can be quoted at its figure');
+  assert.ok(all.find((s) => s.id === '1-results').blocks.some((b) => b.includes('Scores drop')), 'the section around it keeps the caption');
+  const passages = sections.buildPassages(all).map((p) => p.anchor);
+  assert.ok(passages.includes('figure-score_gap'), JSON.stringify(passages));
+  assert.deepEqual(passages, [...passages].sort((a, b) => all.findIndex((s) => s.id === a) - all.findIndex((s) => s.id === b)), 'still in reading order');
+}
+
 console.log('copilot cite: ok');

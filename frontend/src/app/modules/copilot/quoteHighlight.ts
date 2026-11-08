@@ -10,6 +10,8 @@ const fold = (text: string) => text.replace(/\s+/g, ' ').trim().normalize('NFC')
 
 /** The elements that make up a heading's section: the siblings after it up to the next heading, or its container when it has none. */
 function sectionElements(heading: Element): Element[] {
+  // A chart or diagram the copilot points at is its own section: its caption is inside it.
+  if (heading.hasAttribute('data-copilot-visual')) return [heading];
   const out: Element[] = [];
   for (let el = heading.nextElementSibling; el && !/^H[1-3]$/.test(el.tagName); el = el.nextElementSibling) out.push(el);
   if (out.length) return out;

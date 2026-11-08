@@ -76,6 +76,7 @@ threads: { booking?: BookingState; tour?: { route: string; stop: number; paused:
 | Summarise a page | `summarize_page` (one tool call, then the model speaks the passages) | both | today |
 | Speak a stored summary | `speak_summary` (one page, or a roll-up: experience, work, research, everything; three lengths; the stored text is the reply, no second model call) | both | planned |
 | Walk a page in depth | `outline_passages`, `cite_section` | both | today |
+| Point at a chart | a paper's figures (`figure-NAME`, titled by the caption's first sentence) and mermaid diagrams (`diagram-N`) are sections `cite_section` can point at; a paper summary shows one | both | today |
 | Move | `navigate`, `step_list` | both | today |
 | Tour | `tour_next` | both | today |
 | Tour, with state | `tour_start`, `tour_next`, `tour_back`, `tour_skip`, `tour_pause`, `tour_resume`, `tour_end` | both | planned |
@@ -209,5 +210,6 @@ Both runners play conversations through a local backend's real `/api/copilot/cha
 - 2026-11-05: First version.
 - 2026-11-06: A visitor can send Pujan a message from the chat (`send_message`, `deploy/contact-mail/`).
 - 2026-11-06: `send_message` goes only after a read-back in an earlier reply (seen live: it read back and sent in one reply). Sim expectations `done` / `notDone` check a tool went through, not just that it was called.
+- 2026-11-06: A paper's charts and diagrams are citable sections, and a paper's summary points at one (TASK-DB-0146).
 - 2026-11-06: Chat buttons are back. #221 removed the fixed answers that brought their own buttons, and the prompt never asked for `suggest_followups`, so most chat replies had none. Added INV-10, page buttons in `suggest_followups`, the backstop call, and `scripts/sim/scenarios/chat-buttons.json` (a scenario may now say `"voice": false`).
 - 2026-11-05: The test harness is built (§10). Added EX-1 and D-5; the judge's rubric is a repo file; MR-3 uses false starts; trajectories leave out lookups; INV-1 and INV-2 are checked on every test turn.
