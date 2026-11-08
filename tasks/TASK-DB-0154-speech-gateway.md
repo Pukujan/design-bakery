@@ -46,3 +46,26 @@ Blocked/uncertain:
 
 Next:
 - Open the PR, merge on green, check the deploy rebuilt design-bakery-voice, then a scripted call through the gateway
+
+### 2026-11-08 14:44:17 UTC — claude-opus-5.5
+
+<!-- continuity:checkpoint {"agent":"claude-opus-5.5","blocked":[],"changed":["voice-agent/agent.py"],"completed":["Moved the call onto the gateway (#242, 31af5ab, deployed, scripted call 5 of 5, gateway logged the call); found the release raced http.close"],"decisions":["no new decisions"],"evidence":["Gateway still listed db-call-5c6482ba after job shutdown; LiveKit gathers shutdown callbacks; fake-server repro: old pair sent no release, new callback did"],"next_action":"Merge the fix, check the rebuilt worker, scripted call whose place frees when it ends","protocol_version":"0.1.0-draft","schema":"project-continuity.checkpoint.v1","task_id":"DB-0154","timestamp":"2026-11-08T14:44:17Z"} -->
+<!-- continuity:checkpoint-operation {"payload_sha256":"d44f56ad3a2fbc858ad573a91e70199f6112ce8cb8e749f62b58a8960ff9f096","request_id":"f6cfd091822e4aa38cc4a2fb8bf650bb","schema":"project-continuity.checkpoint-operation.v1","task_id":"DB-0154"} -->
+
+Completed:
+- Moved the call onto the gateway (#242, 31af5ab, deployed, scripted call 5 of 5, gateway logged the call); found the release raced http.close
+
+Evidence:
+- Gateway still listed db-call-5c6482ba after job shutdown; LiveKit gathers shutdown callbacks; fake-server repro: old pair sent no release, new callback did
+
+Decisions:
+- no new decisions
+
+Changed:
+- voice-agent/agent.py
+
+Blocked/uncertain:
+- none
+
+Next:
+- Merge the fix, check the rebuilt worker, scripted call whose place frees when it ends
