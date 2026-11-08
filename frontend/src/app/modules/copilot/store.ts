@@ -648,6 +648,14 @@ export const copilot = {
     }
     return copilot.go(path, { slow: true, agent: true, aloud: true }).catch(() => agentCursor.hide());
   },
+  /**
+   * A page button printed in the chat: walk there, then summarise what it opened, so pressing it is never just a move.
+   * The request carries the button's own path (with its section, such as /#experience), not the address bar's.
+   */
+  async openAndSummarise(path: string): Promise<void> {
+    await copilot.guide(path);
+    await copilot.send('Summarise this for me.', { path, title: document.title });
+  },
   /** Point at a section of the page cited by the copilot (a chip click in text chat). The moon stays a few seconds, not a whole spoken passage. */
   cite: (action: Extract<CopilotAction, { kind: 'cite' }>) => {
     if (!window.matchMedia('(min-width: 821px)').matches) set({ open: false });

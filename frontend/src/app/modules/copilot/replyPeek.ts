@@ -53,3 +53,31 @@ export function useReplyPeek(): { peek: ReplyPeek | null; unseen: boolean } {
   const text = previewOf(messages);
   return { peek: { kind: 'text', text: text.length > 120 ? `${text.slice(0, 117).trimEnd()}…` : text }, unseen };
 }
+
+/** How long the way to keep talking sparkles once a reply has ended. */
+const NUDGE_MS = 4_500;
+
+/**
+ * True for a few seconds after a text reply ends, so the way to go on (the "Continue chat" pill when the chat is shut,
+ * the call button when it is open) can sparkle and invite the next turn. Never on a call, after an error, or for the
+ * replies already on the thread when the page loads.
+ */
+export function useReplyNudge(): boolean {
+  const { messages, busy } = useCopilot();
+  const call = useVoice();
+  const last = [...messages].reverse().find((m) => m.role === 'assistant');
+  const lastId = last?.id ?? 0;
+  const doneId = useRef(lastId);
+  const [nudging, setNudging] = useState(false);
+
+  useEffect(() => {
+    if (busy || doneId.current === lastId) return;
+    doneId.current = lastId;
+    if (!last || last.error || call.status !== 'idle') return;
+    setNudging(true);
+    const timer = setTimeout(() => setNudging(false), NUDGE_MS);
+    return () => clearTimeout(timer);
+  }, [busy, lastId, last, call.status]);
+
+  return nudging && !busy && call.status === 'idle';
+}

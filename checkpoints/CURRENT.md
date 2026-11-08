@@ -8,6 +8,7 @@ Feature work resumed on the owner's direction after the DB-0102 rollback. The si
 
 ## Active
 
+- [DB-0155](../tasks/TASK-DB-0155-page-buttons-summarise.md): a page button in the chat summarises what it opens, and the way to keep talking sparkles after each reply.
 - [DB-0154](../tasks/TASK-DB-0154-speech-gateway.md) / [#241](https://github.com/Pukujan/design-bakery/issues/241): the live call's speech goes through the shared speech gateway on the VPS instead of the socat tunnel. Merged (#242, #243), deployed, checked with scripted calls.
 - [DB-0152](../tasks/TASK-DB-0152-calls-on-our-voice-agent.md): live calls on our voice worker. Merged (#238), switched over and checked with a scripted call on www.
 - [DB-0153](../tasks/TASK-DB-0153-call-trace-fixes.md): fixes from the owner's 2026-11-08 call traces (greeting, moon following papers, references, narration, page name, messages on a call, spoken emails, false stalls) and per-page browser titles. Merged (#240) and deployed 2026-11-08 (web, api and voice on 2aa249c); not yet tried on a real call.

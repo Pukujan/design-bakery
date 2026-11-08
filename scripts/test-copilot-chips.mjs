@@ -41,13 +41,17 @@ for (const { chipKindOf, withChip } of [back, front]) {
 }
 assert.equal(front.openLabel('Eval Lab'), 'Open Eval Lab');
 
-// Chip to behaviour, read from the chat's source: navigation chips call guide/cite (the moon), expansion chips send.
+// Chip to behaviour, read from the chat's source: a page chip walks there with the moon and then asks for its summary
+// (openAndSummarise, so pressing one is never just a move), a cite chip points, expansion chips send.
 const chat = await readFile(new URL('../frontend/src/app/modules/copilot/CopilotChat.tsx', import.meta.url), 'utf8');
 const branch = (kind) => chat.slice(chat.indexOf(`action.kind === '${kind}'`), chat.indexOf('</', chat.indexOf(`action.kind === '${kind}'`)));
 assert.match(branch('ask'), /copilot\.send\(action\.text/);
 assert.doesNotMatch(branch('ask'), /copilot\.(go|guide|cite)/);
-assert.match(branch('navigate'), /copilot\.guide\(/);
-assert.match(branch('projects'), /copilot\.guide\(/);
+assert.match(branch('navigate'), /copilot\.openAndSummarise\(/);
+assert.match(branch('projects'), /copilot\.openAndSummarise\(/);
+const store = await readFile(new URL('../frontend/src/app/modules/copilot/store.ts', import.meta.url), 'utf8');
+const summarise = store.slice(store.indexOf('async openAndSummarise('), store.indexOf('},', store.indexOf('async openAndSummarise(')));
+assert.match(summarise, /await copilot\.guide\(path\)[\s\S]*copilot\.send\(/, 'walks there first, then asks for the summary');
 assert.match(branch('cite'), /copilot\.cite\(/);
 assert.doesNotMatch(chat, /copilot\.go\(/, 'no chip jumps instantly');
 
