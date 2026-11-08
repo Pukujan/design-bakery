@@ -15,7 +15,14 @@ Issue: [#241](https://github.com/Pukujan/design-bakery/issues/241) (leaf; parent
 - Against a fake speech server, one call's session sent `/health`, `/load` and `/release`, each with `X-Speech-Project: design-bakery` and `X-Speech-Call: db-call-test`; a release on a closed session raised nothing.
 - `docker compose --profile voice config` shows `SPEECH_URL: http://host.docker.internal:18800`, `SPEECH_PROJECT: design-bakery`.
 
-**Next.** Merge, check the deploy rebuilt `design-bakery-voice` with the gateway URL, then a scripted call (`scenarios.py`) and the gateway log line `call <room> (design-bakery)`.
+**After #242 merged (31af5ab, 2026-11-08).**
+- The Komodo deploy rebuilt the worker: `design-bakery-voice:31af5ab385e5-20261108T144014Z`, `SPEECH_URL=http://host.docker.internal:18800`, `SPEECH_PROJECT=design-bakery`, registered with LiveKit at 14:40:59 UTC.
+- Scripted call `scenarios.py --only 1,2,3,5,7` against www.design-bakery.com: 5 of 5 right, room `db-call-5c6482ba`. The gateway logged `call db-call-5c6482ba (design-bakery) english-fast -> pro`.
+- Reply speed (Phoenix `voice.turn`, answered turns, caller stopped to voice started): before the move (room `db-call-557ea0ae`, same script, minutes earlier) 2472 / 2386 / 2524 ms; through the gateway 2606 / 2468 / 2451 ms. Speech-to-text 396 to 771 ms before, 536 to 588 ms after; first audio 146 to 243 ms before, 148 to 282 ms after. No meaningful change.
+- **Bug found:** the call's place was not released when the call ended (still listed in the gateway's `/health` after the job shut down). LiveKit 1.8.8 runs shutdown callbacks at the same time (`asyncio.gather` in `ipc/job_proc_lazy_main.py`), so `http.close` closed the session under the release. A `/release` posted from inside the container worked (`{"ok": true, "calls": 0}`).
+- Fix (this follow-up): one callback releases and then closes. Against a fake server the old pair sent no release; the new callback sent it with the call's header.
+
+**Next.** Merge the fix, check the rebuilt worker, and a scripted call whose place is gone from the gateway's `/health` once it ends.
 
 ### 2026-11-08 14:35:19 UTC — claude-opus-5.5
 

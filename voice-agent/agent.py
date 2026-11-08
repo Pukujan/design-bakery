@@ -495,11 +495,13 @@ async def entrypoint(ctx: JobContext):
             tel.stack['language'] = voice.picked or 'heard'  # the call's record says the language it ended in
             print('language', voice.picked or 'heard', flush=True)
 
-    async def _release(_reason: str = ''):
+    # LiveKit runs shutdown callbacks at the same time (asyncio.gather), so the release and the close are one callback, in order:
+    # a separate http.close closed the session under the release (TASK-DB-0154: the first call's place stayed taken).
+    async def _release_and_close(_reason: str = ''):
         await release_speech(http)
+        await http.close()
 
-    ctx.add_shutdown_callback(_release)  # before http.close below: shutdown callbacks run in the order they were added
-    ctx.add_shutdown_callback(http.close)
+    ctx.add_shutdown_callback(_release_and_close)
 
     async def _sent(reason: str):
         print('job shutdown:', reason or '-', '| session:', closed.get('reason', 'still open'), '| user', session.user_state, '| agent', session.agent_state, flush=True)
