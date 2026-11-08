@@ -23,7 +23,7 @@ try {
 } catch {
   throw new Error('copilot search: build the backend first (pnpm --dir backend run build)');
 }
-const { mapMatches, octoConfig, parseTitle, retrieve, searchSite, keywordSearch, turnQueries, passagesBlock, siteDocuments, RERANK_FLOOR, RERANK_SPREAD } = search;
+const { mapMatches, octoConfig, parseTitle, retrieve, searchSite, turnQueries, passagesBlock, siteDocuments, RERANK_FLOOR, RERANK_SPREAD } = search;
 const { groundCite, sourceOf, quoteFor } = cite;
 
 const env = { OCTO_API_KEY: 'test-key', OCTO_WORKSPACE_ID: 'ws-test', OCTO_API_BASE: 'http://octo.test/api/' };
@@ -122,10 +122,23 @@ const flaky = async (url, init) => {
 };
 assert.equal((await retrieve(['q'], { env, fetch: flaky })).length, 1);
 assert.deepEqual(sent, [true, false], 'retried without the reranker');
+// A call is reranked too (the reranker answers in ~0.1 s), with a shorter wait before the retry.
+sent.length = 0;
+await retrieve(['q'], { env, fetch: okFetch, voice: true });
+assert.equal(sent[0].body.rerank, true, 'voice turns are reranked');
+let voiceWait = 0;
+const slow = (url, init) => new Promise((_, reject) => {
+  const started = Date.now();
+  if (JSON.parse(init.body).rerank) init.signal.addEventListener('abort', () => { voiceWait = Date.now() - started; reject(init.signal.reason); });
+  else reject(new TypeError('fallback down too'));
+});
+await assert.rejects(retrieve(['q'], { env, fetch: slow, voice: true }), /no query answered/);
+assert.ok(voiceWait >= search.RAG_VOICE_TIMEOUT_MS - 50 && voiceWait < search.RAG_TIMEOUT_MS, `a call waits RAG_VOICE_TIMEOUT_MS for the reranker (${voiceWait} ms)`);
 await assert.rejects(retrieve(['q'], { env: {}, fetch: okFetch }), /not configured/);
 await assert.rejects(retrieve(['q'], { env, fetch: async () => new Response('boom', { status: 500 }) }), /no query answered/);
 
-// 5. search_site: pages, one per page; every failure falls back to the keyword count.
+// 5. search_site: pages, one per page. Every failure says search is down (the turn already has the brief); there is
+//    no keyword fallback reading the visitor's words.
 const pageFetch = async () =>
   answer([
     { title: `site:${paperRef}#results`, content: 'from octo', rerankScore: 2 },
@@ -136,22 +149,22 @@ const rag = await searchSite('judges', { env, fetch: pageFetch });
 assert.equal(rag.source, 'rag');
 assert.deepEqual(rag.hits.map((h) => h.ref), [paperRef]);
 const query = project.title;
-const keyword = await keywordSearch(query);
-assert.ok(keyword.some((h) => h.ref === projectRef));
+assert.equal(search.keywordSearch, undefined, 'the keyword count is gone');
 const failures = {
   'HTTP 500': async () => new Response('boom', { status: 500 }),
   'network error': async () => {
     throw new TypeError('fetch failed');
   },
-  'no site matches': async () => answer([{ title: 'other.vtt', content: 'x', rerankScore: 3 }], true),
   'bad JSON': async () => new Response('<html>', { status: 200 }),
   timeout: (url, init) => new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(init.signal.reason))),
 };
+const none = await searchSite(query, { env, fetch: async () => answer([{ title: 'other.vtt', content: 'x', rerankScore: 3 }], true) });
+assert.deepEqual(none, { hits: [], source: 'rag' }, 'no site match is an empty answer, not a failure');
 for (const [name, fetchImpl] of Object.entries(failures)) {
   const started = Date.now();
   const out = await searchSite(query, { env, fetch: fetchImpl, timeoutMs: 50 });
-  assert.equal(out.source, 'keyword', `${name} falls back`);
-  assert.deepEqual(out.hits, keyword, `${name} gives the keyword hits`);
+  assert.equal(out.source, 'unavailable', `${name} says search is down`);
+  assert.deepEqual(out.hits, [], `${name} guesses nothing`);
   assert.ok(Date.now() - started < 4000, `${name} does not hang`);
 }
 
@@ -164,23 +177,24 @@ const passageBuilt = { ref: `${projectRef}#built-with`, path: projectRef, anchor
 const reply = what.blocks[0].split(/(?<=\.)\s/).slice(0, 2).join(' ');
 assert.equal(sourceOf(reply, [passageBuilt, passageWhat]), passageWhat, 'the passage the reply used, not the better-ranked one');
 assert.equal(sourceOf('Hi! Doing well, thanks for asking.', [passageWhat, passageBuilt]), null, 'small talk points at nothing');
+const otherPost = { ref: '/blogs/19#highlight-61', path: '/blogs/19', anchor: 'highlight-61', heading: 'Highlight', kind: 'blog', pageTitle: 'Prompt Library Notes', text: 'Blog post 34 is the workflow automation study, dated June.', score: 1 };
+assert.equal(sourceOf('My latest blog post is number 34, a workflow automation study dated June 18.', [otherPost]), null, 'shared words alone do not cite a page the reply never names');
+assert.equal(cite.namesPage(reply, { ...passageWhat, pageTitle: 'Some Other Project' }), false);
+assert.equal(cite.namesPage(`${project.title} is mine`, passageWhat), true);
 const quote = quoteFor(reply, chunk, what);
 assert.ok(quote && sections.checkQuote(what, quote) === quote, 'the quote is on the page under that heading');
 assert.ok(!quoteFor(reply, project.tagline, what), 'a sentence not under this heading is never quoted');
 
 const load = async (path) => (path === projectRef ? projectSections : null);
 const citations = citationsMod.createCitations();
-const action = await groundCite(reply, [passageBuilt, passageWhat], citations, 'what is it?', load);
+const action = await groundCite(reply, [passageBuilt, passageWhat], citations, load);
 assert.deepEqual({ ...action, quote: undefined }, { kind: 'cite', path: projectRef, anchor: 'what-it-is', heading: 'What it is', quote: undefined, mode: 'perch' });
 assert.equal(action.quote, quote);
 assert.equal(citations.check(projectRef).ok, true, 'the citation guard accepts it');
-assert.equal(await groundCite(reply, [passageWhat], citations, undefined, load), null, 'one move per answer: not when something was already cited');
-assert.equal(await groundCite(reply, [passageWhat], citationsMod.createCitations(), 'how are you?', load), null, 'small talk does not move the page, even when the reply talks shop');
-assert.ok(await groundCite(reply, [passageWhat], citationsMod.createCitations(), 'and what is it?', load), 'a follow-up with no content words still does');
-assert.equal(await groundCite(reply, [passageWhat], citationsMod.createCitations(), 'hello!', load), null, 'a greeting does not');
-assert.equal(await groundCite(reply, [passageWhat], citationsMod.createCitations(), 'How many research papers do you have?', load), null, 'a count does not');
-assert.equal(await groundCite(reply, [passageWhat], citationsMod.createCitations(), 'Which projects are shipped?', load), null, 'a list does not');
-assert.equal(await groundCite(reply, [{ ...passageWhat, anchor: 'gone' }], citationsMod.createCitations(), undefined, load), null, 'a section no longer on the page is not cited');
+assert.equal(await groundCite(reply, [passageWhat], citations, load), null, 'one move per answer: not when something was already cited');
+assert.equal(await groundCite('Hi! Doing well, thanks for asking.', [passageWhat], citationsMod.createCitations(), load), null, 'a small-talk reply shares no words with a section, so it moves nothing');
+assert.equal(await groundCite(reply, [{ ...passageWhat, anchor: 'gone' }], citationsMod.createCitations(), load), null, 'a section no longer on the page is not cited');
+assert.equal(groundCite.length, 3, 'groundCite never takes the visitor\'s message (copilot-spec.md P-2)');
 
 // 7. Every indexed section of a few real pages resolves to a live section with the same heading, and the quote a
 //    reply could get from it is shown under that heading (sections.ts is the render source the page and test-copilot-cite share).
@@ -237,6 +251,18 @@ assert.ok(shipped.items.every((i) => i.path.startsWith('/work/')));
 assert.equal((await tools.siteCatalog({ kind: 'papers' })).count, papers.length);
 assert.equal((await tools.siteCatalog({ kind: 'papers', newest: 2 })).items.length, Math.min(2, papers.length));
 assert.ok((await tools.siteCatalog({ kind: 'roles' })).count >= 1);
+
+// 11. The text helpers that replaced patterns, and no regex in the retrieval and cite files (copilot-spec.md P-2).
+const words = await import(new URL('./backend/lib/copilot/words.js', root).href);
+assert.equal(words.squash('  a\n\tb  c '), 'a b c');
+assert.deepEqual(words.wordsOf("Next.js, it's café-2"), ['Next', 'js', 'it', 's', 'café', '2']);
+assert.equal(words.cutAtWord('one two three', 9), 'one two');
+assert.deepEqual(words.splitSentences('It works. 3 tests pass! "Yes" she said. e.g. this'), ['It works.', '3 tests pass!', '"Yes" she said. e.g. this']);
+const { readFile } = await import('node:fs/promises');
+for (const file of ['siteSearch', 'cite', 'names', 'words']) {
+  const source = await readFile(new URL(`./backend/src/copilot/${file}.ts`, root), 'utf8');
+  for (const marker of ['new RegExp', '.test(', '.exec(', '.replace(/', '.split(/', '.match(/']) assert.ok(!source.includes(marker), `${file}.ts: no regex (${marker})`);
+}
 
 console.log(`copilot search: mapping, queries, fallbacks, server cite, names and catalog ok; ${sample.length} real sections, ${quoted} quoted`);
 process.exit(0);

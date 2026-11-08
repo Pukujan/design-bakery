@@ -339,7 +339,7 @@ export async function siteDocuments(): Promise<SiteDocument[]> {
           ? [`${job.role} at ${job.company}, ${job.period}.`, job.expandedSummary ?? '', ...(job.highlights ?? []), (job.tags ?? []).join(', ')]
           : [];
     if (s.id === 'story-about') add('/', 'home', 'about', 'About me', 'About me', s.id, s.heading, [...s.blocks, ...extra]);
-    else add('/', 'home', 'experience', 'Work history', job?.company ?? 'Work history', s.id, s.heading, [...s.blocks, ...extra]);
+    else add('/', 'home', 'experience', 'Work history', job ? `Work experience at ${squash(job.company)}` : 'Work history', s.id, s.heading, [...s.blocks, ...extra]);
   }
   const contact = [
     'To reach me, open the Contact page: pick an area and a time for a free 30-minute consultation call.',

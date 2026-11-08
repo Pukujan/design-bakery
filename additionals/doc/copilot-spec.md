@@ -32,7 +32,7 @@ Tests cite the ids below (`INV-*`, `EX-*`, `MR-*`, `T-*`, `O-*`, `J-*`). A chang
 1. **In:** the newest line, up to 24 earlier messages, the page (`path`, `title`), `voice`, the open threads (§4), `toMe` (the visitor tapped "Answer this"), and the rolling notes on older chat.
 2. **Lane:** `laneNameFor(channel)` picks the lane; only that lane is loaded (`lanes/loader.ts`).
 3. **Offer:** the tools are filtered by channel, then by the open threads, then by the lane's list (§5, O-1 to O-4).
-4. **Context:** the page and one short note per open thread ride on the user's line, not the system prompt, so the prompt stays identical across a conversation.
+4. **Context:** the page and one short note per open thread ride on the user's line, not the system prompt, so the prompt stays identical across a conversation. So do the passages Octo RAG retrieved for the line (TASK-DB-0142, `siteSearch.ts`): two queries, the line and the line with the last exchange and the content page, hybrid search reranked on both channels, started while the limits are checked. The system prompt holds a short site index (every page's title and path) instead of the full brief; if Octo does not answer, the full brief goes back in.
 5. **Decide:** the model answers, calls tools, or both, within the lane's step and token limits.
 6. **Act:** each tool checks its input against the content and the thread state, then emits actions and thread updates. A tool that refuses returns an error the model reads; it never emits.
 7. **Out:** an NDJSON stream of events: `text`, `action` (`navigate`, `cite`, `projects`, `book`, `link`, `ask`), `step`, `flow` (thread state, only when it changed), `ignored`, `done`, `error`.
@@ -71,8 +71,9 @@ threads: { booking?: BookingState; tour?: { route: string; stop: number; paused:
 
 | Capability | Tools | Channel | Status |
 |------------|-------|---------|--------|
-| Answer from the site | `search_site`, `read_paper`, `read_blog` | both | today |
-| Answer from passages | `search_passages` (keyword and vector search, merged, over `copilot_passages`) | both | planned |
+| Answer from the site | passages retrieved before the model (Octo RAG, reranked), `search_site` (the same retrieval), `read_paper`, `read_blog` | both | today |
+| Lists and counts | `site_catalog` (the full project, paper, post or role list with a count; search returns only the top few) | both | today |
+| Point at the source | the server cites the retrieved section the reply drew on (`cite.ts`): the reply must name its page and share its words, the heading and quote are checked against the page, and none after `site_catalog` or when the model already pointed | both | today |
 | Summarise a page | `summarize_page` (one tool call, then the model speaks the passages) | both | today |
 | Speak a stored summary | `speak_summary` (one page, or a roll-up: experience, work, research, everything; three lengths; the stored text is the reply, no second model call) | both | planned |
 | Walk a page in depth | `outline_passages`, `cite_section` | both | today |
@@ -204,10 +205,14 @@ Both runners play conversations through a local backend's real `/api/copilot/cha
 - The page's built-in fallback answers, used only when every model is down, still match wording.
 - In a chat the model sometimes calls `navigate` for a question that did not ask to go anywhere ("What's your work experience?" moved the page to `/#experience`), and after `summarize_page` it may say the page "is open" when in a chat it is not. Since #221 nothing but the prompt holds the chat to opening a page only on a yes.
 - No real spoken call has been tested since tools replaced the matching.
+- Retrieval adds about 0.7 to 1.3 s before the model starts (two reranked Octo queries, measured 2026-11-07), up to about 3 s under load. Octo's rerank path costs 0.35 to 0.45 s more than a vector-only query, although the reranker itself answers in about 0.1 s.
+- "What experience do you have?" retrieves blog sections that use the word "experience" rather than the roles; the answer still comes from the site index's work history, but no role is cited.
+- The search index is not re-synced by the deploy (`deploy/vps/deploy.sh` is unchanged); `pnpm sync:copilot-rag` is run by hand after content changes (docs/self-hosting.md §5).
 
 ## Revision history
 
 - 2026-11-05: First version.
+- 2026-11-07: Every turn retrieves from Octo RAG, voice turns reranked too; `site_catalog` for lists and counts; the server cites the section a reply drew on; `search_site` has no keyword fallback (TASK-DB-0142).
 - 2026-11-06: A visitor can send Pujan a message from the chat (`send_message`, `deploy/contact-mail/`).
 - 2026-11-06: `send_message` goes only after a read-back in an earlier reply (seen live: it read back and sent in one reply). Sim expectations `done` / `notDone` check a tool went through, not just that it was called.
 - 2026-11-06: A paper's charts and diagrams are citable sections, and a paper's summary points at one (TASK-DB-0146).

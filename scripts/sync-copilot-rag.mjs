@@ -17,7 +17,7 @@
  * Usage: node scripts/sync-copilot-rag.mjs [--dry-run] [--only home,contact]   (pnpm run sync:copilot-rag)
  * --only limits the run (ingest and deletes) to those kinds of page: project, paper, blog, home, contact.
  * Needs OCTO_WORKSPACE_ID and OCTO_API_KEY (backend/.env), the table, and the compiled backend
- * (pnpm --dir backend run build). Runs after every API deploy (deploy/gravebuster/deploy.sh).
+ * (pnpm --dir backend run build). Not run by the deploy yet: run it after content changes (docs/self-hosting.md §5).
  */
 import { createHash } from 'node:crypto';
 import { loadBackendEnv } from './load-backend-env.mjs';

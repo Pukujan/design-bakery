@@ -8,6 +8,10 @@
  * Usage: node scripts/eval-copilot-turns.mjs <api base, e.g. http://localhost:8787> [--voice] [--json out.json]
  */
 import { writeFile } from 'node:fs/promises';
+import { loadBackendEnv } from './load-backend-env.mjs';
+
+// The quote check reads blog sections from the database, like the API does.
+loadBackendEnv();
 
 const [base = 'http://localhost:8787', ...flags] = process.argv.slice(2);
 const voice = flags.includes('--voice');

@@ -32,13 +32,26 @@ const shared = (a: Set<string>, b: Set<string>) => [...a].filter((w) => b.has(w)
 export const MIN_SHARED = 3;
 export const MIN_SHARE = 0.25;
 
+/**
+ * Whether the reply names the page a passage is on: its title in full, or two of its title's content words (all of
+ * them when it has fewer). Shared wording alone is not enough: "the latest post is number 34, dated June" shares
+ * three words with an unrelated post's section. Home sections (About, the roles) and Contact are exempt: their page
+ * titles are generic, and the reply names a company or role instead.
+ */
+export function namesPage(reply: string, passage: Passage): boolean {
+  if (passage.kind === 'home' || passage.kind === 'contact') return true;
+  if (reply.toLowerCase().includes(passage.pageTitle.toLowerCase())) return true;
+  const title = contentWords(passage.pageTitle);
+  return title.size > 0 && shared(contentWords(reply), title) >= Math.min(2, title.size);
+}
+
 /** The passage the reply drew on most, or null when none clearly did. Ties go to the better-retrieved passage. */
 export function sourceOf(reply: string, passages: Passage[]): Passage | null {
   const words = contentWords(reply);
   if (!words.size) return null;
   let best: { passage: Passage; n: number } | null = null;
   for (const passage of passages) {
-    if (!passage.anchor) continue;
+    if (!passage.anchor || !namesPage(reply, passage)) continue;
     const n = shared(words, contentWords(passage.text));
     if (n >= MIN_SHARED && n / words.size >= MIN_SHARE && (!best || n > best.n)) best = { passage, n };
   }
