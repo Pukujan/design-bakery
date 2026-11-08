@@ -22,7 +22,12 @@ Issue: [#241](https://github.com/Pukujan/design-bakery/issues/241) (leaf; parent
 - **Bug found:** the call's place was not released when the call ended (still listed in the gateway's `/health` after the job shut down). LiveKit 1.8.8 runs shutdown callbacks at the same time (`asyncio.gather` in `ipc/job_proc_lazy_main.py`), so `http.close` closed the session under the release. A `/release` posted from inside the container worked (`{"ok": true, "calls": 0}`).
 - Fix (this follow-up): one callback releases and then closes. Against a fake server the old pair sent no release; the new callback sent it with the call's header.
 
-**Next.** Merge the fix, check the rebuilt worker, and a scripted call whose place is gone from the gateway's `/health` once it ends.
+**After the fix merged (#243, 8980318, 2026-11-08).**
+- Deployed by Komodo: `design-bakery-voice:8980318ffb28-20261108T144909Z`, gateway URL and project unchanged, registered at 14:50:00 UTC.
+- Scripted call (same script): 5 of 5 right, room `db-call-42e62b67`; the gateway logged `call db-call-42e62b67 (design-bakery) english-fast -> pro`, and once the job shut down the call was gone from the gateway's `/health` (only another project's call was left on the Pro).
+- Turns: 3418 / 2222 / 1972 ms; speech-to-text 325 to 516 ms, first audio 43 to 225 ms. The slow first turn was the model's decision (2410 ms), not speech.
+
+**Done.** Nothing left in this repo. Outside it, for the coordinator: the `copilot-speech-bridge` socat on 18799 is no longer used by this worker. routes.toml has no `[project.design-bakery]` block, so the gateway's defaults apply to these calls (the copilot's block says `wait`); a block is the owner's call.
 
 ### 2026-11-08 14:35:19 UTC — claude-opus-5.5
 
