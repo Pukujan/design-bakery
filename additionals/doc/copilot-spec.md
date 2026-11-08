@@ -71,11 +71,11 @@ threads: { booking?: BookingState; tour?: { route: string; stop: number; paused:
 
 | Capability | Tools | Channel | Status |
 |------------|-------|---------|--------|
-| Answer from the site | `search_site`, `read_paper`, `read_blog` | both | today |
+| Answer from the site | `search_site`, `read_paper`, `read_blog` (a read stops at 8000 characters and says so; `section` reads one part whole, such as References, and points the page at it) | both | today |
 | Answer from passages | `search_passages` (keyword and vector search, merged, over `copilot_passages`) | both | planned |
 | Summarise a page | `summarize_page` (one tool call, then the model speaks the passages) | both | today |
 | Speak a stored summary | `speak_summary` (one page, or a roll-up: experience, work, research, everything; three lengths; the stored text is the reply, no second model call) | both | planned |
-| Walk a page in depth | `outline_passages`, `cite_section` | both | today |
+| Walk a page in depth | `outline_passages`, `cite_section`: they read the page's sections themselves (no read needed in the same turn), and headings and quotes are still checked against the page; `outline_passages` points at each passage in order by itself | both | today |
 | Point at a chart | a paper's figures (`figure-NAME`, titled by the caption's first sentence) and mermaid diagrams (`diagram-N`) are sections `cite_section` can point at; a paper summary shows one | both | today |
 | Move | `navigate`, `step_list` | both | today |
 | Tour | `tour_next` | both | today |
@@ -83,7 +83,7 @@ threads: { booking?: BookingState; tour?: { route: string; stop: number; paused:
 | Show | `show_projects`, `share_link` | both | today |
 | Book a call | `booking_start`, `booking_give_name`, `booking_confirm_name`, `booking_give_pronunciation`, `booking_give_email`, `booking_confirm_email`, `booking_give_area`, `booking_repeat`, `booking_cancel` | voice | today |
 | Book a call | `book_call` | chat | today |
-| Send me a message | `send_message`: name, email and message, read back and sent only on a yes (the code refuses a send unless my previous reply held the exact message and email, so a read-back and a send never share a reply); emailed through an Apps Script web app in Pujan's Google account (`deploy/contact-mail/`). Unset, or over 20 a day, it shows a `mailto:` link instead. | chat | today |
+| Send me a message | `send_message`: name, email and message, read back and sent only on a yes (the code refuses a send unless my previous reply held the exact message and email, so a read-back and a send never share a reply); emailed through an Apps Script web app in Pujan's Google account (`deploy/contact-mail/`). Unset, or over 20 a day, it shows a `mailto:` link instead. On a call the email is spoken as words ("pujan3645 at gmail dot com", `voice-agent/speech_text.py`). | both | today |
 | Follow-up buttons | `suggest_followups`: two or three follow-up questions, and up to two pages offered as buttons that move nothing until pressed. The chat prompt asks for it on every reply; a reply that came without it gets one small call that can only make them (`route.ts`, the backstop). | chat | today |
 | Not for me | `not_for_me` | voice | today |
 
@@ -210,6 +210,7 @@ Both runners play conversations through a local backend's real `/api/copilot/cha
 - 2026-11-05: First version.
 - 2026-11-06: A visitor can send Pujan a message from the chat (`send_message`, `deploy/contact-mail/`).
 - 2026-11-06: `send_message` goes only after a read-back in an earlier reply (seen live: it read back and sent in one reply). Sim expectations `done` / `notDone` check a tool went through, not just that it was called.
+- 2026-11-08: Fixes from a long real call (TASK-DB-0153): `send_message` on calls too; section tools no longer need a read in the same turn; `read_paper` / `read_blog` take `section`; lines that narrate tools are dropped before a tool runs; the page line names the page (`describePage`), and the contact and research pages set their own browser titles.
 - 2026-11-06: A paper's charts and diagrams are citable sections, and a paper's summary points at one (TASK-DB-0146).
 - 2026-11-06: Chat buttons are back. #221 removed the fixed answers that brought their own buttons, and the prompt never asked for `suggest_followups`, so most chat replies had none. Added INV-10, page buttons in `suggest_followups`, the backstop call, and `scripts/sim/scenarios/chat-buttons.json` (a scenario may now say `"voice": false`).
 - 2026-11-05: The test harness is built (§10). Added EX-1 and D-5; the judge's rubric is a repo file; MR-3 uses false starts; trajectories leave out lookups; INV-1 and INV-2 are checked on every test turn.
