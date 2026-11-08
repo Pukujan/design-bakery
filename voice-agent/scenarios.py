@@ -48,7 +48,9 @@ def say(voice: str, text: str) -> np.ndarray:
 
 
 async def copilot_voice(http: aiohttp.ClientSession, text: str) -> np.ndarray:
-    async with http.post(f'{SPEECH}/tts', json={'text': text, 'stack': 'english-fast', 'lang': 'en'}) as r:
+    # Through the speech gateway the echo is named as this project's (not pinned to a call: it is the room, not the copilot).
+    async with http.post(f'{SPEECH}/tts', json={'text': text, 'stack': 'english-fast', 'lang': 'en'},
+                         headers={'X-Speech-Project': os.environ.get('SPEECH_PROJECT', 'design-bakery')}) as r:
         r.raise_for_status()
         return np.frombuffer(await r.read(), dtype=np.int16).astype(np.float32)
 

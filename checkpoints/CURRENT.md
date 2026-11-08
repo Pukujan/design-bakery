@@ -8,6 +8,7 @@ Feature work resumed on the owner's direction after the DB-0102 rollback. The si
 
 ## Active
 
+- [DB-0154](../tasks/TASK-DB-0154-speech-gateway.md) / [#241](https://github.com/Pukujan/design-bakery/issues/241): the live call's speech goes through the shared speech gateway on the VPS instead of the socat tunnel. PR open.
 - [DB-0152](../tasks/TASK-DB-0152-calls-on-our-voice-agent.md): live calls on our voice worker. Merged (#238), switched over and checked with a scripted call on www.
 - [DB-0153](../tasks/TASK-DB-0153-call-trace-fixes.md): fixes from the owner's 2026-11-08 call traces (greeting, moon following papers, references, narration, page name, messages on a call, spoken emails, false stalls) and per-page browser titles. [PR #240](https://github.com/Pukujan/design-bakery/pull/240) open, not merged.
 - [PR #205](https://github.com/Pukujan/design-bakery/pull/205): Octo RAG retrieval before the model, so calls get real search. Up to date with main, checks green, not merged.
