@@ -60,6 +60,10 @@ See **[additionals/doc/architecture.md](additionals/doc/architecture.md)** for M
 - **`supabase/`** — Postgres migrations ([supabase/README.md](supabase/README.md))
 - **`scripts/`** — Dev orchestration at repo root ([scripts/README.md](scripts/README.md))
 
+## Shipping
+
+A change the owner asked for is approved to ship: commit it on a task branch, open the PR, squash-merge it once its checks pass, and check that Komodo deployed it on the VPS. Do not ask the owner "Open a PR?", "Merge?" or "Deploy?". Stop and ask only when something is wrong or risky (checks you cannot fix, conflicts with other work, secrets or data, production config they did not ask for), and report afterwards what was merged and deployed.
+
 ## Dev server
 
 - **Env:** `frontend/.env` (`VITE_*`); `backend/.env` (secrets) — [additionals/doc/env.md](additionals/doc/env.md).

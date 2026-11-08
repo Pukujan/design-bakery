@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { Mic, PhoneOff } from 'lucide-react';
 import { voice, useVoice } from './voice';
+import { useReplyNudge } from './replyPeek';
 
 /**
  * The voice call button: the moon mascot, dozing in a soft glow until the visitor comes near, then awake and smiling.
@@ -11,11 +12,13 @@ export function MoonCallButton() {
   const { status } = useVoice();
   const gradient = useId();
   const idle = status === 'idle';
+  const nudge = useReplyNudge();
   return (
     <button
       type="button"
       className="cp-call"
       data-status={status}
+      data-nudge={nudge || undefined}
       aria-label={idle ? 'Talk to AI Pujan by voice' : 'End voice call'}
       onPointerEnter={() => voice.preload()}
       onFocus={() => voice.preload()}
@@ -51,6 +54,9 @@ export function MoonCallButton() {
           <span className="cp-call-mic"><Mic size={8} strokeWidth={3} /></span>
           <span className="cp-call-spark cp-call-spark-1" />
           <span className="cp-call-spark cp-call-spark-2" />
+          <span className="cp-nudge-spark cp-nudge-spark-1" />
+          <span className="cp-nudge-spark cp-nudge-spark-2" />
+          <span className="cp-nudge-spark cp-nudge-spark-3" />
         </span>
       )}
       <span className="cp-call-label">{idle ? 'Talk to me' : status === 'connecting' ? 'Waking up…' : 'End call'}</span>

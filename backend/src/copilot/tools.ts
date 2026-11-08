@@ -163,6 +163,8 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
       inputSchema: z.object({ path: z.string(), label: z.string().max(60) }),
       execute: async ({ path, label }) => {
         if (!(await knownPath(path))) return { ok: false, error: 'not a page on this site' };
+        // Already there (a page button walks the visitor to a page, then asks for its summary): moving again would only jump.
+        if (path === options.page?.path) return { ok: true, note: 'the visitor is already on this page; nothing moved' };
         emit({ kind: 'navigate', path, label, go: true });
         return { ok: true };
       },
@@ -274,6 +276,8 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
         // A page button that would lead nowhere is left out, and the model is told which.
         const unknown: string[] = [];
         for (const page of pages) {
+          // A button to the page already on screen would only walk the visitor to where they are.
+          if (page.path === options.page?.path) continue;
           if (await knownPath(page.path)) emit({ kind: 'navigate', path: page.path, label: page.label });
           else unknown.push(page.path);
         }

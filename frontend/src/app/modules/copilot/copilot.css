@@ -302,6 +302,48 @@
   .cp-call, .cp-call-moon svg { transition: none; }
 }
 
+/* After a reply ends, the way to go on sparkles for a few seconds (useReplyNudge): the "Continue chat" pill when the
+   chat is shut, the call button when it is open. A soft ring pulses out and three sparks burst around it. */
+.cp-nudge-spark {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: #fff7d6;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  opacity: 0;
+  pointer-events: none;
+}
+.cp-nudge-spark-1 { top: -6px; left: 10%; }
+.cp-nudge-spark-2 { top: -9px; right: 14%; width: 9px; height: 9px; }
+.cp-nudge-spark-3 { bottom: -6px; right: 30%; width: 6px; height: 6px; }
+.cp-call-moon .cp-nudge-spark-1 { top: -7px; left: -6px; }
+.cp-call-moon .cp-nudge-spark-2 { top: -9px; right: -8px; }
+.cp-call-moon .cp-nudge-spark-3 { bottom: -5px; right: -7px; }
+
+[data-nudge] .cp-nudge-spark { animation: cp-nudge-burst 1.5s ease-out 3; }
+[data-nudge] .cp-nudge-spark-2 { animation-delay: 0.25s; }
+[data-nudge] .cp-nudge-spark-3 { animation-delay: 0.5s; }
+.cp-pill[data-nudge], .cp-call[data-nudge] {
+  border-color: var(--lab-accent);
+  animation: cp-nudge-ring 1.5s ease-out 3;
+}
+
+@keyframes cp-nudge-burst {
+  0% { opacity: 0; transform: scale(0.2) rotate(0); }
+  30% { opacity: 1; transform: scale(1.15) rotate(45deg); }
+  100% { opacity: 0; transform: scale(0.4) rotate(120deg) translateY(-6px); }
+}
+
+@keyframes cp-nudge-ring {
+  0% { box-shadow: 0 0 0 0 rgb(255 247 214 / 0.55); }
+  100% { box-shadow: 0 0 0 14px rgb(255 247 214 / 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-nudge] .cp-nudge-spark { animation: none; opacity: 0; }
+  .cp-pill[data-nudge], .cp-call[data-nudge] { animation: none; box-shadow: 0 0 0 3px rgb(255 247 214 / 0.45); }
+}
+
 .lab-msg-step,
 .lab-msg-note {
   margin: 0 0 0.3rem;

@@ -96,7 +96,7 @@ function ActionView({ action }: { action: CopilotAction }) {
   }
   if (action.kind === 'navigate') {
     return (
-      <button type="button" className="lab-chip lab-chip--solid" data-chip="navigate" onClick={() => void copilot.guide(action.path)}>
+      <button type="button" className="lab-chip lab-chip--solid" data-chip="navigate" onClick={() => void copilot.openAndSummarise(action.path)}>
         <Compass {...ICON} />
         {action.label}
       </button>
@@ -115,7 +115,7 @@ function ActionView({ action }: { action: CopilotAction }) {
               className="lab-chip"
               data-chip="navigate"
               style={{ '--chip-dot': project.accentColor } as React.CSSProperties}
-              onClick={() => void copilot.guide(`/work/${slug}`)}
+              onClick={() => void copilot.openAndSummarise(`/work/${slug}`)}
             >
               <Compass {...ICON} />
               {openLabel(project.title)}
@@ -135,7 +135,7 @@ function ActionView({ action }: { action: CopilotAction }) {
   // A page of this site is walked to like any other; a link to another site or a mail address opens as a link.
   if (action.url.startsWith('/')) {
     return (
-      <button type="button" className="lab-chip lab-chip--solid" data-chip="navigate" onClick={() => void copilot.guide(action.url)}>
+      <button type="button" className="lab-chip lab-chip--solid" data-chip="navigate" onClick={() => void copilot.openAndSummarise(action.url)}>
         <Compass {...ICON} />
         {action.label}
       </button>

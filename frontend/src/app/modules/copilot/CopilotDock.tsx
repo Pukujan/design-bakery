@@ -19,7 +19,7 @@ import VoiceOrb from './VoiceOrb';
 import MoonCursor from './MoonCursor';
 import { BookingCard } from './BookingCard';
 import { useAgentCursor } from './agentCursor';
-import { useReplyPeek } from './replyPeek';
+import { useReplyNudge, useReplyPeek } from './replyPeek';
 import { copilot, useCopilot } from './store';
 import { useVoice } from './voice';
 
@@ -93,6 +93,7 @@ export default function CopilotDock() {
   const call = useVoice();
   const agent = useAgentCursor();
   const { peek, unseen } = useReplyPeek();
+  const nudge = useReplyNudge();
   // There is one bubble: the moon's when it is out, else one over the pill.
   const moonOut = agent.visible || agent.moonReturning;
   const reduceMotion = useReducedMotion();
@@ -214,6 +215,7 @@ export default function CopilotDock() {
             key="pill"
             type="button"
             className="cp-pill"
+            data-nudge={nudge || undefined}
             onClick={() => copilot.setOpen(true)}
             initial={reduceMotion ? false : { opacity: 0, y: 24, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -222,6 +224,9 @@ export default function CopilotDock() {
             aria-label="Open the copilot"
           >
             <span className="lab-live-dot" aria-hidden="true" />
+            <span className="cp-nudge-spark cp-nudge-spark-1" aria-hidden="true" />
+            <span className="cp-nudge-spark cp-nudge-spark-2" aria-hidden="true" />
+            <span className="cp-nudge-spark cp-nudge-spark-3" aria-hidden="true" />
             {unseen ? 'New reply' : messages.length ? 'Continue chat' : 'Ask me anything'}
             <kbd className="cp-kbd">⌘K</kbd>
           </motion.button>
