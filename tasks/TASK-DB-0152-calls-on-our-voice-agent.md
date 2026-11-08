@@ -15,4 +15,12 @@
 - The image built on the VPS with buildx (2.0 GB). Run there as `design-bakery-voice-check` on `copilot_default`, it logged `registered worker` against `ws://copilot-livekit:7880`.
 - A scripted call through it (local API minting tokens for that name, `scenarios.py --only 1,2,3,5,7`) passed 5 of 5: three caller lines answered, the roommate dropped (voice match 0.25), "Hey Campos…" not answered. The worker logged `hush on | voice match on` and took the job for room `db-call-…`. The test container and image were removed afterwards.
 
-**Next.** After merge, on the VPS: create `.env.voice`, let Komodo deploy, and check that the worker registered. Then add `VOICE_LIVEKIT_KEY` / `VOICE_LIVEKIT_SECRET` to `.env.api`, deploy again, and run a scripted call against the live site. Then RAG on call turns (PR #205).
+**Switched over (2026-11-08, after #238 merged as dd4ad00).**
+- `deploy/vps/.env.voice` written on the VPS (mode 600): `copilot-livekit`'s LiveKit keys, the Octo workspace and key from `.env.api`.
+- `deploy/vps/deploy.sh` on main built and started `design-bakery-voice:dd4ad00ac75c-…`; it logged `voice worker registered with LiveKit`.
+- `VOICE_LIVEKIT_KEY` / `VOICE_LIVEKIT_SECRET` appended to `.env.api` (previous file kept as `.env.api.bak-voice-20261108`), API restarted, healthy.
+- `scenarios.py --only 1,2,3,5,7` against www.design-bakery.com: 5 of 5 right (three caller lines answered, roommate dropped, "Hey Campos…" ignored). The call ran in room `db-call-032f5362`, which our worker's log shows it took.
+- `/voice/warm` now does nothing (it only wakes the lab's worker when `VOICE_LIVEKIT_*` are unset); ours is always on, as are `copilot-livekit` and the Pro's speech server (launchd).
+- To switch back: remove the two `VOICE_LIVEKIT_*` lines from `.env.api` and restart the API.
+
+**Next.** RAG on call turns (PR #205). Outside this repo, for the owner: server-management `vps/services.toml` still lists the `design-bakery` project as depending only on `design-bakery-vps`, `github-planets` and `octo-cloudflared`; calls now also need `copilot` (its LiveKit) and `pro:copilot-speech`, so a `warm hold design-bakery` before a demo would not cover them.
