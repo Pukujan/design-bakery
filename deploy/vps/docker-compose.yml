@@ -74,3 +74,41 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+  # The voice call worker (voice-agent/, TASK-DB-0152). It joins the copilot stack's LiveKit server as
+  # `design-bakery-voice`, and answers only rooms whose token asks for it by name (backend/src/copilot/voiceToken.ts,
+  # on once VOICE_LIVEKIT_* are in .env.api). It publishes no port: it dials out to LiveKit and the speech server.
+  # Behind the `voice` profile, so Komodo's plain `compose up` neither builds nor starts it; deploy.sh does, with
+  # --profile voice, when .env.voice exists.
+  voice:
+    profiles: ["voice"]
+    container_name: design-bakery-voice
+    image: ${DESIGN_BAKERY_VOICE_IMAGE:-design-bakery-voice:local}
+    build:
+      context: ../../voice-agent
+    restart: unless-stopped
+    env_file:
+      # LIVEKIT_API_KEY / LIVEKIT_API_SECRET (the copilot LiveKit's keys), OCTO_KEY / OCTO_WORKSPACE for traces.
+      # Create it from .env.voice.example.
+      - path: .env.voice
+        required: false
+    environment:
+      LIVEKIT_URL: ${VOICE_LIVEKIT_URL:-ws://copilot-livekit:7880}
+      # The Pro's speech server, through the VPS's tunnel on the docker host (docs/self-hosting.md §5).
+      SPEECH_URL: ${VOICE_SPEECH_URL:-http://host.docker.internal:18799}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - default
+      - copilot
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  # The copilot stack's network, where its LiveKit server is `copilot-livekit`. Only `voice` joins it.
+  copilot:
+    external: true
+    name: ${VOICE_LIVEKIT_NETWORK:-copilot_default}
