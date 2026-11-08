@@ -10,7 +10,7 @@ Feature work resumed on the owner's direction after the DB-0102 rollback. The si
 
 - [DB-0154](../tasks/TASK-DB-0154-speech-gateway.md) / [#241](https://github.com/Pukujan/design-bakery/issues/241): the live call's speech goes through the shared speech gateway on the VPS instead of the socat tunnel. Merged (#242, #243), deployed, checked with scripted calls.
 - [DB-0152](../tasks/TASK-DB-0152-calls-on-our-voice-agent.md): live calls on our voice worker. Merged (#238), switched over and checked with a scripted call on www.
-- [DB-0153](../tasks/TASK-DB-0153-call-trace-fixes.md): fixes from the owner's 2026-11-08 call traces (greeting, moon following papers, references, narration, page name, messages on a call, spoken emails, false stalls) and per-page browser titles. [PR #240](https://github.com/Pukujan/design-bakery/pull/240) open, not merged.
+- [DB-0153](../tasks/TASK-DB-0153-call-trace-fixes.md): fixes from the owner's 2026-11-08 call traces (greeting, moon following papers, references, narration, page name, messages on a call, spoken emails, false stalls) and per-page browser titles. Merged (#240) and deployed 2026-11-08 (web, api and voice on 2aa249c); not yet tried on a real call.
 - [PR #205](https://github.com/Pukujan/design-bakery/pull/205): Octo RAG retrieval before the model, so calls get real search. Up to date with main, checks green, not merged.
 
 ## Queued
@@ -26,4 +26,4 @@ Feature work resumed on the owner's direction after the DB-0102 rollback. The si
 
 ## Next atomic action
 
-Owner review and merge of PR #205, then a scripted call that asks about a paper to see retrieval on a call turn.
+On the owner's next real call, check Phoenix for the DB-0153 fixes (greeting, moon on a paper walk, references, spoken email, stalls). PR #205 edits the same copilot files as #240, so it needs a rebase before the owner reviews and merges it; then a scripted call that asks about a paper to see retrieval on a call turn.
