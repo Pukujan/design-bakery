@@ -25,6 +25,7 @@
 **Evidence.**
 - `test-copilot-cite.mjs` (new: unread paper is pointed at, outline emits one cite per passage in order, read section text and pointer), `test-copilot-stream.mjs` (7 cases, two new), `tools`, `truncation`, `chips`, `lanes`, `memory`, `cite-route`, `test-copilot-voice.mjs` pass. `voice-agent` unit tests: 16 pass (`tests/test_speech_text.py` new). Frontend `tsc --noEmit` and eslint clean. `test:copilot-news` fails on main too.
 - Headless Chromium (Playwright) on the dev server: /research "Research | Design Baker", a paper reached by a click "<paper title> | Research | Design Baker", /contact "Contact | Design Baker", a source likewise; /blogs and / unchanged.
+- After merging main (DB-0154 speech gateway, which also edits `agent.py`): 16 worker unit tests, backend build, cite, stream and voice tests pass. `additionals/doc/copilot-spec.md` updated for the docs check.
 - The call's turns replayed against a local API with these changes (Haiku): "guide me through it" on db-r-2026-007 emitted 4 cites in reading order; "Show me references" read the References section, pointed at it and named three in a sentence; on /contact after a paper, "Which page am I on" said the Contact page; the message read back name, email and message and asked to send; "Give me one more" on /blogs/33 went to the next post with no narration.
 
 **Not done.**
