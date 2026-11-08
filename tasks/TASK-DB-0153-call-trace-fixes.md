@@ -33,3 +33,28 @@
 - Replies queued while the copilot was still speaking leave no `voice.turn` span (the span is written when the voice starts); not fixed.
 - Every page also keeps `index.html`'s home-page canonical link next to Helmet's own; true on main too (blog pages), not changed here.
 - Choosing which section a free-form answer drew on is PR #205's `cite.ts`.
+
+### 2026-11-08 14:30:59 UTC — claude-opus-5-5
+
+<!-- continuity:checkpoint {"agent":"claude-opus-5-5","blocked":["Merge of PR #240 waits for the owner"],"changed":["backend/src/copilot/{tools,citations,knowledge,route,textFilter}.ts, frontend voice.ts, research and consult pages, seo/pageSeoConfig.ts, voice-agent/agent.py, speech_text.py"],"completed":["Eight call-trace fixes (greeting, moon following papers, references, narration, page name, messages on a call, spoken emails, false stalls)","Contact and research pages set their own browser titles through PageSeo"],"decisions":["Index.html home canonical link left as is; it duplicates Helmet's on every page, also on main"],"evidence":["Copilot test scripts and 16 voice-agent unit tests pass; frontend tsc clean","Headless Chromium on the dev server shows per-page titles for /contact, /research, papers and sources"],"next_action":"Owner merges PR #240, then check the next real call in Phoenix (voice.failure copilot.greet, stall)","protocol_version":"0.1.0-draft","schema":"project-continuity.checkpoint.v1","task_id":"DB-0153","timestamp":"2026-11-08T14:30:59Z"} -->
+<!-- continuity:checkpoint-operation {"payload_sha256":"369154e3b823eb520cc74ed732e355bba424cf90bac5e1ffa96c64e560124cc0","request_id":"e579a70e674b400fa039bc260503d6da","schema":"project-continuity.checkpoint-operation.v1","task_id":"DB-0153"} -->
+
+Completed:
+- Eight call-trace fixes (greeting, moon following papers, references, narration, page name, messages on a call, spoken emails, false stalls)
+- Contact and research pages set their own browser titles through PageSeo
+
+Evidence:
+- Copilot test scripts and 16 voice-agent unit tests pass; frontend tsc clean
+- Headless Chromium on the dev server shows per-page titles for /contact, /research, papers and sources
+
+Decisions:
+- Index.html home canonical link left as is; it duplicates Helmet's on every page, also on main
+
+Changed:
+- backend/src/copilot/{tools,citations,knowledge,route,textFilter}.ts, frontend voice.ts, research and consult pages, seo/pageSeoConfig.ts, voice-agent/agent.py, speech_text.py
+
+Blocked/uncertain:
+- Merge of PR #240 waits for the owner
+
+Next:
+- Owner merges PR #240, then check the next real call in Phoenix (voice.failure copilot.greet, stall)
