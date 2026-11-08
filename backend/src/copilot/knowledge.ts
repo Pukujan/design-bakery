@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { getBlogByNumericId, listBlogPosts } from '../../services/lib/content/blogPosts.js';
 import { sectionsOfMarkdown, sectionsOfProject, type Section } from './sections.js';
 import { slugifyHeading } from './headingAnchors.js';
+import { squash } from './words.js';
 import { getCmsArray, getCmsObject } from '../../services/lib/content/cmsDocuments.js';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -244,7 +245,6 @@ export const loadAbout = () => json<About>('about.json');
 export const loadHero = () => json<Hero>('hero.json');
 export const loadSkills = () => json<SkillCategory[]>('skill-categories.json');
 
-const squash = (text: string) => text.replace(/\s+/g, ' ').trim();
 
 /**
  * The home page's sections as LabStory.tsx renders them (TASK-DB-0142): About under its h2 (`story-about`), and one
@@ -309,7 +309,7 @@ export async function sectionsForPath(pagePath: string): Promise<Section[] | nul
   const paper = /^\/research\/papers\/(db-r-\d{4}-\d{3})$/.exec(clean);
   if (paper) {
     const body = await readPaper(paper[1]);
-    return body ? sectionsOfMarkdown(body, { levels: [1, 2, 3] }) : null;
+    return body ? sectionsOfMarkdown(body, { levels: [1, 2, 3], visuals: true }) : null;
   }
   if (clean === '/') return homeSections();
   if (/^\/work\/[^/]+$/.test(clean)) {

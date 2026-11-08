@@ -65,3 +65,120 @@
   opacity: 0.5;
   cursor: default;
 }
+
+/* A line heard on a call that got no reply: struck through and faded, with a way to have it answered after all. */
+.cp-ignored {
+  margin: 0;
+}
+.cp-ignored-text {
+  margin: 0;
+  color: var(--lab-muted, var(--lab-paper));
+  opacity: 0.6;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+.cp-ignored-why {
+  margin: 0.2rem 0 0;
+  color: var(--lab-muted, var(--lab-paper));
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+.cp-ignored-answer {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--lab-accent, var(--lab-paper));
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.cp-ignored-answer:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* The folded hero chat: one or two lines above the box that show it is working, then the start of the reply.
+   Clicking it (or the box) opens the whole conversation. */
+.cp-peek {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  width: 100%;
+  margin: 0 0 0.6rem;
+  padding: 0.65rem 0.9rem;
+  overflow: hidden;
+  border: 1px solid var(--lab-line);
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--lab-ink) 80%, transparent);
+  color: var(--lab-paper);
+  font: 400 0.92rem/1.45 var(--lab-display);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.cp-peek:hover,
+.cp-peek:focus-visible {
+  border-color: var(--lab-accent);
+  outline: none;
+}
+
+.cp-peek-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-top: 0.5em;
+  border-radius: 50%;
+  background: var(--lab-accent);
+}
+
+.cp-peek-dot.is-busy {
+  animation: cp-peek-pulse 1s ease-in-out infinite;
+}
+
+@keyframes cp-peek-pulse {
+  50% { opacity: 0.25; transform: scale(0.7); }
+}
+
+.cp-peek-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.cp-peek-open {
+  flex: none;
+  margin-top: 0.2em;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lab-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-peek-dot.is-busy { animation: none; }
+}
+
+/* The human check (TurnstileSlot): takes no space until Turnstile asks the visitor to click, then sits above the composer with its note.
+   It stays display:block so turnstile.ts can tell it is on screen. */
+.cp-turnstile-slot {
+  display: block;
+  max-width: 100%;
+}
+.cp-turnstile-note {
+  display: none;
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  color: var(--lab-muted, var(--lab-paper));
+}
+.cp-turnstile-slot.is-asking {
+  margin: 0 0 10px;
+}
+.cp-turnstile-slot.is-asking .cp-turnstile-note {
+  display: block;
+}

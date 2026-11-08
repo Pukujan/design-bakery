@@ -1,0 +1,14 @@
+{
+  "name": "exploring the site by voice: lists, next, and where the page ends up",
+  "startPage": { "path": "/", "title": "Home" },
+  "steps": [
+    { "say": "Hello", "expect": {} },
+    { "say": "Show me your research papers.", "expect": { "navigatesTo": "/research" } },
+    { "say": "Okay what's the first one about?", "expect": {} },
+    { "say": "Next.", "expect": {} },
+    { "say": "Show me your projects.", "expect": {} },
+    { "say": "What else do you have?", "expect": {} },
+    { "say": "Take me to the blog.", "expect": { "navigatesTo": "/blogs" } },
+    { "say": "Next one.", "expect": {} }
+  ]
+}

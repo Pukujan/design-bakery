@@ -1,0 +1,117 @@
+{
+  "name": "the real booking call of 2026-11-05 (garbled lines, a spelling instead of yes, a whole email instead of no), replayed",
+  "startPage": {
+    "path": "/research",
+    "title": "Research"
+  },
+  "steps": [
+    {
+      "say": "Tarity Middle School, can you Book it for me.",
+      "expect": {
+        "navigatesTo": "/contact",
+        "booking": {
+          "step": "ask_name"
+        }
+      }
+    },
+    {
+      "say": "Poojan.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "confirm_name",
+          "has": {
+            "name": "Poojan"
+          }
+        }
+      }
+    },
+    {
+      "say": "That's P-U-J-A-N.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "confirm_name",
+          "has": {
+            "name": "Pujan"
+          }
+        }
+      }
+    },
+    {
+      "say": "Yes.",
+      "expect": {
+        "booking": {
+          "step": "ask_pronunciation"
+        }
+      }
+    },
+    {
+      "say": "It's fine as spelled.",
+      "expect": {
+        "booking": {
+          "step": "ask_email"
+        }
+      }
+    },
+    {
+      "say": "My email is Teresagohardo at gmail.com.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "confirm_email",
+          "has": {
+            "email": "teresagohardo@gmail.com"
+          }
+        }
+      }
+    },
+    {
+      "say": "It's Teresa, T E R E S A G U A J A R D O one five oh four at gmail.com",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "confirm_email",
+          "has": {
+            "email": "teresaguajardo1504@gmail.com"
+          }
+        }
+      }
+    },
+    {
+      "say": "Yes.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "ask_area"
+        }
+      }
+    },
+    {
+      "say": "Marketing.",
+      "expect": {
+        "actions": [
+          "book"
+        ],
+        "maxActions": {
+          "book": 1
+        },
+        "book": {
+          "name": "Pujan",
+          "email": "teresaguajardo1504@gmail.com",
+          "topic": "Marketing"
+        }
+      }
+    }
+  ]
+}

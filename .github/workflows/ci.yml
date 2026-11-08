@@ -66,8 +66,14 @@ jobs:
       - name: Check homepage content stability
         run: pnpm test:homepage-content
 
-      - name: Check the copilot's instant answers
-        run: pnpm test:copilot-answers
+      - name: Check the copilot's tools (booking slots, list stepping, tour)
+        run: pnpm test:copilot-tools
+
+      - name: Check the copilot's lanes are separate and complete
+        run: pnpm check:lanes && pnpm test:copilot-lanes
+
+      - name: Check the copilot's spec harness offline
+        run: pnpm test:sim-harness
 
       - name: Check the copilot's site search (Octo RAG mapping and keyword fallback)
         run: pnpm test:copilot-search

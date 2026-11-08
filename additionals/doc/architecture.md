@@ -8,7 +8,7 @@ The repo is a **monorepo**: Vite/React frontend, Express API, and shared Firebas
 |------|------|
 | `frontend/` | Public site + admin UI (Vite, React, Tailwind); case-study sandboxes in `frontend/extras/` |
 | `backend/` | HTTP API + shared server logic |
-| `backend/services/` | Domain services (publish kit, CMS, OpenRouter) — Express on Railway |
+| `backend/services/` | Domain services (publish kit, CMS, OpenRouter) — run by the Express API |
 | `archive/firebase/` | Legacy Firebase CLI + Admin SDK (migration only) |
 | `supabase/` | Postgres migrations — supabase/README.md |
 | `scripts/` | Dev orchestration — scripts/README.md |
@@ -67,7 +67,7 @@ Admin blog flows: UI → `publishKitClient.ts` → `VITE_BLOG_API_URL` → Expre
 
 - **Frontend:** `frontend/.env` — only `VITE_*` (Firebase client, API URL).
 - **Backend:** `backend/.env` — OpenRouter, Admin credentials, bucket, CORS.
-- **Local Admin JSON:** `backend/secrets/firebase-service-account.json` (or `GOOGLE_APPLICATION_CREDENTIALS_JSON` on Railway).
+- **Local Admin JSON:** `backend/secrets/firebase-service-account.json` (or `GOOGLE_APPLICATION_CREDENTIALS_JSON` in the API's environment).
 - Never commit `.env` or `*-firebase-adminsdk-*.json`.
 
 ## Local dev

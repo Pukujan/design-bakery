@@ -4,7 +4,7 @@ globs:
   - backend/src/api/ogPreview.ts
   - backend/src/og/**
   - frontend/src/og/**
-  - deploy/gravebuster/Caddyfile
+  - deploy/vps/Caddyfile
   - scripts/test-og-routing.mjs
   - scripts/test-og-contract.mjs
 alwaysApply: false

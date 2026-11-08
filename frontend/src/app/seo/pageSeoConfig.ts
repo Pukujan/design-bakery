@@ -41,7 +41,7 @@ export const ABOUT_PAGE_SEO: PageSeoConfig = {
 export const PROJECTS_PAGE_SEO: PageSeoConfig = {
   title: `Projects & Case Studies | ${SITE_NAME}`,
   description:
-    'Engineering projects and case studies across civic tech, legal AI, document intelligence, financial reasoning research, and agent-ready architecture.',
+    'Live AI products, the platform they run on, and case studies: voice agents, answer engines, maps, civic tech, evals and agent tooling.',
   canonicalPath: '/#projects',
   ogImage: DEFAULT_OG_IMAGE_PATH,
   imageAlt: `${SITE_NAME} engineering projects`,
@@ -59,7 +59,7 @@ export const CONTACT_PAGE_SEO: PageSeoConfig = {
 export const BLOG_INDEX_SEO: PageSeoConfig = {
   title: `Engineering Blog | ${SITE_NAME}`,
   description:
-    'Engineering blog on systems design, AI workflows, document intelligence, legal-tech product engineering, and agent architecture.',
+    'Engineering blog on building AI products end to end: systems design, AI workflows, retrieval, evals and agent architecture.',
   canonicalPath: '/blogs',
   ogImage: DEFAULT_OG_IMAGE_PATH,
   imageAlt: `${SITE_NAME} engineering blog`,

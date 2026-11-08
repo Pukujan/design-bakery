@@ -13,6 +13,7 @@ import type { Citations } from './citations.js';
 import { sectionsForPath } from './knowledge.js';
 import { checkQuote, QUOTE_MAX, type Section } from './sections.js';
 import type { Passage } from './siteSearch.js';
+import { cutAtWord, splitSentences, squash, wordsOf } from './words.js';
 
 export type CiteAction = { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string; mode?: 'swipe' | 'perch' };
 
@@ -22,21 +23,8 @@ const STOP = new Set(
 
 /** The content words of a text: lower case, four letters or more, no stop words. */
 export function contentWords(text: string): Set<string> {
-  return new Set(
-    text
-      .toLowerCase()
-      .normalize('NFKD')
-      .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
-      .split(/[\s-]+/)
-      .filter((w) => w.length >= 4 && !STOP.has(w)),
-  );
+  return new Set(wordsOf(text.toLowerCase().normalize('NFKD')).filter((w) => w.length >= 4 && !STOP.has(w)));
 }
-
-/** Lists and counts are answered from the catalog or the index, not from one section, so they move the page nowhere. */
-const LIST_QUESTION = /\b(how many|list|latest|newest|most recent|which (projects|papers|posts|ones|roles)|what (projects|papers|posts|roles))\b/i;
-
-/** A message with no content words that still asks about the thing being discussed. */
-const FOLLOW_UP = /\b(it|its|this|that|these|those|they|them|more|else)\b/i;
 
 const shared = (a: Set<string>, b: Set<string>) => [...a].filter((w) => b.has(w)).length;
 
@@ -62,12 +50,12 @@ export function sourceOf(reply: string, passages: Passage[]): Passage | null {
  *  shows them as cells, without the pipes. */
 function sentences(text: string): string[] {
   return text
-    .split(/\n+/)
-    .filter((line) => !/^\s*\|/.test(line))
-    .flatMap((line) => line.replace(/\s+/g, ' ').split(/(?<=[.!?])\s+(?=[A-Z0-9"“(])/))
+    .split('\n')
+    .filter((line) => line.trim() && !line.trimStart().startsWith('|'))
+    .flatMap((line) => splitSentences(squash(line)))
     .map((s) => s.trim())
     .filter((s) => s.length >= 20)
-    .map((s) => (s.length > QUOTE_MAX ? s.slice(0, QUOTE_MAX).replace(/\s+\S*$/, '') : s));
+    .map((s) => cutAtWord(s, QUOTE_MAX));
 }
 
 /** The chunk's sentence closest to the reply that the page really shows under this heading, or none. */
@@ -84,15 +72,13 @@ export function quoteFor(reply: string, chunk: string, section: Section): string
 }
 
 /**
- * The cite for this reply, or null: none when the model already pointed at something, when the visitor's message
- * asks about nothing ("how are you", "thanks": a reply that talks about my work anyway is not a reason to move the
- * page; "what is it?" points back at the conversation, so it counts), when it asks for a list or a count (answered
- * from the catalog, not a section), when no passage clearly sourced the reply, or when its section is not on the page any more. Records it in
- * the turn's citation log.
+ * The cite for this reply, or null: none when the model already pointed at something, when no passage clearly sourced
+ * the reply (small talk shares no content words with a section), or when its section is not on the page any more.
+ * The visitor's wording is never read here (copilot-spec.md P-2); a list or a count is left out by the route, from the
+ * tool the model called. Records the cite in the turn's citation log.
  */
-export async function groundCite(reply: string, passages: Passage[], citations: Citations, question?: string, load = sectionsForPath): Promise<CiteAction | null> {
+export async function groundCite(reply: string, passages: Passage[], citations: Citations, load = sectionsForPath): Promise<CiteAction | null> {
   if (citations.log().some((c) => c.ok)) return null;
-  if (question !== undefined && ((!contentWords(question).size && !FOLLOW_UP.test(question)) || LIST_QUESTION.test(question))) return null;
   const source = sourceOf(reply, passages);
   if (!source?.anchor) return null;
   const sections = await load(source.path);

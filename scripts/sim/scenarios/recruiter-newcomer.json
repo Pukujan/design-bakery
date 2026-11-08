@@ -1,0 +1,74 @@
+{
+  "name": "a newcomer who knows nothing and wants to be guided",
+  "startPage": {
+    "path": "/",
+    "title": "Home"
+  },
+  "rubric": {
+    "proofWithin": 3,
+    "maxTurnMs": 9000,
+    "noRepeatedReplies": true
+  },
+  "steps": [
+    {
+      "say": "Hello.",
+      "expect": {
+        "minChars": 30,
+        "judge": {
+          "J-4": "greets the visitor and offers to show the work, give a tour, or answer questions"
+        }
+      }
+    },
+    {
+      "say": "I don't know anything about this. What is this?",
+      "expect": {
+        "minChars": 60,
+        "judge": {
+          "J-4": "says what this is: the portfolio of an AI engineer and what he builds"
+        }
+      }
+    },
+    {
+      "say": "Okay, show me what's best.",
+      "expect": {
+        "actions": [
+          "navigate"
+        ]
+      }
+    },
+    {
+      "say": "Okay and then?",
+      "expect": {
+        "actions": [
+          "navigate"
+        ]
+      }
+    },
+    {
+      "say": "Can you tell me more about that one?",
+      "expect": {
+        "minChars": 80
+      }
+    },
+    {
+      "say": "What should I look at next?",
+      "expect": {
+        "minChars": 40
+      }
+    },
+    {
+      "say": "Show me something different.",
+      "expect": {
+        "actions": [
+          "navigate"
+        ]
+      }
+    },
+    {
+      "say": "Okay I think I get it. How would I contact him?",
+      "expect": {
+        "navigatesTo": "/contact"
+      }
+    }
+  ]
+}

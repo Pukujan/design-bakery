@@ -22,13 +22,14 @@ Point the UI at the API in **`frontend/.env`**:
 VITE_BLOG_API_URL=http://localhost:8787
 ```
 
-## Railway
+## Production
 
-Deploy from **repo root** (see `railway.toml` at root). Do not set Railway Root Directory to `backend` only.
+The API runs as the `design-bakery-api` container on the VPS, next to the site, and Komodo
+deploys it when `main` moves. See [docs/self-hosting.md](../docs/self-hosting.md).
 
 | Setting | Value |
 |---------|--------|
 | Start | `node backend/lib/server.js` |
 | Health | `/health` |
 
-Variables: see `backend/.env.example` (set in the Railway dashboard).
+Variables: see `backend/.env.example`; on the VPS they live in `deploy/vps/.env.api`.

@@ -129,7 +129,7 @@ const headersWithout = (h: HeadersInit | undefined): Record<string, string> => {
   return out;
 };
 
-export function fallbackFetch(chain: Array<string | Step>, base: typeof fetch = fetch, log: (m: string) => void = console.warn, wait: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)), slowMs = SLOW_START_MS, onUse: (model: string) => void = () => undefined): typeof fetch {
+export function fallbackFetch(chain: Array<string | Step>, base: typeof fetch = fetch, log: (m: string) => void = console.warn, wait: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)), slowMs = SLOW_START_MS, onUse: (model: string, ms: number) => void = () => undefined, adjust: (step: string, body: Record<string, unknown>) => Record<string, unknown> = (step, body) => withoutThinking(step, body)): typeof fetch {
   const steps: Step[] = chain.map((s) => (typeof s === "string" ? { name: s, model: s } : s));
   const models = steps.map((s) => s.name);
   return async (input, init) => {
@@ -150,7 +150,7 @@ export function fallbackFetch(chain: Array<string | Step>, base: typeof fetch = 
       try {
         let res: Response;
         try {
-          res = await base(to ? to.url : input, { ...init, ...(to ? { headers: { ...headersWithout(init?.headers), ...to.headers } } : {}), signal, body: JSON.stringify(withoutThinking(step.name, { ...body0, model })) });
+          res = await base(to ? to.url : input, { ...init, ...(to ? { headers: { ...headersWithout(init?.headers), ...to.headers } } : {}), signal, body: JSON.stringify(adjust(step.name, { ...body0, model })) });
         } catch (e) {
           if (ctrl.signal.aborted && !init?.signal?.aborted) return { res: new Response(null, { status: 504 }), msg: "slow", failed: true, busy: false, slow: true };
           throw e;
@@ -163,7 +163,7 @@ export function fallbackFetch(chain: Array<string | Step>, base: typeof fetch = 
         }
         const msg = peek.message;
         const failed = !res.ok || msg !== "";
-        return { res, msg, failed, busy: failed && isBusy(res.ok ? 200 : res.status, msg), slow: false };
+        return { res, msg, failed, busy: failed && isBusy(res.ok ? 200 : res.status, msg), slow: false, ms: Date.now() - started };
       } finally {
         if (timer) clearTimeout(timer);
       }
@@ -183,7 +183,7 @@ export function fallbackFetch(chain: Array<string | Step>, base: typeof fetch = 
         continue;
       }
       if (!a.failed) {
-        onUse(models[i]);
+        onUse(models[i], a.ms ?? 0);
         return a.res;
       }
       last = a.res;

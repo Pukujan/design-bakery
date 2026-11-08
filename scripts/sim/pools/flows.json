@@ -1,0 +1,60 @@
+{
+  "_about": "Base flows for generated cases (copilot-spec.md §9). role is request (a line asking for something) or answer (a booking answer: never misheard or restarted). keepsPage: the flow's pages are compared, so only detours that do not move the page are inserted.",
+  "flows": [
+    {
+      "id": "booking",
+      "startPage": { "path": "/", "title": "Home" },
+      "keepsPage": false,
+      "steps": [
+        { "say": "Book a call.", "role": "request" },
+        { "say": "Poojan.", "role": "answer" },
+        { "say": "Yes.", "role": "answer" },
+        { "say": "poo jun", "role": "answer" },
+        { "say": "pujan three six four five at gmail dot com", "role": "answer" },
+        { "say": "Yes.", "role": "answer" },
+        { "say": "AI engineering.", "role": "answer" }
+      ]
+    },
+    {
+      "id": "papers",
+      "startPage": { "path": "/research/papers/db-r-2026-001", "title": "Cortex reliability kernel: composition status and evidence boundaries" },
+      "keepsPage": true,
+      "steps": [
+        { "say": "Next.", "role": "request" },
+        { "say": "Next one.", "role": "request" },
+        { "say": "Previous.", "role": "request" },
+        { "say": "Next.", "role": "request" }
+      ]
+    },
+    {
+      "id": "summary",
+      "startPage": { "path": "/research/papers/db-r-2026-010", "title": "Accuracy is not enough" },
+      "keepsPage": true,
+      "steps": [
+        { "say": "Summarise this paper.", "role": "request" },
+        { "say": "What was the main finding?", "role": "request" },
+        { "say": "Next paper.", "role": "request" }
+      ]
+    },
+    {
+      "id": "tour",
+      "startPage": { "path": "/", "title": "Home" },
+      "keepsPage": true,
+      "steps": [
+        { "say": "Give me a tour.", "role": "request" },
+        { "say": "Keep going.", "role": "request" },
+        { "say": "Keep going.", "role": "request" }
+      ]
+    },
+    {
+      "id": "questions",
+      "startPage": { "path": "/", "title": "Home" },
+      "keepsPage": true,
+      "steps": [
+        { "say": "What do you do?", "role": "request" },
+        { "say": "Show me Precedent.", "role": "request" },
+        { "say": "What is Precedent built with?", "role": "request" }
+      ]
+    }
+  ]
+}

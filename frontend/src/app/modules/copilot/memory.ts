@@ -3,7 +3,7 @@
  * The browser keeps the whole conversation; once enough of it has built up, all but the newest turns are condensed by
  * the server into a rolling summary, and only the turns after that point are sent with each request.
  */
-export type MemoryMessage = { id: number; role: 'user' | 'assistant'; text: string; error?: boolean; nudge?: boolean };
+export type MemoryMessage = { id: number; role: 'user' | 'assistant'; text: string; error?: boolean; nudge?: boolean; ignored?: string };
 
 /** Summarise when this many turns (idle nudge lines not counted) sit after the last summary. */
 export const SUMMARIZE_AT = 14;
@@ -20,7 +20,7 @@ export type Summary = { text: string; /** Id of the last message the text covers
 
 /** The turns that count as history: after the summary, not an error line, with text. Nudge lines stay (they carry the offer). */
 export const liveTurns = <T extends MemoryMessage>(messages: T[], summary: Summary | null): T[] =>
-  messages.filter((m) => m.id > (summary?.upTo ?? 0) && !m.error && m.text);
+  messages.filter((m) => m.id > (summary?.upTo ?? 0) && !m.error && !m.ignored && m.text);
 
 export type SummaryPlan = { cover: MemoryMessage[]; upTo: number };
 

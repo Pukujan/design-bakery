@@ -2,36 +2,37 @@
   "headingLeft": "ABOUT",
   "headingRight": "ME",
   "portraitUrl": "https://i.imgur.com/umGE4Kd.jpeg",
-  "roleTitle": "I build AI agents that improve through data, testing, and human feedback.",
+  "roleTitle": "I take a product from the first question to running in production.",
   "paragraphs": [
-    "I'm Pujan Bajracharya, an AI-focused engineer working across legal datasets, agentic workflows, prompt systems, RAG, eval pipelines, LLM distillation, data analytics, and human review.",
-    "I care about AI systems that can retrieve context, follow constraints, produce structured outputs, measure performance against ground truth, and improve through data-driven prompt optimization."
+    "I'm Pujan Bajracharya, an AI product engineer. I run Design Bakery as a one-person studio. I research the problem, design the screens, build the front end, back end and AI, deploy it on servers I run, and keep watching it after launch.",
+    "It all runs on infrastructure I built: Octo, a self-hosted data platform that gives every project its own database, files and search; a server that deploys straight from GitHub; and traces and evals on every agent. You get a working product, not a prototype that needs another team to finish it.",
+    "I also build the tools that let one person move this fast: a coordination pack so several coding agents can work on one repository, a video studio that agents can drive, and a lab that checks AI judges against real answer keys."
   ],
   "highlights": [
     {
       "icon": "Shield",
-      "title": "Legal Dataset Testing",
-      "desc": "I create golden datasets, ground-truth labels, edge cases, and evaluation sets for legal AI workflows.",
+      "title": "Live voice agents",
+      "desc": "Agents people talk to on a website. They ask one thing at a time, confirm before they act, and never press Submit for you.",
       "color": "#4169E1"
     },
     {
       "icon": "Zap",
-      "title": "Prompt Standard Optimization",
-      "desc": "I use eval results, failure patterns, and output scoring to improve prompts, schemas, and AI behavior.",
+      "title": "Answers from your documents",
+      "desc": "Chat and search over your own files. Every answer shows where it came from, and it says so when your files don't cover the question.",
       "color": "#9B6DD6"
     },
     {
       "icon": "Code",
-      "title": "Data + AI Insights",
-      "desc": "I combine data analytics and AI output analysis to identify what works, what fails, and what should improve.",
+      "title": "A working demo in a week",
+      "desc": "A short fixed-price sprint that puts a demo on your real data, one you can click or call, then gives you findings and a fixed price for the full build.",
       "color": "#0D9488"
     },
     {
       "icon": "Layers",
-      "title": "Product Engineering",
-      "desc": "I turn AI insights into usable product workflows, review systems, dashboards, and human-in-the-loop pipelines.",
+      "title": "Built, deployed, watched",
+      "desc": "The whole stack, from design to servers: web app, API, database, deploys from GitHub, and monitoring once it is live.",
       "color": "#F97316"
     }
   ],
-  "callout": "The goal is simple: make AI agents measurable, useful, and continuously improvable."
+  "callout": "You pay for an outcome at a fixed price, not for hours. Hiring? I fit forward-deployed and founding engineer roles: close to the customer, and responsible for the product end to end."
 }

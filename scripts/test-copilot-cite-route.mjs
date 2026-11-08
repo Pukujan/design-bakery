@@ -60,7 +60,7 @@ assert.equal(swipeY(0, sp, targets, 0), 0, 'starts where the page was');
 assert.equal(swipeY(sp.times[0], sp, targets, 0), 600);
 assert.equal(swipeY(sp.times[1], sp, targets, 0), 1800, 'in place exactly as the sentence starts');
 assert.equal(swipeY(sp.times[2], sp, targets, 0), 3400);
-assert.equal(Math.round(swipeY(sp.end, sp, targets, 0)), 3640, 'drifts on through the last passage');
+assert.equal(swipeY(sp.end, sp, targets, 0), 3400, 'no drift: the last heading stays where it was put');
 assert.equal(swipeY(sp.end + 50, sp, targets, 0), swipeY(sp.end, sp, targets, 0), 'holds after the end');
 let prev = -1;
 for (let t = 0; t <= sp.end; t += 0.25) {
@@ -68,7 +68,18 @@ for (let t = 0; t <= sp.end; t += 0.25) {
   assert.ok(y >= prev, 'only ever moves down');
   prev = y;
 }
-// Ease-out into a heading: the last second of a leg covers less than the first second.
-const leg = (a, b) => swipeY(b, sp, targets, 0) - swipeY(a, sp, targets, 0);
-assert.ok(leg(sp.times[1] - 1, sp.times[1]) < leg(sp.times[0], sp.times[0] + 1), 'the page slows as the heading settles');
+// Holds still while a passage is spoken and travels in one quick leg just before the next sentence.
+assert.equal(swipeY(sp.times[1] - 1.2, sp, targets, 0), 600, 'the first heading stays put through its passage');
+assert.ok(swipeY(sp.times[1] - 0.5, sp, targets, 0) > 600, 'then the leg to the next heading is under way');
+assert.equal(swipeY(1, swipePlan(280, [0, 5], CPS), [600, 1800], 0) > 0, true, 'an early first heading still gets its leg');
+// A missing later heading (same target as the one before) does not move the page.
+assert.equal(swipeY(sp.times[1], sp, [600, 600, 600], 0), 600);
+
+// The paper summary that stalled: a second cite named only by its share of the answer, a third by its heading.
+const paper = 'The problem is that one accuracy number hides what a judge skips. In the findings, the best judges answered nearly everything, but one number hid how many questions others quietly skipped. What it means is simple: report coverage next to accuracy, every time.';
+const pc = (heading, anchor) => ({ path: '/research/papers/x', anchor, heading });
+const later = passageSchedule(paper, [pc('Finding 2: What does one accuracy number hide?', 'f2'), pc('5. What it means', 'w')], { seen: new Set(['/research/papers/x#p']), minDwell: 40 });
+assert.deepEqual(later.map((p) => p.cite.anchor), ['f2', 'w'], 'both later headings are walked to');
+assert.equal(later[0].at, paper.indexOf('In the findings'), 'the findings on their own sentence, not two sentences late');
+assert.equal(later[1].at, paper.indexOf('What it means'));
 console.log('copilot cite swipe: ok');

@@ -1,0 +1,5 @@
+{
+  "_about": "Speech noise for MR-3 (copilot-spec.md §8): fillers said before a line, and mishearings seen on real calls or named in the voice prompt. A false start is made from the line itself.",
+  "fillers": ["Um,", "Uh,", "Okay so,", "Sorry,", "Hmm, okay,"],
+  "mishear": [["Precedent", "President"], ["Arize", "Arise"]]
+}

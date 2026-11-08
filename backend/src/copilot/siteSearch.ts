@@ -6,12 +6,14 @@
  * heading, and the page can be moved to it (cite.ts). The indexed text is the text the page shows, with one context
  * line on top ("<page title>: <heading>") so a section is found by its page's name too.
  *
- * When Octo is not configured, errors or is slow, search_site falls back to the old keyword count, and the turn
- * falls back to the full site brief (route.ts), so the copilot never loses its facts.
+ * Every turn is reranked, calls included: the reranker answers in ~0.1 s from the VPS (2026-11-07). When Octo is not
+ * configured, errors or is slow, the turn falls back to the full site brief (route.ts), so the copilot never loses its
+ * facts, and search_site says search is down rather than guessing from keywords.
  */
 import { homeSections, loadBlogs, loadHero, loadPapers, loadProjects, loadShownExperience, loadSkills, projectPath, readBlog, readPaper, SOCIAL_LINKS } from './knowledge.js';
 import { dbQueryAll, isDataLayerConfigured } from '../../services/lib/db.js';
 import { sectionsOfMarkdown, sectionsOfProject } from './sections.js';
+import { squash } from './words.js';
 
 export type SiteKind = 'project' | 'paper' | 'blog' | 'home' | 'contact';
 /** A section's kind in the site_sections table (supabase/migrations/013_site_sections.sql). */
@@ -43,9 +45,11 @@ export const SITE_PREFIX = 'site:';
 export const MAX_HITS = 6;
 /** Passages given to the model per turn. */
 export const MAX_PASSAGES = 6;
-/** A reranked query took ~0.7–1.4 s warm (2026-11-03); past this the turn goes on without waiting. */
+/** A reranked chat query; past this it is retried once without the reranker. */
 export const RAG_TIMEOUT_MS = 2500;
-/** Without the reranker a query takes ~0.35–0.45 s. */
+/** A reranked query on a call: the caller hears every wait, so it gives way sooner. */
+export const RAG_VOICE_TIMEOUT_MS = 1500;
+/** The retry without the reranker. */
 export const RAG_FAST_TIMEOUT_MS = 1500;
 /**
  * Which chunks are passed on. The reranker's score is a logit and not comparable across questions: the answering
@@ -62,12 +66,18 @@ export const SIMILARITY_FLOOR = 0.45;
 const RAG_CHUNKS = 15;
 
 const clip = (text: string, max: number) => (text.length > max ? `${text.slice(0, max)}…` : text);
-const squash = (text: string) => text.replace(/\s+/g, ' ').trim();
+/** The one path segment after `prefix`, or null when there is none or more than one. */
+function segmentAfter(path: string, prefix: string): string | null {
+  if (!path.startsWith(prefix)) return null;
+  const rest = path.slice(prefix.length);
+  return rest && !rest.includes('/') && !rest.includes('#') ? rest : null;
+}
 
 export function kindOf(path: string): SiteKind | null {
-  if (/^\/work\/[^/#]+$/.test(path)) return 'project';
-  if (/^\/research\/papers\/[^/#]+$/.test(path)) return 'paper';
-  if (/^\/blogs\/\d+$/.test(path)) return 'blog';
+  if (segmentAfter(path, '/work/')) return 'project';
+  if (segmentAfter(path, '/research/papers/')) return 'paper';
+  const blog = segmentAfter(path, '/blogs/');
+  if (blog && Array.from(blog).every((c) => c >= '0' && c <= '9')) return 'blog';
   if (path === '/') return 'home';
   if (path === '/contact') return 'contact';
   return null;
@@ -95,23 +105,6 @@ async function pageTitles(): Promise<Map<string, string>> {
   ]);
 }
 
-/** The keyword count search_site always used: one point per query word found in a page's title and summary text. */
-export async function keywordSearch(query: string): Promise<SiteHit[]> {
-  const words = query.toLowerCase().split(/\W+/).filter((w) => w.length > 2);
-  const score = (text: string) => words.reduce((n, w) => n + (text.toLowerCase().includes(w) ? 1 : 0), 0);
-  const [projects, papers, blogs] = await Promise.all([loadProjects(), loadPapers(), loadBlogs()]);
-  return [
-    ...projects.map((p) => ({ kind: 'project' as const, ref: projectPath(p), title: p.title, text: `${p.tagline}. ${p.description} ${p.tech.join(' ')}` })),
-    ...papers.map((p) => ({ kind: 'paper' as const, ref: `/research/papers/${p.id}`, title: p.title, text: p.abstract })),
-    ...blogs.map((b) => ({ kind: 'blog' as const, ref: `/blogs/${b.id}`, title: b.title, text: `${b.excerpt} ${b.tags.join(' ')}` })),
-  ]
-    .map((hit) => ({ ...hit, score: score(`${hit.title} ${hit.text}`) }))
-    .filter((hit) => hit.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, MAX_HITS)
-    .map(({ kind, ref, title, text }) => ({ kind, ref, title, summary: clip(text, 300) }));
-}
-
 type OctoMatch = { title?: string; documentId?: string; chunkIndex?: number; content?: string; similarity?: number | null; rerankScore?: number };
 export type OctoConfig = { base: string; workspaceId: string; key: string };
 export type RetrieveOptions = {
@@ -119,6 +112,8 @@ export type RetrieveOptions = {
   timeoutMs?: number;
   env?: NodeJS.ProcessEnv;
   rerank?: boolean;
+  /** A voice turn: the reranked query gets RAG_VOICE_TIMEOUT_MS. */
+  voice?: boolean;
   limit?: number;
   /** The site_sections rows by Octo document id; read from the workspace database when not given. */
   sections?: Promise<Map<string, SectionRow>> | Map<string, SectionRow>;
@@ -129,12 +124,21 @@ export function octoConfig(env: NodeJS.ProcessEnv = process.env): OctoConfig | n
   const key = env.OCTO_API_KEY?.trim();
   const workspaceId = env.OCTO_WORKSPACE_ID?.trim();
   if (!key || !workspaceId || env.COPILOT_RAG === 'off') return null;
-  const base = (env.OCTO_API_BASE ?? 'https://octodb.design-bakery.com').trim().replace(/\/+$/, '').replace(/\/api$/, '');
+  let base = (env.OCTO_API_BASE ?? 'https://octodb.design-bakery.com').trim();
+  while (base.endsWith('/')) base = base.slice(0, -1);
+  if (base.endsWith('/api')) base = base.slice(0, -'/api'.length);
   return { base, workspaceId, key };
 }
 
-/** The headings of a section's context line, "<page title>: <heading>", which is indexed text but not page text. */
-const CONTEXT_LINE = /^[^\n]*\n+/;
+/** A chunk's first line, "<page title>: <heading>" when it is the context header, and the text after it. */
+function splitHeader(content: string): { item: string; heading: string; rest: string } | null {
+  const end = content.indexOf('\n');
+  if (end < 0) return null;
+  const line = content.slice(0, end);
+  const colon = line.indexOf(': ');
+  if (colon < 0 || !line.slice(colon + 2).trim()) return null;
+  return { item: line.slice(0, colon), heading: line.slice(colon + 2).trim(), rest: content.slice(end).trimStart() };
+}
 
 /**
  * Matches in rank order, mapped to sections: only `site:` documents whose page still exists, above the relevance
@@ -165,12 +169,12 @@ export function mapMatches(matches: OctoMatch[], titles: Map<string, string>, re
       // The first chunk starts with the context header; the passage is the body after it.
       heading = row.heading || undefined;
       const header = `${row.item_title}: ${row.heading}`;
-      if (content.startsWith(header)) text = content.slice(header.length).replace(/^\s+/, '');
+      if (content.startsWith(header)) text = content.slice(header.length).trimStart();
     } else {
       // No row: the header names the heading when its item is the page's own title (projects, papers, posts).
-      const head = /^([^\n]*?): ([^\n]+)\n/.exec(content);
-      if (head && head[1] === pageTitle) heading = head[2].trim();
-      if (heading || (match.chunkIndex === 0 && head)) text = content.replace(CONTEXT_LINE, '');
+      const head = splitHeader(content);
+      if (head && head.item === pageTitle) heading = head.heading;
+      if (head && (heading || match.chunkIndex === 0)) text = head.rest;
     }
     out.push({ ...address, kind: kindOf(address.path)!, pageTitle, heading, text, score });
   }
@@ -201,7 +205,7 @@ async function queryOcto(query: string, config: OctoConfig, rerank: boolean, opt
       rerank,
       filter: { titlePrefix: SITE_PREFIX, latestVersionOnly: true },
     }),
-    signal: AbortSignal.timeout(options.timeoutMs ?? (rerank ? RAG_TIMEOUT_MS : RAG_FAST_TIMEOUT_MS)),
+    signal: AbortSignal.timeout(options.timeoutMs ?? (!rerank ? RAG_FAST_TIMEOUT_MS : options.voice ? RAG_VOICE_TIMEOUT_MS : RAG_TIMEOUT_MS)),
   });
   if (!res.ok) throw new Error(`octo rag query: HTTP ${res.status}`);
   const body = (await res.json()) as { matches?: OctoMatch[]; reranked?: boolean };
@@ -269,8 +273,11 @@ export function passagesBlock(passages: Passage[], maxChars = 700): string {
     .join('\n\n');
 }
 
-/** search_site: sections from Octo grouped by page; the keyword count when Octo is off, fails, times out or finds nothing. */
-export async function searchSite(query: string, options: RetrieveOptions = {}): Promise<{ hits: SiteHit[]; source: 'rag' | 'keyword' }> {
+/**
+ * search_site: sections from Octo grouped by page, best first. When Octo is off, fails or times out it says so: the
+ * turn then already carries the full site brief (route.ts), and no keyword count guesses at the visitor's words.
+ */
+export async function searchSite(query: string, options: RetrieveOptions = {}): Promise<{ hits: SiteHit[]; source: 'rag' | 'unavailable' }> {
   try {
     const passages = await retrieve([query], { ...options, limit: 12 });
     const hits: SiteHit[] = [];
@@ -279,11 +286,10 @@ export async function searchSite(query: string, options: RetrieveOptions = {}): 
       hits.push({ kind: p.kind, ref: p.path, title: p.pageTitle, summary: clip(`${p.heading ? `${p.heading}: ` : ''}${squash(p.text)}`, 300) });
       if (hits.length >= MAX_HITS) break;
     }
-    if (hits.length) return { hits, source: 'rag' };
+    return { hits, source: 'rag' };
   } catch {
-    // Fall through: a search that answers from the keyword count beats one that fails.
+    return { hits: [], source: 'unavailable' };
   }
-  return { hits: await keywordSearch(query), source: 'keyword' };
 }
 
 /** Section text for the index: the context line, then the page's own text. */
@@ -338,7 +344,7 @@ export async function siteDocuments(): Promise<SiteDocument[]> {
   const contact = [
     'To reach me, open the Contact page: pick an area and a time for a free 30-minute consultation call.',
     'I consult on AI engineering, product design, marketing, and full-stack development.',
-    ...SOCIAL_LINKS.map((l) => `${l.label}: ${l.url.replace(/^mailto:/, '')}`),
+    ...SOCIAL_LINKS.map((l) => `${l.label}: ${l.url.startsWith('mailto:') ? l.url.slice('mailto:'.length) : l.url}`),
   ];
   add('/contact', 'contact', 'contact', 'Contact', 'Contact', undefined, 'Contact and consultations', contact);
   return docs;

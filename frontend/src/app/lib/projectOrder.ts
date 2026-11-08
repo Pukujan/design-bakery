@@ -45,14 +45,25 @@ const CATEGORY_RANK: Record<ProjectCategory, number> = {
 };
 
 /**
- * Default All view leads with these titles, then the remaining shipped products
- * and system features, then research, experiments, and client work.
+ * Default All view leads with these titles (live products first, then the platform
+ * and tools), then the remaining shipped products and system features, then
+ * research, experiments, and client work.
  */
-const ALL_LEAD_TITLES = ['Website Copilot', 'Precedent', 'Ekagajpatra', 'Eval Lab', 'Agent Custom Setup'];
+const ALL_LEAD_TITLES = [
+  'Website Copilot',
+  'NYC Map Agent',
+  'Octo',
+  'Ekagajpatra',
+  'Study OS',
+  'Agent Custom Setup',
+  'Eval Lab',
+  'Precedent',
+];
 
 const WITHIN_CATEGORY: Record<ProjectCategory, readonly string[]> = {
-  shipped: ['Website Copilot', 'Precedent', 'Ekagajpatra', 'Study OS'],
+  shipped: ['Website Copilot', 'NYC Map Agent', 'Ekagajpatra', 'Study OS', 'Precedent'],
   systems: [
+    'Octo',
     'Agent Custom Setup',
     'Cortex',
     'Project Continuity Modules',
@@ -60,7 +71,6 @@ const WITHIN_CATEGORY: Record<ProjectCategory, readonly string[]> = {
   ],
   research: [
     'Eval Lab',
-    'Legal Workflow Research',
     'Inference Recommendation Engine',
     'FOSSIL',
   ],

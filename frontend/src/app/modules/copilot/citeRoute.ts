@@ -62,9 +62,11 @@ export type PassageCite = { path: string; anchor: string; heading: string; quote
 /**
  * When each later citation of a spoken answer is walked to. The first is made before he speaks (at 0). Each lands on a
  * sentence start, in the order spoken, at least MIN_DWELL_CHARS after the one before so he stays long enough to say the
- * passage; one that does not fit is dropped. `hold` is how many characters of speech the passage lasts.
+ * passage (`minDwell` overrides it; a swipe holds still while speaking, so it needs less); one that does not fit is
+ * dropped. `hold` is how many characters of speech the passage lasts.
  */
-export function passageSchedule<T extends PassageCite>(answer: string, cites: T[], opts: { after?: number; seen?: Set<string> } = {}): Array<{ cite: T; at: number; hold: number }> {
+export function passageSchedule<T extends PassageCite>(answer: string, cites: T[], opts: { after?: number; seen?: Set<string>; minDwell?: number } = {}): Array<{ cite: T; at: number; hold: number }> {
+  const dwell = opts.minDwell ?? MIN_DWELL_CHARS;
   const seen = new Set(opts.seen ?? []);
   const out: Array<{ cite: T; at: number }> = [];
   let prev = opts.after ?? 0;
@@ -72,9 +74,9 @@ export function passageSchedule<T extends PassageCite>(answer: string, cites: T[
   for (const [index, cite] of cites.entries()) {
     const key = `${cite.path}#${cite.anchor}`;
     if (seen.has(key) || out.length + 1 >= MAX_CITES) continue;
-    const raw = citeAt(answer, cite, index + 1, total, prev + MIN_DWELL_CHARS);
+    const raw = citeAt(answer, cite, index + 1, total, prev + dwell);
     let at = Math.max(sentenceStart(answer, raw), 0);
-    if (at < prev + MIN_DWELL_CHARS) at = nextSentenceStart(answer, prev + MIN_DWELL_CHARS);
+    if (at < prev + dwell) at = nextSentenceStart(answer, prev + dwell);
     if (at < 0 || at > answer.length - 20) continue;
     seen.add(key);
     out.push({ cite, at });
@@ -96,7 +98,6 @@ export function perchSpot(rect: { left: number; right: number; top: number; heig
   return { x: Math.min(view.width - 50, Math.max(40, rect.left + 24)), y: clampY(rect.top - 34) };
 }
 
-const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 /**
@@ -112,26 +113,22 @@ export function swipePlan(answerLength: number, ats: number[], cps: number, minG
 }
 
 /**
- * The page's scroll position `t` seconds into the speech: from where it started to the first heading (the given target
- * y), on to each next one, then a slow drift on through the last passage until the speech ends. Each leg to a heading
- * eases out, so the page slows as the heading settles into place; the final drift is even. `targets` are the live scroll
- * positions that put each heading in the upper third, so the page is followed as it settles.
+ * The page's scroll position `t` seconds into the speech. The page holds still while a passage is spoken, with its heading
+ * in the upper third, and travels to the next heading in one quick leg (`leg` seconds, eased in and out) that ends just
+ * as that heading's sentence starts. After the last heading it stays put, so the heading being spoken never leaves the
+ * screen. `targets` are the live scroll positions that put each heading in place, so the page is followed as it settles.
  */
-export function swipeY(t: number, plan: { times: number[]; end: number }, targets: number[], startY: number, drift = 240): number {
-  const points: Array<{ t: number; y: number; ease: (x: number) => number }> = [{ t: 0, y: startY, ease: easeInOut }];
-  plan.times.forEach((time, i) => points.push({ t: time, y: targets[i], ease: easeOutCubic }));
-  const last = points.at(-1)!;
-  points.push({ t: plan.end, y: last.y + drift, ease: easeInOut });
-  if (t <= 0) return startY;
-  for (let i = 1; i < points.length; i += 1) {
-    if (t <= points[i].t) {
-      const from = points[i - 1];
-      const span = points[i].t - from.t;
-      const x = span > 0 ? (t - from.t) / span : 1;
-      return from.y + (points[i].y - from.y) * points[i].ease(x);
-    }
+export function swipeY(t: number, plan: { times: number[]; end: number }, targets: number[], startY: number, leg = 1.1): number {
+  let y = startY;
+  let free = 0;
+  for (const [i, time] of plan.times.entries()) {
+    const from = Math.max(free, time - leg);
+    if (t <= from) return y;
+    if (t < time) return y + (targets[i] - y) * easeInOut((t - from) / (time - from));
+    y = targets[i];
+    free = time;
   }
-  return points.at(-1)!.y;
+  return y;
 }
 
 /**

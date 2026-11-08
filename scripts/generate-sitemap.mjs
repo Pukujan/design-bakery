@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Generate public/sitemap.xml before Vite build.
- * Prefers live blog list from Railway API or Supabase; falls back to blog-data.json.
+ * Prefers the live blog list from the Express API or Supabase; falls back to blog-data.json.
  */
 import fs from 'node:fs';
 import path from 'node:path';

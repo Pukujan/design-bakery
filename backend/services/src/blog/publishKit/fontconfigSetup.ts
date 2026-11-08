@@ -117,12 +117,12 @@ function ensureSystemDejaVuFontconfig(): void {
   refreshFontCache();
   fontMode = 'system-dejavu';
   initialized = true;
-  console.log(`[publish-kit:fonts] using system ${SYSTEM_FONT} (Railway apt fonts-dejavu-core)`);
+  console.log(`[publish-kit:fonts] using system ${SYSTEM_FONT} (fonts-dejavu-core, installed in the API image)`);
 }
 
 /**
  * Register fonts before sharp/librsvg rasterizes SVG text.
- * Railway: DejaVu Sans via nixpacks `dejavu_fonts` (no bundled Inter).
+ * API container (Linux): DejaVu Sans from `fonts-dejavu-core` in Dockerfile.api (no bundled Inter).
  * Local macOS: bundled Inter fallback when DejaVu is not installed.
  */
 export function ensurePublishKitFontconfig(): void {

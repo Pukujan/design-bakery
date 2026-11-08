@@ -1,0 +1,123 @@
+{
+  "name": "booking: a misheard name and a wrong email are corrected in any form",
+  "startPage": {
+    "path": "/",
+    "title": "Home"
+  },
+  "steps": [
+    {
+      "say": "I want to book a consultation.",
+      "expect": {
+        "navigatesTo": "/contact",
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "ask_name"
+        }
+      }
+    },
+    {
+      "say": "Fo John.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "confirm_name"
+        }
+      }
+    },
+    {
+      "say": "No.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "ask_name"
+        }
+      }
+    },
+    {
+      "say": "P U J A N.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "confirm_name",
+          "has": {
+            "name": "Pujan"
+          }
+        }
+      }
+    },
+    {
+      "say": "Yes it is.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "ask_pronunciation"
+        }
+      }
+    },
+    {
+      "say": "It's fine as spelled.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "ask_email"
+        }
+      }
+    },
+    {
+      "say": "poojan three six four five at gmail dot com",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "confirm_email",
+          "has": {
+            "email": "poojan3645@gmail.com"
+          }
+        }
+      }
+    },
+    {
+      "say": "No, that's wrong. It's P U J A N three six four five at gmail dot com.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "confirm_email",
+          "has": {
+            "email": "pujan3645@gmail.com"
+          }
+        }
+      }
+    },
+    {
+      "say": "Yes, product design.",
+      "expect": {
+        "actions": [
+          "book"
+        ],
+        "maxActions": {
+          "book": 1
+        },
+        "book": {
+          "name": "Pujan",
+          "email": "pujan3645@gmail.com",
+          "topic": "Product design"
+        }
+      }
+    }
+  ]
+}

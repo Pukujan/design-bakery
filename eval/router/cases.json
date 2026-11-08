@@ -1,0 +1,3460 @@
+[
+ {
+  "say": "Let's set up a call",
+  "page": "/work/oni-architecture",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yes.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Pull up your writing",
+  "page": "/work/cortex",
+  "intent": "open_page",
+  "target": "/blogs",
+  "source": "synthetic"
+ },
+ {
+  "say": "open the NYC Map Agent project",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/nyc-map-agent",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay uh",
+  "page": "/work/study-os",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Hello",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Give me a tour uh",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me anything.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Go to your experience",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "open_page",
+  "target": "/#experience",
+  "source": "synthetic"
+ },
+ {
+  "say": "Which proojects used React",
+  "page": "/research",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Um cool you know",
+  "page": "/contact",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay, that's interesting. But what what other work do you do? Or do you have any research paper, blogs?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "what stack does it use",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Wow",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yeah no",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "So that was great",
+  "page": "/work/website-copilot",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Open the Inference Recommendation Engine project",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/inference-recommendation",
+  "source": "synthetic"
+ },
+ {
+  "say": "sum it up",
+  "page": "/work/inference-recommendation",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "anything.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "recommend a movie",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Schedule a consultation",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "what does this project do",
+  "page": "/work/agent-custom-setup",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Uh",
+  "page": "/work/study-os",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Research is interesting.",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "okay",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "The NYC map",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/nyc-map-agent",
+  "source": "synthetic"
+ },
+ {
+  "say": "Help me with my homework",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "yes",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "uh because the",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "show me your projects",
+  "page": "/work/oni-architecture",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "synthetic"
+ },
+ {
+  "say": "Move on",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "what does this paper say",
+  "page": "/research/papers/db-r-2026-009",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay absolutely",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Let's set up a call uh",
+  "page": "/work/oni-architecture",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about Agent Custom Setup",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/agent-custom-setup",
+  "source": "synthetic"
+ },
+ {
+  "say": "let's see the about section",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/#about",
+  "source": "synthetic"
+ },
+ {
+  "say": "What's NYC Map Agent",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/nyc-map-agent",
+  "source": "synthetic"
+ },
+ {
+  "say": "the last one",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "previous",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Where are you based",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What's the weather today",
+  "page": "/work/website-copilot",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Oh wait you know",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Correct",
+  "page": "/",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "good evening",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "call my mom",
+  "page": "/work/website-copilot",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "I want to book a consultation",
+  "page": "/blogs",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "I didn't open I don't see the booking card.",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "research bout ai",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "I don't have to see then.",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "take me to your blog posts",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "open_page",
+  "target": "/blogs",
+  "source": "synthetic"
+ },
+ {
+  "say": "next article",
+  "page": "/work/octo",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "show me your best work",
+  "page": "/work/fossil",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Open the Project Continuity Modules project",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/project-continuity",
+  "source": "synthetic"
+ },
+ {
+  "say": "And even here",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Just show me anything, come on.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "he said that",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "show me President",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "synthetic"
+ },
+ {
+  "say": "What is this page about you know",
+  "page": "/work/voidfeed",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about Ekagajpatra",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/ekagajpatra",
+  "source": "synthetic"
+ },
+ {
+  "say": "Lol please",
+  "page": "/work/study-os",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "what do you want to show me?",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Go back",
+  "page": "/work/nyc-map-agent",
+  "intent": "previous",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "okay so",
+  "page": "/work/oni-architecture",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "I don't actually see all the cards here.",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "No, I mean like Uh I don't know what you what do you want to tell me about Poojan?",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me Website Copilot",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/website-copilot",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about Website Copilot",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/website-copilot",
+  "source": "synthetic"
+ },
+ {
+  "say": "show me anything",
+  "page": "/blogs",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "so um",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me something interesting",
+  "page": "/research",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "show me ONI vs My Agent Ready Architecture",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/oni-architecture",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about Eval Lab",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/eval-lab",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay who won the game last night",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What problem does this solve",
+  "page": "/work/study-os",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Um take me to your work history",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/#experience",
+  "source": "synthetic"
+ },
+ {
+  "say": "what does he do?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "I want to hire you, can we talk",
+  "page": "/work/fossil",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "yeah show me your portfolio",
+  "page": "/work/fossil",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "synthetic"
+ },
+ {
+  "say": "Bring up where you have worked",
+  "page": "/work/website-copilot",
+  "intent": "open_page",
+  "target": "/#experience",
+  "source": "synthetic"
+ },
+ {
+  "say": "That's okay",
+  "page": "/blogs",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "tell me about FOSSIL",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/fossil",
+  "source": "synthetic"
+ },
+ {
+  "say": "And then the",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "More",
+  "page": "/work/orbitgraph",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Can you explain what this is come on",
+  "page": "/work/precedent",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Uh open the website copilot project",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/website-copilot",
+  "source": "synthetic"
+ },
+ {
+  "say": "what's the price of bitcoin",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "uh what's Website Copilot",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/website-copilot",
+  "source": "synthetic"
+ },
+ {
+  "say": "Is it open source",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay, show me. And tell me about it.",
+  "page": "/research",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "how long did it take",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "can you explain what this is",
+  "page": "/work/precedent",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "um carry on",
+  "page": "/research/papers/db-r-2026-005",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Mm hm",
+  "page": "/blogs",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "you choose you know",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay what does this project do",
+  "page": "/work/agent-custom-setup",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yeah, show me the project called Precedent or Or precedent. I don't know.",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "real"
+ },
+ {
+  "say": "why did you build this",
+  "page": "/work/website-copilot",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Open the Cortex project",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/cortex",
+  "source": "synthetic"
+ },
+ {
+  "say": "that's okay come on",
+  "page": "/blogs",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Sure what's cortex?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/cortex",
+  "source": "real"
+ },
+ {
+  "say": "N what What models Did that.",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "can we have a call",
+  "page": "/",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "take me back",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "previous",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me some of his projects.",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "real"
+ },
+ {
+  "say": "Cool",
+  "page": "/contact",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Forget it you know",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay tell me about project continuity modules",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/project-continuity",
+  "source": "synthetic"
+ },
+ {
+  "say": "I saw it somewhere",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Hello",
+  "page": "/work/oni-architecture",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "okay the NYC map",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/nyc-map-agent",
+  "source": "synthetic"
+ },
+ {
+  "say": "So what does this paper say please",
+  "page": "/research/papers/db-r-2026-009",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me Project Continuity Modules",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/project-continuity",
+  "source": "synthetic"
+ },
+ {
+  "say": "Michael Maps. Why is it And when I did see this Uh The humor on Okay, yeah.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Poojan three six four five at gmail dot com",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Sorry what",
+  "page": "/work/fossil",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Deep seek uh ah okay.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Tell me about Cortex",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/cortex",
+  "source": "synthetic"
+ },
+ {
+  "say": "What's Website Copilot",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/website-copilot",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yep",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "But How does the permission work?",
+  "page": "/work/cortex",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Yeah, sure.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "hi there you know",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "what's the President project?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "real"
+ },
+ {
+  "say": "uh tell me about Cortex",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/cortex",
+  "source": "synthetic"
+ },
+ {
+  "say": "which projects used React",
+  "page": "/research",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "and even here",
+  "page": "/work/oni-architecture",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yeah good morning",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Open the research papers",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "synthetic"
+ },
+ {
+  "say": "Go to the work section please",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "synthetic"
+ },
+ {
+  "say": "Nice",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "We're trying some",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "How do I reach you?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/contact",
+  "source": "real"
+ },
+ {
+  "say": "Yeah i dunno, show me whatever",
+  "page": "/research",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "tell me about AI News.",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "open the ONI vs My Agent Ready Architecture project",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/oni-architecture",
+  "source": "synthetic"
+ },
+ {
+  "say": "How do I bake bread",
+  "page": "/work/website-copilot",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "set up a meeting",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "next one",
+  "page": "/work/ekagajpatra",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Can I book a consultation?",
+  "page": "/",
+  "intent": "book",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Hi how are u",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Fo John.",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "who are you",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "are you there",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "show me project continuity modules uh",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/project-continuity",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yes please",
+  "page": "/",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "yeah give me a quick overview",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay, show me.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Hello?",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "what models does it use",
+  "page": "/work/oni-architecture",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "go on",
+  "page": "/work/study-os",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "what did you learn",
+  "page": "/research",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me NYC Map Agent",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/nyc-map-agent",
+  "source": "synthetic"
+ },
+ {
+  "say": "Are you available for hire",
+  "page": "/work/fossil",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "okay maybe later",
+  "page": "/",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Book the call",
+  "page": "/work/fossil",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about NYC Map Agent",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/nyc-map-agent",
+  "source": "synthetic"
+ },
+ {
+  "say": "um what tech do you know",
+  "page": "/blogs",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "what's octo please",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/octo",
+  "source": "synthetic"
+ },
+ {
+  "say": "no, I mean how does this NYC map agent work?",
+  "page": "/work/nyc-map-agent",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me Cortex",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/cortex",
+  "source": "synthetic"
+ },
+ {
+  "say": "okay next",
+  "page": "/work/inference-recommendation",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "anything",
+  "page": "/work/study-os",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay go back",
+  "page": "/work/nyc-map-agent",
+  "intent": "previous",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "open the Eval Lab project",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/eval-lab",
+  "source": "synthetic"
+ },
+ {
+  "say": "So book the call",
+  "page": "/work/fossil",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Bring up your work",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about Orbitgraph",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/orbitgraph",
+  "source": "synthetic"
+ },
+ {
+  "say": "show me the next paper",
+  "page": "/work/nyc-map-agent",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "whatever you like",
+  "page": "/blogs",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "open the reasearch papers",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yes, please.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "do you do consulting",
+  "page": "/work/study-os",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "How does it handle uh what if it Uh brings in the wrong case, how does it know?",
+  "page": "/work/precedent",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Um what's the capital of france",
+  "page": "/work/oni-architecture",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "uh open the octo project",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/octo",
+  "source": "synthetic"
+ },
+ {
+  "say": "How does it handle errors",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "You run the servers?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me Octa",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/octo",
+  "source": "synthetic"
+ },
+ {
+  "say": "tell me about Study OS",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/study-os",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yeah.",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Okay and",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "next",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Open the Website Copilot project",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/website-copilot",
+  "source": "synthetic"
+ },
+ {
+  "say": "Back to the last one",
+  "page": "/work/voidfeed",
+  "intent": "previous",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "And",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "that would be great",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What have you got",
+  "page": "/blogs",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Summarise it",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me octa",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/octo",
+  "source": "synthetic"
+ },
+ {
+  "say": "Marketing.",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "show me Agent Custom Setup",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/agent-custom-setup",
+  "source": "synthetic"
+ },
+ {
+  "say": "How does this work?",
+  "page": "/work/cortex",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What's Cortex",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/cortex",
+  "source": "synthetic"
+ },
+ {
+  "say": "He dare.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me Voidfeed",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/voidfeed",
+  "source": "synthetic"
+ },
+ {
+  "say": "tell me about Precedent",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me your proojects",
+  "page": "/work/oni-architecture",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "synthetic"
+ },
+ {
+  "say": "What's Precedent",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "synthetic"
+ },
+ {
+  "say": "another one",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "show me ekagajpatra please",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/ekagajpatra",
+  "source": "synthetic"
+ },
+ {
+  "say": "Um who are you",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about Cortex.",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/cortex",
+  "source": "real"
+ },
+ {
+  "say": "take me to what you have built",
+  "page": "/work/website-copilot",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "synthetic"
+ },
+ {
+  "say": "Back",
+  "page": "/work/oni-architecture",
+  "intent": "previous",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Next please",
+  "page": "/work/ekagajpatra",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Why not",
+  "page": "/",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "So can you hear me",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "um I want to book a consultation",
+  "page": "/blogs",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "can I schedule a call",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "no, because the light connection is still blocked.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Open the Fluffy V4 project",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/fluffy-v4",
+  "source": "synthetic"
+ },
+ {
+  "say": "Skip to the next",
+  "page": "/work/orbitgraph",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What does this paper try to say?",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "thank you",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "research Hello",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "right",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "The President project",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me your papers",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay come on",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Open Arise please",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "synthetic"
+ },
+ {
+  "say": "um take me to what you have built",
+  "page": "/work/website-copilot",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "synthetic"
+ },
+ {
+  "say": "what what come on",
+  "page": "/work/study-os",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Thanks",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What is RAG",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "you pick",
+  "page": "/work/study-os",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "um what have you got",
+  "page": "/blogs",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "That's interesting. How does it handle? people",
+  "page": "/work/cortex",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What's next? Anything else interesting about Fujian lately?",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "next",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Hmm",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Next one please",
+  "page": "/work/ekagajpatra",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "I don't know, you decide",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Publish App Store? No. No.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Pull up your research",
+  "page": "/work/study-os",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "synthetic"
+ },
+ {
+  "say": "Give me a quick overview",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me Precedent",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "synthetic"
+ },
+ {
+  "say": "uh tell me about voidfeed",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/voidfeed",
+  "source": "synthetic"
+ },
+ {
+  "say": "What is best project?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "what's in the research section? Do you wanna show me your research?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "I dunno, show me whatever",
+  "page": "/research",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What about Another project. What else does he have?",
+  "page": "/work/cortex",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me the one before that",
+  "page": "/research/papers/db-r-2026-009",
+  "intent": "previous",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "surprise me",
+  "page": "/work/cortex",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What's this about",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Uh open the nyc map agent project come on",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/nyc-map-agent",
+  "source": "synthetic"
+ },
+ {
+  "say": "do you work with legal companies",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What's Orbitgraph",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/orbitgraph",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay and then",
+  "page": "/work/inference-recommendation",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "impress me",
+  "page": "/work/cortex",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Sure",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Take me to your research section",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "synthetic"
+ },
+ {
+  "say": "Book a time",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "I'd like to talk to you, how do I book",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Good evening come on",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about this one",
+  "page": "/research/papers/db-r-2026-007",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Open the Ekagajpatra project",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/ekagajpatra",
+  "source": "synthetic"
+ },
+ {
+  "say": "Hi there",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about Project Continuity Modules",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/project-continuity",
+  "source": "synthetic"
+ },
+ {
+  "say": "Play some music",
+  "page": "/work/fossil",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Nope",
+  "page": "/contact",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What's Eval Lab",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/eval-lab",
+  "source": "synthetic"
+ },
+ {
+  "say": "hey",
+  "page": "/work/website-copilot",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "You wanna show me this paper and talk me through it?",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Let's see research",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "synthetic"
+ },
+ {
+  "say": "Absolutely",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What do you do",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "we're trying some please",
+  "page": "/work/study-os",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "cancel",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Who is it for please",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "okay I saw it somewhere",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "project show me one",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What's FOSSIL",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/fossil",
+  "source": "synthetic"
+ },
+ {
+  "say": "How does it work",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay do you work with legal companies",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "open the Agent Custom Setup project",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/agent-custom-setup",
+  "source": "synthetic"
+ },
+ {
+  "say": "Is it because of this? Now it's publishing, right? Yeah.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Uh do you do consulting",
+  "page": "/work/study-os",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "just show me something",
+  "page": "/work/study-os",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "can you hear me",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "tell me about Inference Recommendation Engine",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/inference-recommendation",
+  "source": "synthetic"
+ },
+ {
+  "say": "what's Ekagajpatra",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/ekagajpatra",
+  "source": "synthetic"
+ },
+ {
+  "say": "Um the next one",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "The President project please",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "synthetic"
+ },
+ {
+  "say": "Open Arise",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "synthetic"
+ },
+ {
+  "say": "Oh okay",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Open the Octo project",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/octo",
+  "source": "synthetic"
+ },
+ {
+  "say": "open the FOSSIL project",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/fossil",
+  "source": "synthetic"
+ },
+ {
+  "say": "go to the previous paper",
+  "page": "/research/papers/db-r-2026-005",
+  "intent": "previous",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about NYC Map Agent you know",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/nyc-map-agent",
+  "source": "synthetic"
+ },
+ {
+  "say": "How do I book a call with you",
+  "page": "/work/cortex",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Uh summarize this",
+  "page": "/research/papers/db-r-2026-011",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yeah tell me about orbitgraph",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/orbitgraph",
+  "source": "synthetic"
+ },
+ {
+  "say": "Hello, can you hear me?",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "How can you help with full-stack development?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Should be anything.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "How does it work?",
+  "page": "/work/cortex",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What does that even mean?",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "No thanks",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What's project continuity modules you know",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/project-continuity",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me your portfolio",
+  "page": "/work/fossil",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "synthetic"
+ },
+ {
+  "say": "What what",
+  "page": "/work/study-os",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Pull up your writing uh",
+  "page": "/work/cortex",
+  "intent": "open_page",
+  "target": "/blogs",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yeah",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Do you wanna show me this paper and summarize it for me?",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "and even here uh",
+  "page": "/work/oni-architecture",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me Inference Recommendation Engine",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/inference-recommendation",
+  "source": "synthetic"
+ },
+ {
+  "say": "show me inference recommendation engine uh",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/inference-recommendation",
+  "source": "synthetic"
+ },
+ {
+  "say": "Translate this to Spanish please",
+  "page": "/work/study-os",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "open the Inference Recommendation Engine project come on",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/inference-recommendation",
+  "source": "synthetic"
+ },
+ {
+  "say": "open the Voidfeed project",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/voidfeed",
+  "source": "synthetic"
+ },
+ {
+  "say": "what's the capital of France",
+  "page": "/work/oni-architecture",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Hey please",
+  "page": "/work/website-copilot",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "so show me Voidfeed",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/voidfeed",
+  "source": "synthetic"
+ },
+ {
+  "say": "what's Agent Custom Setup",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/agent-custom-setup",
+  "source": "synthetic"
+ },
+ {
+  "say": "Who is it for",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "show me Orbitgraph",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/orbitgraph",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay yeah",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "previous one uh",
+  "page": "/work/voidfeed",
+  "intent": "previous",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "So sure",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "the one before",
+  "page": "/work/inference-recommendation",
+  "intent": "previous",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yeah tell me about octo",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/octo",
+  "source": "synthetic"
+ },
+ {
+  "say": "Experience",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/#experience",
+  "source": "real"
+ },
+ {
+  "say": "Uh no",
+  "page": "/blogs",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What are your experiences?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/#experience",
+  "source": "real"
+ },
+ {
+  "say": "sounds good",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay show me Eval Lab",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/eval-lab",
+  "source": "synthetic"
+ },
+ {
+  "say": "Summarize this",
+  "page": "/research/papers/db-r-2026-011",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Open the Orbitgraph project",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/orbitgraph",
+  "source": "synthetic"
+ },
+ {
+  "say": "How are you",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "The next one",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "How does it reshuffle?",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What do you build?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "hermes research",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "take me to how to reach you",
+  "page": "/work/study-os",
+  "intent": "open_page",
+  "target": "/contact",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yeah let's see the contact page",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "open_page",
+  "target": "/contact",
+  "source": "synthetic"
+ },
+ {
+  "say": "who are you",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Give me a toll.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "take me to your work history",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/#experience",
+  "source": "synthetic"
+ },
+ {
+  "say": "proojects",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "real"
+ },
+ {
+  "say": "How many proojects do you have please",
+  "page": "/work/study-os",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Hmm uh",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "So open the Fluffy V4 project come on",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/fluffy-v4",
+  "source": "synthetic"
+ },
+ {
+  "say": "What have you got for me?",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "keep going",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Not now",
+  "page": "/",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Previous",
+  "page": "/work/octo",
+  "intent": "previous",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Set a timer for ten minutes",
+  "page": "/work/website-copilot",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "what's next",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "previous one",
+  "page": "/work/voidfeed",
+  "intent": "previous",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What stack does it use uh",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Hello",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "one back",
+  "page": "/research/papers/db-r-2026-006",
+  "intent": "previous",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "because the",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "I'm good",
+  "page": "/",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me?",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Lol",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Uh tell me about president",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "synthetic"
+ },
+ {
+  "say": "Carry on",
+  "page": "/research/papers/db-r-2026-005",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Lol",
+  "page": "/work/study-os",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Okay next",
+  "page": "/work/website-copilot",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "I don't get it, what happened?",
+  "page": "/work/cortex",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What is this?",
+  "page": "/work/website-copilot",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "It's because of this",
+  "page": "/work/study-os",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me FOSSIL",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/fossil",
+  "source": "synthetic"
+ },
+ {
+  "say": "Can I ask about uh real estate? It might be something.",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "stop",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "what is temporal gravity?",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "So hello",
+  "page": "/work/oni-architecture",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "open the Precedent project",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "synthetic"
+ },
+ {
+  "say": "what is this page about",
+  "page": "/work/voidfeed",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Never mind",
+  "page": "/contact",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "TLDR this",
+  "page": "/work/inference-recommendation",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "continue uh",
+  "page": "/research/papers/db-r-2026-006",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Please do",
+  "page": "/",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Who are you?",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "right right",
+  "page": "/research",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What is rag uh",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "uh mm hm",
+  "page": "/blogs",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yeah, show me the table.",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "take me to your blog posts please",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "open_page",
+  "target": "/blogs",
+  "source": "synthetic"
+ },
+ {
+  "say": "what's the point of this",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What experience do you have?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/#experience",
+  "source": "real"
+ },
+ {
+  "say": "Okay tell me about ekagajpatra",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/ekagajpatra",
+  "source": "synthetic"
+ },
+ {
+  "say": "no",
+  "page": "/blogs",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "thanks you know",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "what's your background",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "uh how long did it take",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "show me Ekagajpatra",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/ekagajpatra",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about Voidfeed",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/voidfeed",
+  "source": "synthetic"
+ },
+ {
+  "say": "Just show me anything.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me agent custom setup you know",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/agent-custom-setup",
+  "source": "synthetic"
+ },
+ {
+  "say": "Take me somewhere cool",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "what's Octo",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/octo",
+  "source": "synthetic"
+ },
+ {
+  "say": "I don't see anything.",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "go ahead",
+  "page": "/contact",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "I dunno, you tell me about your work.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Okay show me Fluffy V4 come on",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/fluffy-v4",
+  "source": "synthetic"
+ },
+ {
+  "say": "give me a tour",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "continue",
+  "page": "/research/papers/db-r-2026-006",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "turn off the lights",
+  "page": "/work/oni-architecture",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What's Study OS",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/study-os",
+  "source": "synthetic"
+ },
+ {
+  "say": "How can you help with ai engineering?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "show me some research.",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "What studio is?",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Is it only for filling forms?",
+  "page": "/work/website-copilot",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me anything that's interesting.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "how many projects do you have",
+  "page": "/work/study-os",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yeah why not",
+  "page": "/",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Do you wanna read me about some of them?",
+  "page": "/research",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Maybe later",
+  "page": "/",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "okay. What's Uh I don't know, you decide on something?",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What's president",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "synthetic"
+ },
+ {
+  "say": "Translate this to Spanish",
+  "page": "/work/study-os",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Get me McDonald's",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Hi pujan how are u show me some research",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "Show me Eval Lab",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/eval-lab",
+  "source": "synthetic"
+ },
+ {
+  "say": "Are you a robot",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Lama what?",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Get me McDonald's you know",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "That or maybe like this? Oh yeah, it's just really slow. Oh yeah. Really slow. Okay, this is done.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Walk me through this",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "oh wait",
+  "page": "/contact",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about Octo",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/octo",
+  "source": "synthetic"
+ },
+ {
+  "say": "What are the highlights",
+  "page": "/work/fluffy-v4",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "So set up a meeting",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What's your favorite project",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "So show me fossil",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/fossil",
+  "source": "synthetic"
+ },
+ {
+  "say": "Book the call.",
+  "page": "/research/papers/db-r-2026-010",
+  "intent": "book",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "uh bring up your work",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "synthetic"
+ },
+ {
+  "say": "Next",
+  "page": "/work/website-copilot",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Hello.",
+  "page": "/",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "what's ONI vs My Agent Ready Architecture",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/oni-architecture",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yes, I've been telling you this for a while.",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me about you",
+  "page": "/work/website-copilot",
+  "intent": "open_page",
+  "target": "/#about",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me Study OS",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/study-os",
+  "source": "synthetic"
+ },
+ {
+  "say": "You choose",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Research.",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "real"
+ },
+ {
+  "say": "that was great",
+  "page": "/work/website-copilot",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "let's see your contact info",
+  "page": "/work/oni-architecture",
+  "intent": "open_page",
+  "target": "/contact",
+  "source": "synthetic"
+ },
+ {
+  "say": "who won the game last night",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "tell me about Eval Labs",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/eval-lab",
+  "source": "synthetic"
+ },
+ {
+  "say": "Hello?",
+  "page": "/research",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "the light is still blocked",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Give me the gist",
+  "page": "/work/agent-custom-setup",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yeah pull up your reasearch",
+  "page": "/work/study-os",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "synthetic"
+ },
+ {
+  "say": "And then",
+  "page": "/research/papers/db-r-2026-008",
+  "intent": "next",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Open the Study OS project",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/study-os",
+  "source": "synthetic"
+ },
+ {
+  "say": "Uh bring up where you have worked",
+  "page": "/work/website-copilot",
+  "intent": "open_page",
+  "target": "/#experience",
+  "source": "synthetic"
+ },
+ {
+  "say": "what's the hardest part",
+  "page": "/work/study-os",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What's Voidfeed",
+  "page": "/blogs",
+  "intent": "open_page",
+  "target": "/work/voidfeed",
+  "source": "synthetic"
+ },
+ {
+  "say": "Order me a taxi",
+  "page": "/contact",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about oni vs my agent ready architecture come on",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/oni-architecture",
+  "source": "synthetic"
+ },
+ {
+  "say": "I'm hungry, get me McDonald's",
+  "page": "/",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "What's Fluffy V4",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/fluffy-v4",
+  "source": "synthetic"
+ },
+ {
+  "say": "bring up the blog",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "open_page",
+  "target": "/blogs",
+  "source": "synthetic"
+ },
+ {
+  "say": "I'd like to see your articles",
+  "page": "/work/website-copilot",
+  "intent": "open_page",
+  "target": "/blogs",
+  "source": "synthetic"
+ },
+ {
+  "say": "okay show me Precedent",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "synthetic"
+ },
+ {
+  "say": "good morning",
+  "page": "/research/papers/db-r-2026-001",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "let's see the contact page",
+  "page": "/research/papers/db-r-2026-003",
+  "intent": "open_page",
+  "target": "/contact",
+  "source": "synthetic"
+ },
+ {
+  "say": "What did Arise have to do with this project?",
+  "page": "/work/precedent",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Go to the work section",
+  "page": "/research/papers/db-r-2026-002",
+  "intent": "open_page",
+  "target": "/#work",
+  "source": "synthetic"
+ },
+ {
+  "say": "Just anyone, come on.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Can I see the papers",
+  "page": "/work/study-os",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "synthetic"
+ },
+ {
+  "say": "Do it",
+  "page": "/blogs",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "I need a consultation",
+  "page": "/research",
+  "intent": "book",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "so how does it handle errors",
+  "page": "/contact",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "the thing is",
+  "page": "/work/oni-architecture",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "not really",
+  "page": "/contact",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yeah open the orbitgraph project",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/orbitgraph",
+  "source": "synthetic"
+ },
+ {
+  "say": "what's Project Continuity Modules",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/project-continuity",
+  "source": "synthetic"
+ },
+ {
+  "say": "Explain this",
+  "page": "/research/papers/db-r-2026-008",
+  "intent": "summarize",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Show me your papers come on",
+  "page": "/research/papers/db-r-2026-004",
+  "intent": "open_page",
+  "target": "/research",
+  "source": "synthetic"
+ },
+ {
+  "say": "I saw it here somewhere like in the back end, right?",
+  "page": "/",
+  "intent": "unclear",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me Fluffy V4",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/fluffy-v4",
+  "source": "synthetic"
+ },
+ {
+  "say": "okay yep",
+  "page": "/research",
+  "intent": "confirm",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "what tech do you know",
+  "page": "/blogs",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What's agent custom setup come on",
+  "page": "/research",
+  "intent": "open_page",
+  "target": "/work/agent-custom-setup",
+  "source": "synthetic"
+ },
+ {
+  "say": "I mean like",
+  "page": "/blogs",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "yeah what's the hardest part",
+  "page": "/work/study-os",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "whatever you like you know",
+  "page": "/blogs",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Database",
+  "page": "/",
+  "intent": "question",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "President",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/precedent",
+  "source": "real"
+ },
+ {
+  "say": "What's your name",
+  "page": "/work/cortex",
+  "intent": "chitchat",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What are the results",
+  "page": "/work/oni-architecture",
+  "intent": "question",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "What's the highlights?",
+  "page": "/work/website-copilot",
+  "intent": "summarize",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Show me.",
+  "page": "/",
+  "intent": "surprise",
+  "target": "none",
+  "source": "real"
+ },
+ {
+  "say": "Forget it",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "what time is it in Tokyo",
+  "page": "/work/fossil",
+  "intent": "off_topic",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about ONI vs My Agent Ready Architecture",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/oni-architecture",
+  "source": "synthetic"
+ },
+ {
+  "say": "No How do I contact Poojan?",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/contact",
+  "source": "real"
+ },
+ {
+  "say": "Show me Octo",
+  "page": "/contact",
+  "intent": "open_page",
+  "target": "/work/octo",
+  "source": "synthetic"
+ },
+ {
+  "say": "what's Inference Recommendation Engine",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/inference-recommendation",
+  "source": "synthetic"
+ },
+ {
+  "say": "Yeah you pick",
+  "page": "/work/study-os",
+  "intent": "surprise",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "No that's fine",
+  "page": "/research",
+  "intent": "decline",
+  "target": "none",
+  "source": "synthetic"
+ },
+ {
+  "say": "Tell me about Fluffy V4",
+  "page": "/",
+  "intent": "open_page",
+  "target": "/work/fluffy-v4",
+  "source": "synthetic"
+ },
+ {
+  "say": "We're trying some",
+  "page": "/work/study-os",
+  "intent": "unclear",
+  "target": "none",
+  "source": "synthetic"
+ }
+]

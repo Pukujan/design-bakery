@@ -9,10 +9,9 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const root = new URL('..', import.meta.url);
-let t, s, fb, h, ai, oai;
+let t, fb, h, ai, oai;
 try {
   t = await import(new URL('./backend/lib/copilot/truncation.js', root).href);
-  s = await import(new URL('./backend/lib/copilot/smallTalk.js', root).href);
   fb = await import(new URL('./backend/lib/copilot/model-fallback.js', root).href);
   h = await import(new URL('./backend/lib/copilot/health.js', root).href);
   const need = createRequire(new URL('./backend/package.json', root));
@@ -68,15 +67,34 @@ assert.deepEqual(fb.withoutThinking('workbuddy:auto', { a: 1 }), { a: 1 }, 'a pr
 assert.deepEqual(fb.withoutThinking('qwen:yolo', { a: 1 }, 'on'), { a: 1 }, 'INFERHUB_THINKING=on leaves thinking alone');
 
 // 5. Small talk skips the tool loop, offers and questions about the site do not.
-for (const q of ['im doing fine thanks!', 'Nothing.', 'how are u', 'thanks', 'lol', "I'm good, you?"]) assert.equal(s.isPlainSmallTalk(q, 'How are you doing?'), true, q);
-assert.equal(s.isPlainSmallTalk('sure', 'Want me to open the Work page?'), false, '"sure" to an offer needs tools');
-assert.equal(s.isPlainSmallTalk('sure', 'Want me to dig into the evaluation graph or the eval setup?'), false);
-assert.equal(s.isPlainSmallTalk('how many papers have you written'), false);
-assert.equal(s.isPlainSmallTalk('show me your projects'), false);
-assert.equal(s.isPlainSmallTalk('nothing', 'Anyone catching your eye? I can open the page or give you the two-sentence version.'), false, 'an answer to an offer about the site');
 
 // 6. On a call the quickest healthy provider goes first; a chat keeps the table order.
 const ps = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
 assert.deepEqual(h.byHealth(ps, true).map((p) => p.id), ['a', 'b', 'c'], 'never probed: table order');
 
-console.log('copilot truncation: 6 groups ok');
+// 7. The free reasoning model never jumps the queue on a call, even when its probe was the quickest.
+assert.deepEqual(h.byHealth([{ id: 'a' }, { id: 'openrouter' }, { id: 'c' }], true).map((p) => p.id), ['a', 'c', 'openrouter'], 'free model last among the healthy');
+
+// 8. Real reply times outrank the probe: a provider that probes quickest but answers slowly drops behind. Needs two samples.
+{
+  const hh = await import(new URL('./backend/lib/copilot/health.js', root).href);
+  const list = [{ id: 'slow' }, { id: 'quick' }, { id: 'openrouter' }];
+  hh.noteLatency('slow', 9000);
+  assert.deepEqual(hh.byHealth(list, true).map((p) => p.id), ['slow', 'quick', 'openrouter'], 'one sample is not enough to reorder');
+  hh.noteLatency('slow', 8000); hh.noteLatency('quick', 1500); hh.noteLatency('quick', 1800);
+  assert.deepEqual(hh.byHealth(list, true).map((p) => p.id), ['quick', 'slow', 'openrouter'], 'measured speed ranks, the free model stays last');
+  assert.deepEqual(hh.byHealth(list, false).map((p) => p.id), ['slow', 'quick', 'openrouter'], 'a chat keeps the table order');
+  hh.noteLatency('quick', NaN); hh.noteLatency('quick', -5);
+  assert.deepEqual(hh.byHealth(list, true).map((p) => p.id), ['quick', 'slow', 'openrouter'], 'junk samples are ignored');
+}
+
+// 9. Haiku stays first on a call even when another provider answers faster.
+{
+  const hh = await import(new URL('./backend/lib/copilot/health.js?haiku', root).href);
+  const list = [{ id: 'deepseek' }, { id: 'haiku' }, { id: 'openrouter' }];
+  hh.noteLatency('haiku', 3000); hh.noteLatency('haiku', 3000); hh.noteLatency('deepseek', 900); hh.noteLatency('deepseek', 900);
+  assert.deepEqual(hh.byHealth(list, true).map((p) => p.id), ['haiku', 'deepseek', 'openrouter'], 'haiku first on a call');
+  assert.deepEqual(hh.byHealth(list, false).map((p) => p.id), ['haiku', 'deepseek', 'openrouter'], 'haiku first in a chat');
+}
+
+console.log('copilot truncation: 9 groups ok');

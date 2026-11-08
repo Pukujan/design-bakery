@@ -1,0 +1,13 @@
+{
+  "_about": "Lines inserted into a flow for MR-2 (copilot-spec.md §8): each should be served without disturbing the flow. moves: the line may move the page, so it is only inserted into flows whose pages are not compared.",
+  "detours": [
+    { "say": "Where are you based?", "moves": false },
+    { "say": "What's your favourite AI model, honestly?", "moves": false },
+    { "say": "Sorry, my dog is barking.", "moves": false },
+    { "say": "How long have you been building AI products?", "moves": false },
+    { "say": "Hey Sam, can you grab me a coffee?", "moves": false },
+    { "say": "Wait.", "moves": false },
+    { "say": "Show me your research.", "moves": true },
+    { "say": "What's Precedent?", "moves": true }
+  ]
+}

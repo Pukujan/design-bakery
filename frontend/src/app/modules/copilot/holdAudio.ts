@@ -7,7 +7,8 @@
  * arrives, or the moment anyone starts talking.
  */
 
-type Line = { src: string; text: string };
+/** `pauses`: where the clip goes quiet between beats, in seconds (measured from the files), so a filler stops on a pause and never mid-word. */
+type Line = { src: string; text: string; pauses?: number[] };
 
 const CONNECTING: Line[] = [
   { src: '/voice/connecting-1.m4a', text: "Hold on, I'm getting set up. I'll be right with you." },
@@ -38,17 +39,17 @@ const MUTED: Line = { src: '/voice/nudge-muted.m4a', text: "I can't hear you rig
  * of separate phrases.
  */
 const OPENERS: Line[] = [
-  { src: '/voice/think-open-1.m4a', text: 'Hmmmmmm... I... see... Lemme think here, for a sec.' },
-  { src: '/voice/think-open-2.m4a', text: 'Mmmm. Okay... Lemme see here...' },
-  { src: '/voice/think-open-3.m4a', text: 'Hmmmmm... Right. Let me think about that...' },
-  { src: '/voice/think-open-4.m4a', text: 'Ahhh. Okay... Let me have a look...' },
+  { src: '/voice/think-open-1.m4a', text: 'Hmmmmmm... I... see... Lemme think here, for a sec.', pauses: [1.55, 3.16, 4.57] },
+  { src: '/voice/think-open-2.m4a', text: 'Mmmm. Okay... Lemme see here...', pauses: [1.45, 3.03] },
+  { src: '/voice/think-open-3.m4a', text: 'Hmmmmm... Right. Let me think about that...', pauses: [1.65, 3.47] },
+  { src: '/voice/think-open-4.m4a', text: 'Ahhh. Okay... Let me have a look...', pauses: [1.4, 3.26] },
 ];
 const MIDDLES: Line[] = [
-  { src: '/voice/think-mid-1.m4a', text: 'Hmmm... Let me find the right part...' },
-  { src: '/voice/think-mid-2.m4a', text: 'Mmmmm. Give me just a sec...' },
-  { src: '/voice/think-mid-3.m4a', text: 'Okay... One moment... Pulling that up...' },
+  { src: '/voice/think-mid-1.m4a', text: 'Hmmm... Let me find the right part...', pauses: [1.54] },
+  { src: '/voice/think-mid-2.m4a', text: 'Mmmmm. Give me just a sec...', pauses: [1.44] },
+  { src: '/voice/think-mid-3.m4a', text: 'Okay... One moment... Pulling that up...', pauses: [1.26, 3.52] },
 ];
-const LONG_WAIT: Line = { src: '/voice/think-long.m4a', text: "Sorry... This is taking a little while. I'm really getting into it..." };
+const LONG_WAIT: Line = { src: '/voice/think-long.m4a', text: "Sorry... This is taking a little while. I'm really getting into it...", pauses: [1.33, 3.88] };
 /** Played when the answer arrives after fillers, so they flow into it. */
 const CLOSERS: Line[] = [
   { src: '/voice/think-close-1.m4a', text: 'Ahhh... here it is.' },
@@ -59,8 +60,10 @@ const CLOSERS: Line[] = [
 const GAP_MS = 2200;
 /** Fillers start only if the answer is not back by then, so an instant or quick answer is never preceded by one. */
 const THINK_DELAY_MS = 1500;
-/** Barely a breath between clips: they are recorded to run on from one another. */
-const THINK_GAP_MS = 700;
+/** A breath between clips, so the chain sounds like one person thinking and not a playlist changing tracks. */
+const THINK_GAP_MS = 1200;
+/** When the answer lands mid-filler, the filler runs on to its next pause if that is this close; further off, it fades. */
+const FINISH_BEAT_MS = 1800;
 const THINK_LONG_AFTER_MS = 9000;
 const SLOW_AFTER_MS = 12_000;
 const FADE_MS = 200;
@@ -70,6 +73,49 @@ const NUDGE_MAX_MS = 60_000;
 const MAX_NUDGES = 3;
 
 const cache = new Map<string, HTMLAudioElement>();
+
+/**
+ * What the page said aloud lately, and until when. The clips play from the page, outside the call's echo cancellation, so
+ * the mic can hear them: a question that reached the agent as "Who is There it is." was a visitor plus my own closer.
+ */
+let spoken: Array<{ text: string; until: number }> = [];
+const ECHO_MS = 6000;
+function noteSpoken(text: string, audio: HTMLAudioElement) {
+  const left = Number.isFinite(audio.duration) ? (audio.duration - audio.currentTime) * 1000 : 6000;
+  spoken = [...spoken.filter((line) => line.until > Date.now() - ECHO_MS), { text, until: Date.now() + left }];
+}
+const ECHO_FILLER = new Set(['hmm', 'hm', 'mm', 'mmm', 'ah', 'ahh', 'ahhh', 'oh', 'okay', 'ok', 'right', 'so', 'uh', 'um']);
+const words = (text: string) => text.toLowerCase().replace(/[^a-z' ]+/g, ' ').split(/\s+/).filter(Boolean)
+  .map((word) => (/^(h?m+|a+h+|o+h)$/.test(word) ? word.replace(/(.)\1+/g, '$1$1') : word));
+/** The recogniser hears "here" as "there", "lemme" as "let me": close enough counts. */
+const near = (a: string, b: string) => a === b || (Math.min(a.length, b.length) >= 3 && (a.endsWith(b) || b.endsWith(a)));
+
+/**
+ * The visitor's words with my own recent clips taken out where the mic picked them up: a run of two or more of a clip's
+ * words, in order, at the start or end of what was heard (or a lone "hmm", "okay"). Returns '' when nothing else is left.
+ */
+export function withoutEcho(heard: string): string {
+  const recent = spoken.filter((line) => line.until > Date.now() - ECHO_MS).map((line) => words(line.text));
+  if (!recent.length) return heard;
+  let said = heard.trim().split(/\s+/);
+  const plain = (word: string) => words(word)[0] ?? '';
+  // How many of `run` (in order) match somewhere inside a clip.
+  const inClip = (run: string[]) => recent.some((clip) => clip.some((_, at) => run.every((word, i) => clip[at + i] !== undefined && near(word, clip[at + i]))));
+  const strip = (fromEnd: boolean) => {
+    for (let take = said.length; take >= 1; take -= 1) {
+      const run = (fromEnd ? said.slice(-take) : said.slice(0, take)).map(plain);
+      if (run.some((word) => !word)) continue;
+      if ((take >= 2 && run.some((word) => word.length >= 3) && inClip(run)) || (take === 1 && ECHO_FILLER.has(run[0]))) {
+        said = fromEnd ? said.slice(0, -take) : said.slice(take);
+        return true;
+      }
+    }
+    return false;
+  };
+  while (said.length && strip(false));
+  while (said.length && strip(true));
+  return said.join(' ').replace(/^[\s,.…-]+/, '').trim();
+}
 
 function clip(src: string): HTMLAudioElement {
   let audio = cache.get(src);
@@ -207,7 +253,7 @@ function scheduleNudge() {
       scheduleNudge();
     };
     hooks.onLine(line.text);
-    audio.play().catch(() => {
+    audio.play().then(() => noteSpoken(line.text, audio), () => {
       if (nudgeToken === mine) {
         nudgeCurrent = null;
         hooks.onLine('');
@@ -287,24 +333,27 @@ export type Thinking = {
   cancel: () => void;
 };
 
+/** The last turn's opener, so two turns in a row never start the same way. */
+let lastOpener: Line | undefined;
+
 const pickOne = <T,>(items: readonly T[], not?: T): T => {
   const pool = not === undefined ? items : items.filter((item) => item !== not);
   return pool[Math.floor(Math.random() * pool.length)];
 };
 
 /**
- * Fillers while an answer is worked out: after a short delay, an opener ("Hmm", "Let me see"), then up to two more
- * ("Now let me look at that", "One second"), each finishing before the next begins, and one "taking a while" line
- * if it is still not ready. Then silence. When the answer arrives, `finish()` fades out the clip in progress at once
- * (the answer is never held behind it), and adds a closer ("Ahh, here it is") only after a filler that was heard in
- * full, so a long wait still flows into the answer.
+ * Fillers while an answer is worked out: after a short delay, an opener ("Hmm", "Let me see"), then one more
+ * ("One second"), each finishing before the next begins, and one "taking a while" line if it is still not ready. Then
+ * silence. When the answer arrives, `finish()` lets the clip in progress reach its next pause (or fades it if that is
+ * far off), and adds a closer ("Ahh, here it is") only after a filler that was heard in full, so a long wait still
+ * flows into the answer.
  */
 export function startThinking(onLine: (text: string) => void): Thinking {
   let live = true;
   /** Fillers heard to the end. A closer only follows those; one cut short goes straight to the answer. */
   let heard = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
-  let current: { audio: HTMLAudioElement; done: Promise<void>; end: () => void } | null = null;
+  let current: { audio: HTMLAudioElement; done: Promise<void>; end: () => void; line: Line } | null = null;
   const startedAt = Date.now();
 
   const play = (line: Line): Promise<void> => {
@@ -324,14 +373,16 @@ export function startThinking(onLine: (text: string) => void): Thinking {
         end();
       };
     });
-    current = { audio, done, end };
+    current = { audio, done, end, line };
     onLine(line.text);
-    audio.play().catch(end);
+    audio.play().then(() => noteSpoken(line.text, audio), end);
     return done;
   };
 
-  const sequence = [pickOne(OPENERS), pickOne(MIDDLES)];
-  sequence.push(pickOne(MIDDLES, sequence[1]));
+  // One opener and one follow-on, then quiet until the "taking a while" line: a steady thinker, not a stream of phrases.
+  const opener = pickOne(OPENERS, lastOpener);
+  lastOpener = opener;
+  const sequence = [opener, pickOne(MIDDLES)];
 
   const next = (index: number) => {
     if (!live) return;
@@ -353,13 +404,22 @@ export function startThinking(onLine: (text: string) => void): Thinking {
     async finish() {
       live = false;
       clearTimeout(timer);
-      // The answer is ready, so it is not held behind a 5 to 6 second filler: the clip in progress fades out.
+      // The answer is ready, so it is not held behind a 5 to 6 second filler, but the filler is not cut mid-word either:
+      // it runs on to its next pause when that is close. Stopped on a pause, it goes straight into the answer, with no closer.
       const playing = current;
       if (playing) {
-        current = null;
-        onLine('');
-        fadeOut(playing.audio);
-        await new Promise((resolve) => setTimeout(resolve, FADE_MS));
+        const at = playing.audio.currentTime;
+        const pause = playing.line.pauses?.find((time) => time > at + 0.05);
+        const wait = pause === undefined ? Infinity : (pause - at) * 1000;
+        if (wait <= FINISH_BEAT_MS) {
+          await Promise.race([playing.done, new Promise((resolve) => setTimeout(resolve, wait))]);
+        }
+        if (current === playing) {
+          current = null;
+          onLine('');
+          fadeOut(playing.audio);
+          await new Promise((resolve) => setTimeout(resolve, FADE_MS));
+        }
       }
       if (heard > 0) await play(pickOne(CLOSERS));
     },
@@ -398,6 +458,95 @@ export function playSpokenReply(text: string): Promise<boolean> | null {
   return new Promise((resolve) => {
     audio.onended = () => resolve(true);
     audio.onerror = () => resolve(false);
-    audio.play().catch(() => resolve(false));
+    audio.play().then(() => noteSpoken(text, audio), () => resolve(false));
   });
+}
+
+/* ---------- The moon's walk ---------- */
+
+/**
+ * Said aloud when the moon walks a text-chat visitor to a page (a chip, or a yes to an offer): as it sets off, while it
+ * scrolls, and when it finds the card. The bubble shows the same words. Not on a call, where the call's own voice and
+ * fillers are already talking.
+ */
+const WALK = {
+  start: [
+    { src: '/voice/walk-start-1.m4a', text: 'Let me find that one...' },
+    { src: '/voice/walk-start-2.m4a', text: 'One sec... finding it...' },
+    { src: '/voice/walk-start-3.m4a', text: 'Okay... heading over there...' },
+  ],
+  scroll: [
+    { src: '/voice/walk-scroll-1.m4a', text: 'Hmm... somewhere in here...' },
+    { src: '/voice/walk-scroll-2.m4a', text: 'Scrolling down a bit...' },
+    { src: '/voice/walk-scroll-3.m4a', text: "Hold on... it's a little further down..." },
+  ],
+  found: [
+    { src: '/voice/walk-found-1.m4a', text: 'Ahh, there it is.' },
+    { src: '/voice/walk-found-2.m4a', text: 'Found it!' },
+    { src: '/voice/walk-found-3.m4a', text: 'That one, right there.' },
+  ],
+} satisfies Record<string, Line[]>;
+export type WalkStep = keyof typeof WALK;
+
+let callOn = false;
+/** voice.ts says when a call is connecting or up, so the walk keeps quiet then. */
+export function setCallOn(on: boolean) {
+  callOn = on;
+  if (on) stopWalkLine();
+}
+
+let walkCurrent: HTMLAudioElement | null = null;
+const lastWalk: Partial<Record<WalkStep, number>> = {};
+const WALK_STOPS = ['pointerdown', 'wheel', 'touchstart', 'keydown'] as const;
+
+/** The visitor took over (a click, a scroll, a key): the line fades out. */
+export function stopWalkLine() {
+  for (const type of WALK_STOPS) window.removeEventListener(type, stopWalkLine, true);
+  fadeOut(walkCurrent);
+  walkCurrent = null;
+}
+
+/** Resolves when the line being said has ended (or after `maxMs`), so "found it" follows "let me find that one" instead of being dropped. */
+export function walkIdle(maxMs = 2500): Promise<void> {
+  const audio = walkCurrent;
+  if (!audio || audio.paused) return Promise.resolve();
+  return new Promise((resolve) => {
+    const done = () => { clearInterval(poll); resolve(); };
+    const started = Date.now();
+    const poll = setInterval(() => {
+      if (walkCurrent !== audio || audio.paused || audio.ended || Date.now() - started > maxMs) done();
+    }, 80);
+  });
+}
+
+export function preloadWalk() {
+  for (const line of Object.values(WALK).flat()) clip(line.src);
+}
+
+/**
+ * A line for a step of the walk, never the same one twice in a row; `aloud` also plays it. Returns null while an earlier
+ * line is still being said, so it is never cut off mid-word and the bubble never shows words that are not being heard.
+ */
+export function walkLine(step: WalkStep, aloud: boolean): string | null {
+  if (walkCurrent && !walkCurrent.paused) return null;
+  const lines = WALK[step];
+  let index = Math.floor(Math.random() * lines.length);
+  if (index === lastWalk[step]) index = (index + 1) % lines.length;
+  lastWalk[step] = index;
+  const line = lines[index];
+  if (!aloud || callOn) return line.text;
+  const audio = clip(line.src);
+  audio.currentTime = 0;
+  audio.volume = 1;
+  walkCurrent = audio;
+  audio.onended = () => {
+    if (walkCurrent !== audio) return;
+    walkCurrent = null;
+    for (const type of WALK_STOPS) window.removeEventListener(type, stopWalkLine, true);
+  };
+  for (const type of WALK_STOPS) window.addEventListener(type, stopWalkLine, { capture: true, passive: true });
+  audio.play().catch(() => {
+    if (walkCurrent === audio) walkCurrent = null;
+  });
+  return line.text;
 }

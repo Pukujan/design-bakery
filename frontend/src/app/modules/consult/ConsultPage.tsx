@@ -1,17 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { copilot } from '../copilot/store';
+import { copilot, sendSiteMessage, siteMessagesOpen } from '../copilot/store';
 import '../lab/lab.css';
 import './consult.css';
 
 /** The public Google Calendar booking page for free 30-minute consultations. */
 const BOOKING_URL = 'https://calendar.app.google/3G3hHBwtsxisSaoz9';
-
-/**
- * PLACEHOLDER: the server endpoint that will send the message through Gmail. It is not built yet.
- * While this is null, "Leave a message" is shown as not open yet and nothing can be sent. Replace it
- * with the route URL once the server-side Gmail integration exists.
- */
-const MESSAGE_ENDPOINT: string | null = null;
 
 const AREAS = [
   { name: 'AI engineering', hint: 'RAG, agents, evals, document workflows' },
@@ -33,12 +26,14 @@ const STEP_ORDER: Step[] = ['need', 'way', 'message'];
 
 /**
  * The contact page as a guided flow, one question at a time: what you need, how you want to talk, and
- * (once sending is connected) a short message. Booking and the chat work today; nothing here pretends
- * a message was delivered.
+ * a short message. A message goes through the API's /message route to Pujan's inbox (TASK-DB-0148); while
+ * the API has no mail set up, "Leave a message" shows as not open, and nothing here pretends one was delivered.
  */
 export function ConsultPage() {
   const [step, setStep] = useState<Step>('need');
   const [area, setArea] = useState<Area | null>(null);
+  const [messagesOpen, setMessagesOpen] = useState(false);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<Status>('idle');
@@ -52,6 +47,14 @@ export function ConsultPage() {
     if (!moved.current) return;
     headingRef.current?.focus({ preventScroll: true });
   }, [step]);
+
+  useEffect(() => {
+    let live = true;
+    void siteMessagesOpen().then((open) => live && setMessagesOpen(open));
+    return () => {
+      live = false;
+    };
+  }, []);
 
   const go = (next: Step) => {
     moved.current = true;
@@ -72,8 +75,10 @@ export function ConsultPage() {
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (status === 'sending' || !MESSAGE_ENDPOINT) return;
-    const missing = !EMAIL_PATTERN.test(email.trim())
+    if (status === 'sending' || !messagesOpen) return;
+    const missing = !name.trim()
+      ? 'Tell me your name.'
+      : !EMAIL_PATTERN.test(email.trim())
       ? 'Enter an email address I can reply to.'
       : !message.trim()
         ? 'Write a short message first.'
@@ -83,12 +88,8 @@ export function ConsultPage() {
 
     setStatus('sending');
     try {
-      const response = await fetch(MESSAGE_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ service: area, email: email.trim(), message: message.trim() }),
-      });
-      if (!response.ok) throw new Error(`Request failed with ${response.status}`);
+      const sent = await sendSiteMessage({ name: name.trim(), email: email.trim(), message: message.trim(), ...(area ? { area } : {}) });
+      if (!sent) throw new Error('not sent');
       setStatus('sent');
       setMessage('');
     } catch {
@@ -170,12 +171,12 @@ export function ConsultPage() {
                 <button
                   type="button"
                   className="consult-tile"
-                  disabled={!MESSAGE_ENDPOINT}
+                  disabled={!messagesOpen}
                   onClick={() => go('message')}
                 >
                   <span className="consult-tile-name">Leave a message</span>
                   <span className="consult-tile-hint">
-                    {MESSAGE_ENDPOINT ? 'I will reply by email.' : 'Not open yet. Use a call or the chat for now.'}
+                    {messagesOpen ? 'I will reply by email.' : 'Not open yet. Use a call or the chat for now.'}
                   </span>
                 </button>
               </div>
@@ -202,6 +203,19 @@ export function ConsultPage() {
                 </div>
               ) : (
                 <>
+                  <label htmlFor="consult-name" className="consult-field-label">
+                    Your name
+                  </label>
+                  <input
+                    id="consult-name"
+                    className="consult-input"
+                    type="text"
+                    autoComplete="name"
+                    maxLength={80}
+                    value={name}
+                    disabled={sending}
+                    onChange={(event) => setName(event.target.value)}
+                  />
                   <label htmlFor="consult-email" className="consult-field-label">
                     Your email
                   </label>

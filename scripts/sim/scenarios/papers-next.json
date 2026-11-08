@@ -1,0 +1,111 @@
+{
+  "name": "stepping through the papers: next and previous follow the list, not the tour",
+  "startPage": {
+    "path": "/",
+    "title": "Home"
+  },
+  "steps": [
+    {
+      "say": "Show me your research papers.",
+      "expect": {
+        "navigatesTo": "/research"
+      }
+    },
+    {
+      "say": "Next.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-001"
+      }
+    },
+    {
+      "say": "Next one.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-002"
+      }
+    },
+    {
+      "say": "Previous.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-001"
+      }
+    },
+    {
+      "say": "Next.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-002"
+      }
+    },
+    {
+      "say": "Next.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-003"
+      }
+    },
+    {
+      "say": "Next.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-004"
+      }
+    },
+    {
+      "say": "Next.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-005"
+      }
+    },
+    {
+      "say": "Next.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-006"
+      }
+    },
+    {
+      "say": "Next.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-007"
+      }
+    },
+    {
+      "say": "Next.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-008"
+      }
+    },
+    {
+      "say": "Next.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-009"
+      }
+    },
+    {
+      "say": "Next.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-010"
+      }
+    },
+    {
+      "say": "Next.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-011"
+      }
+    },
+    {
+      "say": "Next.",
+      "expect": {
+        "noActions": [
+          "navigate"
+        ],
+        "pageAfter": "/research/papers/db-r-2026-011",
+        "judge": {
+          "J-4": "says this is the last paper and there is no next one"
+        }
+      }
+    },
+    {
+      "say": "Previous.",
+      "expect": {
+        "navigatesTo": "/research/papers/db-r-2026-010"
+      }
+    }
+  ]
+}

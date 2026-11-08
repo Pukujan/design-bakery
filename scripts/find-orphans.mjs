@@ -109,6 +109,10 @@ const ALLOW = [
   /^frontend\/src\/app\/components\/(BakeryItems|FlowerCharacter|GraphicElements|SocialBrandIcons)\.tsx$/,
   // Reference examples shipped with cover-studio-kit; not imported by design.
   /^packages\/cover-studio-kit\/examples\//,
+  // The copilot's lanes are loaded by name at run time (lanes/loader.ts imports `./<lane>/index.js`), so that only the chosen lane
+  // loads; lanes/schema.ts is read by scripts/lanes-schema.mjs. A static import would load every lane.
+  /^backend\/src\/copilot\/lanes\/(strong|hybrid|small)\//,
+  /^backend\/src\/copilot\/lanes\/schema\.ts$/,
 ];
 
 /** Collect every string target from a package.json `exports` field. */

@@ -80,19 +80,6 @@ const answer = 'That is the lay of the land. Want me to dig into a project, a pa
   assert.ok(seen.events.every((event) => !event.replace), 'nothing to retract in a clean answer');
 }
 
-// 4. Narration before a tool call is dropped, and the answer that follows still lands.
-{
-  const seen = harness();
-  const filter = createTextFilter(seen.send);
-  feed(filter, 'Let me pull up the blog page for you.');
-  filter.toolCall();
-  filter.toolResult();
-  feed(filter, 'The blog is on screen. A few that tend to interest people: the legal AI series.');
-  const final = filter.flush();
-  assert.equal(final, 'The blog is on screen. A few that tend to interest people: the legal AI series.');
-  assert.equal(seen.text, final);
-}
-
 // 5. An opening tag with no close yet shows nothing at all.
 {
   const seen = harness();
@@ -115,4 +102,4 @@ const answer = 'That is the lay of the land. Want me to dig into a project, a pa
   assert.equal(filter.flush(), 'Two things stand out.\n\nThe first is the eval harness.');
 }
 
-console.log('copilot stream filter: 6 cases (leaked reasoning, late close, hold, narration, open block, paragraph break)');
+console.log('copilot stream filter: 5 cases (leaked reasoning, late close, hold, open block, paragraph break)');

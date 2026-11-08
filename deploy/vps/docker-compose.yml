@@ -1,0 +1,76 @@
+# design-bakery web and API stack on the VPS (TASK-DB-0055).
+#
+# Lives in the repo at deploy/vps/docker-compose.yml and is driven by
+# deploy.sh / rollback.sh. Published on 127.0.0.1 only — nothing is exposed publicly
+# until the Cloudflare Tunnel ingress is pointed at it (docs/self-hosting.md).
+#
+#   cd ~/apps/design-bakery
+#   docker compose -f deploy/vps/docker-compose.yml up -d
+#
+# The image is built by deploy.sh with a git-sha tag; `docker compose build` here is
+# only a convenience for manual work.
+name: design-bakery
+
+services:
+  web:
+    # Stable name: the tunnel ingress and the health checks address this container.
+    container_name: design-bakery-web
+    image: ${DESIGN_BAKERY_IMAGE:-design-bakery-web:local}
+    build:
+      context: ../..
+      dockerfile: deploy/vps/Dockerfile
+      args:
+        # Public, build-time values only — see Dockerfile and docs/self-hosting.md.
+        VITE_SITE_URL: ${VITE_SITE_URL:-}
+        VITE_BLOG_API_URL: ${VITE_BLOG_API_URL:-}
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:-}
+        VITE_CONTENT_BACKEND: ${VITE_CONTENT_BACKEND:-}
+        VITE_ENABLE_BLOG_PUBLISH_KIT: ${VITE_ENABLE_BLOG_PUBLISH_KIT:-}
+    restart: unless-stopped
+    ports:
+      # 127.0.0.1 only: the Cloudflare Tunnel reaches it over the docker network or
+      # the loopback interface; the host port is never published to the LAN/WAN.
+      - "127.0.0.1:${WEB_HOST_PORT:-8085}:80"
+    environment:
+      # Set by the tunnel-fronted setup; only used for logging/debug today.
+      SITE_HOST: ${SITE_HOST:-www.design-bakery.com}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Express API (issue #80). Same loopback-only rule as `web`: published on
+  # 127.0.0.1 and reachable from outside only once the tunnel ingress or the
+  # Caddy proxy points at it. deploy.sh/rollback.sh address `web` explicitly, so
+  # this service does not affect the frontend deploy.
+  api:
+    container_name: design-bakery-api
+    image: ${DESIGN_BAKERY_API_IMAGE:-design-bakery-api:local}
+    build:
+      context: ../..
+      dockerfile: deploy/vps/Dockerfile.api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${API_HOST_PORT:-8789}:8787"
+    env_file:
+      # Secrets (Octo workspace key, OpenRouter, admin password, legacy Supabase).
+      # Create it from .env.api.example. Kept optional so deploy.sh/rollback.sh
+      # (which run `up --no-deps web`) never fail on a missing secret file; without
+      # it /health still serves and the API logs config errors per request. See
+      # docs/self-hosting.md §8.
+      - path: .env.api
+        required: false
+    environment:
+      PORT: "8787"
+      # Public origin for canonical URLs and absolute og:image links in the link
+      # previews (backend/src/api/ogPreview.ts). Without it the container's internal
+      # compose origin would end up inside the tags. The shell is fetched from the
+      # `web` service over the default network; override with OG_SHELL_ORIGIN.
+      SITE_URL: ${SITE_URL:-https://www.design-bakery.com}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

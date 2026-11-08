@@ -7,6 +7,7 @@
  */
 import { doubleMetaphone } from 'double-metaphone';
 import { loadPapers, loadProjects, loadShownExperience } from './knowledge.js';
+import { isLower, isUpper, isWordChar, keepOnly, squash } from './words.js';
 
 export type KnownName = { token: string; word: string; name: string };
 export type SoundAlike = { heard: string; name: string; word: string };
@@ -16,16 +17,26 @@ const GENERIC = new Set(
   'agents agent api apis animations citation data evals eval filling form forms graph graphs legal models model open pipeline pipelines search systems tools voice workflow workflows design testing tests react next'.split(' '),
 );
 
-const letters = (word: string) => word.toLowerCase().normalize('NFKD').replace(/[^a-z]/g, '');
+const letters = (word: string) => keepOnly(word.toLowerCase().normalize('NFKD'), (c) => c >= 'a' && c <= 'z');
+/** Characters that separate the words of a name ("Arize Evals", "Next.js / React", "Ekagajpatra (2025)"). */
+const NAME_BREAK = ' /,.()·:–—-';
+const nameWords = (name: string) => Array.from(squash(name), (c) => (NAME_BREAK.includes(c) ? ' ' : c)).join('').split(' ').filter(Boolean);
+/** A coined word in a paper title: capitalised with a capital inside (JudgeBench), or four capitals or more (CALM). */
+function coined(word: string): boolean {
+  const chars = Array.from(word);
+  const camel = chars.length > 2 && isUpper(chars[0]) && isLower(chars[1]) && chars.slice(2).some(isUpper);
+  const acronym = chars.length >= 4 && chars.every((c) => c >= 'A' && c <= 'Z');
+  return camel || acronym;
+}
 
 /** The known names, as tokens of four letters or more (matching uses five or more). */
 export async function knownNames(): Promise<KnownName[]> {
   const [projects, papers, experience] = await Promise.all([loadProjects(), loadPapers(), loadShownExperience()]);
   const out: KnownName[] = [];
   const add = (name: string, generic: boolean) => {
-    for (const word of name.split(/[\s/,.()·:–—-]+/)) {
+    for (const word of nameWords(name)) {
       const token = letters(word);
-      if (token.length >= 4 && !(generic && GENERIC.has(token))) out.push({ token, word: word.replace(/[^\p{L}\p{N}]/gu, ''), name });
+      if (token.length >= 4 && !(generic && GENERIC.has(token))) out.push({ token, word: keepOnly(word, isWordChar), name });
     }
   };
   for (const p of projects) {
@@ -34,7 +45,7 @@ export async function knownNames(): Promise<KnownName[]> {
   }
   for (const job of experience.experiences) add(job.company, true);
   // A paper title is mostly ordinary words; only its coined ones (JudgeBench, CALM) are names.
-  for (const paper of papers) for (const word of paper.title.split(/\s+/)) if (/^[A-Z][a-z]+[A-Z]|^[A-Z]{4,}$/.test(word)) add(word, false);
+  for (const paper of papers) for (const word of squash(paper.title).split(' ')) if (coined(word)) add(word, false);
   return out;
 }
 
@@ -58,7 +69,7 @@ export function editDistance(a: string, b: string): number {
 export function soundAlikes(message: string, names: KnownName[]): SoundAlike[] {
   const known = new Set(names.map((n) => n.token));
   const found = new Map<string, SoundAlike>();
-  for (const raw of message.split(/\s+/)) {
+  for (const raw of squash(message).split(' ')) {
     const word = letters(raw);
     if (word.length < 5 || known.has(word)) continue;
     const codes = new Set(doubleMetaphone(word));
@@ -66,7 +77,7 @@ export function soundAlikes(message: string, names: KnownName[]): SoundAlike[] {
       if (name.token.length < 5 || word.startsWith(name.token) || name.token.startsWith(word)) continue;
       if (!doubleMetaphone(name.token).some((code) => codes.has(code))) continue;
       if (editDistance(word, name.token) > (name.token.length >= 7 ? 2 : 1)) continue;
-      if (!found.has(name.word)) found.set(name.word, { heard: raw.replace(/[^\p{L}\p{N}'-]/gu, ''), name: name.name, word: name.word });
+      if (!found.has(name.word)) found.set(name.word, { heard: keepOnly(raw, (c) => isWordChar(c) || c === "'" || c === '-'), name: name.name, word: name.word });
     }
   }
   return [...found.values()];

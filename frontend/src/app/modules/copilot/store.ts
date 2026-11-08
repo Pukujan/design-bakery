@@ -10,6 +10,7 @@ import { answer as localAnswer, type CopilotProject } from '../lab/copilotAnswer
 import { getTurnstileToken } from './turnstile';
 import { scrollStageToElement, scrollStageToTop, setStageScroll } from '../lab/stageScroll';
 import { agentCursor } from './agentCursor';
+import { preloadWalk, walkIdle, walkLine, type WalkStep } from './holdAudio';
 import { citeAt, MAX_CITES, passageSchedule, planRoute, sentenceStart, swipePlan, swipeY } from './citeRoute';
 import { clearQuote, highlightQuote } from './quoteHighlight';
 import { capPage, historyToSend, planSummary, RETRY_MS, type Summary } from './memory';
@@ -43,9 +44,20 @@ export type CopilotMessage = {
   error?: boolean;
   /** A line said aloud on a quiet call (holdAudio NUDGES), kept so a following "yes" has its question. */
   nudge?: boolean;
+  /**
+   * A line heard on a call that got no reply, and why ("another voice", "said to Campos"): shown greyed with "Answer this",
+   * and never sent back as history. `heardId` is the voice agent's id for it (agent.claim), when the agent dropped it.
+   */
+  ignored?: string;
+  heardId?: string;
 };
 
+/** The booking a call has made: shown as a card with one button, because a call has no chat thread to hold a chip. */
+export type BookingOffer = { url: string; name?: string; email?: string; topic?: string };
+
 export type CopilotState = {
+  /** The booking button of a voice call (booking.ts on the server); null until one is made. */
+  booking?: BookingOffer | null;
   messages: CopilotMessage[];
   busy: boolean;
   /** The dock's sidebar is open. */
@@ -61,6 +73,8 @@ type Event =
   | { type: 'action'; action: CopilotAction }
   | { type: 'step'; name: string; status: 'start' | 'done' | 'error' }
   | { type: 'done'; model: string }
+  | { type: 'ignored'; reason: string }
+  | { type: 'flow'; flow: unknown }
   | { type: 'error'; message: string };
 
 const STORAGE_KEY = 'db-copilot-v1';
@@ -70,6 +84,8 @@ const SUMMARY_KEY = 'db-copilot-summary-v1';
 const DUPLICATE_MS = 30_000;
 const askKey = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 let lastAsk: { key: string; at: number } | null = null;
+/** Set by voice.ts while a call is up: answers a greyed line aloud (copilot.answerIgnored). */
+let ignoredAnswerer: ((message: CopilotMessage) => Promise<void>) | null = null;
 /** Replies that belong to a voice call: they never open the side panel, and they may move the page on their own. */
 const voiceReplies = new Set<number>();
 let pendingMoves: Promise<void>[] = [];
@@ -122,6 +138,9 @@ function setSummary(next: Summary | null) {
     /* private mode */
   }
 }
+
+/** The voice booking's place (bookingFlow.ts on the server): sent with each line, replaced by each reply's `flow` event. */
+let callFlow: unknown = null;
 
 let state: CopilotState = { messages: load(), busy: false, open: false, heroVisible: false, draft: '' };
 let nextId = state.messages.reduce((max, m) => Math.max(max, m.id), 0) + 1;
@@ -248,6 +267,12 @@ function detailParent(path: string): string | null {
 
 const pause = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
+/** The moon's words for a step of a walk, in its bubble, and said aloud for a text-chat visitor. */
+function walkSay(step: WalkStep, aloud: boolean, ms?: number) {
+  const words = walkLine(step, aloud);
+  if (words) agentCursor.say([words], ms);
+}
+
 /** Waits for a link to a path to be on the page; null if it never shows up. */
 async function linkFor(path: string, ms = 3000): Promise<HTMLElement | null> {
   for (let waited = 0; waited <= ms; waited += 120) {
@@ -263,11 +288,11 @@ async function linkFor(path: string, ms = 3000): Promise<HTMLElement | null> {
  * link, a slow scroll to the card, a press on the card, and then the new page's title. If the card cannot be found it
  * simply goes there.
  */
-async function journey(path: string) {
+async function journey(path: string, aloud = false) {
   const list = detailParent(path);
   if (!list) return;
   agentCursor.release(25_000);
-  agentCursor.say(['Let me find that one...', 'One sec, finding it...', 'Heading over there...']);
+  walkSay('start', aloud, 2600);
   let card = document.querySelector<HTMLElement>(`a[href="${path.replace(/"/g, '')}"]`);
   if (!card) {
     // Not on this page: go to the list page first, by pressing its link.
@@ -285,22 +310,9 @@ async function journey(path: string) {
     return;
   }
   // Scroll to the card slowly, wheel and all, then point at it and press.
-  const rect = card.getBoundingClientRect();
-  // The card only has to be where the cursor can reach it: its middle on screen, below the header.
-  const middle = rect.top + rect.height / 2;
-  const inView = middle >= 130 && middle <= window.innerHeight - 70;
-  if (!inView) {
-    const down = rect.top > 0;
-    // Land the card in the middle of the screen (or just under the header when it is taller than the window).
-    const seconds = scrollStageToElement(card, { slow: true, offset: -Math.max(110, (window.innerHeight - rect.height) / 2) });
-    if (seconds > 0) {
-      agentCursor.say(['Somewhere in here...', 'Scrolling a bit...', 'Hold on, it is further down...'], seconds * 1000);
-      agentCursor.startScroll(down ? 'down' : 'up', seconds * 1000);
-      await pause(seconds * 1000);
-      await agentCursor.settle(card);
-    }
-  }
-  agentCursor.say(['Ah, there it is.', 'Found it.', 'That one.']);
+  await scrollToCard(card, aloud);
+  if (aloud) await walkIdle();
+  walkSay('found', aloud);
   await agentCursor.pointAtLinkFor(path);
   card.click();
   // On the new page: back to the top, and the cursor taps its title.
@@ -310,6 +322,78 @@ async function journey(path: string) {
   await pause(500);
   await agentCursor.pointAtElement(document.querySelector('main h1, h1'));
   agentCursor.release(6000);
+}
+
+/** The height of the screen the visitor can see: on a phone, above the keyboard. */
+const screenHeight = () => window.visualViewport?.height ?? window.innerHeight;
+
+/** The card is where the cursor can reach it: its middle on screen, below the header. */
+function cardInReach(card: HTMLElement): boolean {
+  const rect = card.getBoundingClientRect();
+  const middle = rect.top + rect.height / 2;
+  return rect.height > 0 && middle >= 130 && middle <= screenHeight() - 70;
+}
+
+/**
+ * Scrolls a card slowly to the middle of the screen, wheel and all, unless it is already where the cursor can reach it.
+ * A phone can move the page under the glide (the keyboard closing, a late image), so where the card ended up is checked,
+ * and a card that is still out of reach is put in place at once.
+ */
+async function scrollToCard(card: HTMLElement, aloud = false) {
+  for (let attempt = 0; attempt < 2 && !cardInReach(card); attempt += 1) {
+    const rect = card.getBoundingClientRect();
+    // Land the card in the middle of the screen (or just under the header when it is taller than the window).
+    const offset = -Math.max(110, (screenHeight() - rect.height) / 2);
+    const seconds = scrollStageToElement(card, { slow: true, offset });
+    if (seconds > 0) {
+      if (attempt === 0) walkSay('scroll', aloud, Math.max(2600, seconds * 1000));
+      agentCursor.startScroll(rect.top > 0 ? 'down' : 'up', seconds * 1000);
+      await pause(seconds * 1000);
+    }
+    await agentCursor.settle(card);
+  }
+  if (!cardInReach(card)) {
+    setStageScroll(card.getBoundingClientRect().top + window.scrollY - Math.max(110, (screenHeight() - card.offsetHeight) / 2));
+    await agentCursor.settle(card);
+  }
+}
+
+/** On a phone, a chip pressed while typing closes the keyboard: wait for the screen to grow back before measuring anything. */
+async function keyboardDown() {
+  if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  const viewport = window.visualViewport;
+  if (!viewport) return;
+  for (let waited = 0; waited < 900 && viewport.height < window.innerHeight - 80; waited += 60) await pause(60);
+  await pause(120);
+}
+
+/**
+ * On a call, project cards in the chat are not seen (the visitor is listening, and there are no chips), so the page shows
+ * them instead: to the work list if they are not on this page, then down the list, pointing at each card in turn. Resolves
+ * once the first card is on screen, so the answer is spoken while the rest are shown.
+ */
+async function showCards(slugs: string[]) {
+  const paths = slugs.map((slug) => `/work/${slug}`);
+  agentCursor.release(25_000);
+  if (!document.querySelector(`a[href="${paths[0]}"]`)) await copilot.go('/#work', { slow: true, agent: true });
+  const cards: HTMLElement[] = [];
+  for (const path of paths) {
+    const card = await linkFor(path, cards.length ? 0 : 3000);
+    if (card) cards.push(card);
+  }
+  // Top to bottom, so the page only ever scrolls down.
+  cards.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
+  if (!cards.length) return;
+  await scrollToCard(cards[0]);
+  await agentCursor.pointAtElement(cards[0]);
+  void (async () => {
+    for (const card of cards.slice(1)) {
+      await pause(1800);
+      await scrollToCard(card);
+      await agentCursor.pointAtElement(card);
+    }
+    agentCursor.release(3000);
+  })();
 }
 
 /** The heading a cite points at: by its anchor, else by its text (a heading the page numbers or styles differently). */
@@ -375,15 +459,55 @@ async function walkTo(action: Extract<CopilotAction, { kind: 'cite' }>, holdMs =
 let pendingSwipe: Array<Extract<CopilotAction, { kind: 'cite' }>> = [];
 let stopSwipe: (() => void) | null = null;
 
+/** Pages that are a list of cards: when the call takes the visitor to one, the page is scrolled through while the answer is spoken. */
+const LIST_PAGE = /^\/(?:research|blogs|work)\/?$|^\/?#work$/;
+let listMove = false;
+
 /**
- * Speaks a summary by swiping: the page glides slowly through the post in step with the speech, easing each heading into
- * the upper third just as its sentence starts, with that heading lit while it is spoken. The moon stays under the swipe.
+ * Scrolls down through a list page, slowly, for as long as the answer takes to say, so every card is on the screen as it is
+ * talked about (2026-11-05: "it said eleven papers and I could only see the first few"). The visitor's own wheel, touch or key
+ * hands the page back at once. At most a few screens: far enough to show the list, short enough not to lose its top.
+ */
+function scrollThroughList(durationMs: number) {
+  stopSwipe?.();
+  const startY = window.scrollY;
+  const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  const endY = Math.min(maxY, startY + window.innerHeight * 3.5);
+  if (endY - startY < 40) return;
+  const started = performance.now();
+  let frame = 0;
+  agentCursor.startScroll('down', durationMs);
+  const cancel = () => {
+    cancelAnimationFrame(frame);
+    window.removeEventListener('wheel', cancel);
+    window.removeEventListener('touchstart', cancel);
+    window.removeEventListener('keydown', cancel);
+    agentCursor.startScroll('down', 0);
+    if (stopSwipe === cancel) stopSwipe = null;
+  };
+  stopSwipe = cancel;
+  window.addEventListener('wheel', cancel, { passive: true });
+  window.addEventListener('touchstart', cancel, { passive: true });
+  window.addEventListener('keydown', cancel);
+  const tick = () => {
+    const t = Math.min(1, (performance.now() - started) / durationMs);
+    const eased = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+    setStageScroll(startY + (endY - startY) * eased);
+    if (t >= 1) cancel();
+    else frame = requestAnimationFrame(tick);
+  };
+  frame = requestAnimationFrame(tick);
+}
+
+/**
+ * Speaks a summary by swiping: the page moves through the post in step with the speech, a quick leg to each heading that
+ * puts it in the upper third just as its sentence starts, then holds still with that heading lit while it is spoken. The moon stays under the swipe.
  * Length and pace follow the estimated speech (`cps` characters a second), and any wheel or touch from the visitor ends it.
  */
 function swipeThrough(answer: string, cites: Array<Extract<CopilotAction, { kind: 'cite' }>>, cps: number) {
   stopSwipe?.();
   // Each passage is in place on the sentence where it is spoken, the first included.
-  const later = passageSchedule(answer, cites.slice(1), { seen: new Set([`${cites[0].path}#${cites[0].anchor}`]) });
+  const later = passageSchedule(answer, cites.slice(1), { seen: new Set([`${cites[0].path}#${cites[0].anchor}`]), minDwell: 40 });
   const items = [{ cite: cites[0], el: null as HTMLElement | null }, ...later.map((p) => ({ cite: p.cite, el: null as HTMLElement | null }))];
   const firstAt = sentenceStart(answer, citeAt(answer, cites[0], 0, cites.length));
   const plan = swipePlan(answer.length, [firstAt, ...later.map((p) => Math.max(p.at, firstAt))], cps);
@@ -409,7 +533,9 @@ function swipeThrough(answer: string, cites: Array<Extract<CopilotAction, { kind
     const t = (performance.now() - started) / 1000;
     for (const item of items) item.el ??= headingFor(item.cite.anchor, item.cite.heading);
     // The scroll position that puts each heading a fifth of the way down, read live so the page is followed as it settles.
-    const targets = items.map((item, i) => (item.el ? item.el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.22 : (i ? 0 : startY)));
+    // A heading not found keeps the page where the one before left it.
+    const targets: number[] = [];
+    for (const item of items) targets.push(item.el ? item.el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.22 : (targets.at(-1) ?? startY));
     setStageScroll(swipeY(t, plan, targets, startY));
     let now = -1;
     plan.times.forEach((time, i) => {
@@ -435,6 +561,9 @@ export const copilot = {
     navigateFn = fn;
   },
   setOpen: (open: boolean) => set({ open }),
+  dismissBooking: () => set({ booking: null }),
+  /** A call ended or the chat was cleared: a booking under way is over. */
+  resetFlow: () => { callFlow = null; },
   setDraft: (draft: string) => set({ draft }),
   setHeroVisible: (heroVisible: boolean) => {
     if (state.heroVisible !== heroVisible) set({ heroVisible });
@@ -448,6 +577,7 @@ export const copilot = {
     set({ messages: [...kept, { id: nextId++, role: 'assistant', text, steps: [], actions: [], streaming: false, nudge: true }] });
   },
   clear() {
+    callFlow = null;
     abort?.abort();
     lastAsk = null;
     for (const id of [...reveals.keys()]) flushText(id);
@@ -460,10 +590,13 @@ export const copilot = {
     abort?.abort();
   },
   /** Scroll to a section, or change page with the app's router and then scroll. */
-  go(path: string, options: { slow?: boolean; agent?: boolean } = {}): Promise<void> {
+  go(path: string, options: { slow?: boolean; agent?: boolean; aloud?: boolean } = {}): Promise<void> {
     // A page deep in the site (a post, a project, a paper) is reached the way a person would: through its list page, scrolling
     // to the card, and clicking it.
-    if (options.agent && detailParent(path) && !path.includes('#')) return journey(path);
+    // From one paper to the next (or back) the visitor is already inside the list's pages: they go straight there, not out to the
+    // list and back through a card, which took ten seconds and failed going backwards (2026-11-05, "Previous" stayed on the page).
+    const sibling = detailParent(path) !== null && detailParent(path) === detailParent(window.location.pathname);
+    if (options.agent && detailParent(path) && !path.includes('#') && !sibling) return journey(path, options.aloud);
     const [pathname, hash] = path.split('#');
     const scroll = () =>
       new Promise<void>((resolve) => {
@@ -472,14 +605,19 @@ export const copilot = {
         const seconds = hash ? scrollStageToElement(target, options) : scrollStageToTop(options);
         // On a call the cursor shows the scroll: a wheel moving down or up for as long as the page takes.
         if (options.agent && seconds > 0) agentCursor.startScroll(down ? 'down' : 'up', seconds * 1000);
+        if (options.aloud && target && seconds > 0.6) walkSay('scroll', true, Math.max(2600, seconds * 1000));
         // Then it points at what it came to show: the section's heading, or the new page's title.
         if (options.agent) {
           const shown = target ?? document.querySelector('main h1, h1');
-          window.setTimeout(() => void agentCursor.pointAtElement(shown).then(() => resolve()), seconds * 1000 + 150);
+          window.setTimeout(() => {
+            if (options.aloud && target) void walkIdle().then(() => walkSay('found', true));
+            void agentCursor.pointAtElement(shown).then(() => resolve());
+          }, seconds * 1000 + 150);
         } else resolve();
       });
     const run = (): Promise<void> => {
       if (options.agent) agentCursor.release(options.slow ? 9000 : 2500);
+      if (options.aloud) walkSay('start', true, 2600);
       if (!pathname || pathname === window.location.pathname) return scroll();
       if (navigateFn) navigateFn(path);
       else window.location.assign(path);
@@ -502,9 +640,13 @@ export const copilot = {
    * A navigation chip, or a "yes" to an offer to open a page: the moon comes in as a guest, goes to the link and presses it,
    * and leaves a moment after the page has arrived. On a phone the chat sheet closes first, since it would cover the target.
    */
-  guide(path: string): Promise<void> {
-    if (!window.matchMedia('(min-width: 821px)').matches) set({ open: false });
-    return copilot.go(path, { slow: true, agent: true }).catch(() => agentCursor.hide());
+  async guide(path: string): Promise<void> {
+    preloadWalk();
+    if (!window.matchMedia('(min-width: 821px)').matches) {
+      set({ open: false });
+      await keyboardDown();
+    }
+    return copilot.go(path, { slow: true, agent: true, aloud: true }).catch(() => agentCursor.hide());
   },
   /** Point at a section of the page cited by the copilot (a chip click in text chat). The moon stays a few seconds, not a whole spoken passage. */
   cite: (action: Extract<CopilotAction, { kind: 'cite' }>) => {
@@ -527,6 +669,13 @@ export const copilot = {
     return cites;
   },
   swipe: swipeThrough,
+  /** Whether the answer just given moved the call to a list page that should be scrolled through as it is spoken. */
+  takeListScroll() {
+    const yes = listMove;
+    listMove = false;
+    return yes;
+  },
+  scrollList: scrollThroughList,
   stopSwipe: () => stopSwipe?.(),
   takeCites(answer: string) {
     const cites = pendingCites;
@@ -539,7 +688,24 @@ export const copilot = {
     pendingSteps = [];
     return steps;
   },
-  async send(text: string, page: { path: string; title: string }, options: { typed?: boolean; voice?: boolean } = {}) {
+  /** A line the voice agent heard and dropped (another voice, an unsure mumble): on the thread, greyed, to answer anyway. */
+  noteIgnored(text: string, reason: string, heardId: string) {
+    if (!text.trim()) return;
+    set({ messages: capPage([...state.messages, { id: nextId++, role: 'user', text: text.trim(), steps: [], actions: [], streaming: false, ignored: reason, heardId }]) });
+  },
+  /** While a call is up, voice.ts answers a greyed line aloud; with no call, it is asked as typed. */
+  setIgnoredAnswerer(answerer: ((message: CopilotMessage) => Promise<void>) | null) {
+    ignoredAnswerer = answerer;
+  },
+  /** "Answer this" on a greyed line: it was for the copilot after all. */
+  async answerIgnored(id: number) {
+    const message = state.messages.find((m) => m.id === id && m.ignored);
+    if (!message || state.busy) return;
+    set({ messages: state.messages.filter((m) => m.id !== id) });
+    if (ignoredAnswerer) await ignoredAnswerer(message);
+    else await copilot.send(message.text, { path: window.location.pathname, title: document.title }, { toMe: true });
+  },
+  async send(text: string, page: { path: string; title: string }, options: { typed?: boolean; voice?: boolean; toMe?: boolean } = {}) {
     const question = text.trim().slice(0, 2000);
     if (!question || state.busy) return '';
     // Pressing a button again ("Ask the copilot about X") must not send the same request over and over: while its
@@ -575,7 +741,7 @@ export const copilot = {
     firstCiteKey = '';
     abort = new AbortController();
     try {
-      await stream([...history, { role: 'user', content: question }], page, replyId, abort.signal, false, voice, summary);
+      await stream([...history, { role: 'user', content: question }], page, replyId, abort.signal, false, voice, summary, options.toMe === true);
     } catch (error) {
       if (abort.signal.aborted) {
         flushText(replyId);
@@ -658,11 +824,42 @@ async function getPass(force = false, signal?: AbortSignal): Promise<string> {
   return pass.value;
 }
 
+/**
+ * Sends the contact page's message form through the API (TASK-DB-0148), with the chat's visitor pass, so the same
+ * human check guards it. True only when the API says it was emailed.
+ */
+export async function sendSiteMessage(body: { name: string; email: string; message: string; area?: string }): Promise<boolean> {
+  const send = async (force: boolean) =>
+    fetch(`${base()}/api/copilot/message`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-copilot-pass': await getPass(force) },
+      body: JSON.stringify(body),
+    });
+  let res = await send(false);
+  // An expired pass is renewed once.
+  if (res.status === 401) res = await send(true);
+  const data = (await res.json().catch(() => null)) as { ok?: unknown } | null;
+  return res.ok && data?.ok === true;
+}
+
+/** Whether the API can email a message (the contact form shows as not open otherwise). */
+export async function siteMessagesOpen(): Promise<boolean> {
+  try {
+    const config = (await (await fetch(`${base()}/api/copilot/config`)).json()) as { messages?: unknown };
+    return config.messages === true;
+  } catch {
+    return false;
+  }
+}
+
 /** Obtain a short-lived room grant using the same visitor pass as text chat. */
-export async function requestVoiceGrant(signal?: AbortSignal): Promise<{ url: string; token: string }> {
+/** The API gives the voice service two tries of 25 seconds each when it has to wake up, so the page waits for both. */
+const GRANT_MS = 55_000;
+
+export async function requestVoiceGrant(signal?: AbortSignal): Promise<{ url: string; token: string; call?: string }> {
   const request = async () => fetch(`${base()}/api/copilot/voice`, {
     method: 'POST', headers: { 'x-copilot-pass': await getPass(false, signal) },
-    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15_000)]) : AbortSignal.timeout(15_000),
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(GRANT_MS)]) : AbortSignal.timeout(GRANT_MS),
   });
   let response = await request();
   if (response.status === 401) {
@@ -670,7 +867,15 @@ export async function requestVoiceGrant(signal?: AbortSignal): Promise<{ url: st
     response = await request();
   }
   if (!response.ok) throw new ApiError(response.status);
-  return response.json() as Promise<{ url: string; token: string }>;
+  return response.json() as Promise<{ url: string; token: string; call?: string }>;
+}
+
+let warmedAt = 0;
+/** Wakes the voice service while the visitor is still reading, so a call does not start against a sleeping one. */
+export function warmVoice() {
+  if (Date.now() - warmedAt < 4 * 60_000) return;
+  warmedAt = Date.now();
+  void fetch(`${base()}/api/copilot/voice/warm`, { method: 'POST', keepalive: true }).catch(() => undefined);
 }
 
 async function stream(
@@ -681,16 +886,18 @@ async function stream(
   retried = false,
   voice = false,
   notes: Summary | null = null,
+  toMe = false,
 ): Promise<void> {
   const res = await fetch(`${base()}/api/copilot/chat`, {
     method: 'POST',
     signal,
     headers: { 'content-type': 'application/json', 'x-copilot-pass': await getPass(false, signal) },
-    body: JSON.stringify({ messages, page, voice, ...(notes ? { summary: notes.text, covered: notes.covers } : {}) }),
+    // `toMe`: the visitor said this line was for the copilot ("Answer this"), so the server does not ask whether it was.
+    body: JSON.stringify({ messages, page, voice, ...(toMe ? { toMe } : {}), ...(voice && callFlow ? { flow: callFlow } : {}), ...(notes ? { summary: notes.text, covered: notes.covers } : {}) }),
   });
   if (res.status === 401 && !retried) {
     pass = null;
-    return stream(messages, page, replyId, signal, true, voice, notes);
+    return stream(messages, page, replyId, signal, true, voice, notes, toMe);
   }
   if (!res.ok || !res.body) throw new ApiError(res.status);
 
@@ -761,6 +968,19 @@ function handle(event: Event, replyId: number) {
       } else pendingCites.push(action);
       return;
     }
+    if (event.action.kind === 'book' && voiceReplies.has(replyId)) {
+      // A call has no chips (the page moves instead), but the person has just given a name and an email to book: the button
+      // to pick a time must be on the screen, and not left to a chat thread nobody is reading.
+      const { url, name, email, topic } = event.action;
+      set({ booking: { url, name, email, topic } });
+      return;
+    }
+    if (event.action.kind === 'projects' && voiceReplies.has(replyId)) {
+      const slugs = event.action.slugs;
+      const before = Promise.all(pendingMoves);
+      pendingMoves.push(before.then(() => showCards(slugs)).catch(() => undefined));
+      return;
+    }
     // Chips appear once the text has been typed. On a call there are no chips: the page moves instead.
     if (!voiceReplies.has(replyId)) {
       void untilTyped(replyId).then(() => patchMessage(replyId, (m) => ({ actions: [...m.actions, event.action] })));
@@ -773,8 +993,16 @@ function handle(event: Event, replyId: number) {
       const onCall = voiceReplies.has(replyId);
       // Typed or spoken, the moon takes the visitor there.
       const move = onCall ? copilot.go(event.action.path, { slow: true, agent: true }) : copilot.guide(event.action.path);
-      if (onCall) pendingMoves.push(move);
+      if (onCall) {
+        pendingMoves.push(move);
+        listMove = LIST_PAGE.test(event.action.path);
+      }
     }
+  } else if (event.type === 'flow') {
+    callFlow = event.flow;
+  } else if (event.type === 'ignored') {
+    // On a call the line was said to someone else in the visitor's room: no reply, and the line stays, greyed, to answer anyway.
+    set({ messages: state.messages.filter((m) => m.id !== replyId).map((m) => (m.id === replyId - 1 ? { ...m, ignored: event.reason } : m)) });
   } else if (event.type === 'error') {
     patchMessage(replyId, (m) => ({ text: m.text || event.message, error: !m.text }));
   } else if (event.type === 'done') {

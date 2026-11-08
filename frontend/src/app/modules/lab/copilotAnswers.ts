@@ -78,7 +78,7 @@ export function answer(question: string): CopilotAnswer {
   }
   if (/\b(how are you|how's it going|how are things|what's up|whats up)\b/.test(q)) {
     return {
-      text: "Doing well, thanks. I'm AI Pujan, so I mostly think about my own work. What would you like to see?",
+      text: "Doing well, thanks. No commute, no inbox, just vibes and a server fan. How's your day going?",
     };
   }
   if (/\b(are you (a |an )?(real|human|bot|ai|robot|person|pujan)|am i (talking|speaking) to|real or fake|are you (the )?same (person|as)|are you two|you and pujan)\b/.test(q)) {

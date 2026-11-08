@@ -77,9 +77,7 @@ const { readFile } = await import('node:fs/promises');
 const route = await readFile(new URL('./backend/src/copilot/route.ts', root), 'utf8');
 assert.match(route, /summary: z\.string\(\)\.max\(SUMMARY_MAX_CHARS\)\.optional\(\)/);
 assert.match(route, /previous: z\.string\(\)\.max\(SUMMARY_MAX_CHARS\)/);
-// TASK-DB-0142: the saved-reply router is retired; the only canned replies (injection, trick questions) read the last turn alone.
-assert.match(route, /injectionReply\(question, voice\)/, 'the injection check sees only the last turn, never the old context');
-assert.doesNotMatch(route, /routeRequest\(/, 'facts come from retrieval, not the saved-reply router');
+assert.ok(!route.includes('routeRequest'), 'no wording-matching router sits in front of the model');
 
 // Summariser: cheapest first, restates through the model, merges with the old notes, and falls back to null.
 const providers = [

@@ -1,0 +1,109 @@
+{
+  "name": "booking from a paper page: each answer checked with the caller, state kept by the page",
+  "startPage": {
+    "path": "/research/papers/db-r-2026-010",
+    "title": "Accuracy is not enough"
+  },
+  "steps": [
+    {
+      "say": "Okay, book the call.",
+      "expect": {
+        "navigatesTo": "/contact",
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "ask_name"
+        },
+        "judge": [
+          "J-1"
+        ]
+      }
+    },
+    {
+      "say": "Poojan.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "confirm_name",
+          "has": {
+            "name": "Poojan"
+          }
+        }
+      }
+    },
+    {
+      "say": "Yes.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "ask_pronunciation"
+        }
+      }
+    },
+    {
+      "say": "poo jun",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "ask_email"
+        },
+        "judge": [
+          "J-1"
+        ]
+      }
+    },
+    {
+      "say": "Poojan three six four five at gmail dot com.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "confirm_email",
+          "has": {
+            "email": "poojan3645@gmail.com"
+          }
+        }
+      }
+    },
+    {
+      "say": "Yes, that's right. Marketing.",
+      "expect": {
+        "actions": [
+          "book"
+        ],
+        "maxActions": {
+          "book": 1,
+          "navigate": 0
+        },
+        "book": {
+          "name": "Poojan",
+          "email": "poojan3645@gmail.com",
+          "topic": "Marketing"
+        },
+        "pageAfter": "/contact"
+      }
+    },
+    {
+      "say": "I see it, thanks.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "closed"
+        },
+        "judge": [
+          "J-1"
+        ]
+      }
+    }
+  ]
+}

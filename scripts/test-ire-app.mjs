@@ -174,7 +174,7 @@ assert.ok(!keyLike.test(JSON.stringify(saved)), 'the feed fixture contains somet
 
 // 6. Routing. /ire and /ire/ serve the dashboard; the old /ire/app path redirects to it
 //    permanently (the Caddyfile answers 301). The Caddyfile is the live server's config.
-const caddy = await read('./deploy/gravebuster/Caddyfile');
+const caddy = await read('./deploy/vps/Caddyfile');
 const catchAll = caddy.search(/\n\t\thandle \{\n\t\t\trewrite \* \/index\.html/);
 assert.ok(catchAll >= 0, 'Caddyfile should keep the SPA catch-all');
 assert.match(

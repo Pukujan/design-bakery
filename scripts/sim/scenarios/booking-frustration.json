@@ -1,0 +1,106 @@
+{
+  "name": "booking: a complaint and a repeated request in the middle do not restart or lose what was given",
+  "startPage": {
+    "path": "/",
+    "title": "Home"
+  },
+  "steps": [
+    {
+      "say": "Book the call.",
+      "expect": {
+        "navigatesTo": "/contact",
+        "booking": {
+          "step": "ask_name"
+        }
+      }
+    },
+    {
+      "say": "Poojan.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "confirm_name",
+          "has": {
+            "name": "Poojan"
+          }
+        }
+      }
+    },
+    {
+      "say": "I just told you the name.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "confirm_name",
+          "has": {
+            "name": "Poojan"
+          }
+        }
+      }
+    },
+    {
+      "say": "Yes, that's right.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "ask_pronunciation"
+        }
+      }
+    },
+    {
+      "say": "Fine as spelled.",
+      "expect": {
+        "booking": {
+          "step": "ask_email"
+        }
+      }
+    },
+    {
+      "say": "Book the call.",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "ask_email",
+          "has": {
+            "name": "Poojan"
+          }
+        }
+      }
+    },
+    {
+      "say": "pujan three six four five at gmail dot com",
+      "expect": {
+        "noActions": [
+          "book"
+        ],
+        "booking": {
+          "step": "confirm_email",
+          "has": {
+            "email": "pujan3645@gmail.com"
+          }
+        }
+      }
+    },
+    {
+      "say": "Yes, AI engineering.",
+      "expect": {
+        "actions": [
+          "book"
+        ],
+        "book": {
+          "name": "Poojan",
+          "email": "pujan3645@gmail.com",
+          "topic": "AI engineering"
+        }
+      }
+    }
+  ]
+}

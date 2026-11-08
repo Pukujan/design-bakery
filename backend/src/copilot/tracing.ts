@@ -42,6 +42,8 @@ export class TurnTrace {
   output = '';
   /** 'text' or 'voice'. */
   channel = 'text';
+  /** The lane that answered (lanes/): strong, hybrid or small. */
+  lane = '';
   /** The visitor's address is on the owner's rate-limit exemption list (COPILOT_RATE_EXEMPT_IPS). */
   exempt = false;
   /** The page moves and chips this turn sent, one word each, so a trace shows what the visitor was shown. */
@@ -64,6 +66,8 @@ export class TurnTrace {
   /** The retrieved sections' addresses, best first. */
   retrieved: string[] = [];
   truncated = false;
+  /** The tools the model was offered this turn, after the channel, the booking step and the lane narrowed them (copilot-spec.md O-1 to O-4). */
+  offered: string[] = [];
   private steps = new Map<string, Step>();
 
   constructor(readonly session: string) {}
@@ -100,7 +104,9 @@ export class TurnTrace {
       'copilot.finish_reason': this.finishReason,
       'copilot.truncated': this.truncated,
       'copilot.channel': this.channel,
+      'copilot.lane': this.lane,
       'copilot.actions': this.actions.join(' '),
+      'copilot.offered': this.offered.join(' '),
       'copilot.citations': this.citations.join(' | '),
       'copilot.context_tokens': this.contextTokens,
       'copilot.summary_used': this.summaryUsed,
