@@ -74,3 +74,26 @@ Blocked/uncertain:
 
 Next:
 - Merge the fix, check the rebuilt worker, scripted call whose place frees when it ends
+
+### 2026-11-08 14:52:26 UTC — claude-opus-5.5
+
+<!-- continuity:checkpoint {"agent":"claude-opus-5.5","blocked":[],"changed":["none"],"completed":["Call speech on the gateway (#242) and the release fix (#243) merged and deployed; scripted call 5 of 5, gateway logged it and freed its place"],"decisions":["no new decisions"],"evidence":["design-bakery-voice:8980318ffb28-20261108T144909Z with SPEECH_URL :18800; gateway log call db-call-42e62b67 (design-bakery); /health empty of it after shutdown"],"next_action":"None in this repo; coordinator removes the socat bridge","protocol_version":"0.1.0-draft","schema":"project-continuity.checkpoint.v1","task_id":"DB-0154","timestamp":"2026-11-08T14:52:26Z"} -->
+<!-- continuity:checkpoint-operation {"payload_sha256":"e4f530e654f262999ffc99045e8cb99a5873b64a60afe7fb00876cb54a4c1d75","request_id":"be0733cbbf47425ab4f38ed0352307de","schema":"project-continuity.checkpoint-operation.v1","task_id":"DB-0154"} -->
+
+Completed:
+- Call speech on the gateway (#242) and the release fix (#243) merged and deployed; scripted call 5 of 5, gateway logged it and freed its place
+
+Evidence:
+- design-bakery-voice:8980318ffb28-20261108T144909Z with SPEECH_URL :18800; gateway log call db-call-42e62b67 (design-bakery); /health empty of it after shutdown
+
+Decisions:
+- no new decisions
+
+Changed:
+- none
+
+Blocked/uncertain:
+- none
+
+Next:
+- None in this repo; coordinator removes the socat bridge
