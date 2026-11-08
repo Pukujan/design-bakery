@@ -28,6 +28,8 @@
 - After merging main (DB-0154 speech gateway, which also edits `agent.py`): 16 worker unit tests, backend build, cite, stream and voice tests pass. `additionals/doc/copilot-spec.md` updated for the docs check.
 - The call's turns replayed against a local API with these changes (Haiku): "guide me through it" on db-r-2026-007 emitted 4 cites in reading order; "Show me references" read the References section, pointed at it and named three in a sentence; on /contact after a paper, "Which page am I on" said the Contact page; the message read back name, email and message and asked to send; "Give me one more" on /blogs/33 went to the next post with no narration.
 
+- Merged as #240 (squash 2aa249c) on 2026-11-08 at 14:57 UTC; Komodo deployed it: `design-bakery-web`, `-api` and `-voice` run `2aa249c…`, the worker registered with LiveKit, /contact answers 200.
+
 **Not done.**
 - The worker changes (greeting retry, stall skip, `spoken`) are tested by unit tests only; check the next real call in Phoenix (`voice.failure` with `method = copilot.greet`, `stall`).
 - Three stalls happened while the copilot was listening; their cause is not known.
