@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getResearchPaper } from '../data/researchPapers';
 import { Article } from '@/modules/lab/Article';
 import { ArticleToc } from '@/modules/lab/ArticleToc';
+import { PageSeo } from '@/seo/PageSeo';
+import { SITE_NAME } from '@/seo/siteSeoDefaults';
 import '@/modules/lab/lab.css';
 import '@/modules/blog/public/list/writing.css';
 import '@/modules/lab/post.css';
@@ -11,10 +12,6 @@ import '@/modules/lab/post.css';
 export function ResearchPaperPage() {
   const { paperId } = useParams();
   const paper = paperId ? getResearchPaper(paperId) : undefined;
-
-  useEffect(() => {
-    if (paper) document.title = `${paper.title} · Research`;
-  }, [paper]);
 
   if (!paper) {
     return (
@@ -29,6 +26,14 @@ export function ResearchPaperPage() {
 
   return (
     <article className="writing post">
+      <PageSeo
+        title={`${paper.title} | Research | ${SITE_NAME}`}
+        description={paper.abstract}
+        canonicalPath={`/research/papers/${paper.id}`}
+        ogType="article"
+        author={paper.authors.join(', ')}
+        publishedTime={paper.submitted}
+      />
       <Link to="/research" className="post-back lab-mono">
         ← Research
       </Link>

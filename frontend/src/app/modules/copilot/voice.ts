@@ -213,6 +213,11 @@ export const voice = {
       const call = new lk.Room({ adaptiveStream: false, dynacast: false });
       room = call;
       const isAgent = (identity: string) => call.remoteParticipants.get(identity)?.isAgent === true;
+      /** The greeting can arrive before this page has seen the worker join (the 2026-11-08 call refused it in 56 ms): wait up to 2 s. */
+      const fromAgent = async (identity: string) => {
+        for (let tries = 0; tries < 20 && !isAgent(identity); tries += 1) await new Promise((r) => setTimeout(r, 100));
+        return isAgent(identity);
+      };
       /** The copilot's answer to a line heard on the call, with the page moves it makes as it is spoken. '' for no reply. */
       const answerAloud = async (question: string, toMe = false): Promise<string> => {
         // Nothing is quiet while an answer is worked out: the reminders hold off, and fillers fill the wait.
@@ -257,7 +262,7 @@ export const voice = {
         return answer;
       };
       call.registerRpcMethod('copilot.greet', async (data) => {
-        if (!isAgent(data.callerIdentity)) throw new Error('Unrecognized voice participant');
+        if (!(await fromAgent(data.callerIdentity))) throw new Error('Unrecognized voice participant');
         // `call` (the visitor's session) files the agent's spans under the same Phoenix session as this page's turns.
         return JSON.stringify({ say: "Hi, I'm AI Pujan. Ask me about my work, my writing, or my research.", call: grant.call ?? '' });
       });
