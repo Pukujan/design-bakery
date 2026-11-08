@@ -2,24 +2,24 @@
   {
     "id": 16,
     "slug": "website-copilot",
-    "title": "Website Copilot",
+    "title": "Maybe",
     "category": "shipped",
-    "tagline": "A voice call that helps visitors finish the form",
-    "description": "Visitors give up on long forms and help pages, and a chatbot that guesses makes it worse. Website Copilot is a voice call on the page: it asks one question at a time, fills each field only after the visitor confirms, and never presses Submit. Answers come from the company's own documents, or it says it doesn't know. It runs on open models and keeps customer data in house. The live demo puts the same fictional sites side by side, with and without the call.",
+    "tagline": "An AI that reads the hard stuff with you, out loud",
+    "description": "A letter that makes no sense, a manual nobody has time to read, tax forms on the dinner table. Maybe is a helper you talk to: it goes through a form with you line by line, fills in a box only after you say so, and puts the right page of a manual on screen. Answers come from the source documents with the page cited, or it says it doesn't know. It runs on open models and keeps data in house. The homepage tells the story through three composite people and real accessibility figures, and the tax demo lets you try it on a real IRS form.",
     "tech": ["Voice Agents", "RAG", "Form Filling", "Open Models", "Octo", "React"],
-    "color": "#0A1A17",
-    "accentColor": "#34D399",
+    "color": "#1A1612",
+    "accentColor": "#FFD84D",
     "startedAt": "2026-10-28",
     "startedAtSource": "GitHub repo creation date of Pukujan/voice-agent-research (2026-10-29T03:37:53Z, which is 2026-10-28 US Eastern)",
     "status": "ongoing",
     "stats": [
-      {"label": "Never presses Submit", "icon": "Award"},
-      {"label": "Answers from your documents or says it doesn't know", "icon": "Sparkles"},
-      {"label": "Live demo, with and without the call", "icon": "TrendingUp"}
+      {"label": "Talk it through, it fills the boxes", "icon": "Sparkles"},
+      {"label": "Cites the page every answer came from", "icon": "Award"},
+      {"label": "Live, with a tax-form demo", "icon": "TrendingUp"}
     ],
     "links": [
-      {"label": "Live Demo", "url": "https://copilot.design-bakery.com/#demos"},
-      {"label": "Concept Video", "url": "https://copilot.design-bakery.com/#video"}
+      {"label": "Live Site", "url": "https://maybe.design-bakery.com"},
+      {"label": "Try the Tax Demo", "url": "https://maybe.design-bakery.com/tax"}
     ]
   },
   {
@@ -337,6 +337,52 @@
     "links": [
       {"label": "Live App", "url": "https://nyc.design-bakery.com"},
       {"label": "GitHub · Public", "url": "https://github.com/pukujan-lab-2/nyc-map-agent"}
+    ]
+  },
+  {
+    "id": 19,
+    "slug": "maybe-home",
+    "title": "Maybe Home",
+    "category": "shipped",
+    "tagline": "Your first New York home. Just ask, in any language",
+    "description": "Buying a first home in New York comes with words nobody explains: board package, proprietary lease, flip tax. Maybe Home answers in plain words and in the buyer's own language, by chat or voice, from a licensed brokerage's own guides, and hands off to a real Rep when the buyer is ready. It walks the eight steps from budget to keys and has a four-question readiness check that saves nothing. A design demo built for The Apartment Reps, on Octo search with swappable models.",
+    "tech": ["Voice Agents", "RAG", "Multilingual", "Octo", "TypeScript", "Python"],
+    "color": "#17120D",
+    "accentColor": "#F5C451",
+    "startedAt": "2026-11-03",
+    "startedAtSource": "GitHub repo creation date of pukujan-lab-2/first-home-nyc (2026-11-04T00:19:08Z, which is 2026-11-03 US Eastern; private repo)",
+    "status": "ongoing",
+    "stats": [
+      {"label": "Ask in any language", "icon": "Users"},
+      {"label": "Answers from the brokerage's own guides", "icon": "Award"},
+      {"label": "A real Rep when you're ready", "icon": "Sparkles"}
+    ],
+    "links": [
+      {"label": "Live Site", "url": "https://home.design-bakery.com"}
+    ]
+  },
+  {
+    "id": 20,
+    "slug": "riley",
+    "title": "Riley",
+    "category": "shipped",
+    "tagline": "A phone screener that makes sure nurses hear back",
+    "description": "Nurses apply and often never hear back, and a keyword filter drops a resume that says acute care instead of Med/Surg. Riley calls the applicant for a short screen: it confirms what the resume already says, asks only what is missing, and tells them the date they will hear by, within 48 hours. A recruiter reads the result and decides; Riley never rejects anyone. Built at the Take2 voice agent hackathon on 6 November 2026 after interviews with 30 healthcare workers, and live the same week on a real phone number.",
+    "tech": ["Voice Agents", "Telephony", "LiveKit", "Deepgram", "Recruiting", "Python"],
+    "color": "#0F1C1B",
+    "accentColor": "#2DD4BF",
+    "startedAt": "2026-11-06",
+    "startedAtSource": "GitHub repo creation date of pukujan-lab-2/take2-riley (2026-11-06T22:09:52Z, which is 2026-11-06 US Eastern)",
+    "status": "ongoing",
+    "stats": [
+      {"label": "An answer within 48 hours, every time", "icon": "TrendingUp"},
+      {"label": "A person makes the decision", "icon": "Users"},
+      {"label": "Live on a real phone number", "icon": "Sparkles"}
+    ],
+    "links": [
+      {"label": "Live Site", "url": "https://riley.design-bakery.com"},
+      {"label": "Try It", "url": "https://riley.design-bakery.com/try"},
+      {"label": "GitHub · Public", "url": "https://github.com/pukujan-lab-2/take2-riley"}
     ]
   },
   {

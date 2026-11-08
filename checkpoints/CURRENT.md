@@ -8,6 +8,7 @@ Feature work resumed on the owner's direction after the DB-0102 rollback. The si
 
 ## Active
 
+- [DB-0156](../tasks/TASK-DB-0156-portfolio-maybe-home-riley.md): Website Copilot becomes Maybe with its own picture; Maybe Home and Riley join the work list; NYC Map Agent gets its picture.
 - [DB-0155](../tasks/TASK-DB-0155-page-buttons-summarise.md): a page button in the chat summarises what it opens, and the way to keep talking sparkles after each reply.
 - [DB-0154](../tasks/TASK-DB-0154-speech-gateway.md) / [#241](https://github.com/Pukujan/design-bakery/issues/241): the live call's speech goes through the shared speech gateway on the VPS instead of the socat tunnel. Merged (#242, #243), deployed, checked with scripted calls.
 - [DB-0152](../tasks/TASK-DB-0152-calls-on-our-voice-agent.md): live calls on our voice worker. Merged (#238), switched over and checked with a scripted call on www.

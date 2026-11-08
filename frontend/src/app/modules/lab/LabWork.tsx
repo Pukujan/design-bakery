@@ -28,6 +28,9 @@ const PROJECT_MEDIA: Record<number, string> = {
   13: 'orbitgraph',
   14: 'voidfeed',
   15: 'precedent',
+  17: 'nyc-map-agent',
+  19: 'maybe-home',
+  20: 'riley',
 };
 
 const mediaSrc = (slug: string) => `/lab/projects/${slug}.webp`;
