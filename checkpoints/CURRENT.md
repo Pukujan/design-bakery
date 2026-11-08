@@ -1,14 +1,15 @@
 # Current Repository Checkpoint
 
-<!-- continuity:current {"active_task":"DB-0102","active_task_file":"tasks/TASK-DB-0102-restore-before-ui-work.md","protocol_version":"0.1.0-draft","schema":"project-continuity.current.v1"} -->
+<!-- continuity:current {"active_task":"DB-0152","active_task_file":"tasks/TASK-DB-0152-calls-on-our-voice-agent.md","protocol_version":"0.1.0-draft","schema":"project-continuity.current.v1"} -->
 
 ## Program state
 
-Owner-requested rollback to pre-session application revision `154350f`. Feature development is stopped; requests remain queued for future sessions.
+Feature work resumed on the owner's direction after the DB-0102 rollback. The site's live calls run on this repo's voice worker (`voice-agent/`, container `design-bakery-voice` on the VPS) since 2026-11-08; Claude Haiku answers chat and call turns first (DB-0151).
 
 ## Active
 
-- [DB-0102 / #150](https://github.com/Pukujan/design-bakery/issues/150): restore runtime/config changes from #148/#149 while retaining request history. Parent #145; dependencies none. CI, merge and deployment verification pending as of this projection.
+- [DB-0152](../tasks/TASK-DB-0152-calls-on-our-voice-agent.md): live calls on our voice worker. Merged (#238), switched over and checked with a scripted call on www.
+- [PR #205](https://github.com/Pukujan/design-bakery/pull/205): Octo RAG retrieval before the model, so calls get real search. Up to date with main, checks green, not merged.
 
 ## Queued
 
@@ -23,4 +24,4 @@ Owner-requested rollback to pre-session application revision `154350f`. Feature 
 
 ## Next atomic action
 
-Pass required CI, merge and verify Komodo rollback. Do not resume feature work without renewed owner direction.
+Owner review and merge of PR #205, then a scripted call that asks about a paper to see retrieval on a call turn.
