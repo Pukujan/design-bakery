@@ -102,4 +102,25 @@ const answer = 'That is the lay of the land. Want me to dig into a project, a pa
   assert.equal(filter.flush(), 'Two things stand out.\n\nThe first is the eval harness.');
 }
 
-console.log('copilot stream filter: 5 cases (leaked reasoning, late close, hold, open block, paragraph break)');
+// 7. A line before a tool call that narrates the work is dropped; a plain "let me open it" stays (the 2026-11-08 call).
+{
+  const seen = harness();
+  const filter = createTextFilter(seen.send, 10);
+  feed(filter, 'The visitor says "give me one more" on the blog list, and "next" means step_list. I\u2019ll step to the next post.');
+  filter.toolCall();
+  filter.toolResult();
+  feed(filter, 'Here is the next one: the Hades SEO study log.');
+  assert.equal(filter.flush(), 'Here is the next one: the Hades SEO study log.');
+  assert.equal(seen.text, 'Here is the next one: the Hades SEO study log.', 'the page ends up without the narration');
+}
+{
+  const seen = harness();
+  const filter = createTextFilter(seen.send, 10);
+  feed(filter, 'Let me open the research page for you.');
+  filter.toolCall();
+  filter.toolResult();
+  feed(filter, 'One to start with is the AI judges paper.');
+  assert.equal(filter.flush(), 'Let me open the research page for you.\n\nOne to start with is the AI judges paper.');
+}
+
+console.log('copilot stream filter: 7 cases (leaked reasoning, late close, hold, open block, paragraph break, narration dropped, plain preamble kept)');

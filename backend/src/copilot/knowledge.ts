@@ -34,6 +34,30 @@ export const SITE_PAGES = [
   { path: '/research', label: 'Research' },
 ] as const;
 
+/**
+ * What the page at this path is, in words, from the site's own content: "the Contact page", "the paper db-r-2026-008, \"…\"".
+ * The page sends document.title too, but that is the same site-wide title on most pages, so it said nothing; on the
+ * 2026-11-08 call the copilot told a visitor on /contact three times that they were on the paper they had left.
+ */
+export async function describePage(pagePath: string): Promise<string> {
+  const clean = pagePath.split('#')[0] || '/';
+  const parts = clean.split('/').filter(Boolean);
+  if (parts[0] === 'research' && parts[1] === 'papers' && parts[2]) {
+    const paper = (await loadPapers()).find((p) => p.id === parts[2]);
+    if (paper) return `the paper ${paper.id}, "${paper.title}"`;
+  }
+  if (parts[0] === 'blogs' && parts[1]) {
+    const post = (await loadBlogs()).find((b) => String(b.id) === parts[1]);
+    if (post) return `the blog post "${post.title}"`;
+  }
+  if (parts[0] === 'work' && parts[1]) {
+    const project = (await loadProjects()).find((p) => p.slug === parts[1]);
+    if (project) return `the ${project.title} project page`;
+  }
+  const page = SITE_PAGES.find((p) => p.path === pagePath) ?? SITE_PAGES.find((p) => p.path === clean);
+  return page ? `the ${page.label} page` : 'a page of this site';
+}
+
 export type ProjectLink = { label: string; url: string };
 export type Project = {
   id: number;

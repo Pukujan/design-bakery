@@ -17,6 +17,20 @@
 
 const CLOSERS = ['</think>', '<｜end▁of▁thinking｜>'];
 
+/**
+ * 2. The line before a tool call that narrates the model's own work rather than talking to the visitor. On the
+ * 2026-11-08 call it was spoken aloud: "The visitor says "give me one more" on the blog list, and "next" means step_list."
+ * and "I need to read the paper before I can point at its sections". A plain "Let me open the research page." stays:
+ * on a call it is what the visitor hears while the tool runs.
+ */
+const NARRATION = ['the visitor', 'step_list', 'read_paper', 'read_blog', 'search_site', 'cite_section', 'outline_passages', 'summarize_page',
+  'tour_next', 'show_projects', 'share_link', 'send_message', 'navigate(', 'tool call', 'this turn', 'before i can point', 'i need to read',
+  "i haven't actually read", 'i have not actually read', 'in this conversation'];
+const narrates = (text: string) => {
+  const lower = text.toLowerCase().replaceAll('\u2019', "'");
+  return NARRATION.some((phrase) => lower.includes(phrase));
+};
+
 export type TextFilter = {
   /** A text delta from the model. */
   push: (text: string) => void;
@@ -32,6 +46,8 @@ export function createTextFilter(send: (text: string, replace?: boolean) => void
   let raw = '';
   let shown = '';
   let afterTool = false;
+  /** Where the text since the last tool call starts in `raw`. */
+  let segment = 0;
 
   /** The answer text in `raw`, with any leaked reasoning in front of it removed. */
   const clean = () => {
@@ -60,9 +76,14 @@ export function createTextFilter(send: (text: string, replace?: boolean) => void
       if (raw.length >= hold || CLOSERS.some((closer) => raw.includes(closer))) emit();
     },
     toolCall() {
+      if (raw.length > segment && narrates(raw.slice(segment))) {
+        raw = raw.slice(0, segment);
+        if (shown) emit();
+      }
     },
     toolResult() {
       afterTool = true;
+      segment = raw.length;
     },
     flush() {
       emit();

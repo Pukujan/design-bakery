@@ -28,6 +28,16 @@ export type CopilotAction =
 
 const clip = (text: string, max: number) => (text.length > max ? `${text.slice(0, max)}…` : text);
 
+/** One section of a read post or paper, for a part the full read cut off (a long paper's References sit past its end). */
+async function readSection(path: string, heading: string, point?: (anchor: string, heading: string) => void): Promise<{ heading: string; text: string } | { error: string; sections?: string[] }> {
+  const sections = (await sectionsForPath(path)) ?? [];
+  const section = findSection(sections, heading);
+  if (!section) return { error: 'no such section', sections: sections.map((s) => s.heading).slice(0, 40) };
+  // The part being read out is the part on screen: the model asked for the references and never pointed at them.
+  point?.(section.id, section.heading);
+  return { heading: section.heading, text: clip(section.blocks.join('\n\n'), 6000) };
+}
+
 /** Paths the copilot may send a visitor to: the site's own pages, nothing else. */
 async function knownPath(path: string): Promise<boolean> {
   const clean = path.split('#')[0] || '/';
@@ -91,6 +101,13 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
     options.booking?.set(null);
     return { ok: true, say: `Done. The Pick a time button is in the chat now, with ${data.say ?? data.name} and your email filled in, for ${data.area}. Tap it to choose a slot.` };
   };
+  /** A cite for a section a tool read out, unless this answer already pointed there or used up its moves. */
+  const pointAt = (path: string, anchor: string, heading: string) => {
+    const done = citations?.log().filter((c) => c.ok) ?? [];
+    if (done.length >= (citations?.limit() ?? 3) || done.some((c) => c.path === path && c.anchor === anchor)) return;
+    citations?.record({ path, anchor, ok: true });
+    emit({ kind: 'cite', path, anchor, heading, mode: 'perch' });
+  };
   return {
     search_site: tool({
       description: 'Search projects, research papers and blog posts by keywords. Use it when the brief is not enough.',
@@ -114,26 +131,29 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
     }),
 
     read_blog: tool({
-      description: 'Read one blog post in full, by its numeric id from the brief.',
-      inputSchema: z.object({ id: z.number().int().positive() }),
-      execute: async ({ id }) => {
+      description: 'Read one blog post in full, by its numeric id from the brief. A long post is cut off: pass section (a heading from its "sections" list) to read that part whole.',
+      inputSchema: z.object({ id: z.number().int().positive(), section: z.string().max(200).optional() }),
+      execute: async ({ id, section }) => {
         const post = await readBlog(id);
         if (!post) return { error: 'not found' };
         citations?.retrieve(`/blogs/${id}`);
+        if (section) return readSection(`/blogs/${id}`, section, (anchor, heading) => pointAt(`/blogs/${id}`, anchor, heading));
         const sections = (await sectionsForPath(`/blogs/${id}`)) ?? [];
-        return { title: post.title, sections: sections.map((s) => s.heading), text: clip(post.content, 6000) };
+        return { title: post.title, sections: sections.map((s) => s.heading), text: clip(post.content, 6000), ...(post.content.length > 6000 ? { cut: 'the text stops early: read a later section with section' } : {}) };
       },
     }),
 
     read_paper: tool({
-      description: 'Read one research paper, by its id (db-r-YYYY-NNN).',
-      inputSchema: z.object({ id: z.string() }),
-      execute: async ({ id }) => {
+      description: 'Read one research paper, by its id (db-r-YYYY-NNN). A long paper is cut off: pass section (a heading from its "sections" list, for example "References") to read that part whole.',
+      inputSchema: z.object({ id: z.string(), section: z.string().max(200).optional() }),
+      execute: async ({ id, section }) => {
         const body = await readPaper(id);
         if (!body) return { error: 'not found' };
         citations?.retrieve(`/research/papers/${id}`);
+        // A call on 2026-11-08 asked for a paper's references three times: they were past the 8000 characters every time.
+        if (section) return readSection(`/research/papers/${id}`, section, (anchor, heading) => pointAt(`/research/papers/${id}`, anchor, heading));
         const sections = (await sectionsForPath(`/research/papers/${id}`)) ?? [];
-        return { sections: sections.map((s) => s.heading), text: clip(body, 8000) };
+        return { sections: sections.map((s) => s.heading), text: clip(body, 8000), ...(body.length > 8000 ? { cut: 'the text stops early: read a later section (References, say) with section' } : {}) };
       },
     }),
 
@@ -149,7 +169,7 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
     }),
 
     cite_section: tool({
-      description: `Point at a section of a blog post, research paper or project while you talk about it: the page scrolls to that heading, the cursor taps it, and a short passage is highlighted. path is /blogs/<id>, /research/papers/<id> or /work/<slug>. you must have read the post or paper this turn (read_blog or read_paper), or it is refused. heading must be a heading you saw in its "sections" list (a project page has What it is, Highlights, Built with, Go deeper). A paper's charts and diagrams are in that list too, as headings starting "Figure" or "Diagram": when one shows what you are saying, point at it rather than the text, since seeing the chart says more. quote is optional: a passage of at most ${QUOTE_MAX} characters copied word for word from that section. If it returns ok false, do not retry with a made-up heading; just keep talking.`,
+      description: `Point at a section of a blog post, research paper or project while you talk about it: the page scrolls to that heading, the cursor taps it, and a short passage is highlighted. path is /blogs/<id>, /research/papers/<id> or /work/<slug>. heading must be a heading you saw in its "sections" list (a project page has What it is, Highlights, Built with, Go deeper). A paper's charts and diagrams are in that list too, as headings starting "Figure" or "Diagram": when one shows what you are saying, point at it rather than the text, since seeing the chart says more. quote is optional: a passage of at most ${QUOTE_MAX} characters copied word for word from that section. If it returns ok false, do not retry with a made-up heading; just keep talking.`,
       inputSchema: z.object({ path: z.string().max(200), heading: z.string().min(1).max(200), quote: z.string().max(400).optional() }),
       execute: async ({ path, heading, quote }) => {
         const clean = path.split('#')[0];
@@ -157,14 +177,10 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
           citations?.record({ path: clean, ok: false, reason: 'not a page on this site' });
           return { ok: false, error: 'not a page on this site' };
         }
-        // Projects are all in the brief; a post or paper must have been read this turn.
-        if (citations && !clean.startsWith('/work/')) {
-          const verdict = citations.check(clean);
-          if (!verdict.ok) {
-            citations.record({ path: clean, ok: false, reason: verdict.reason });
-            return { ok: false, error: verdict.reason };
-          }
-        }
+        // The tool reads the page's sections itself, and the heading and quote are checked against them, so what is pointed at
+        // is always on the page. It used to refuse a post or paper no tool had read this turn; on a call that refused read_paper
+        // and cite_section sent in the same step (they run side by side) and every pointer for a paper read a turn earlier.
+        citations?.retrieve(clean);
         const sections = await sectionsForPath(clean);
         if (!sections?.length) return { ok: false, error: 'this page has no sections to point at' };
         const section = findSection(sections, heading);
@@ -186,21 +202,26 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
     }),
 
     outline_passages: tool({
-      description: `For a summary of one post, paper or project: the passages to talk about, in order, each with its heading and a first sentence you may quote. A normal "summarise it" gets ${SUMMARY_PASSAGES} passages: one short sentence each (15 to 20 seconds in all), then a short offer to go deeper into one part. Only when the visitor asks to be walked through the whole post, or to go deeper, pass depth "full" for up to ${MAX_PASSAGES} passages (about 35 seconds). Call cite_section for each passage in order as you reach it. Reading the page first (read_blog or read_paper) is required for a post or paper.`,
+      description: `For a walk through one post, paper or project: the passages to talk about, in order, each with its heading and a first sentence you may quote. A normal "summarise it" gets ${SUMMARY_PASSAGES} passages: one short sentence each (15 to 20 seconds in all), then a short offer to go deeper into one part. Only when the visitor asks to be walked through the whole post, or to go deeper, pass depth "full" for up to ${MAX_PASSAGES} passages (about 35 seconds). The page follows the passages by itself as you speak them, in order: do not call cite_section for them.`,
       inputSchema: z.object({ path: z.string().max(200), depth: z.enum(['summary', 'full']).optional() }),
       execute: async ({ path, depth }) => {
         const clean = path.split('#')[0];
         if (!(await knownPath(clean))) return { ok: false, error: 'not a page on this site' };
-        if (citations && !clean.startsWith('/work/')) {
-          const verdict = citations.check(clean);
-          if (!verdict.ok) return { ok: false, error: verdict.reason };
-        }
+        citations?.retrieve(clean);
         const sections = await sectionsForPath(clean);
         if (!sections?.length) return { ok: false, error: 'this page has no sections' };
         const max = depth === 'full' ? MAX_PASSAGES : SUMMARY_PASSAGES;
+        const mode = depth === 'full' ? 'perch' : 'swipe';
         citations?.setLimit(max);
-        citations?.setMode(depth === 'full' ? 'perch' : 'swipe');
-        return { ok: true, path: clean, passages: buildPassages(sections, max) };
+        citations?.setMode(mode);
+        const passages = buildPassages(sections, max);
+        // The page follows them by itself, as summarize_page does. Left to cite_section, the model pointed at none of them in
+        // four of five walks through a paper on the 2026-11-08 call: the moon stayed put while the paper was explained.
+        for (const p of passages) {
+          citations?.record({ path: clean, anchor: p.anchor, quote: p.quote, ok: true });
+          emit({ kind: 'cite', path: clean, anchor: p.anchor, heading: p.heading, ...(p.quote ? { quote: p.quote } : {}), mode });
+        }
+        return { ok: true, path: clean, passages };
       },
     }),
 

@@ -97,29 +97,53 @@ assert.equal(noQuote.quoteShown, false, 'an invented quote still scrolls but is 
 assert.equal('quote' in emitted.at(-1), false);
 assert.equal(emitted.length, before + 1, 'refusals emit nothing');
 
-// 6. The citation guard: a post or paper may be cited only after a tool retrieved it this turn.
+// 6. The citation record (TASK-DB-0153): cite_section reads the page itself, so a paper not read by another tool this turn
+//    (read in the same step, or a turn earlier, as on the 2026-11-08 call) is pointed at too; headings are still checked.
 const { createCitations } = await import(new URL('./backend/lib/copilot/citations.js', root).href);
 const guarded = createCitations();
 const emittedG = [];
 const g = tools.makeTools((action) => emittedG.push(action), { canNavigate: false, citations: guarded });
 const runG = (input) => g.cite_section.execute(input, { toolCallId: 't', messages: [] });
-const papers = (await readFile(new URL('./backend/src/copilot/knowledge.ts', root), 'utf8')) && (await import(new URL('./backend/lib/copilot/knowledge.js', root).href)).loadPapers;
+const papers = (await import(new URL('./backend/lib/copilot/knowledge.js', root).href)).loadPapers;
 const paperId = (await papers())[0].id;
 const unread = await runG({ path: `/research/papers/${paperId}`, heading: 'Abstract' });
-assert.equal(unread.ok, false, 'a paper that was not read this turn cannot be cited');
-assert.equal(emittedG.length, 0);
-await g.read_paper.execute({ id: paperId }, { toolCallId: 't', messages: [] });
-const read = await runG({ path: `/research/papers/${paperId}`, heading: 'Abstract' });
-assert.equal(read.ok, true, 'after read_paper the same cite goes through');
+assert.equal(unread.ok, true, 'a paper no other tool read this turn is still pointed at: the tool reads its sections');
 assert.equal(emittedG.at(-1).kind, 'cite');
-assert.equal((await runG({ path: `/work/${slug}`, heading: 'What it is' })).ok, true, 'projects are in the brief, so they need no read');
-assert.equal((await runG({ path: `/research/papers/${paperId}`, heading: 'Pricing' })).ok, false);
+assert.equal(guarded.wasRetrieved(`/research/papers/${paperId}`), true);
+assert.equal((await runG({ path: `/research/papers/${paperId}`, heading: 'Abstract' })).ok, false, 'never the same section twice');
+assert.equal((await runG({ path: `/work/${slug}`, heading: 'What it is' })).ok, true, 'projects too');
+assert.equal((await runG({ path: `/research/papers/${paperId}`, heading: 'Pricing' })).ok, false, 'an invented heading is still refused');
 const trace = guarded.summary();
-assert.equal(trace.length, 4);
-assert.match(trace[0], /!not retrieved/);
-assert.match(trace[1], new RegExp(`^/research/papers/${paperId}#`));
-assert.match(trace[3], /!no such section/);
-assert.equal(guarded.log()[1].ok, true);
+assert.equal(trace.length, 3);
+assert.match(trace[0], new RegExp(`^/research/papers/${paperId}#`));
+assert.match(trace[2], /!no such section/);
+
+// 6b. outline_passages points the page at its passages itself (the model left them unpointed in four of five walks).
+const walked = createCitations();
+const emittedW = [];
+const w = tools.makeTools((action) => emittedW.push(action), { canNavigate: false, citations: walked });
+const outline = await w.outline_passages.execute({ path: `/research/papers/${paperId}`, depth: 'full' }, { toolCallId: 't', messages: [] });
+assert.equal(outline.ok, true, 'no read needed first');
+assert.ok(outline.passages.length > 0);
+assert.deepEqual(emittedW.map((a) => a.anchor), outline.passages.map((p) => p.anchor), 'one cite per passage, in order');
+assert.ok(emittedW.every((a) => a.kind === 'cite' && a.mode === 'perch'), 'the whole-paper walk perches');
+
+// 6c. read_paper with a section reads that part whole: a long paper's References sit past the 8000-character read.
+const allPapers = await papers();
+const sectionsOf = (await import(new URL('./backend/lib/copilot/knowledge.js', root).href)).sectionsForPath;
+let withRefs = null;
+for (const p of allPapers) {
+  const found = await sectionsOf(`/research/papers/${p.id}`);
+  const refs = found?.find((s) => s.heading.toLowerCase() === 'references');
+  if (refs && refs.blocks.join('').length > 0) { withRefs = { id: p.id, refs }; break; }
+}
+if (withRefs) {
+  const part = await g.read_paper.execute({ id: withRefs.id, section: 'References' }, { toolCallId: 't', messages: [] });
+  assert.equal(part.heading, 'References');
+  assert.ok(part.text.length > 0 && part.text.startsWith(withRefs.refs.blocks[0].slice(0, 40)), 'the section text, from its start');
+  assert.equal(emittedG.at(-1).anchor, withRefs.refs.id, 'and the page is pointed at the part being read out');
+  assert.equal((await g.read_paper.execute({ id: withRefs.id, section: 'Pricing' }, { toolCallId: 't', messages: [] })).error, 'no such section');
+}
 
 // 7. The passage builder: a whole-post summary is at most four headings, in order, no repeats, each quotable.
 const { buildPassages, MAX_PASSAGES, SUMMARY_PASSAGES } = sections;

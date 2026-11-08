@@ -1,7 +1,9 @@
 /**
- * The citation guard and per-turn record (TASK-DB-0129). A page or section may be cited only if one of this turn's tools
- * actually retrieved it, the way the Precedent safeguard refuses a draft that cites something it never fetched. Plain
- * code, no model call: the tools mark what they return, cite_section asks before it emits.
+ * The per-turn citation record (TASK-DB-0129). A section is pointed at only on a real page, under a heading it has, with a quote
+ * found in that section's text (sections.ts). Until TASK-DB-0153 a post or paper could be cited only after another tool read it
+ * this turn; cite_section and outline_passages now read the page's sections themselves, which is the same grounding, because
+ * the refusal stopped the page following a paper read in the same step or a turn earlier. check() remains for callers that
+ * want the old test. Plain code, no model call.
  */
 
 export type CitationRecord = { path: string; anchor?: string; quote?: string; ok: boolean; reason?: string };

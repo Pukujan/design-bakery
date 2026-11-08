@@ -43,6 +43,7 @@ from livekit.plugins import silero
 from livekit.plugins.turn_detector.english import EnglishModel
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 import hush
+from speech_text import spoken
 from stall_watchdog import StallWatchdog
 from telemetry import CallTelemetry
 from voiceprint import Heard, VoicePrint, load_embedder
@@ -260,9 +261,18 @@ class Copilot(Agent):
         # Wake the speech-to-text model while the intro plays: after a while idle, its first turn is seconds slower.
         self._warming = asyncio.create_task(self._stt.warm())
         # The page asked for the microphone before it joined, so the caller already answered that prompt.
-        r = await self._rpc('copilot.greet', self._tel.stack)
+        # The page can get the greeting before it has seen this worker join, and refuses it (56 ms, the 2026-11-08 call, which
+        # then had no greeting and no call id for its first turn): one more try after a moment.
+        try:
+            r = await self._rpc('copilot.greet', self._tel.stack)
+        except Exception:  # noqa: BLE001 - logged by _rpc
+            await asyncio.sleep(1.0)
+            try:
+                r = await self._rpc('copilot.greet', self._tel.stack)
+            except Exception:  # noqa: BLE001 - no greeting; the call still listens
+                return
         if r.get('say'):
-            self.session.say(r['say'], allow_interruptions=True)
+            self.session.say(spoken(r['say']), allow_interruptions=True)
 
     async def on_user_turn_completed(self, turn_ctx, new_message) -> None:
         said = FILLER.sub('', (new_message.text_content or '').strip()).strip()
@@ -286,7 +296,7 @@ class Copilot(Agent):
                      'kind': r.get('kind', ''), 'search_ms': r.get('searchMs')}
         if r.get('say'):
             self._tts.first_ms = None
-            self._speech = self.session.say(r['say'], allow_interruptions=True)
+            self._speech = self.session.say(spoken(r['say']), allow_interruptions=True)
             self._said, self._said_at = said, time.perf_counter()
         else:  # nothing to say, so no first audio will close this turn's span: record it now
             self._tel.turn({**self.turn, 'total_ms': round((time.perf_counter() - t) * 1000), 'end_of_turn_ms': 0}, time.time() - (time.perf_counter() - t), time.time())
@@ -406,7 +416,7 @@ async def entrypoint(ctx: JobContext):
     def agent_say(data: rtc.RpcInvocationData) -> str:
         text = str(json.loads(data.payload or '{}').get('text', '')).strip()
         if text:
-            session.say(text, allow_interruptions=True)
+            session.say(spoken(text), allow_interruptions=True)
         return '{}'
 
     # Speech-to-text and voice errors (a recoverable one is retried by LiveKit), and why the session closed.
@@ -443,6 +453,11 @@ async def entrypoint(ctx: JobContext):
                 if not hit:
                     continue
                 kind, seen = hit
+                # Speech over the copilot's own voice that never interrupted it is not a lost turn: 7 of the 10 "stalls" on the
+                # 2026-11-08 call were that, and starting the turn over there could only drop what the caller said next.
+                if kind == 'speech-without-turn' and str(session.agent_state) == 'speaking':
+                    print('speech over the voice that did not become a turn,', round(seen, 1), 's', flush=True)
+                    continue
                 print('stall', kind, round(seen, 1), 's; starting the turn over', flush=True)
                 tel.failure('stall', f'{kind}: {seen:.0f} s', stall=kind, seconds=round(seen, 1), user_state=str(session.user_state), agent_state=str(session.agent_state))
                 agent.turn = {}
