@@ -19,6 +19,8 @@ export interface Health {
 
 const state = new Map<string, Health>();
 const FREE_LAST = 'openrouter';
+/** The owner's pick (TASK-DB-0147, again for calls in TASK-DB-0151): Claude Haiku answers first whenever it is healthy, on a call too. */
+const FIRST = 'haiku';
 
 /**
  * How long each provider really takes to start a reply, as a moving average of the calls it answered. The probe above
@@ -46,14 +48,15 @@ const speedOf = (id: string): number => {
 export function byHealth<T extends { id: string }>(providers: T[], fastest = false): T[] {
   const failing = (p: T) => state.get(p.id)?.ok === false;
   const healthy = providers.filter((p) => !failing(p));
-  // On a call the wait is heard: the provider whose last probe was quickest goes first. Never-probed ones keep their place.
+  // On a call the wait is heard: after Haiku, the provider whose last probe was quickest goes next. Never-probed ones keep their place.
   const ms = (p: T) => speedOf(p.id);
   // The free model is a reasoning model: it answers the probe's two-line prompt first, then takes up to 16 s on a real
   // 8k-token prompt. It stays the last resort of the healthy ones, never ranked by the probe.
+  const first = healthy.filter((p) => p.id === FIRST);
   const free = healthy.filter((p) => p.id === FREE_LAST);
-  const paid = healthy.filter((p) => p.id !== FREE_LAST);
+  const paid = healthy.filter((p) => p.id !== FREE_LAST && p.id !== FIRST);
   if (fastest) paid.sort((a, b) => (ms(a) === Infinity || ms(b) === Infinity ? 0 : ms(a) - ms(b)));
-  return [...paid, ...free, ...providers.filter(failing)];
+  return [...first, ...paid, ...free, ...providers.filter(failing)];
 }
 
 export function healthReport(providers: Provider[] = smartProviders()) {

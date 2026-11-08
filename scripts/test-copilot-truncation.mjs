@@ -88,4 +88,13 @@ assert.deepEqual(h.byHealth([{ id: 'a' }, { id: 'openrouter' }, { id: 'c' }], tr
   assert.deepEqual(hh.byHealth(list, true).map((p) => p.id), ['quick', 'slow', 'openrouter'], 'junk samples are ignored');
 }
 
-console.log('copilot truncation: 8 groups ok');
+// 9. Haiku stays first on a call even when another provider answers faster.
+{
+  const hh = await import(new URL('./backend/lib/copilot/health.js?haiku', root).href);
+  const list = [{ id: 'deepseek' }, { id: 'haiku' }, { id: 'openrouter' }];
+  hh.noteLatency('haiku', 3000); hh.noteLatency('haiku', 3000); hh.noteLatency('deepseek', 900); hh.noteLatency('deepseek', 900);
+  assert.deepEqual(hh.byHealth(list, true).map((p) => p.id), ['haiku', 'deepseek', 'openrouter'], 'haiku first on a call');
+  assert.deepEqual(hh.byHealth(list, false).map((p) => p.id), ['haiku', 'deepseek', 'openrouter'], 'haiku first in a chat');
+}
+
+console.log('copilot truncation: 9 groups ok');
