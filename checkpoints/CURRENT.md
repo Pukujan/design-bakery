@@ -8,7 +8,7 @@ Feature work resumed on the owner's direction after the DB-0102 rollback. The si
 
 ## Active
 
-- [DB-0160](../tasks/TASK-DB-0160-songs.md): songs from the owner's Flow Music plan: the song maker on the VPS (Chrome only while a song is made), the copilot's make_song (asks the style first, cached in Octo, daily limits), the chat player with both takes (Take 1 / Take 2), autoplay once per song. Not yet tried on a call.
+- [DB-0160](../tasks/TASK-DB-0160-songs.md): songs from the owner's Flow Music plan: the song maker on the VPS (Chrome only while a song is made), the copilot's make_song (asks the style first, cached in Octo, daily limits), the chat player with both takes (Take 1 / Take 2), autoplay once per song; songs in the background card, audio copied to Octo files, daily sign-in renewal. Not yet tried on a call.
 - [DB-0159](../tasks/TASK-DB-0159-seo-project-pages.md): SEO for the 18 project pages: in the sitemap, fuller descriptions, own share images, and server-side link previews for `/work/<slug>`.
 - [DB-0158](../tasks/TASK-DB-0158-voice-match-lenient.md): the call stopped dropping the owner's own lines as another voice (cut-off 0.18, print learnt from the first three turns, a repeat is kept).
 - [DB-0157](../tasks/TASK-DB-0157-space-covers.md): space covers for Maybe, Maybe Home, Riley, NYC Map Agent and Octo in place of the DB-0156 screenshots.

@@ -3,7 +3,7 @@ import { Music, X } from 'lucide-react';
 import { copilot, useCopilot } from './store';
 import { useVoice, voice } from './voice';
 
-type Status = { state: 'making' | 'done' | 'failed'; title?: string | null; seconds?: number | null; lyrics?: string | null; takes?: number };
+type Status = { state: 'making' | 'done' | 'failed'; title?: string | null; seconds?: number | null; lyrics?: string | null; takes?: number; urls?: string[] };
 
 const POLL_MS = 4000;
 const GIVE_UP_MS = 6 * 60_000;
@@ -84,7 +84,7 @@ export function SongPlayer({ id, title, floating = false }: { id: string; title?
             className="cp-song-audio"
             controls
             preload="auto"
-            src={copilot.songUrl(id, true, take)}
+            src={status.urls?.[take - 1] ?? copilot.songUrl(id, true, take)}
             onPlay={() => { if (onCall) void voice.holdMic(true); }}
             onPause={() => { if (onCall) void voice.holdMic(false); }}
             onEnded={() => { if (onCall) void voice.holdMic(false); }}
@@ -110,7 +110,18 @@ export function SongPlayer({ id, title, floating = false }: { id: string; title?
   );
 }
 
-/** The song a call asked for, over the page. */
+/** Under the reply that started a song: opens it in the card over the page. */
+export function SongLink({ id, title }: { id: string; title?: string | null }) {
+  const { song } = useCopilot();
+  const open = song?.id === id;
+  return (
+    <button type="button" className="cp-song-link" disabled={open} onClick={() => copilot.showSong({ id, title })}>
+      <Music size={12} aria-hidden /> {open ? 'Your song is in the player' : `Play ${title || 'the song'}`}
+    </button>
+  );
+}
+
+/** The song being made or played, over the page (chat and calls). */
 export function SongCard() {
   const { song } = useCopilot();
   if (!song) return null;

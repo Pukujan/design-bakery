@@ -278,7 +278,9 @@ copilotRouter.get('/songs/:id', async (req, res) => {
     res.status(404).json({ ok: false });
     return;
   }
-  res.set('cache-control', status.state === 'making' ? 'no-store' : 'public, max-age=86400').json({ ok: true, ...status });
+  // A done song is cached for a day once its takes are in Octo's files; until then briefly, so the Octo links show up.
+  const cache = status.state === 'making' ? 'no-store' : status.state === 'done' && !status.urls ? 'public, max-age=60' : 'public, max-age=86400';
+  res.set('cache-control', cache).json({ ok: true, ...status });
 });
 
 copilotRouter.get('/songs/:id/audio', async (req, res) => {

@@ -10,7 +10,7 @@ import { previewOf } from './replyPeek';
 import { copilot, useCopilot, type CopilotAction, type CopilotMessage } from './store';
 import { useVoice, voice } from './voice';
 import { MoonCallButton } from './MoonCallButton';
-import { SongPlayer } from './SongCard';
+import { SongLink } from './SongCard';
 import './chat-core.css';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
@@ -134,7 +134,7 @@ function ActionView({ action }: { action: CopilotAction }) {
       </a>
     );
   }
-  if (action.kind === 'song') return <SongPlayer id={action.id} title={action.title} />;
+  if (action.kind === 'song') return <SongLink id={action.id} title={action.title} />;
   // A page of this site is walked to like any other; a link to another site or a mail address opens as a link.
   if (action.url.startsWith('/')) {
     return (
@@ -213,7 +213,7 @@ function AssistantMessage({ message }: { message: CopilotMessage }) {
           {message.streaming && <span className="lab-caret" aria-hidden="true" />}
         </p>
       )}
-      {songs.map((song) => <SongPlayer key={song.id} id={song.id} title={song.title} />)}
+      {songs.map((song) => <SongLink key={song.id} id={song.id} title={song.title} />)}
       {actions.length > 0 && (
         <div className="lab-msg-extras">
           {actions.map((action, index) => (
