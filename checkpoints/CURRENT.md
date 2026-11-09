@@ -8,6 +8,7 @@ Feature work resumed on the owner's direction after the DB-0102 rollback. The si
 
 ## Active
 
+- [DB-0158](../tasks/TASK-DB-0158-voice-match-lenient.md): the call stopped dropping the owner's own lines as another voice (cut-off 0.18, print learnt from the first three turns, a repeat is kept).
 - [DB-0157](../tasks/TASK-DB-0157-space-covers.md): space covers for Maybe, Maybe Home, Riley, NYC Map Agent and Octo in place of the DB-0156 screenshots.
 - [DB-0156](../tasks/TASK-DB-0156-portfolio-maybe-home-riley.md): Website Copilot becomes Maybe with its own picture; Maybe Home and Riley join the work list; NYC Map Agent gets its picture.
 - [DB-0155](../tasks/TASK-DB-0155-page-buttons-summarise.md): a page button in the chat summarises what it opens, and the way to keep talking sparkles after each reply.
