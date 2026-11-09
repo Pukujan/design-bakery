@@ -18,7 +18,7 @@ export type SongAsk = { style: string; about: string; lyrics?: string; instrumen
 export type SongStart =
   | { ok: true; id: string; cached: boolean; title?: string | null }
   | { ok: false; reason: 'visitor_limit' | 'daily_limit' | 'busy' | 'down' };
-export type SongStatus = { id: string; state: 'making' | 'done' | 'failed'; title?: string | null; seconds?: number | null; lyrics?: string | null };
+export type SongStatus = { id: string; state: 'making' | 'done' | 'failed'; title?: string | null; seconds?: number | null; lyrics?: string | null; takes?: number };
 
 const norm = (text = '') => text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 
@@ -75,12 +75,12 @@ export async function startSong(ask: SongAsk, session: string, exempt = false): 
 /** Where a song is. A finished one is answered from Octo; one being made is asked of the song maker, and saved once done. */
 export async function songStatus(id: string): Promise<SongStatus | null> {
   if (!id16(id)) return null;
-  const row = await dbQueryOne<{ state: SongStatus['state']; title: string | null; seconds: number | null; lyrics: string | null }>(
-    'select state, title, seconds, lyrics from public.copilot_songs where id = $1', [id]);
+  const row = await dbQueryOne<{ state: SongStatus['state']; title: string | null; seconds: number | null; lyrics: string | null; takes: number }>(
+    'select state, title, seconds, lyrics, takes from public.copilot_songs where id = $1', [id]);
   if (!row) return null;
   if (row.state !== 'making') return { id, ...row };
   const res = await fetch(`${musicUrl()}/songs/${id}`, { signal: AbortSignal.timeout(5000) }).catch(() => null);
-  const job = res?.ok ? ((await res.json()) as { state?: string; title?: string; seconds?: number; lyrics?: string; error?: string }) : null;
+  const job = res?.ok ? ((await res.json()) as { state?: string; title?: string; seconds?: number; lyrics?: string; takes?: number; error?: string }) : null;
   // The song maker forgets a job when it restarts (a deploy): that song is lost, and the visitor can ask again.
   if (!job || job.state === 'failed') {
     await dbExec("update public.copilot_songs set state = 'failed', error = $2, done_at = now() where id = $1", [id, (job?.error ?? 'lost').slice(0, 300)]);
@@ -89,14 +89,14 @@ export async function songStatus(id: string): Promise<SongStatus | null> {
   if (job.state !== 'done') return { id, state: 'making' };
   // Flow Music names a session after its song a little later; until then it reads like "Today at 7:20 AM".
   const named = job.title && !/^(today|yesterday)\b|^\d+\/\d+/i.test(job.title) ? job.title : null;
-  const done = { title: named?.slice(0, 120) ?? null, seconds: job.seconds ?? null, lyrics: job.lyrics?.slice(0, 6000) ?? null };
-  await dbExec("update public.copilot_songs set state = 'done', title = $2, seconds = $3, lyrics = $4, done_at = now() where id = $1", [id, done.title, done.seconds, done.lyrics]);
+  const done = { title: named?.slice(0, 120) ?? null, seconds: job.seconds ?? null, lyrics: job.lyrics?.slice(0, 6000) ?? null, takes: job.takes === 2 ? 2 : 1 };
+  await dbExec("update public.copilot_songs set state = 'done', title = $2, seconds = $3, lyrics = $4, takes = $5, done_at = now() where id = $1", [id, done.title, done.seconds, done.lyrics, done.takes]);
   return { id, state: 'done', ...done };
 }
 
-/** The song's audio, from the song maker's volume. */
-export async function songAudio(id: string): Promise<Response | null> {
+/** One take of the song's audio (Flow Music makes two), from the song maker's volume. */
+export async function songAudio(id: string, take = 1): Promise<Response | null> {
   if (!id16(id)) return null;
-  const res = await fetch(`${musicUrl()}/songs/${id}/audio`).catch(() => null);
+  const res = await fetch(`${musicUrl()}/songs/${id}/audio${take === 2 ? '?take=2' : ''}`).catch(() => null);
   return res?.ok ? res : null;
 }

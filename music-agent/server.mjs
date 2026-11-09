@@ -5,7 +5,7 @@
 //   GET  /status            busy?, queue length, last sign-in check
 //   POST /songs             {prompt, lyrics?, instrumental?} -> {id}; queued
 //   GET  /songs/:id         {state: queued|making|done|failed, error?, title?, seconds?}
-//   GET  /songs/:id/audio   the song's audio file
+//   GET  /songs/:id/audio   the song's audio file (?take=2 for the second take)
 //   POST /signin            Chrome + the remote screen (noVNC :6080) for SIGNIN_MIN minutes, for the owner to sign in
 //   POST /signin/done       close the sign-in window now
 //   POST /probe             open Flow Music, save a screenshot and the page's controls to DATA_DIR/probe (no credits)
@@ -138,13 +138,13 @@ http.createServer(async (req, res) => {
     if (req.method === 'GET' && m && !m[2]) {
       const j = jobs.get(m[1]);
       if (!j) return json(res, 404, { error: 'no such song' });
-      return json(res, 200, { id: j.id, state: j.state, error: j.error, title: j.title, seconds: j.seconds, lyrics: j.lyrics, type: j.type });
+      return json(res, 200, { id: j.id, state: j.state, error: j.error, title: j.title, seconds: j.seconds, lyrics: j.lyrics, type: j.type, takes: j.takes });
     }
     if (req.method === 'GET' && m && m[2]) {
-      const file = fs.readdirSync(SONGS).find(f => f.startsWith(m[1] + '.'));
-      if (!file) return json(res, 404, { error: 'no audio' });
+      const file = `${m[1]}${url.searchParams.get('take') === '2' ? '-2' : ''}.m4a`;
       const full = path.join(SONGS, file);
-      res.writeHead(200, { 'content-type': file.endsWith('.mp3') ? 'audio/mpeg' : 'audio/mp4', 'content-length': fs.statSync(full).size });
+      if (!fs.existsSync(full)) return json(res, 404, { error: 'no audio' });
+      res.writeHead(200, { 'content-type': 'audio/mp4', 'content-length': fs.statSync(full).size });
       return fs.createReadStream(full).pipe(res);
     }
     if (req.method === 'POST' && url.pathname === '/signin') { await signin(); return json(res, 200, { open: true, minutes: SIGNIN_MIN }); }
