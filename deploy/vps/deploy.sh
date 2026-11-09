@@ -17,6 +17,7 @@
 #   deploy/vps/deploy.sh --no-api             # web only, even if the API is enabled
 #   deploy/vps/deploy.sh --with-voice         # also build/swap the voice call worker
 #   deploy/vps/deploy.sh --no-voice           # leave the voice worker as it is
+#   deploy/vps/deploy.sh --no-music           # leave the song maker as it is
 #   deploy/vps/deploy.sh --no-pull            # use the local checkout as-is
 #
 # With the site tunnel-fronted, set WITH_EDGE=1 in deploy/vps/.env so every
@@ -33,6 +34,9 @@
 # deploy/vps/.env.voice exists. It goes last and never fails the deploy: if the new worker does
 # not register with LiveKit, the previous worker image is put back and the web/API deploy stands.
 #
+# The song maker (music-agent/, TASK-DB-0160) is deployed when deploy/vps/.env.music exists. Like the voice
+# worker it goes last and never fails the deploy.
+#
 # Config comes from deploy/vps/.env (see .env.example) and/or the environment.
 set -euo pipefail
 
@@ -48,6 +52,7 @@ COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
 EDGE_OVERLAY="$SCRIPT_DIR/docker-compose.edge.yml"
 API_ENV_FILE="$SCRIPT_DIR/.env.api"
 VOICE_ENV_FILE="$SCRIPT_DIR/.env.voice"
+MUSIC_ENV_FILE="$SCRIPT_DIR/.env.music"
 ENV_FILE="$SCRIPT_DIR/.env"
 STATE_FILE=${DEPLOY_STATE_FILE:-$SCRIPT_DIR/.deploy-state}
 LOG_FILE=${DEPLOY_LOG_FILE:-$SCRIPT_DIR/deploy.log}
@@ -61,6 +66,8 @@ API_IMAGE_REPO=${DESIGN_BAKERY_API_IMAGE_REPO:-design-bakery-api}
 API_CONTAINER=${DESIGN_BAKERY_API_CONTAINER:-design-bakery-api}
 VOICE_IMAGE_REPO=${DESIGN_BAKERY_VOICE_IMAGE_REPO:-design-bakery-voice}
 VOICE_CONTAINER=${DESIGN_BAKERY_VOICE_CONTAINER:-design-bakery-voice}
+MUSIC_IMAGE_REPO=${DESIGN_BAKERY_MUSIC_IMAGE_REPO:-design-bakery-music}
+MUSIC_CONTAINER=${DESIGN_BAKERY_MUSIC_CONTAINER:-design-bakery-music}
 # The worker loads its voice and turn models, then registers with LiveKit.
 VOICE_TIMEOUT=${VOICE_TIMEOUT:-120}
 HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-90}
@@ -82,13 +89,14 @@ WITH_API=""
 WITH_API_FLAG=""
 WITH_VOICE=""
 WITH_VOICE_FLAG=""
+WITH_MUSIC=1
 AUTO_ROLLBACK=1
 
 log() { printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" | tee -a "$LOG_FILE"; }
 die() { log "ERROR: $*"; exit 1; }
 
 usage() {
-	sed -n '2,34p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+	sed -n '2,40p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 	exit "${1:-0}"
 }
 
@@ -102,6 +110,7 @@ while [ $# -gt 0 ]; do
 		--no-api) WITH_API_FLAG=0; shift ;;
 		--with-voice) WITH_VOICE_FLAG=1; shift ;;
 		--no-voice) WITH_VOICE_FLAG=0; shift ;;
+		--no-music) WITH_MUSIC=0; shift ;;
 		--no-rollback) AUTO_ROLLBACK=0; shift ;;
 		--port) WEB_HOST_PORT=${2:?--port needs a value}; shift 2 ;;
 		-h|--help) usage 0 ;;
@@ -414,6 +423,44 @@ deploy_voice() {
 	fi
 }
 
+# Records the song maker's live tag in .env.
+write_music_tag() { # <music image>
+	local tmp="$ENV_FILE.tmp"
+	{
+		grep -v '^DESIGN_BAKERY_MUSIC_IMAGE=' "$ENV_FILE" 2>/dev/null || true
+		echo "DESIGN_BAKERY_MUSIC_IMAGE=$1"
+	} >"$tmp" && mv "$tmp" "$ENV_FILE"
+}
+
+# Last, like the voice worker, and never fails the deploy. A song being made is cut by the swap; the API tells the
+# visitor it failed and they can ask again.
+deploy_music() {
+	[ "$WITH_MUSIC" = "1" ] && [ -f "$MUSIC_ENV_FILE" ] || return 0
+	local previous new i
+	previous=$(docker inspect -f '{{.Config.Image}}' "$MUSIC_CONTAINER" 2>/dev/null || true)
+	new="$MUSIC_IMAGE_REPO:$SHORT-$(date -u +%Y%m%dT%H%M%SZ)"
+	log "building $new"
+	if ! DESIGN_BAKERY_MUSIC_IMAGE="$new" compose --profile music build --pull music; then
+		log "WARN song maker build failed for $SHORT; still running ${previous:-<none>}"
+		return 0
+	fi
+	docker tag "$new" "$MUSIC_IMAGE_REPO:$SHORT"
+	DESIGN_BAKERY_MUSIC_IMAGE="$new" compose --profile music up -d --no-deps music
+	for i in $(seq 1 20); do
+		if docker exec "$MUSIC_CONTAINER" curl -fsS -o /dev/null http://127.0.0.1:8790/health 2>/dev/null; then
+			write_music_tag "$new"
+			log "song maker is up: $new"
+			return 0
+		fi
+		sleep 2
+	done
+	log "WARN song maker did not answer /health"
+	if [ -n "$previous" ] && docker image inspect "$previous" >/dev/null 2>&1; then
+		log "putting the song maker back on $previous"
+		DESIGN_BAKERY_MUSIC_IMAGE="$previous" compose --profile music up -d --no-deps music
+	fi
+}
+
 # ---------------------------------------------------------------------------- deploy
 log "=== deploy start (ref=$REF, repo=$REPO_DIR, port=$WEB_HOST_PORT, api=$WITH_API, edge=$WITH_EDGE) ==="
 
@@ -491,6 +538,7 @@ if [ "$API_HEALTHY" = "1" ] && wait_healthy; then
 			state_write "$SHA" "$NEW_IMAGE" "$PREVIOUS_IMAGE" "$(api_state_current "$NEW_API_IMAGE")" "$(api_state_previous "$PREVIOUS_API_IMAGE")"
 			write_tags "$NEW_IMAGE" "$(api_state_current "$NEW_API_IMAGE")"
 			deploy_voice
+			deploy_music
 			log "deploy OK: $SHORT -> $NEW_IMAGE"
 			log "rollback with: deploy/vps/rollback.sh"
 			exit 0

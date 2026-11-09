@@ -22,6 +22,7 @@ deploy/railway.env
 deploy/vps/.env
 deploy/vps/.env.api
 deploy/vps/.env.voice
+deploy/vps/.env.music
 deploy/vps/.deploy-state
 deploy/vps/.deploy.lock
 deploy/vps/*.log

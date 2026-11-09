@@ -109,6 +109,37 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # The song maker (music-agent/, TASK-DB-0160): makes songs on the owner's Flow Music plan with a signed-in Chrome that
+  # starts for each song and closes after. The API reaches it as http://design-bakery-music:8790 on the default network.
+  # The remote screen for signing in (noVNC) is on the VPS's loopback only: reach it with an SSH tunnel. Behind the `music`
+  # profile like `voice`; deploy.sh deploys it when .env.music exists.
+  music:
+    profiles: ["music"]
+    container_name: design-bakery-music
+    image: ${DESIGN_BAKERY_MUSIC_IMAGE:-design-bakery-music:local}
+    build:
+      context: ../../music-agent
+    restart: unless-stopped
+    # An init process reaps Chrome's helpers when Chrome closes after each song.
+    init: true
+    env_file:
+      - path: .env.music
+        required: false
+    ports:
+      - "127.0.0.1:${MUSIC_SCREEN_PORT:-6080}:6080"
+    shm_size: "1gb"
+    volumes:
+      # The Google sign-in (Chrome profile) and the finished songs.
+      - music-data:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  music-data: {}
+
 networks:
   # The copilot stack's network, where its LiveKit server is `copilot-livekit`. Only `voice` joins it.
   copilot:

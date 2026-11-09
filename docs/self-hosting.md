@@ -193,4 +193,22 @@ serves them (`backend/src/api/ogPreview.ts`) and the Caddyfile routes those path
   To switch calls to this repo's worker: create `.env.voice`, deploy, check that `docker logs
   design-bakery-voice` says `registered worker`, then add the two `VOICE_LIVEKIT_*` lines to `.env.api`
   and deploy again. To switch back, remove those two lines and deploy.
+- **The song maker.** The `music` service (`music-agent/`, TASK-DB-0160) makes songs on the owner's Flow Music
+  plan (www.flowmusic.app) by driving a signed-in Google Chrome. Chrome starts cold for each song and closes when it
+  is done; only the Chrome profile (the sign-in) and the finished songs stay, in the `music-data` volume. The API
+  reaches it at `http://design-bakery-music:8790`. It is behind the compose profile `music` and deployed by
+  `deploy.sh` once `deploy/vps/.env.music` exists (it may be empty); like the voice worker it goes last and never
+  fails a deploy.
+
+  **Signing in** (once, and again if Google signs it out). Open the remote screen, then sign in to Flow Music with
+  Google in it yourself:
+
+  ```bash
+  ssh vps docker exec design-bakery-music curl -s -XPOST localhost:8790/signin
+  ssh -N -L 6080:127.0.0.1:6080 vps
+  ```
+
+  Open `http://localhost:6080/vnc.html` and press Connect. The window closes by itself after `SIGNIN_MIN` (20)
+  minutes, or at once with `POST /signin/done`, which also reports whether the sign-in took. The screen is on the
+  VPS's loopback only; nobody reaches it without SSH. Do not sign out of Flow Music in it.
 - **Disk:** two images per deploy (~1.2 GB together); prune old tags (§3).
