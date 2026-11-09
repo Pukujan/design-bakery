@@ -29,6 +29,7 @@ const PROJECT_MEDIA: Record<number, string> = {
   14: 'voidfeed',
   15: 'precedent',
   17: 'nyc-map-agent',
+  18: 'octo',
   19: 'maybe-home',
   20: 'riley',
 };

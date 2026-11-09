@@ -8,6 +8,7 @@ Feature work resumed on the owner's direction after the DB-0102 rollback. The si
 
 ## Active
 
+- [DB-0157](../tasks/TASK-DB-0157-space-covers.md): space covers for Maybe, Maybe Home, Riley, NYC Map Agent and Octo in place of the DB-0156 screenshots.
 - [DB-0156](../tasks/TASK-DB-0156-portfolio-maybe-home-riley.md): Website Copilot becomes Maybe with its own picture; Maybe Home and Riley join the work list; NYC Map Agent gets its picture.
 - [DB-0155](../tasks/TASK-DB-0155-page-buttons-summarise.md): a page button in the chat summarises what it opens, and the way to keep talking sparkles after each reply.
 - [DB-0154](../tasks/TASK-DB-0154-speech-gateway.md) / [#241](https://github.com/Pukujan/design-bakery/issues/241): the live call's speech goes through the shared speech gateway on the VPS instead of the socat tunnel. Merged (#242, #243), deployed, checked with scripted calls.
