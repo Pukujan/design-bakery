@@ -86,7 +86,6 @@ type About = {
   roleTitle?: string;
   paragraphs?: string[];
   highlights?: unknown;
-  reach?: { value: string; label: string };
   impact?: { value: string; label: string }[];
   aiSection?: { headline?: string; items?: { title: string; desc: string }[] };
 };
@@ -244,7 +243,6 @@ export async function siteBrief(): Promise<string> {
   const lines: string[] = [];
   lines.push('## Who', [hero.titleLine1, hero.titleLine2].filter(Boolean).join(' '), hero.description ?? '', hero.badge ?? '');
   lines.push('', '## About', about.roleTitle ?? '', ...(about.paragraphs ?? []));
-  if (about.reach) lines.push(`Reach: ${about.reach.value} ${about.reach.label}`);
   for (const item of about.impact ?? []) lines.push(`- ${item.value} ${item.label}`);
   if (about.aiSection?.items?.length) {
     lines.push('', `## ${about.aiSection.headline ?? 'What I can do with AI'}`);
