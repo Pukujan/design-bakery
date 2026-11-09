@@ -179,4 +179,30 @@ const make = (extra = {}) => {
 }
 
 assert.equal(state.sayEmail('a.b_c@gmail.com'), 'A, dot, B, underscore, C, at gmail dot com');
-console.log('copilot tools: booking steps, list stepping, tour, not_for_me, chat buttons, send_message');
+
+// 9. Songs (TASK-DB-0160): asked first, the same ask is the same song, and nothing starts without the song maker.
+{
+  const songs = await import(new URL('./backend/lib/copilot/songs.js', root).href);
+  assert.equal(tools.askedForStyle('What kind of song do you want, jazz or synth-pop?'), true);
+  assert.equal(tools.askedForStyle('Here is a joke about transformers.'), false, 'no question about a song, so no song yet');
+  assert.equal(tools.askedForStyle('Want to hear more about Precedent?'), false);
+  const a = { style: 'Lo-fi Jazz', about: 'a moon that answers questions' };
+  assert.equal(songs.songKey(a), songs.songKey({ style: 'lo-fi   jazz', about: 'A moon that answers questions!' }), 'spacing and case do not make a new song');
+  assert.notEqual(songs.songKey(a), songs.songKey({ ...a, instrumental: true }));
+  assert.match(songs.songPrompt(a), /No real people's names/);
+  delete process.env.MUSIC_URL;
+  let { tool, actions } = make({ voice: false, lastReply: 'What kind of song, and what about?', songs: { session: 's', exempt: false } });
+  let r = await run(tool, 'make_song', a);
+  assert.equal(r.ok, false, 'no song maker configured, no song');
+  assert.equal(actions.length, 0);
+  process.env.MUSIC_URL = 'http://127.0.0.1:9';
+  process.env.OCTO_WORKSPACE_ID ||= 'w';
+  process.env.OCTO_API_KEY ||= 'k';
+  ({ tool, actions } = make({ voice: false, lastReply: 'Sure, here is a riddle.', songs: { session: 's', exempt: false } }));
+  r = await run(tool, 'make_song', a);
+  assert.equal(r.ok, false, 'the style was not asked yet');
+  assert.match(r.note, /Ask them first/);
+  assert.equal(actions.length, 0);
+  delete process.env.MUSIC_URL;
+}
+console.log('copilot tools: booking steps, list stepping, tour, not_for_me, chat buttons, send_message, songs');

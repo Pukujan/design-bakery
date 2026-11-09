@@ -160,6 +160,18 @@ export const voice = {
   /** Fetch the hold lines ahead of the click so the first one starts at once. */
   preload: () => preloadHold(),
   /** The call button is on screen: wake the voice service now, so a call does not wait for it to start up. */
+  /** Mutes the microphone while a song plays (SongCard), so the call does not hear the song as the visitor talking; then unmutes,
+   * unless the visitor had muted it themself. */
+  async holdMic(hold: boolean) {
+    const track = microphone;
+    if (!track || state.muted) return;
+    try {
+      if (hold) await track.mute();
+      else await track.unmute();
+    } catch {
+      /* the call may have ended */
+    }
+  },
   /** Mutes or unmutes the visitor's microphone on the call. */
   async toggleMute() {
     const track = microphone;

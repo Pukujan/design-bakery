@@ -10,6 +10,7 @@ import { previewOf } from './replyPeek';
 import { copilot, useCopilot, type CopilotAction, type CopilotMessage } from './store';
 import { useVoice, voice } from './voice';
 import { MoonCallButton } from './MoonCallButton';
+import { SongPlayer } from './SongCard';
 import './chat-core.css';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
@@ -23,6 +24,7 @@ const STEP_LABEL: Record<string, string> = {
   share_link: 'Finding the link',
   book_call: 'Opening the booking page',
   suggest_followups: 'Thinking of follow-ups',
+  make_song: 'Starting your song',
 };
 
 
@@ -132,6 +134,7 @@ function ActionView({ action }: { action: CopilotAction }) {
       </a>
     );
   }
+  if (action.kind === 'song') return <SongPlayer id={action.id} title={action.title} />;
   // A page of this site is walked to like any other; a link to another site or a mail address opens as a link.
   if (action.url.startsWith('/')) {
     return (
@@ -190,7 +193,8 @@ function withoutRepeats(actions: CopilotAction[]): CopilotAction[] {
 
 function AssistantMessage({ message }: { message: CopilotMessage }) {
   const waiting = message.streaming && !message.text && message.steps.length === 0;
-  const actions = withoutRepeats(message.actions);
+  const actions = withoutRepeats(message.actions.filter((a) => a.kind !== 'song'));
+  const songs = message.actions.filter((a): a is Extract<CopilotAction, { kind: 'song' }> => a.kind === 'song');
   return (
     <div className="lab-msg lab-msg--copilot">
       {waiting && (
@@ -209,6 +213,7 @@ function AssistantMessage({ message }: { message: CopilotMessage }) {
           {message.streaming && <span className="lab-caret" aria-hidden="true" />}
         </p>
       )}
+      {songs.map((song) => <SongPlayer key={song.id} id={song.id} title={song.title} />)}
       {actions.length > 0 && (
         <div className="lab-msg-extras">
           {actions.map((action, index) => (

@@ -211,4 +211,9 @@ serves them (`backend/src/api/ogPreview.ts`) and the Caddyfile routes those path
   Open `http://localhost:6080/vnc.html` and press Connect. The window closes by itself after `SIGNIN_MIN` (20)
   minutes, or at once with `POST /signin/done`, which also reports whether the sign-in took. The screen is on the
   VPS's loopback only; nobody reaches it without SSH. Do not sign out of Flow Music in it.
+
+  The copilot's `make_song` tool is on when `.env.api` has `MUSIC_URL=http://design-bakery-music:8790`. It asks the
+  visitor what kind of song first, saves every song in Octo (`copilot_songs`, migration 014) so the same ask plays
+  the saved one, and allows `SONGS_PER_VISITOR_DAY` (2) per visitor and `SONGS_PER_DAY` (20) for the whole site; the
+  owner's own addresses (`COPILOT_RATE_EXEMPT_IPS`) skip the limits. A song uses about 5 Flow Music credits.
 - **Disk:** two images per deploy (~1.2 GB together); prune old tags (§3).

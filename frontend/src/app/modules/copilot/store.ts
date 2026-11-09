@@ -26,7 +26,9 @@ export type CopilotAction =
   /** Point at a section of a post, paper or project: scroll to its heading, tap it, highlight `quote`. Checked against the live content by the server. */
   | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string; mode?: 'swipe' | 'perch' }
   /** An expansion chip: a follow-up question. Clicking sends `text` as the visitor's message; the page does not move. */
-  | { kind: 'ask'; text: string };
+  | { kind: 'ask'; text: string }
+  /** A song make_song started (or a saved one): a player that waits for it and plays it (SongCard.tsx). Never a chip. */
+  | { kind: 'song'; id: string; title?: string | null; cached?: boolean };
 
 export type CopilotMessage = {
   id: number;
@@ -55,9 +57,14 @@ export type CopilotMessage = {
 /** The booking a call has made: shown as a card with one button, because a call has no chat thread to hold a chip. */
 export type BookingOffer = { url: string; name?: string; email?: string; topic?: string };
 
+/** A song started on a call: shown as a card over the page, since a call has no chat thread. */
+export type SongOffer = { id: string; title?: string | null };
+
 export type CopilotState = {
   /** The booking button of a voice call (booking.ts on the server); null until one is made. */
   booking?: BookingOffer | null;
+  /** The song a call asked for (make_song); null once dismissed. */
+  song?: SongOffer | null;
   messages: CopilotMessage[];
   busy: boolean;
   /** The dock's sidebar is open. */
@@ -562,6 +569,9 @@ export const copilot = {
   },
   setOpen: (open: boolean) => set({ open }),
   dismissBooking: () => set({ booking: null }),
+  dismissSong: () => set({ song: null }),
+  /** Where a song's status and audio are (backend route.ts, /songs/:id). */
+  songUrl: (id: string, audio = false) => `${base()}/api/copilot/songs/${id}${audio ? '/audio' : ''}`,
   /** A call ended or the chat was cleared: a booking under way is over. */
   resetFlow: () => { callFlow = null; },
   setDraft: (draft: string) => set({ draft }),
@@ -981,6 +991,11 @@ function handle(event: Event, replyId: number) {
       // to pick a time must be on the screen, and not left to a chat thread nobody is reading.
       const { url, name, email, topic } = event.action;
       set({ booking: { url, name, email, topic } });
+      return;
+    }
+    if (event.action.kind === 'song' && voiceReplies.has(replyId)) {
+      // Like the booking button: the song plays from a card over the page, since nobody on a call reads the chat.
+      set({ song: { id: event.action.id, title: event.action.title } });
       return;
     }
     if (event.action.kind === 'projects' && voiceReplies.has(replyId)) {

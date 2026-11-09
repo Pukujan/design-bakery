@@ -9,10 +9,11 @@ export type ChipKind = 'navigate' | 'expand';
 
 type ChipSource = { kind: string; chip?: string; text?: string };
 
-/** `null` for an action that is not a chip at all (a call's scroll step). */
+/** `null` for an action that is not a chip at all (a call's scroll step, a song's player). */
 export function chipKindOf(action: ChipSource): ChipKind | null {
   if (action.kind === 'scrollstep') return null;
   if (action.kind === 'ask') return 'expand';
+  if (action.kind === 'song') return null;
   if (['navigate', 'projects', 'link', 'book', 'cite'].includes(action.kind)) return 'navigate';
   if (action.chip === 'navigate' || action.chip === 'expand') return action.chip;
   // An action of a kind nobody has classified: a question stays in the chat, anything else is a place to go.
