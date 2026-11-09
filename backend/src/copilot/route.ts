@@ -7,7 +7,7 @@
  *   POST /chat    one turn, streamed as NDJSON events (see CopilotEvent)
  *   POST /message the contact page's message form, emailed to Pujan (contactMail.ts)
  *   GET  /songs/:id         a song make_song started: making, done or failed (songs.ts)
- *   GET  /songs/:id/audio   its audio
+ *   GET  /songs/:id/audio   its audio (?take=2 for Flow Music's second take)
  *
  * The model chain is nyc-map-agent's (providers.ts, health.ts, model-fallback.ts).
  * When no model is configured or the daily budget is spent, /chat answers 503 and the
@@ -282,7 +282,7 @@ copilotRouter.get('/songs/:id', async (req, res) => {
 });
 
 copilotRouter.get('/songs/:id/audio', async (req, res) => {
-  const audio = await songAudio(req.params.id);
+  const audio = await songAudio(req.params.id, req.query.take === '2' ? 2 : 1);
   if (!audio?.body) {
     res.status(404).end();
     return;

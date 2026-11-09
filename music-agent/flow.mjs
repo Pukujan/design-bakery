@@ -30,8 +30,8 @@ async function dismissCookies(p) {
   if (await no.count()) await no.first().click().catch(() => {});
 }
 
-// Make a song from `prompt` (and lyrics, when given), save the first take to `<dest>.m4a`.
-// Returns {title, seconds, lyrics, type, clips}.
+// Make a song from `prompt` (and lyrics, when given) and save its takes (Flow Music makes two).
+// Returns {title, seconds, lyrics, type, takes, clips}.
 export async function makeSong(p, { prompt, lyrics, instrumental }, dest) {
   const clips = new Map(); // clip id -> {seconds, lyrics}
   const failed = [];
@@ -84,13 +84,17 @@ export async function makeSong(p, { prompt, lyrics, instrumental }, dest) {
   // The session's name (Flow Music names it after the song) is its link in the sidebar.
   const session = (p.url().match(/\/session\/([0-9a-f-]{36})/) || [])[1];
   const title = session ? (await p.locator(`a[href="/session/${session}"]`).first().innerText({ timeout: 3000 }).catch(() => '')).trim() : '';
-  const [id, first] = [...clips.entries()][0];
-  const res = await fetch(CLIP_URL(id));
-  if (!res.ok) throw new Error(`audio download failed (${res.status})`);
-  fs.writeFileSync(`${dest}.m4a`, Buffer.from(await res.arrayBuffer()));
+  // Both takes: the first at <dest>.m4a, the second at <dest>-2.m4a.
+  const takes = [...clips.entries()].slice(0, 2);
+  for (const [n, [id]] of takes.entries()) {
+    const res = await fetch(CLIP_URL(id));
+    if (!res.ok) { if (n === 0) throw new Error(`audio download failed (${res.status})`); break; }
+    fs.writeFileSync(`${dest}${n ? `-${n + 1}` : ''}.m4a`, Buffer.from(await res.arrayBuffer()));
+  }
+  const first = takes[0][1];
   // Until Flow Music names the session it reads like "Today at 7:20 AM".
   const name = title.split('\n')[0];
-  return { title: name && !/^(today|yesterday)\b|^\d+\/\d+/i.test(name) ? name : null, seconds: first.seconds, lyrics: first.lyrics, type: 'm4a', clips: [...clips.keys()] };
+  return { title: name && !/^(today|yesterday)\b|^\d+\/\d+/i.test(name) ? name : null, seconds: first.seconds, lyrics: first.lyrics, type: 'm4a', takes: takes.length, clips: takes.map(([id]) => id) };
 }
 
 // A look at the page without spending credits: a screenshot, its visible controls and the API calls it makes.

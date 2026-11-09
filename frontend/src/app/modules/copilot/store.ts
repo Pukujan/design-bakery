@@ -571,7 +571,8 @@ export const copilot = {
   dismissBooking: () => set({ booking: null }),
   dismissSong: () => set({ song: null }),
   /** Where a song's status and audio are (backend route.ts, /songs/:id). */
-  songUrl: (id: string, audio = false) => `${base()}/api/copilot/songs/${id}${audio ? '/audio' : ''}`,
+  songUrl: (id: string, audio = false, take = 1) =>
+    `${base()}/api/copilot/songs/${id}${audio ? '/audio' : ''}${audio && take === 2 ? '?take=2' : ''}`,
   /** A call ended or the chat was cleared: a booking under way is over. */
   resetFlow: () => { callFlow = null; },
   setDraft: (draft: string) => set({ draft }),
