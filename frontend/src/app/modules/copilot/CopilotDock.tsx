@@ -18,6 +18,7 @@ import { MiniCopilot } from './MiniCopilot';
 import VoiceOrb from './VoiceOrb';
 import MoonCursor from './MoonCursor';
 import { BookingCard } from './BookingCard';
+import { SongCard } from './SongCard';
 import { useAgentCursor } from './agentCursor';
 import { useReplyNudge, useReplyPeek } from './replyPeek';
 import { copilot, useCopilot } from './store';
@@ -183,6 +184,7 @@ export default function CopilotDock() {
     >
       <VoiceOrb />
       <BookingCard />
+      <SongCard />
       <MoonCursor peek={moonOut ? peek : null} />
       <AnimatePresence>
         {showPill && peek && !moonOut && (

@@ -11,6 +11,7 @@ import { CONSULT_SERVICES,  nextStep, type BookingFlow, type BookingState } from
 import { neighbour, nextTourStop } from './walk.js';
 import { contactMailConfigured, sendContactMessage } from './contactMail.js';
 import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, sectionsForPath, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
+import { songsConfigured, startSong } from './songs.js';
 
 export { CONSULT_SERVICES };
 
@@ -24,7 +25,9 @@ export type CopilotAction =
   /** Point at a real section of a post, paper or project: scroll to `anchor`, tap it, and highlight `quote` if one was checked. */
   | { kind: 'cite'; path: string; anchor: string; heading: string; quote?: string; mode?: 'swipe' | 'perch' }
   /** An expansion chip: a follow-up question that stays in the chat. The server sets `chip` on every action (chips.ts). */
-  | { kind: 'ask'; text: string };
+  | { kind: 'ask'; text: string }
+  /** A song being made (or a saved one): the page shows a player that waits for it and plays it once (songs.ts). */
+  | { kind: 'song'; id: string; title?: string | null; cached?: boolean };
 
 const clip = (text: string, max: number) => (text.length > max ? `${text.slice(0, max)}…` : text);
 
@@ -63,6 +66,11 @@ function readBack(text: string, parts: string[]): boolean {
   return parts.every((part) => said.includes(flat(part)));
 }
 
+/** The reply before asked what kind of song (make_song makes one only after that question was answered). */
+export function askedForStyle(lastReply: string): boolean {
+  return lastReply.includes('?') && /\b(song|songs|music|tune|jingle|genre|style|vibe|mood)\b/i.test(lastReply);
+}
+
 /** The booking page with what the visitor already said filled in (Cal.com reads these). */
 export function bookingUrl(base: string, who: { name?: string; email?: string; topic?: string }): string {
   const url = new URL(base);
@@ -78,10 +86,13 @@ export function bookingUrl(base: string, who: { name?: string; email?: string; t
  */
 export type BookingHold = { get: () => BookingFlow | null; set: (flow: BookingFlow | null) => void };
 
-export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean; citations?: Citations; voice?: boolean; page?: { path: string }; said?: string; lastReply?: string; booking?: BookingHold; notForMe?: () => void }) {
+export type SongHold = { session: string; exempt: boolean };
+
+export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean; citations?: Citations; voice?: boolean; page?: { path: string }; said?: string; lastReply?: string; booking?: BookingHold; notForMe?: () => void; songs?: SongHold }) {
   const citations = options.citations;
   let buttonsShown = false;
   let messageSent = false;
+  let songStarted = false;
   /** Applies one step's slots to the booking state and says what comes next. */
   const step = (patch: Partial<BookingState>) => {
     if (!options.booking) return { ok: false, error: 'booking is only done on a call' };
@@ -434,6 +445,39 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
         const topic = [who.service, who.topic].filter(Boolean).join(': ') || undefined;
         emit({ kind: 'book', url: bookingUrl(base, { ...who, topic }), name: who.name, email: who.email, topic });
         return { ok: true };
+      },
+    }),
+
+    make_song: tool({
+      description:
+        'Make the visitor a short song (about a minute to make, on Flow Music). Always ask first, in one short question, what kind of song they want: the style or mood, and what it should be about (offer a fun idea, for example a song about the page they are on). Call this only in a later reply, once they have answered; it refuses otherwise. style: the genre and mood in a few words ("upbeat synth-pop", "lo-fi jazz, sleepy"). about: the subject in a sentence, never a real person by name. lyrics: optional, short lyrics you write for them with [Verse] and [Chorus] tags; leave it out and Flow Music writes them. Never imitate or name a real artist. Say once, in one short sentence, that it is being written and will play here in about a minute (not before the call and again after it), then keep chatting.',
+      inputSchema: z.object({
+        style: z.string().min(2).max(80),
+        about: z.string().min(3).max(300),
+        lyrics: z.string().max(1500).optional(),
+        instrumental: z.boolean().optional(),
+      }),
+      execute: async (ask) => {
+        if (!options.songs || !songsConfigured()) return { ok: false, note: 'Songs are resting right now. Offer a short rap or a limerick in words instead.' };
+        if (songStarted) return { ok: false, error: 'a song was already started in this reply' };
+        if (!askedForStyle(options.lastReply ?? '')) {
+          return { ok: false, note: 'Not started. Ask them first, in one short question, what kind of song they want (style or mood, and what about). Make it in your next reply, after they answer.' };
+        }
+        const started = await startSong(ask, options.songs.session, options.songs.exempt).catch(() => ({ ok: false as const, reason: 'down' as const }));
+        if (!started.ok) {
+          const why = {
+            visitor_limit: 'They have had their songs for today: say so kindly, and offer a short rap or limerick in words instead.',
+            daily_limit: 'The site has made all its songs for today: say so, and offer a short rap or limerick in words instead.',
+            busy: 'A few songs are being made already: ask them to try again in a couple of minutes.',
+            down: 'The song maker is asleep right now: say so, and offer a short rap or limerick in words instead.',
+          }[started.reason];
+          return { ok: false, note: why };
+        }
+        songStarted = true;
+        emit({ kind: 'song', id: started.id, title: started.title ?? null, cached: started.cached });
+        return started.cached
+          ? { ok: true, note: 'This exact song was made before, so it plays right away. Say so in a few words.' }
+          : { ok: true, note: 'It is being made: about a minute. It plays here by itself when it is ready.' };
       },
     }),
 

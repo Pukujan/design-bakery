@@ -607,3 +607,37 @@
 .cp-book-close:hover { opacity: 1; }
 @keyframes cp-book-in { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 @media (prefers-reduced-motion: reduce) { .cp-book-card { animation: none; } }
+
+/* A song the copilot is making (SongCard.tsx): under the reply in the chat, or over the page on a call. */
+.cp-song {
+  margin: 10px 0 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--lab-line);
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--lab-ink) 88%, transparent);
+  color: var(--lab-paper);
+}
+.cp-song--floating {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(150px, 22vh, 210px);
+  transform: translateX(-50%);
+  z-index: 61;
+  width: min(92vw, 360px);
+  margin: 0;
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(10px);
+  animation: cp-book-in 0.28s ease-out;
+}
+.cp-song-kicker { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; }
+.cp-song-wait { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 14px; }
+.cp-song-audio { width: 100%; height: 36px; }
+.cp-song-bars { display: inline-flex; align-items: flex-end; gap: 3px; height: 16px; }
+.cp-song-bars i { width: 3px; height: 100%; border-radius: 2px; background: var(--lab-accent, #c8f542); animation: cp-song-bar 0.9s ease-in-out infinite; }
+.cp-song-bars i:nth-child(2) { animation-delay: 0.15s; }
+.cp-song-bars i:nth-child(3) { animation-delay: 0.3s; }
+.cp-song-bars i:nth-child(4) { animation-delay: 0.45s; }
+@keyframes cp-song-bar { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+.cp-song-lyrics-toggle { margin-top: 8px; padding: 0; border: 0; background: none; color: inherit; font-size: 12px; text-decoration: underline; opacity: 0.75; cursor: pointer; }
+.cp-song-lyrics { max-height: 180px; overflow: auto; margin: 8px 0 0; font: inherit; font-size: 13px; white-space: pre-wrap; opacity: 0.85; }
+@media (prefers-reduced-motion: reduce) { .cp-song--floating { animation: none; } .cp-song-bars i { animation: none; } }

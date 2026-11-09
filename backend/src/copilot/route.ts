@@ -6,6 +6,8 @@
  *   GET  /health  the profile and each smart provider's last probe, without keys
  *   POST /chat    one turn, streamed as NDJSON events (see CopilotEvent)
  *   POST /message the contact page's message form, emailed to Pujan (contactMail.ts)
+ *   GET  /songs/:id         a song make_song started: making, done or failed (songs.ts)
+ *   GET  /songs/:id/audio   its audio
  *
  * The model chain is nyc-map-agent's (providers.ts, health.ts, model-fallback.ts).
  * When no model is configured or the daily budget is spent, /chat answers 503 and the
@@ -25,6 +27,7 @@ import { devProvider, pickProfile, routeFor, smartProviders, type Provider } fro
 import { createCitations } from './citations.js';
 import { withChip } from './chips.js';
 import { makeTools, type CopilotAction } from './tools.js';
+import { songAudio, songStatus } from './songs.js';
 import { TurnTrace } from './tracing.js';
 import { takeDurableCopilotLimit, durableLimitConfigured } from './durableLimit.js';
 import { ALL_BOOKING_TOOLS, bookingTools, describe, type BookingFlow } from './bookingState.js';
@@ -123,6 +126,8 @@ Personality (your default, in every reply):
 - News you were given may include AI blunders, memes and security stories: say "reportedly", and aim the joke at the technology, the hype or the lapse, never at a person or whoever's data leaked. When the story hurt real people, give them one short, sincere beat ("rough on the people whose data was in there") and then back to the wit, not every time and never preachy.
 - When the visitor corrects you or points out a mistake, thank them in a few words with a dry line, take the correction seriously and fix it. You have a few catchphrases ("that's a load-bearing statement", "filed under things I meant to do", "working as intended, retroactively"): use one at most every few replies, never when the visitor is annoyed or the subject is serious.
 - You know the famous AI trick questions (the car wash fifty metres away, letters in strawberry, 9.11 against 9.9, the seahorse emoji): answer correctly first, then one dry line. Say "famously" only about well-documented ones and never claim what any model gets wrong today.
+- Games and fun, whenever they ask (or the chat is light and they seem up for it): a joke, a riddle (give them a guess before the answer), a quick three-question quiz on AI or on my work (from the brief only, one question at a time, keep score), a two-line rap or a limerick about a project, the page they are on or their day, or "two truths and a lie" about AI. Keep each one short, then let them play again or move on.
+- Songs: you can make them a real short song with make_song. Always ask first what kind they want (the style or mood, and what it should be about) in one short question with a fun suggestion, and make it only after they answer. It takes about a minute and plays by itself when ready.
 - A joke or opinion about AI in general is yours; a project, role, number or paper is only ever what the site says, from the brief and your tools. The length rules above still hold: the personality lives in the wording, not in extra length.`;
 
 /** Added to the prompt on a voice call: short spoken sentences, and moving the visitor without asking first. */
@@ -263,6 +268,30 @@ copilotRouter.post('/pass', async (req, res) => {
 
 copilotRouter.get('/health', (_req, res) => {
   res.set('cache-control', 'no-store').json({ ok: true, profile: pickProfile(), smart: healthReport(), dev: Boolean(devProvider()) });
+});
+
+// A song the copilot started (make_song, songs.ts): the chat's player polls this, then plays the audio. The id is random and
+// only ever given to the visitor who asked for it.
+copilotRouter.get('/songs/:id', async (req, res) => {
+  const status = await songStatus(req.params.id).catch(() => null);
+  if (!status) {
+    res.status(404).json({ ok: false });
+    return;
+  }
+  res.set('cache-control', status.state === 'making' ? 'no-store' : 'public, max-age=86400').json({ ok: true, ...status });
+});
+
+copilotRouter.get('/songs/:id/audio', async (req, res) => {
+  const audio = await songAudio(req.params.id);
+  if (!audio?.body) {
+    res.status(404).end();
+    return;
+  }
+  res.set({ 'content-type': audio.headers.get('content-type') ?? 'audio/mp4', 'cache-control': 'public, max-age=604800' });
+  const length = audio.headers.get('content-length');
+  if (length) res.set('content-length', length);
+  for await (const chunk of audio.body as unknown as AsyncIterable<Uint8Array>) res.write(chunk);
+  res.end();
 });
 
 const VOICE_SERVICE = 'https://copilot.design-bakery.com';
@@ -473,13 +502,14 @@ copilotRouter.post('/chat', async (req, res) => {
     const offered = onlyLaneTools(lane, callTools(makeTools(
         // On a call the model moves the page itself and sends no buttons; project cards and the booking button are what a call shows.
         (action) => {
-          if (voice && action.kind !== 'navigate' && action.kind !== 'cite' && action.kind !== 'book' && action.kind !== 'projects') return;
+          if (voice && action.kind !== 'navigate' && action.kind !== 'cite' && action.kind !== 'book' && action.kind !== 'projects' && action.kind !== 'song') return;
           send({ type: 'action', action: withChip(action) });
         },
         {
           canNavigate: true, citations, voice, page, said, lastReply,
           booking: { get: () => booking, set: (next) => { booking = next; bookingTouched = true; } },
           notForMe: () => { if (!toMe) ignoredLine = true; },
+          songs: { session, exempt },
         },
       ), voice, booking));
     turn.offered = Object.keys(offered);

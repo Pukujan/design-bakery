@@ -138,7 +138,7 @@ http.createServer(async (req, res) => {
     if (req.method === 'GET' && m && !m[2]) {
       const j = jobs.get(m[1]);
       if (!j) return json(res, 404, { error: 'no such song' });
-      return json(res, 200, { id: j.id, state: j.state, error: j.error, title: j.title, seconds: j.seconds, type: j.type });
+      return json(res, 200, { id: j.id, state: j.state, error: j.error, title: j.title, seconds: j.seconds, lyrics: j.lyrics, type: j.type });
     }
     if (req.method === 'GET' && m && m[2]) {
       const file = fs.readdirSync(SONGS).find(f => f.startsWith(m[1] + '.'));
