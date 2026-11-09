@@ -114,6 +114,12 @@ export function WorkPage() {
           >
             <h2 className="lab-mono" id="what-it-is">What it is</h2>
             <FlowText className="work-lede" text={project.description}>{project.description}</FlowText>
+            {'outcome' in project && project.outcome ? (
+              <>
+                <h2 className="lab-mono" id="outcome">Outcome</h2>
+                <p className="work-outcome">{project.outcome}</p>
+              </>
+            ) : null}
             <button type="button" className="lab-chip lab-chip--solid work-ask" data-copilot-open onClick={ask} data-cursor="Ask">
               Ask the copilot about {project.title} →
             </button>

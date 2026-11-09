@@ -129,6 +129,17 @@
   line-height: 1.5;
 }
 
+/* A research paper's headline result under its abstract (TASK-DB-0161). */
+.writing-result {
+  grid-column: 3;
+  max-width: 60ch;
+  margin-top: 0.4rem;
+  padding-left: 0.8rem;
+  border-left: 2px solid var(--lab-accent);
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
 .writing-empty {
   margin-top: 2rem;
   color: var(--lab-muted);
@@ -140,7 +151,8 @@
   }
 
   .writing-name,
-  .writing-excerpt {
+  .writing-excerpt,
+  .writing-result {
     grid-column: 2;
   }
 

@@ -14,9 +14,20 @@ See **[routes.md](./routes.md)** for the full route reference: every public URL,
 
 ## How content is loaded
 
-1. **Public engineering sections** — `contentHooks` return static repo JSON via `portfolioDefaults.ts` (no CMS reads on the public homepage; enforced by `pnpm test:homepage-content`).
+1. **Public engineering sections** — the live page reads each document from Octo (`cms_documents`, portfolio `endtoend-engineer`, keys `ete__*`) through `GET /api/public/portfolio/<collection>` (`lib/portfolioDocs.ts`); the repo JSON below is the fallback. A change to that JSON reaches the live site only after the same document is written to Octo.
 2. **JSON sources** — `frontend/src/app/portfolios/endtoend-engineer/engineering/` (hero, about, projects, relevant-experience subtitle + `relevant-experience-rendered-list.json`) and `modules/engineering/EngineeringSkills/skill-categories.json`.
 3. **Admin** — editors write `ete__*` collections through the Express CMS API; "Push repo defaults" seeds them from the JSON above.
+
+## Numbers on the site (TASK-DB-0161)
+
+Every figure on the site must trace to a source; never invent one.
+
+- `about.json` `reach`: the headline reach line under the hero title (100M+ people served, the owner's own figure).
+- `about.json` `impact` and `aiSection`: the "What I can do with AI" section on the home page (`LabCapabilities` in `modules/lab/LabStory.tsx`).
+- `projects.json` `outcome` (optional): one measured outcome line, shown as "Outcome" on `/work/<slug>`.
+- `researchPapers.ts` `result` (optional): the paper's headline measured result, shown on `/research` and the paper page. Papers that report no original result get none.
+- The copilot's site brief (`backend/src/copilot/knowledge.ts`) carries all four.
+- Where each number comes from: `tasks/TASK-DB-0161-reach-and-impact.md`.
 
 ## Key files
 

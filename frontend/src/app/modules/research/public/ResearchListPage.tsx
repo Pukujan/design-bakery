@@ -83,6 +83,7 @@ export function ResearchListPage() {
                 <span className="writing-date lab-mono">{paper.submitted}</span>
                 <FlowText as="span" className="writing-name" text={paper.title}>{paper.title}</FlowText>
                 <FlowText as="span" className="writing-excerpt" text={paper.abstract}>{paper.abstract}</FlowText>
+                {paper.result ? <span className="writing-result"><strong>Result.</strong> {paper.result}</span> : null}
               </Link>
             </li>
           ))}

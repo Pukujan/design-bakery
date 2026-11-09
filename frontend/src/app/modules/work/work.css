@@ -174,3 +174,13 @@
     transition: none;
   }
 }
+
+/* The measured outcome under the description (TASK-DB-0161). */
+.work-outcome {
+  margin: 0 0 2rem;
+  max-width: 46ch;
+  padding-left: 1rem;
+  border-left: 2px solid var(--lab-accent);
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  line-height: 1.45;
+}

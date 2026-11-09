@@ -70,6 +70,8 @@ export type Project = {
   status?: string;
   links?: ProjectLink[];
   stats?: Array<{ label: string }>;
+  /** One measured outcome line (TASK-DB-0161). */
+  outcome?: string;
 };
 type Experience = {
   company: string;
@@ -80,11 +82,18 @@ type Experience = {
   collapsedSummary?: string;
   highlights?: string[];
 };
-type About = { roleTitle?: string; paragraphs?: string[]; highlights?: unknown };
+type About = {
+  roleTitle?: string;
+  paragraphs?: string[];
+  highlights?: unknown;
+  reach?: { value: string; label: string };
+  impact?: { value: string; label: string }[];
+  aiSection?: { headline?: string; items?: { title: string; desc: string }[] };
+};
 type Hero = { titleLine1?: string; titleLine2?: string; description?: string; badge?: string };
 type SkillCategory = { title: string; skills: string[] };
 
-export type Paper = { id: string; title: string; status: string; submitted: string; abstract: string };
+export type Paper = { id: string; title: string; status: string; submitted: string; abstract: string; result?: string };
 export type BlogSummary = { id: number; title: string; excerpt: string; date: string; tags: string[]; publishedAt?: string };
 
 /**
@@ -162,7 +171,7 @@ export async function loadPapers(): Promise<Paper[]> {
         return m ? m[1].replace(/\\'/g, "'") : '';
       };
       const id = str('id');
-      if (id) papers.push({ id, title: str('title'), status: str('status'), submitted: str('submitted'), abstract: str('abstract') });
+      if (id) papers.push({ id, title: str('title'), status: str('status'), submitted: str('submitted'), abstract: str('abstract'), result: str('result') || undefined });
     }
     return papers;
   });
@@ -235,6 +244,12 @@ export async function siteBrief(): Promise<string> {
   const lines: string[] = [];
   lines.push('## Who', [hero.titleLine1, hero.titleLine2].filter(Boolean).join(' '), hero.description ?? '', hero.badge ?? '');
   lines.push('', '## About', about.roleTitle ?? '', ...(about.paragraphs ?? []));
+  if (about.reach) lines.push(`Reach: ${about.reach.value} ${about.reach.label}`);
+  for (const item of about.impact ?? []) lines.push(`- ${item.value} ${item.label}`);
+  if (about.aiSection?.items?.length) {
+    lines.push('', `## ${about.aiSection.headline ?? 'What I can do with AI'}`);
+    for (const item of about.aiSection.items) lines.push(`- ${item.title}: ${clip(item.desc, 160)}`);
+  }
   lines.push('', '## Work history');
   for (const job of experience.experiences) {
     lines.push(`- ${job.role}, ${job.company} (${job.period}${job.location ? `, ${job.location}` : ''}): ${clip(job.expandedSummary ?? job.collapsedSummary ?? '', 220)}`);
@@ -245,12 +260,16 @@ export async function siteBrief(): Promise<string> {
   for (const p of projects) {
     lines.push(`- ${p.slug} | ${p.title} | ${p.category ?? ''} | ${p.status ?? ''}`);
     lines.push(`  ${clip(`${p.tagline}. ${p.description}`, 220)}`);
+    if (p.outcome) lines.push(`  Outcome: ${clip(p.outcome, 200)}`);
     lines.push(`  Tech: ${p.tech.join(', ')}`);
     const links = (p.links ?? []).filter((link) => link.url && link.url !== '#');
     if (links.length) lines.push(`  Links: ${links.map((link) => `${link.label} ${link.url}`).join('; ')}`);
   }
   lines.push('', '## Research papers (id | title | status | submitted). All are working papers unless status is approved.');
-  for (const paper of papers) lines.push(`- ${paper.id} | ${paper.title} | ${paper.status} | ${paper.submitted}`, `  ${clip(paper.abstract, 150)}`);
+  for (const paper of papers) {
+    lines.push(`- ${paper.id} | ${paper.title} | ${paper.status} | ${paper.submitted}`, `  ${clip(paper.abstract, 150)}`);
+    if (paper.result) lines.push(`  Result: ${clip(paper.result, 160)}`);
+  }
   lines.push('', '## Blog posts, newest first (id | date | title)');
   for (const post of blogs) lines.push(`- ${post.id} | ${post.date} | ${post.title}: ${clip(post.excerpt, 80)}`);
   lines.push('', '## Links', ...SOCIAL_LINKS.map((link) => `- ${link.label}: ${link.url}`));

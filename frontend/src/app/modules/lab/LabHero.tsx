@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { LabCopilot } from './LabCopilot';
+import { useEngineeringAboutSection } from '../../lib/contentHooks';
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
 const TITLE = 'Design Baker';
@@ -32,6 +33,7 @@ function useFlippedLetters() {
 export function LabHero() {
   const reduceMotion = useReducedMotion();
   const { flipped, flip } = useFlippedLetters();
+  const { reach } = useEngineeringAboutSection();
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end start'] });
   const titleY = useTransform(scrollYProgress, [0, 1], ['0%', '-35%']);
@@ -68,6 +70,11 @@ export function LabHero() {
       </motion.h1>
 
       <p className="lab-hero-roles lab-mono">AI Product Engineer · A one-person studio, from research to production</p>
+      {reach ? (
+        <p className="lab-hero-reach">
+          <strong>{reach.value}</strong> {reach.label}
+        </p>
+      ) : null}
 
       <div className="lab-hero-body">
         <motion.div
