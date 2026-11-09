@@ -22,8 +22,7 @@ See **[routes.md](./routes.md)** for the full route reference: every public URL,
 
 Every figure on the site must trace to a source; never invent one.
 
-- `about.json` `reach`: the headline reach line under the hero title (100M+ people served, the owner's own figure).
-- `about.json` `impact` and `aiSection`: the "What I can do with AI" section on the home page (`LabCapabilities` in `modules/lab/LabStory.tsx`).
+- `about.json` `impact` and `aiSection`: the "What I can do with AI" section on the home page (`LabCapabilities` in `modules/lab/LabStory.tsx`). The 100M+ reach (the owner's own figure) is its first tile; the owner did not want it as a line under the hero title (2026-11-09).
 - `projects.json` `outcome` (optional): one measured outcome line, shown as "Outcome" on `/work/<slug>`.
 - `researchPapers.ts` `result` (optional): the paper's headline measured result, shown on `/research` and the paper page. Papers that report no original result get none.
 - The copilot's site brief (`backend/src/copilot/knowledge.ts`) carries all four.

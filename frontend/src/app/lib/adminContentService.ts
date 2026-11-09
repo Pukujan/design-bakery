@@ -510,9 +510,7 @@ export interface EngineeringAboutContent {
   paragraphs: string[];
   highlights: EngineeringAboutHighlight[];
   callout: string;
-  /** The headline reach figure, shown under the hero title (TASK-DB-0161). */
-  reach?: { value: string; label: string };
-  /** Sourced impact figures shown with the AI section. */
+  /** Sourced impact figures in the AI section; the first is the 100M+ reach (TASK-DB-0161). */
   impact?: { value: string; label: string }[];
   /** "What I can do with AI": a short list, each item backed by shipped work. */
   aiSection?: { kicker: string; headline: string; items: { title: string; desc: string }[] };

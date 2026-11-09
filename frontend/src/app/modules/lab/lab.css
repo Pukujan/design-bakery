@@ -782,19 +782,6 @@ a.lab-chip--solid[data-agent-hover] {
   color: var(--lab-muted);
 }
 
-.lab-hero-reach {
-  margin: 0.6rem 0 0;
-  max-width: 46ch;
-  color: var(--lab-muted);
-  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
-  line-height: 1.45;
-}
-
-.lab-hero-reach strong {
-  color: var(--lab-accent);
-  font-weight: 700;
-}
-
 /* Lenis sets overscroll-behavior: contain on every data-lenis-prevent element, which stops a
    scroll at the end of the chat. Let it pass on to the page here. */
 .lab-root .lab-copilot .lab-thread {

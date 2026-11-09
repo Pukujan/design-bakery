@@ -5,7 +5,7 @@
 **Rule.** No invented metric. The only figure without a file behind it is 100M+, which is the owner's own (given 2026-11-09). Every other number traces to a file below.
 
 **Done.**
-- Hero: a reach line under the title (`about.json` `reach`).
+- Hero: a reach line under the title. Removed the same day at the owner's request ("in such a weird place"); the 100M+ figure stays as the first tile of the AI section.
 - Home: a new "What I can do with AI" section after About (`LabCapabilities`), with six impact figures (`about.json` `impact`) and six capabilities (`about.json` `aiSection`).
 - Project pages: an "Outcome" line on Ekagajpatra, Precedent, Eval Lab, Riley and Cortex (`projects.json` `outcome`).
 - Research: a "Result." line for papers 008 to 011 on `/research` and on each paper page (`researchPapers.ts` `result`). Papers 001 to 007 report no original results, so they get none.
