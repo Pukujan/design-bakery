@@ -57,13 +57,13 @@ export type CopilotMessage = {
 /** The booking a call has made: shown as a card with one button, because a call has no chat thread to hold a chip. */
 export type BookingOffer = { url: string; name?: string; email?: string; topic?: string };
 
-/** A song started on a call: shown as a card over the page, since a call has no chat thread. */
+/** The song being made or played: a card over the page, so it keeps going while the visitor carries on talking. */
 export type SongOffer = { id: string; title?: string | null };
 
 export type CopilotState = {
   /** The booking button of a voice call (booking.ts on the server); null until one is made. */
   booking?: BookingOffer | null;
-  /** The song a call asked for (make_song); null once dismissed. */
+  /** The song make_song started, in chat or on a call; null once dismissed. */
   song?: SongOffer | null;
   messages: CopilotMessage[];
   busy: boolean;
@@ -570,6 +570,8 @@ export const copilot = {
   setOpen: (open: boolean) => set({ open }),
   dismissBooking: () => set({ booking: null }),
   dismissSong: () => set({ song: null }),
+  /** Bring a song back to the card (the link under the reply that asked for it). */
+  showSong: (song: SongOffer) => set({ song }),
   /** Where a song's status and audio are (backend route.ts, /songs/:id). */
   songUrl: (id: string, audio = false, take = 1) =>
     `${base()}/api/copilot/songs/${id}${audio ? '/audio' : ''}${audio && take === 2 ? '?take=2' : ''}`,
@@ -994,10 +996,12 @@ function handle(event: Event, replyId: number) {
       set({ booking: { url, name, email, topic } });
       return;
     }
-    if (event.action.kind === 'song' && voiceReplies.has(replyId)) {
-      // Like the booking button: the song plays from a card over the page, since nobody on a call reads the chat.
+    if (event.action.kind === 'song') {
+      // The song is made in the background (about a minute) and plays from a card over the page, so the conversation
+      // goes on meanwhile and the song is not lost when its reply scrolls away or the chat closes. In the chat the reply
+      // also keeps a link back to it; on a call nobody reads the chat.
       set({ song: { id: event.action.id, title: event.action.title } });
-      return;
+      if (voiceReplies.has(replyId)) return;
     }
     if (event.action.kind === 'projects' && voiceReplies.has(replyId)) {
       const slugs = event.action.slugs;

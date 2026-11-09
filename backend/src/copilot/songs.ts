@@ -3,10 +3,12 @@
  * does the making: a signed-in Chrome that starts for each song and closes after, about a minute a song. This module is
  * the site's side: the cache (a request with the same style, subject and lyrics plays the saved song and costs nothing),
  * the limits (a few songs a day for one visitor, a ceiling for the whole site) and the status the chat's player polls.
- * Rows live in Octo, public.copilot_songs (supabase/migrations/014_copilot_songs.sql). Off unless MUSIC_URL is set.
+ * Rows live in Octo, public.copilot_songs (supabase/migrations/014_copilot_songs.sql), and once a song is done its takes
+ * are copied to Octo's public files (016), which the player loads them from. Off unless MUSIC_URL is set.
  */
 import { createHash, createHmac } from 'node:crypto';
 import { dbExec, dbQueryOne, isDataLayerConfigured } from '../../services/lib/db.js';
+import { isAssetStorageConfigured, uploadOctoPublicFile } from '../../services/lib/octoFiles.js';
 
 const musicUrl = () => process.env.MUSIC_URL?.trim().replace(/\/$/, '') ?? '';
 const perVisitor = () => Number(process.env.SONGS_PER_VISITOR_DAY ?? 2);
@@ -18,7 +20,7 @@ export type SongAsk = { style: string; about: string; lyrics?: string; instrumen
 export type SongStart =
   | { ok: true; id: string; cached: boolean; title?: string | null }
   | { ok: false; reason: 'visitor_limit' | 'daily_limit' | 'busy' | 'down' };
-export type SongStatus = { id: string; state: 'making' | 'done' | 'failed'; title?: string | null; seconds?: number | null; lyrics?: string | null; takes?: number };
+export type SongStatus = { id: string; state: 'making' | 'done' | 'failed'; title?: string | null; seconds?: number | null; lyrics?: string | null; takes?: number; urls?: string[] };
 
 const norm = (text = '') => text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 
@@ -75,10 +77,16 @@ export async function startSong(ask: SongAsk, session: string, exempt = false): 
 /** Where a song is. A finished one is answered from Octo; one being made is asked of the song maker, and saved once done. */
 export async function songStatus(id: string): Promise<SongStatus | null> {
   if (!id16(id)) return null;
-  const row = await dbQueryOne<{ state: SongStatus['state']; title: string | null; seconds: number | null; lyrics: string | null; takes: number }>(
-    'select state, title, seconds, lyrics, takes from public.copilot_songs where id = $1', [id]);
+  const row = await dbQueryOne<{ state: SongStatus['state']; title: string | null; seconds: number | null; lyrics: string | null; takes: number; audio_url: string | null; audio2_url: string | null }>(
+    'select state, title, seconds, lyrics, takes, audio_url, audio2_url from public.copilot_songs where id = $1', [id]);
   if (!row) return null;
-  if (row.state !== 'making') return { id, ...row };
+  if (row.state !== 'making') {
+    const { audio_url, audio2_url, ...rest } = row;
+    // Saved before the copy to Octo existed, or the copy failed: copy it now; this answer still plays from the song maker.
+    if (row.state === 'done' && !audio_url) void saveAudio(id, row.takes);
+    const urls = audio_url ? [audio_url, ...(audio2_url ? [audio2_url] : [])] : undefined;
+    return { id, ...rest, urls };
+  }
   const res = await fetch(`${musicUrl()}/songs/${id}`, { signal: AbortSignal.timeout(5000) }).catch(() => null);
   const job = res?.ok ? ((await res.json()) as { state?: string; title?: string; seconds?: number; lyrics?: string; takes?: number; error?: string }) : null;
   // The song maker forgets a job when it restarts (a deploy): that song is lost, and the visitor can ask again.
@@ -91,7 +99,33 @@ export async function songStatus(id: string): Promise<SongStatus | null> {
   const named = job.title && !/^(today|yesterday)\b|^\d+\/\d+/i.test(job.title) ? job.title : null;
   const done = { title: named?.slice(0, 120) ?? null, seconds: job.seconds ?? null, lyrics: job.lyrics?.slice(0, 6000) ?? null, takes: job.takes === 2 ? 2 : 1 };
   await dbExec("update public.copilot_songs set state = 'done', title = $2, seconds = $3, lyrics = $4, takes = $5, done_at = now() where id = $1", [id, done.title, done.seconds, done.lyrics, done.takes]);
+  void saveAudio(id, done.takes);
   return { id, state: 'done', ...done };
+}
+
+const saving = new Set<string>();
+
+/** Copy a finished song's takes from the song maker to Octo's public files and keep their URLs on its row. */
+async function saveAudio(id: string, takes: number): Promise<void> {
+  if (saving.has(id) || !isAssetStorageConfigured()) return;
+  saving.add(id);
+  try {
+    const urls: string[] = [];
+    for (let take = 1; take <= takes; take++) {
+      const res = await songAudio(id, take);
+      if (!res) break;
+      const buffer = Buffer.from(await res.arrayBuffer());
+      const file = await uploadOctoPublicFile({ buffer, contentType: 'audio/mp4', logicalPath: `copilot-songs/${id}${take === 2 ? '-2' : ''}.m4a` });
+      urls.push(file.url);
+    }
+    if (urls.length) {
+      await dbExec('update public.copilot_songs set audio_url = $2, audio2_url = $3 where id = $1', [id, urls[0], urls[1] ?? null]);
+    }
+  } catch (e) {
+    console.warn('[songs] copy to Octo failed', id, e instanceof Error ? e.message : e);
+  } finally {
+    saving.delete(id);
+  }
 }
 
 /** One take of the song's audio (Flow Music makes two), from the song maker's volume. */

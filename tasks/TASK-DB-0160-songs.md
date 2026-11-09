@@ -33,3 +33,9 @@
 
 - Flow Music makes two takes per song. The song maker now saves both (`<id>.m4a`, `<id>-2.m4a`) and reports `takes`; `/songs/:id/audio?take=2` serves the second. Octo `copilot_songs.takes` (migration 015, applied). The player shows Take 1 / Take 2 when there are two; switching keeps playing.
 - A song autoplays once per song id for the page's life, not once per player mount: a remount (the chat reopening, a dev reload) had started it over.
+
+## Background songs, Octo files, staying signed in (2026-11-09)
+
+- Chat songs play from the floating card too (it was calls only), so the chat carries on while a song is made and the song survives the reply scrolling away or the chat closing; the reply keeps a "Play …" link that reopens it.
+- Once done, the API copies each take to Octo's public files and stores `audio_url` / `audio2_url` (migration 016, applied); the player loads from there and falls back to the song maker's copy.
+- The song maker opens Flow Music daily (and a minute after start) to renew the sign-in, keeps the last check in `/data/last-check.json`. `GET /status` shows it; `POST /check` runs one now. No alert (the owner did not want ntfy).

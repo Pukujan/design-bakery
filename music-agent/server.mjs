@@ -9,6 +9,11 @@
 //   POST /signin            Chrome + the remote screen (noVNC :6080) for SIGNIN_MIN minutes, for the owner to sign in
 //   POST /signin/done       close the sign-in window now
 //   POST /probe             open Flow Music, save a screenshot and the page's controls to DATA_DIR/probe (no credits)
+//   POST /check             open Flow Music and check the sign-in now (no credits)
+//
+// Staying signed in: Flow Music's sign-in renews itself when its page is opened, so every CHECK_HOURS (24) the song maker
+// opens it for a few seconds, which keeps it fresh between songs. If the sign-in is gone, GET /status says so and the
+// owner signs in again; see docs/self-hosting.md "The song maker".
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -21,6 +26,8 @@ const DATA = process.env.DATA_DIR || '/data';
 const SONGS = path.join(DATA, 'songs');
 const SIGNIN_MIN = Number(process.env.SIGNIN_MIN || 20);
 const JOB_MS = Number(process.env.SONG_JOB_MS || 6 * 60_000);
+const CHECK_HOURS = Number(process.env.CHECK_HOURS || 24);
+const CHECK_FILE = path.join(DATA, 'last-check.json');
 fs.mkdirSync(SONGS, { recursive: true });
 
 const jobs = new Map(); // id -> {id, state, req, error, title, seconds, file, at}
@@ -28,7 +35,8 @@ const queue = [];
 let busy = null; // what Chrome is open for: 'song' | 'signin' | 'probe'
 let signinTimer = null;
 let signinBrowser = null;
-let lastCheck = null; // {signedIn, at}
+let lastCheck = null; // {signedIn, at}, kept in CHECK_FILE so a restart remembers it
+try { lastCheck = JSON.parse(fs.readFileSync(CHECK_FILE, 'utf8')); } catch { /* first start */ }
 
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 
@@ -58,6 +66,22 @@ async function withChrome(kind, opts, fn, ms = JOB_MS) {
   }
 }
 
+// Record a sign-in check, so GET /status shows it after a restart too.
+function checked(signedIn) {
+  lastCheck = { signedIn, at: new Date().toISOString() };
+  fs.writeFileSync(CHECK_FILE, JSON.stringify(lastCheck));
+}
+
+// Open Flow Music for a few seconds: renews its sign-in, and tells whether it is still there. Skipped while Chrome is busy.
+async function check() {
+  if (busy) return lastCheck;
+  await withChrome('check', {}, async page => checked(await flow.signedIn(page)), 90_000);
+  log('sign-in check', lastCheck);
+  return lastCheck;
+}
+setTimeout(() => void check().catch(e => log('check failed', e.message)), 60_000).unref();
+setInterval(() => void check().catch(e => log('check failed', e.message)), CHECK_HOURS * 3600_000).unref();
+
 async function next() {
   if (busy || !queue.length) return;
   const job = queue.shift();
@@ -65,7 +89,7 @@ async function next() {
   log('song', job.id, 'start');
   try {
     await withChrome('song', {}, async page => {
-      lastCheck = { signedIn: await flow.signedIn(page), at: new Date().toISOString() };
+      checked(await flow.signedIn(page));
       if (!lastCheck.signedIn) throw new Error('not signed in to Flow Music');
       const out = await flow.makeSong(page, job.req, path.join(SONGS, job.id));
       Object.assign(job, out, { state: 'done' });
@@ -97,7 +121,7 @@ async function signinDone() {
   clearTimeout(signinTimer);
   try {
     const page = await flow.page(signinBrowser);
-    lastCheck = { signedIn: await flow.signedIn(page), at: new Date().toISOString() };
+    checked(await flow.signedIn(page));
   } catch { /* the window may already be gone */ }
   await browser.stop(signinBrowser);
   signinBrowser = null;
@@ -149,6 +173,10 @@ http.createServer(async (req, res) => {
     }
     if (req.method === 'POST' && url.pathname === '/signin') { await signin(); return json(res, 200, { open: true, minutes: SIGNIN_MIN }); }
     if (req.method === 'POST' && url.pathname === '/signin/done') { await signinDone(); return json(res, 200, { open: false, lastCheck }); }
+    if (req.method === 'POST' && url.pathname === '/check') {
+      if (busy) return json(res, 409, { error: `busy (${busy})` });
+      return json(res, 200, await check());
+    }
     if (req.method === 'POST' && url.pathname === '/probe') {
       if (busy) return json(res, 409, { error: `busy (${busy})` });
       const out = await withChrome('probe', {}, page => flow.probe(page, path.join(DATA, 'probe')), 90_000);

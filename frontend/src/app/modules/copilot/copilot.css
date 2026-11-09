@@ -638,6 +638,8 @@
 .cp-song-bars i:nth-child(3) { animation-delay: 0.3s; }
 .cp-song-bars i:nth-child(4) { animation-delay: 0.45s; }
 @keyframes cp-song-bar { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+.cp-song-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 4px 10px; border: 1px solid var(--lab-line); border-radius: 999px; background: none; color: inherit; font-size: 12px; cursor: pointer; }
+.cp-song-link:disabled { opacity: 0.6; cursor: default; }
 .cp-song-takes { display: flex; gap: 6px; margin-top: 8px; }
 .cp-song-take { padding: 3px 10px; border: 1px solid currentColor; border-radius: 999px; background: none; color: inherit; font-size: 12px; opacity: 0.6; cursor: pointer; }
 .cp-song-take[aria-pressed='true'] { opacity: 1; font-weight: 600; }

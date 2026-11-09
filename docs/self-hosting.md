@@ -196,8 +196,15 @@ serves them (`backend/src/api/ogPreview.ts`) and the Caddyfile routes those path
 - **The song maker.** The `music` service (`music-agent/`, TASK-DB-0160) makes songs on the owner's Flow Music
   plan (www.flowmusic.app) by driving a signed-in Google Chrome. Chrome starts cold for each song and closes when it
   is done; only the Chrome profile (the sign-in) and the finished songs stay, in the `music-data` volume. Flow Music
-  makes two takes of each song: both are saved (`songs/<id>.m4a` and `<id>-2.m4a`), and the chat's player switches
-  between them. The API
+  makes two takes of each song: both are saved (`songs/<id>.m4a` and `<id>-2.m4a`), then the API copies them to Octo's
+  public files (`files.design-bakery.com`, URLs on the `copilot_songs` row) and the player loads them from there; the
+  volume is only the first copy. The player is a card over the page, in chat and on calls, so the conversation goes on
+  while a song is made; it switches between the two takes.
+
+  **Staying signed in.** Google's sign-in cannot be made permanent, but it lasts while it is used: every `CHECK_HOURS`
+  (24) and a minute after each start, the song maker opens Flow Music for a few seconds (no credits), which renews it.
+  `GET /status` shows the last check (`lastCheck.signedIn`) and `POST /check` runs one now; if it says false, sign in
+  again as below. While signed out a song fails and the player says so. The API
   reaches it at `http://design-bakery-music:8790`. It is behind the compose profile `music` and deployed by
   `deploy.sh` once `deploy/vps/.env.music` exists (it may be empty); like the voice worker it goes last and never
   fails a deploy.
