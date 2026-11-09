@@ -25,6 +25,8 @@ const STEP_LABEL: Record<string, string> = {
   book_call: 'Opening the booking page',
   suggest_followups: 'Thinking of follow-ups',
   make_song: 'Starting your song',
+  saved_songs: 'Looking through the songs',
+  play_song: 'Putting it on',
 };
 
 

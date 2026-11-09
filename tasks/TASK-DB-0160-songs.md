@@ -39,3 +39,8 @@
 - Chat songs play from the floating card too (it was calls only), so the chat carries on while a song is made and the song survives the reply scrolling away or the chat closing; the reply keeps a "Play …" link that reopens it.
 - Once done, the API copies each take to Octo's public files and stores `audio_url` / `audio2_url` (migration 016, applied); the player loads from there and falls back to the song maker's copy.
 - The song maker opens Flow Music daily (and a minute after start) to renew the sign-in, keeps the last check in `/data/last-check.json`. `GET /status` shows it; `POST /check` runs one now. No alert (the owner did not want ntfy).
+
+## Limit by address, and the catalogue (2026-11-09)
+
+- Two new songs a visitor a day, counted by pass or address (`copilot_songs.ip`, HMAC; migration 017, applied), so a new pass does not reset it.
+- Songs already made are free to replay: `saved_songs` and `play_song` tools, `GET /api/copilot/songs`, and "More songs" in the player. The copilot offers them when a visitor has used their two.

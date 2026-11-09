@@ -6,6 +6,7 @@
  *   GET  /health  the profile and each smart provider's last probe, without keys
  *   POST /chat    one turn, streamed as NDJSON events (see CopilotEvent)
  *   POST /message the contact page's message form, emailed to Pujan (contactMail.ts)
+ *   GET  /songs             the songs already made (the catalogue anyone can play again)
  *   GET  /songs/:id         a song make_song started: making, done or failed (songs.ts)
  *   GET  /songs/:id/audio   its audio (?take=2 for Flow Music's second take)
  *
@@ -27,7 +28,7 @@ import { devProvider, pickProfile, routeFor, smartProviders, type Provider } fro
 import { createCitations } from './citations.js';
 import { withChip } from './chips.js';
 import { makeTools, type CopilotAction } from './tools.js';
-import { songAudio, songStatus } from './songs.js';
+import { savedSongs, songAudio, songStatus } from './songs.js';
 import { TurnTrace } from './tracing.js';
 import { takeDurableCopilotLimit, durableLimitConfigured } from './durableLimit.js';
 import { ALL_BOOKING_TOOLS, bookingTools, describe, type BookingFlow } from './bookingState.js';
@@ -127,7 +128,7 @@ Personality (your default, in every reply):
 - When the visitor corrects you or points out a mistake, thank them in a few words with a dry line, take the correction seriously and fix it. You have a few catchphrases ("that's a load-bearing statement", "filed under things I meant to do", "working as intended, retroactively"): use one at most every few replies, never when the visitor is annoyed or the subject is serious.
 - You know the famous AI trick questions (the car wash fifty metres away, letters in strawberry, 9.11 against 9.9, the seahorse emoji): answer correctly first, then one dry line. Say "famously" only about well-documented ones and never claim what any model gets wrong today.
 - Games and fun, whenever they ask (or the chat is light and they seem up for it): a joke, a riddle (give them a guess before the answer), a quick three-question quiz on AI or on my work (from the brief only, one question at a time, keep score), a two-line rap or a limerick about a project, the page they are on or their day, or "two truths and a lie" about AI. Keep each one short, then let them play again or move on.
-- Songs: you can make them a real short song with make_song. Always ask first what kind they want (the style or mood, and what it should be about) in one short question with a fun suggestion, and make it only after they answer. It takes about a minute and plays by itself when ready.
+- Songs: you can make them a real short song with make_song. Always ask first what kind they want (the style or mood, and what it should be about) in one short question with a fun suggestion, and make it only after they answer. It takes about a minute and plays by itself when ready, and they can keep chatting meanwhile. Each visitor makes two new songs a day; the songs already made (saved_songs, then play_song) are free to play any time, so offer those too.
 - A joke or opinion about AI in general is yours; a project, role, number or paper is only ever what the site says, from the brief and your tools. The length rules above still hold: the personality lives in the wording, not in extra length.`;
 
 /** Added to the prompt on a voice call: short spoken sentences, and moving the visitor without asking first. */
@@ -272,6 +273,11 @@ copilotRouter.get('/health', (_req, res) => {
 
 // A song the copilot started (make_song, songs.ts): the chat's player polls this, then plays the audio. The id is random and
 // only ever given to the visitor who asked for it.
+copilotRouter.get('/songs', async (_req, res) => {
+  const songs = await savedSongs(30).catch(() => []);
+  res.set('cache-control', 'public, max-age=60').json({ ok: true, songs });
+});
+
 copilotRouter.get('/songs/:id', async (req, res) => {
   const status = await songStatus(req.params.id).catch(() => null);
   if (!status) {
@@ -511,7 +517,7 @@ copilotRouter.post('/chat', async (req, res) => {
           canNavigate: true, citations, voice, page, said, lastReply,
           booking: { get: () => booking, set: (next) => { booking = next; bookingTouched = true; } },
           notForMe: () => { if (!toMe) ignoredLine = true; },
-          songs: { session, exempt },
+          songs: { session, exempt, ip },
         },
       ), voice, booking));
     turn.offered = Object.keys(offered);

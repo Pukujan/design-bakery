@@ -7,7 +7,7 @@
  * are copied to Octo's public files (016), which the player loads them from. Off unless MUSIC_URL is set.
  */
 import { createHash, createHmac } from 'node:crypto';
-import { dbExec, dbQueryOne, isDataLayerConfigured } from '../../services/lib/db.js';
+import { dbExec, dbQueryAll, dbQueryOne, isDataLayerConfigured } from '../../services/lib/db.js';
 import { isAssetStorageConfigured, uploadOctoPublicFile } from '../../services/lib/octoFiles.js';
 
 const musicUrl = () => process.env.MUSIC_URL?.trim().replace(/\/$/, '') ?? '';
@@ -17,6 +17,8 @@ const perDay = () => Number(process.env.SONGS_PER_DAY ?? 20);
 export const songsConfigured = () => Boolean(musicUrl()) && isDataLayerConfigured();
 
 export type SongAsk = { style: string; about: string; lyrics?: string; instrumental?: boolean };
+/** A finished song anyone can play again (the catalogue): what it was asked as, and how long it is. */
+export type SavedSong = { id: string; title: string | null; label: string; seconds: number | null };
 export type SongStart =
   | { ok: true; id: string; cached: boolean; title?: string | null }
   | { ok: false; reason: 'visitor_limit' | 'daily_limit' | 'busy' | 'down' };
@@ -34,24 +36,28 @@ export function songPrompt(ask: SongAsk): string {
   return `A short, fun ${ask.style.trim()} song about ${ask.about.trim()}. Keep it under two minutes. No real people's names and no imitation of any named artist.`.slice(0, 600);
 }
 
-function visitorId(session: string): string {
+function hashed(kind: string, value: string): string {
   const secret = process.env.COPILOT_RATE_SECRET ?? process.env.COPILOT_PASS_SECRET ?? 'songs';
-  return createHmac('sha256', secret).update(`song\0${session}`).digest('hex').slice(0, 64);
+  return createHmac('sha256', secret).update(`${kind}\0${value}`).digest('hex').slice(0, 64);
 }
 
 const id16 = (id: string) => /^[0-9a-f]{16}$/.test(id);
 
-/** Start a song, or hand back the saved one for the same ask. `exempt` (the owner's own address) skips the limits. */
-export async function startSong(ask: SongAsk, session: string, exempt = false): Promise<SongStart> {
+/**
+ * Start a song, or hand back the saved one for the same ask. A visitor makes SONGS_PER_VISITOR_DAY (2) a day, counted by
+ * their pass and by their address, so neither a new pass nor a new address resets it. `exempt` (the owner) skips limits.
+ */
+export async function startSong(ask: SongAsk, session: string, exempt = false, ip = ''): Promise<SongStart> {
   const key = songKey(ask);
   const saved = await dbQueryOne<{ id: string; title: string | null }>(
     "select id, title from public.copilot_songs where key = $1 and state = 'done' order by created_at desc limit 1", [key]);
   if (saved) return { ok: true, id: saved.id, cached: true, title: saved.title };
-  const visitor = visitorId(session);
+  const visitor = hashed('song', session);
+  const address = ip ? hashed('song-ip', ip) : null;
   if (!exempt) {
     const counts = await dbQueryOne<{ mine: number; total: number }>(
-      "select count(*) filter (where visitor = $1)::int as mine, count(*)::int as total from public.copilot_songs where created_at > now() - interval '1 day' and state <> 'failed'",
-      [visitor]);
+      "select count(*) filter (where visitor = $1 or ip = $2)::int as mine, count(*)::int as total from public.copilot_songs where created_at > now() - interval '1 day' and state <> 'failed'",
+      [visitor, address]);
     if ((counts?.mine ?? 0) >= perVisitor()) return { ok: false, reason: 'visitor_limit' };
     if ((counts?.total ?? 0) >= perDay()) return { ok: false, reason: 'daily_limit' };
   }
@@ -70,7 +76,7 @@ export async function startSong(ask: SongAsk, session: string, exempt = false): 
   if (res.status === 429) return { ok: false, reason: 'busy' };
   const body = (await res.json().catch(() => ({}))) as { id?: string };
   if (!res.ok || !body.id || !id16(body.id)) return { ok: false, reason: 'down' };
-  await dbExec('insert into public.copilot_songs (id, key, visitor, prompt) values ($1, $2, $3, $4)', [body.id, key, visitor, prompt]);
+  await dbExec('insert into public.copilot_songs (id, key, visitor, ip, prompt) values ($1, $2, $3, $4, $5)', [body.id, key, visitor, address, prompt]);
   return { ok: true, id: body.id, cached: false };
 }
 
@@ -101,6 +107,21 @@ export async function songStatus(id: string): Promise<SongStatus | null> {
   await dbExec("update public.copilot_songs set state = 'done', title = $2, seconds = $3, lyrics = $4, takes = $5, done_at = now() where id = $1", [id, done.title, done.seconds, done.lyrics, done.takes]);
   void saveAudio(id, done.takes);
   return { id, state: 'done', ...done };
+}
+
+/** "lo-fi jazz song about debugging late at night", from the prompt songPrompt wrote. */
+function labelOf(prompt: string): string {
+  const m = prompt.match(/^A short, fun (.+?) song about (.+?)\. Keep it under/s);
+  return (m ? `${m[1]} song about ${m[2]}` : prompt).slice(0, 140);
+}
+
+/** The finished songs, newest first: anyone may play them again, at no cost. */
+export async function savedSongs(limit = 30): Promise<SavedSong[]> {
+  if (!songsConfigured()) return [];
+  const rows = await dbQueryAll<{ id: string; title: string | null; prompt: string; seconds: number | null }>(
+    "select id, title, prompt, seconds from public.copilot_songs where state = 'done' order by done_at desc nulls last limit $1",
+    [Math.min(Math.max(limit, 1), 60)]);
+  return rows.map((r) => ({ id: r.id, title: r.title, label: labelOf(r.prompt), seconds: r.seconds }));
 }
 
 const saving = new Set<string>();

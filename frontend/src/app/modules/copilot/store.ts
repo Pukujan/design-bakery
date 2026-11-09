@@ -573,6 +573,8 @@ export const copilot = {
   /** Bring a song back to the card (the link under the reply that asked for it). */
   showSong: (song: SongOffer) => set({ song }),
   /** Where a song's status and audio are (backend route.ts, /songs/:id). */
+  /** The songs already made, free to play again (backend route.ts, GET /songs). */
+  savedSongsUrl: () => `${base()}/api/copilot/songs`,
   songUrl: (id: string, audio = false, take = 1) =>
     `${base()}/api/copilot/songs/${id}${audio ? '/audio' : ''}${audio && take === 2 ? '?take=2' : ''}`,
   /** A call ended or the chat was cleared: a booking under way is over. */

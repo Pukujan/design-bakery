@@ -46,6 +46,7 @@ export function SongPlayer({ id, title, floating = false }: { id: string; title?
   const { status: call } = useVoice();
   const [showLyrics, setShowLyrics] = useState(false);
   const [take, setTake] = useState(1);
+  const [browsing, setBrowsing] = useState(false);
   const name = status.title || title || 'Your song';
 
   useEffect(() => {
@@ -106,7 +107,43 @@ export function SongPlayer({ id, title, floating = false }: { id: string; title?
           {showLyrics && status.lyrics && <pre className="cp-song-lyrics">{status.lyrics}</pre>}
         </>
       )}
+      {floating && status.state !== 'making' && (
+        <button type="button" className="cp-song-lyrics-toggle" onClick={() => setBrowsing((v) => !v)}>
+          {browsing ? 'Hide other songs' : 'More songs'}
+        </button>
+      )}
+      {browsing && <SavedSongs current={id} />}
     </aside>
+  );
+}
+
+type Saved = { id: string; title: string | null; label: string; seconds: number | null };
+
+/** The songs already made (free to play again, no daily limit): picking one plays it in the card. */
+function SavedSongs({ current }: { current: string }) {
+  const [songs, setSongs] = useState<Saved[] | null>(null);
+  useEffect(() => {
+    let stop = false;
+    fetch(copilot.savedSongsUrl())
+      .then((r) => r.json() as Promise<{ songs?: Saved[] }>)
+      .then((b) => { if (!stop) setSongs(b.songs ?? []); })
+      .catch(() => { if (!stop) setSongs([]); });
+    return () => { stop = true; };
+  }, []);
+  if (!songs) return <p className="cp-song-wait">Finding the songs…</p>;
+  const others = songs.filter((x) => x.id !== current);
+  if (!others.length) return <p className="cp-song-wait">No other songs yet.</p>;
+  return (
+    <ul className="cp-song-list">
+      {others.map((x) => (
+        <li key={x.id}>
+          <button type="button" onClick={() => copilot.showSong({ id: x.id, title: x.title })}>
+            <span>{x.title || x.label}</span>
+            {x.seconds ? <span className="cp-song-len">{Math.floor(x.seconds / 60)}:{String(Math.round(x.seconds % 60)).padStart(2, '0')}</span> : null}
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 
