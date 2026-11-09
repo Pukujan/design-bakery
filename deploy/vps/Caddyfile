@@ -203,7 +203,7 @@
 		# This matcher and `OG_PREFIX_RE` in backend/src/api/ogPreview.ts must stay in
 		# step; `pnpm test:og-routing` fails CI if they drift. Read
 		# additionals/guidelines/agent-devlog-og-previews.md before changing either.
-		@ogPreview path_regexp ^/(?:endtoend-engineer|legal-workflow-engineer|ai-engineer|forward-deployed-engineer)?/?blogs(?:/\d+)?/?$|^/case-studies/.+
+		@ogPreview path_regexp ^/(?:endtoend-engineer|legal-workflow-engineer|ai-engineer|forward-deployed-engineer)?/?blogs(?:/\d+)?/?$|^/case-studies/.+|^/work/[a-z0-9-]+/?$
 		handle @ogPreview {
 			reverse_proxy api:8787
 		}
@@ -230,7 +230,7 @@
 	# Scoped by path on purpose: an error under /api/* must stay an error, because the
 	# frontend reads JSON there and a silent index.html would be worse than the 502.
 	handle_errors {
-		@ogShellFallback path_regexp ^/(?:endtoend-engineer|legal-workflow-engineer|ai-engineer|forward-deployed-engineer)?/?blogs(?:/\d+)?/?$|^/case-studies/.+
+		@ogShellFallback path_regexp ^/(?:endtoend-engineer|legal-workflow-engineer|ai-engineer|forward-deployed-engineer)?/?blogs(?:/\d+)?/?$|^/case-studies/.+|^/work/[a-z0-9-]+/?$
 		handle @ogShellFallback {
 			header Content-Type "text/html; charset=utf-8"
 			header Cache-Control "public, max-age=0, must-revalidate"

@@ -15,6 +15,15 @@ const blogJsonPath = path.join(
   'frontend/src/app/modules/blog/data/blog-data.json',
 );
 
+const projectsJsonPath = path.join(
+  repoRoot,
+  'frontend/src/app/portfolios/endtoend-engineer/engineering/projects.json',
+);
+const researchPapersPath = path.join(
+  repoRoot,
+  'frontend/src/app/modules/research/data/researchPapers.ts',
+);
+
 const SITE_ORIGIN = (
   process.env.VITE_SITE_URL ||
   process.env.SITE_URL ||
@@ -116,11 +125,31 @@ function blogLastmod(row) {
   return new Date(ts).toISOString().slice(0, 10);
 }
 
+/** One /work/<slug> page per project in the repo's projects.json. */
+function readProjectPaths() {
+  const projects = JSON.parse(fs.readFileSync(projectsJsonPath, 'utf8'));
+  return projects.filter((p) => p.slug).map((p) => `/work/${p.slug}`);
+}
+
+/** Paper pages listed in RESEARCH_PAPERS (drafts that are defined but not listed stay out). */
+function readResearchPaperPaths() {
+  const text = fs.readFileSync(researchPapersPath, 'utf8');
+  const listed = /export const RESEARCH_PAPERS:\s*ResearchPaper\[\]\s*=\s*\[([\s\S]*?)\];/.exec(text)?.[1] ?? '';
+  return [...listed.matchAll(/PAPER_\d+/g)]
+    .map(([name]) => new RegExp(`const ${name}: ResearchPaper = \\{\\s*id: '([^']+)'`).exec(text)?.[1])
+    .filter(Boolean)
+    .map((id) => `/research/papers/${id}`);
+}
+
 async function main() {
   const today = new Date().toISOString().slice(0, 10);
   const staticPaths = [
     '/',
     '/blogs',
+    '/research',
+    '/contact',
+    ...readProjectPaths(),
+    ...readResearchPaperPaths(),
     '/case-studies/ekagajpatra',
     '/case-studies/invest-ai',
     '/case-studies/ai-agents/v3',

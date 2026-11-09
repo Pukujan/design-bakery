@@ -1,10 +1,10 @@
-# Agent devlog — Open Graph link previews (blog and case-study routes)
+# Agent devlog — Open Graph link previews (blog, case-study and project routes)
 
 | Field | Value |
 |-------|-------|
 | **Document date** | 2026-10-07 |
 | **Created** | 2026-10-07 |
-| **Last updated** | 2026-11-02 |
+| **Last updated** | 2026-11-08 |
 
 **For Cursor agents.** Read before touching the link-preview router, the Caddyfile's
 `@ogPreview` / `handle_errors` blocks, the `ogPreviewRouter` mount in `server.ts`, or
@@ -14,6 +14,7 @@ either copy of `blogSocialMeta.ts`.
 
 | Date | Notes |
 |------|--------|
+| 2026-11-08 | `/work/<slug>` project pages get their own card (TASK-DB-0159): `WORK_RE` + `handleWork` read the project from `loadProjects()` (Octo first, then the repo JSON); meta from `backend/src/og/projectShareMeta.ts`; image `/og/projects/<slug>.jpg` (1200×630, cut from the cover). Both Caddy matchers gained `\|^/work/[a-z0-9-]+/?$`. |
 | 2026-11-02 | Default social image moved to `/images/design-baker-social.png` to give the current branding a fresh preview URL; retain the old asset for existing links. |
 | 2026-10-07 | Created. Replaces the Vercel Edge middleware (`middleware.ts`, deleted) with a router in the `api` container behind Caddy (TASK-DB-0077, issue #80 Step E). |
 
@@ -21,7 +22,7 @@ either copy of `blogSocialMeta.ts`.
 
 ## What this is
 
-A shared blog or case-study link must preview with the **post's** title, description
+A shared blog, case-study or project (`/work/<slug>`) link must preview with the **post's** title, description
 and image. The SPA shell is one static `index.html` with the generic homepage tags, so
 a crawler that gets the shell shows "Design Bakery" for every URL.
 
@@ -36,7 +37,7 @@ audiences share one URL and one document, and there is no separate crawler page.
 |-------|-------|
 | Caddy | `@ogPreview` `path_regexp` → `reverse_proxy api:8787`; a top-level `handle_errors` degrades to the shell when the API is down |
 | Express `api` container | `backend/src/api/ogPreview.ts` — `ogPreviewRouter`, mounted app-wide in `backend/src/server.ts` |
-| Backend modules | `backend/src/og/` — `blogShareHtml`, `blogSocialMeta`, `caseStudyShareMeta`, `linkPreviewCrawlers`, `resolveSocialPreviewImage`, `siteSeoDefaults` |
+| Backend modules | `backend/src/og/` — `blogShareHtml`, `blogSocialMeta`, `caseStudyShareMeta`, `projectShareMeta`, `linkPreviewCrawlers`, `resolveSocialPreviewImage`, `siteSeoDefaults` |
 | Frontend modules | `frontend/src/og/blogSocialMeta.ts` (byte-identical copy) + `blogSocialMetaClient.ts` (browser-only) |
 
 It lives in the **existing** `api` container on purpose: no new sidecar, no new tunnel
@@ -113,7 +114,7 @@ reads JSON there and a silent `index.html` would be worse than the 502.
 ## Test
 
 ```bash
-pnpm test:og-routing    # Caddy @ogPreview ⇄ backend router, 36 paths
+pnpm test:og-routing    # Caddy @ogPreview ⇄ backend router, 43 paths
 pnpm test:og-contract   # the duplicated modules have not drifted
 
 # Live (once deployed): a crawler UA must get the post title, not the shell.
@@ -126,6 +127,7 @@ Locally, against a built shell + the API on loopback:
 ```bash
 curl -A 'facebookexternalhit/1.1' -s http://127.0.0.1:8085/blogs/1 | grep -o '<title>[^<]*</title>'
 curl -A 'facebookexternalhit/1.1' -s http://127.0.0.1:8085/case-studies/study-os | grep -o '<title>[^<]*</title>'
+curl -A 'facebookexternalhit/1.1' -s http://127.0.0.1:8085/work/riley | grep -o '<meta property="og:image" [^>]*>'
 ```
 
 ## Safe / avoid
@@ -135,6 +137,7 @@ curl -A 'facebookexternalhit/1.1' -s http://127.0.0.1:8085/case-studies/study-os
 | Editing the frontend `blogSocialMeta.ts` and copying it to the backend | Hand-editing one copy only (CI `test:og-contract` fails) |
 | Adding a path to both `@ogPreview` and `OG_PREFIX_RE` | Adding it to the Caddyfile only (falls through to the Express 404) |
 | Serving these paths uncached with `Vary: User-Agent` | Caching an injected body, or dropping `Vary` |
+| A new project: add its `/og/projects/<slug>.jpg` (1200×630) with the cover | A project without that image (the card points at a 404 image) |
 | A real static `.html` for a case study (served from disk, no API) | Relying on the router for a path that has a real file |
 | `SITE_URL` set on the `api` service | Leaving it unset — the compose origin leaks into `og:url` / `og:image` |
 
