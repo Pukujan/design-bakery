@@ -11,7 +11,7 @@ import { CONSULT_SERVICES,  nextStep, type BookingFlow, type BookingState } from
 import { neighbour, nextTourStop } from './walk.js';
 import { contactMailConfigured, sendContactMessage } from './contactMail.js';
 import { loadBlogs, loadPapers, loadProjects, projectPath, readBlog, readPaper, sectionsForPath, SITE_PAGES, SOCIAL_LINKS } from './knowledge.js';
-import { songsConfigured, startSong } from './songs.js';
+import { savedSongs, songsConfigured, startSong } from './songs.js';
 
 export { CONSULT_SERVICES };
 
@@ -86,7 +86,7 @@ export function bookingUrl(base: string, who: { name?: string; email?: string; t
  */
 export type BookingHold = { get: () => BookingFlow | null; set: (flow: BookingFlow | null) => void };
 
-export type SongHold = { session: string; exempt: boolean };
+export type SongHold = { session: string; exempt: boolean; ip?: string };
 
 export function makeTools(emit: (action: CopilotAction) => void, options: { canNavigate: boolean; citations?: Citations; voice?: boolean; page?: { path: string }; said?: string; lastReply?: string; booking?: BookingHold; notForMe?: () => void; songs?: SongHold }) {
   const citations = options.citations;
@@ -463,11 +463,11 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
         if (!askedForStyle(options.lastReply ?? '')) {
           return { ok: false, note: 'Not started. Ask them first, in one short question, what kind of song they want (style or mood, and what about). Make it in your next reply, after they answer.' };
         }
-        const started = await startSong(ask, options.songs.session, options.songs.exempt).catch(() => ({ ok: false as const, reason: 'down' as const }));
+        const started = await startSong(ask, options.songs.session, options.songs.exempt, options.songs.ip).catch(() => ({ ok: false as const, reason: 'down' as const }));
         if (!started.ok) {
           const why = {
-            visitor_limit: 'They have had their songs for today: say so kindly, and offer a short rap or limerick in words instead.',
-            daily_limit: 'The site has made all its songs for today: say so, and offer a short rap or limerick in words instead.',
+            visitor_limit: 'They have made their two songs for today: say so kindly, and offer to play one of the songs already made (saved_songs) instead.',
+            daily_limit: 'The site has made all its songs for today: say so, and offer to play one of the songs already made (saved_songs) instead.',
             busy: 'A few songs are being made already: ask them to try again in a couple of minutes.',
             down: 'The song maker is asleep right now: say so, and offer a short rap or limerick in words instead.',
           }[started.reason];
@@ -478,6 +478,33 @@ export function makeTools(emit: (action: CopilotAction) => void, options: { canN
         return started.cached
           ? { ok: true, note: 'This exact song was made before, so it plays right away. Say so in a few words.' }
           : { ok: true, note: 'It is being made: about a minute. It plays here by itself when it is ready.' };
+      },
+    }),
+
+    saved_songs: tool({
+      description:
+        'The songs already made here, newest first: anyone can play them again, free and at once (no daily limit). Use it when they want to hear a song without making one, when they have used their two new songs for today, or to offer one. Then play the one they pick with play_song.',
+      inputSchema: z.object({}),
+      execute: async () => {
+        if (!options.songs || !songsConfigured()) return { ok: false, note: 'Songs are resting right now.' };
+        const songs = await savedSongs(20).catch(() => []);
+        if (!songs.length) return { ok: true, songs: [], note: 'No songs yet: offer to make them one.' };
+        return { ok: true, songs: songs.map((x) => ({ id: x.id, title: x.title, about: x.label, seconds: x.seconds })) };
+      },
+    }),
+
+    play_song: tool({
+      description:
+        'Play one of the songs already made (an id from saved_songs). It starts at once in the player. Say what it is in a few words.',
+      inputSchema: z.object({ id: z.string().regex(/^[0-9a-f]{16}$/) }),
+      execute: async ({ id }) => {
+        if (!options.songs || !songsConfigured()) return { ok: false, note: 'Songs are resting right now.' };
+        if (songStarted) return { ok: false, error: 'a song was already started in this reply' };
+        const song = (await savedSongs(60).catch(() => [])).find((x) => x.id === id);
+        if (!song) return { ok: false, error: 'no such song: call saved_songs for the ids' };
+        songStarted = true;
+        emit({ kind: 'song', id, title: song.title, cached: true });
+        return { ok: true, note: 'Playing now.' };
       },
     }),
 

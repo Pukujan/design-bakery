@@ -201,6 +201,12 @@ serves them (`backend/src/api/ogPreview.ts`) and the Caddyfile routes those path
   volume is only the first copy. The player is a card over the page, in chat and on calls, so the conversation goes on
   while a song is made; it switches between the two takes.
 
+  **Limits and the catalogue.** A visitor makes `SONGS_PER_VISITOR_DAY` (2) new songs a day, counted by their visitor
+  pass and by their address (an HMAC of it, `copilot_songs.ip`), so a new pass or browser does not reset it; the site
+  makes `SONGS_PER_DAY` (20) in all, and the owner's addresses are exempt. Songs already made are free to play again
+  with no limit: the copilot's `saved_songs` / `play_song` tools, `GET /api/copilot/songs`, and the player's
+  "More songs" list.
+
   **Staying signed in.** Google's sign-in cannot be made permanent, but it lasts while it is used: every `CHECK_HOURS`
   (24) and a minute after each start, the song maker opens Flow Music for a few seconds (no credits), which renews it.
   `GET /status` shows the last check (`lastCheck.signedIn`) and `POST /check` runs one now; if it says false, sign in

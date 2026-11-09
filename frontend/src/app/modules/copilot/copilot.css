@@ -640,6 +640,10 @@
 @keyframes cp-song-bar { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
 .cp-song-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 4px 10px; border: 1px solid var(--lab-line); border-radius: 999px; background: none; color: inherit; font-size: 12px; cursor: pointer; }
 .cp-song-link:disabled { opacity: 0.6; cursor: default; }
+.cp-song-list { list-style: none; margin: 8px 0 0; padding: 0; max-height: 180px; overflow: auto; }
+.cp-song-list button { display: flex; justify-content: space-between; gap: 10px; width: 100%; padding: 6px 0; border: 0; border-top: 1px solid var(--lab-line); background: none; color: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.cp-song-list button:hover { text-decoration: underline; }
+.cp-song-len { opacity: 0.6; font-variant-numeric: tabular-nums; }
 .cp-song-takes { display: flex; gap: 6px; margin-top: 8px; }
 .cp-song-take { padding: 3px 10px; border: 1px solid currentColor; border-radius: 999px; background: none; color: inherit; font-size: 12px; opacity: 0.6; cursor: pointer; }
 .cp-song-take[aria-pressed='true'] { opacity: 1; font-weight: 600; }
