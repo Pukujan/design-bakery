@@ -16,6 +16,15 @@ const EASE = [0.2, 0.7, 0.1, 1] as const;
 
 const isExternal = (url: string) => /^https?:\/\//.test(url);
 
+/** Search/share description: the tagline, then the description up to ~155 characters on a word break. */
+function shareDescription(project: Project): string {
+  const lead = /[.!?]$/.test(project.tagline) ? project.tagline : `${project.tagline}.`;
+  const full = `${lead} ${project.description}`.replace(/\s+/g, ' ').trim();
+  if (full.length <= 155) return full;
+  const cut = full.slice(0, 154);
+  return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[,;:.\s]+$/, '')}…`;
+}
+
 /** One presentation page per project: what it is, why, the evidence, and where to go next. */
 export function WorkPage() {
   const { slug } = useParams();
@@ -50,8 +59,11 @@ export function WorkPage() {
     <div className="lab-root work-root" style={{ '--work-bg': project.color, '--work-accent': project.accentColor } as React.CSSProperties}>
       <PageSeo
         title={`${project.title} | Design Baker`}
-        description={project.tagline}
+        description={shareDescription(project)}
         canonicalPath={`/work/${project.slug}`}
+        ogImage={`/og/projects/${project.slug}.jpg`}
+        imageAlt={`${project.title}: ${project.tagline}`}
+        ogType="article"
       />
 
 

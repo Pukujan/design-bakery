@@ -1,7 +1,7 @@
 /**
  * Server-side Open Graph / link-preview rendering (issue #80, Step E).
  *
- * Rewrites the SPA shell for blog and case-study URLs so link-preview bots and
+ * Rewrites the SPA shell for blog, case-study and /work/<slug> project URLs so link-preview bots and
  * crawlers read a real `<title>` / `og:*` instead of the generic app shell. It is an
  * Express route behind Caddy (the `@ogPreview` matcher in
  * deploy/vps/Caddyfile). It replaced an Edge middleware (`middleware.ts`) from
@@ -38,6 +38,8 @@ import {
   type BlogSharePayload,
 } from '../og/blogShareHtml.js';
 import { resolveCaseStudyShareMeta } from '../og/caseStudyShareMeta.js';
+import { resolveProjectShareMeta } from '../og/projectShareMeta.js';
+import { loadProjects } from '../copilot/knowledge.js';
 import { isLinkPreviewCrawler } from '../og/linkPreviewCrawlers.js';
 import { DEFAULT_OG_IMAGE_PATH } from '../og/siteSeoDefaults.js';
 
@@ -47,14 +49,15 @@ const PORTFOLIO_PREFIX =
 const BLOG_DETAIL_RE = new RegExp(`^/(?:${PORTFOLIO_PREFIX}/)?blogs/(\\d+)/?$`);
 const BLOG_LIST_RE = new RegExp(`^/(?:${PORTFOLIO_PREFIX}/)?blogs/?$`);
 const CASE_STUDY_RE = /^\/case-studies\/.+/;
+const WORK_RE = /^\/work\/([a-z0-9-]+)\/?$/;
 
 /**
- * Everything this router owns, handled or not. Must stay a superset of the three
+ * Everything this router owns, handled or not. Must stay a superset of the four
  * regexes above and a subset of the Caddy `@ogPreview` matcher — the router serves
  * the plain shell for anything in here it does not recognise, so the two drifting
  * apart shows up as a 404 rather than as a broken page.
  */
-const OG_PREFIX_RE = new RegExp(`^/(?:${PORTFOLIO_PREFIX}/)?blogs(?:/|$)|^/case-studies/`);
+const OG_PREFIX_RE = new RegExp(`^/(?:${PORTFOLIO_PREFIX}/)?blogs(?:/|$)|^/case-studies/|^/work/`);
 
 const BLOG_LIST_DESCRIPTION =
   'Engineering blog on systems design, AI workflows, document intelligence, legal-tech product engineering, and agent architecture.';
@@ -262,6 +265,17 @@ async function handleCaseStudy(req: Request, res: Response): Promise<void> {
   await serveShellOrUnavailable(res);
 }
 
+async function handleWork(res: Response, slug: string): Promise<void> {
+  try {
+    const project = (await loadProjects()).find((p) => p.slug === slug);
+    const meta = project ? resolveProjectShareMeta(project, siteOrigin()) : null;
+    if (meta && (await serveShell(res, meta))) return;
+  } catch (err) {
+    console.warn('[og] work page meta failed:', err instanceof Error ? err.message : err);
+  }
+  await serveShellOrUnavailable(res);
+}
+
 export const ogPreviewRouter = Router();
 
 /**
@@ -300,6 +314,11 @@ ogPreviewRouter.use((req, res, next) => {
   }
   if (CASE_STUDY_RE.test(pathname)) {
     void handleCaseStudy(req, res);
+    return;
+  }
+  const work = pathname.match(WORK_RE);
+  if (work) {
+    void handleWork(res, work[1]);
     return;
   }
   // A path under a blog/case-study prefix this router does not recognise — the SPA

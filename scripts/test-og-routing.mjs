@@ -59,9 +59,9 @@ assert.ok(declarationBlock, 'ogPreview.ts: could not find the path regex declara
 
 const buildMatchers = new Function(
   `${declarationBlock[0]}
-   return { BLOG_DETAIL_RE, BLOG_LIST_RE, CASE_STUDY_RE, OG_PREFIX_RE };`,
+   return { BLOG_DETAIL_RE, BLOG_LIST_RE, CASE_STUDY_RE, WORK_RE, OG_PREFIX_RE };`,
 );
-const { BLOG_DETAIL_RE, BLOG_LIST_RE, CASE_STUDY_RE, OG_PREFIX_RE } = buildMatchers();
+const { BLOG_DETAIL_RE, BLOG_LIST_RE, CASE_STUDY_RE, WORK_RE, OG_PREFIX_RE } = buildMatchers();
 
 assert.ok(BLOG_DETAIL_RE instanceof RegExp, 'ogPreview.ts: BLOG_DETAIL_RE is not a RegExp');
 
@@ -71,6 +71,7 @@ function classifyExpress(pathname) {
   if (BLOG_DETAIL_RE.test(pathname)) return 'detail';
   if (BLOG_LIST_RE.test(pathname)) return 'list';
   if (CASE_STUDY_RE.test(pathname)) return 'case-study';
+  if (WORK_RE.test(pathname)) return 'work';
   if (OG_PREFIX_RE.test(pathname)) return 'shell';
   return 'none';
 }
@@ -112,12 +113,18 @@ const CASES = [
   ['/case-studies/cortex', true, 'case-study'],
   ['/case-studies/cortex/a', true, 'case-study'],
 
+  // Project pages (/work/<slug>): the router looks the slug up and falls back to the shell.
+  ['/work/riley', true, 'work'],
+  ['/work/maybe-home', true, 'work'],
+  ['/work/nyc-map-agent/', true, 'work'],
+
   // Not routed: no file, no blog, no case study. The SPA fallback owns these.
   ['/', false, 'none'],
   ['/about', false, 'none'],
   ['/blog', false, 'none'],
   ['/blogsomething', false, 'none'],
   ['/case-studies', false, 'none'],
+  ['/work', false, 'none'],
   ['/endtoend-engineer', false, 'none'],
   ['/images/site-og.png', false, 'none'],
   ['/assets/index-abc123.js', false, 'none'],
@@ -126,6 +133,7 @@ const CASES = [
   // `.html` is a 404 before either matcher runs.
   ['/case-studies/foo.html', false, 'none'],
   ['/blogs/1.html', false, 'none'],
+  ['/work/riley.html', false, 'none'],
 
   // A non-numeric post id is not a detail route and not a list route, but it is
   // still under the prefix — so the router must serve the shell, not 404. Caddy
@@ -133,6 +141,9 @@ const CASES = [
   // disagree here on purpose.
   ['/blogs/abc', false, 'shell'],
   ['/blogs/1/extra', false, 'shell'],
+  ['/work/', false, 'shell'],
+  ['/work/Riley', false, 'shell'],
+  ['/work/riley/extra', false, 'shell'],
 ];
 
 for (const [pathname, caddyExpected, expressExpected] of CASES) {

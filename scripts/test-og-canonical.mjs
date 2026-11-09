@@ -26,7 +26,11 @@ let shellAvailable = true;
 globalThis.fetch = (input, init) => {
   const url = String(input);
   if (url === 'http://fake-web/index.html') return Promise.resolve(new Response(shell, { status: shellAvailable ? 200 : 503 }));
-  if (url === 'http://fake-octo/api/workspaces/test/query') return Promise.resolve(Response.json({ rows: [row] }));
+  if (url === 'http://fake-octo/api/workspaces/test/query') {
+    // Project pages read cms_documents; none there means the repo projects.json is used.
+    const cms = String(init?.body ?? '').includes('cms_documents');
+    return Promise.resolve(Response.json({ rows: cms ? [] : [row] }));
+  }
   return originalFetch(input, init);
 };
 const app = express();
@@ -45,6 +49,16 @@ try {
       assert.ok(html.includes('property="og:image" content="https://www.design-bakery.com/images/design-baker-social.png"'), 'list and posts without a cover use the current brand image');
     }
   }
+  for (const path of ['/work/riley', '/work/riley/']) {
+    const response = await originalFetch(`${origin}${path}`, { headers: { 'user-agent': 'facebookexternalhit/1.1' } });
+    assert.equal(response.status, 200, `${path} remains navigable`);
+    const html = await response.text();
+    assert.ok(html.includes('<link rel="canonical" href="https://www.design-bakery.com/work/riley"'), `${path} canonical`);
+    assert.ok(html.includes('property="og:image" content="https://www.design-bakery.com/og/projects/riley.jpg"'), `${path} uses the project share image`);
+    assert.match(html, /<meta property="og:title" content="Riley \| Design Baker"/);
+  }
+  const unknown = await originalFetch(`${origin}/work/not-a-project`, { headers: { 'user-agent': 'facebookexternalhit/1.1' } });
+  assert.equal(unknown.status, 200, 'an unknown project still gets the shell (the SPA shows its 404)');
   shellAvailable = false;
   const fallback = await originalFetch(`${origin}/endtoend-engineer/blogs`, { headers: { 'user-agent': 'facebookexternalhit/1.1' } });
   const html = await fallback.text();
@@ -53,7 +67,7 @@ try {
   assert.ok(html.includes('property="og:type" content="website"'));
   assert.equal([...html.matchAll(/<meta name="description"/g)].length, 1);
   assert.ok(html.includes('href="https://www.design-bakery.com/endtoend-engineer/blogs/23"'), 'fallback links retain their original portfolio prefix');
-  console.log('og-canonical: list and post aliases keep routes and share canonical URLs');
+  console.log('og-canonical: list and post aliases keep routes and share canonical URLs; /work pages get project cards');
 } finally {
   globalThis.fetch = originalFetch;
   for (const key of ['SITE_URL', 'OG_SHELL_ORIGIN', 'OCTO_API_BASE', 'OCTO_WORKSPACE_ID', 'OCTO_API_KEY']) {
