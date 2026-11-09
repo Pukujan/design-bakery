@@ -13,7 +13,7 @@ None of them asks the reply model to stay quiet.
 | Layer | Where | What it catches |
 |-------|-------|-----------------|
 | **Hush** (Weya AI, Apache 2.0) | `hush.py`, in the worker | Takes background voices and noise out of the caller's audio before the voice detector, recogniser and voice match hear it. DeepFilterNet3 fine-tuned to treat a second voice as noise. |
-| **Voice match** (3D-Speaker ERes2Net via sherpa-onnx, Apache 2.0) | `voiceprint.py`, in the worker | Learns the caller's voice from their first clear turn (≥1.5 s, recogniser confidence ≥0.85) and drops turns in any other voice: a roommate, a TV, the copilot's own voice heard back. Turns under 1 s are never judged. Also drops a short line (≤3 words) the recogniser was unsure of (<0.7). |
+| **Voice match** (3D-Speaker ERes2Net via sherpa-onnx, Apache 2.0) | `voiceprint.py`, in the worker | Learns the caller's voice from their first clear turn (≥1.5 s, recogniser confidence ≥0.85) and their next few, and drops turns in a clearly different voice: a roommate, a TV, the copilot's own voice heard back. A dropped line said again soon after is kept. Turns under 1 s are never judged. Also drops a short line (≤3 words) the recogniser was unsure of (<0.7). |
 | **Addressee check** | `backend/src/copilot/addressee.ts` | The caller turning to someone else ("Hey Campos, can you grab me a coffee?"). Only a line that calls someone by a name not mine is asked about, with a small yes/no model call (3 s cap). On any doubt the line is answered. |
 
 A dropped line is not lost. The page shows it greyed with the reason and an **Answer this** button. A tap answers it and tells
@@ -21,7 +21,7 @@ the worker (`agent.claim`) that it was the caller's voice, which widens the voic
 transcript, so a reply it talked over carries on (a false interruption). The orb's mute button ("Go silent") still works too.
 
 Settings (env): `HUSH_LIB`, `HUSH_MODEL` (Hush is off without both, or with `HUSH=off`), `HUSH_ATTEN_DB` (default 100, no limit),
-`VOICE_MATCH_MODEL` (the voice match is off without it), `VOICE_MATCH_MIN` (cut-off, default 0.32).
+`VOICE_MATCH_MODEL` (the voice match is off without it), `VOICE_MATCH_MIN` (cut-off, default 0.18).
 
 ## Measurements (2026-11-03)
 
@@ -45,6 +45,11 @@ passed their 45 s limit; nothing in the worker dropped them.
 
 Caveat: the people in the scripted call are macOS `say` voices, which a speaker model separates more easily than two real people.
 Check the live traces (`voice.ignored` spans, `voiceMatch` on `copilot.turn`) after release before trusting the cut-off.
+
+**Live calls, 2026-11-08 (DB-0158).** The owner's own lines scored 0.20–0.32 against a print learnt from one turn and were dropped as
+"another voice" ("Tell the joke.", "Tell a joke.", "Show me something cool.", "Tell me"); "They are showing." matched at 0.47 but was
+dropped as unsure and short. Now: the cut-off is 0.18; the caller's first three kept turns all join the print; a dropped line said
+again within 30 s is kept and both join the print; and a short unsure line in a voice matching the caller at 0.4 or more is kept.
 
 ## Run it
 

@@ -45,12 +45,25 @@ class VoicePrintTest(unittest.TestCase):
         self.vp.learn(self.vp.hear(turn(1, 1.2)), 0.99)
         self.assertFalse(self.vp.ready)
 
-    def test_only_clear_matches_refine_the_print(self):
+    def test_another_voice_never_joins_the_print(self):
         self.vp.learn(self.vp.hear(turn(1, 2.0)), 0.95)
         self.vp.learn(self.vp.hear(turn(2, 2.0)), 0.95)  # kept by some other rule, but not the caller's voice
         self.assertEqual(len(self.vp.turns), 1)
         self.vp.learn(self.vp.hear(turn(3, 2.0)), 0.95)  # close to the caller's (0.8)
         self.assertEqual(len(self.vp.turns), 2)
+
+    def test_the_first_few_kept_turns_join_even_at_a_middling_match(self):
+        # One 1.5 s turn is a thin print: on 2026-11-08 the owner's own lines scored 0.20 to 0.32 against it.
+        vp = VoicePrint(lambda s: {1: np.array([1.0, 0.0]), 4: np.array([0.4, 0.92])}[int(s[0])])
+        vp.learn(vp.hear(turn(1, 2.0)), 0.95)
+        middling = vp.hear(turn(4, 2.0))
+        self.assertFalse(middling.other)
+        self.assertLess(middling.score, 0.5)
+        vp.learn(middling, 0.95)
+        self.assertEqual(len(vp.turns), 2)
+
+    def test_the_cut_off_drops_only_a_clearly_different_voice(self):
+        self.assertLessEqual(THRESHOLD, 0.2)
 
     def test_a_claimed_turn_widens_the_print(self):
         self.vp.learn(self.vp.hear(turn(1, 2.0)), 0.95)

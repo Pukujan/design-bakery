@@ -29,7 +29,7 @@ any library search) and the voice's first audio; barge-ins, failed RPC calls and
 
 Run: voice-agent/.venv/bin/python voice-agent/agent.py dev   (with Hush: the Dockerfile; voice-agent/README.md)
 """
-import asyncio, contextlib, inspect, json, os, re, time, uuid
+import asyncio, contextlib, difflib, inspect, json, os, re, time, uuid
 
 import aiohttp
 import numpy as np
@@ -59,6 +59,13 @@ VOICE_MATCH_MODEL = os.environ.get('VOICE_MATCH_MODEL', '')  # the speaker model
 # "But it's coming." (0.64) and "Agantic What?" (0.68) were background; real short replies scored 0.76 to 0.99.
 MIN_CONFIDENCE = float(os.environ.get('MIN_CONFIDENCE', 0.7))
 SHORT_WORDS = 3
+# A line dropped as another voice and then said again soon after is the caller asking twice ("Tell the joke.", then "Tell a
+# joke.", both dropped on 2026-11-08): the second is kept and both join the caller's voice.
+REPEAT_S = 30.0
+# A short unsure line in a voice this close to the caller's is the caller ("They are showing.", 0.47, dropped as unsure on
+# 2026-11-08); background voices scored 0.04 to 0.27 in the scripted calls.
+CALLER_LIKE = 0.4
+REPEAT_LIKE = 0.75
 # Short answers to a question the copilot asked are kept even when the recogniser is unsure of them.
 REPLY = re.compile(r'^(?:yes|yeah|yep|yup|no|nope|nah|sure|ok|okay|please|thanks|thank you|hello|hi|hey|stop|wait)\W*$', re.I)
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'stacks.json')) as f:
@@ -94,6 +101,7 @@ class LocalSTT(stt.STT):
         self.last_confidence: float | None = None  # the model's mean token probability for the last turn, 0 to 1
         self.last_language = 'en'
         self.last_heard = Heard(None, 0.0)  # the last turn's voice and its match against the caller's
+        self._last_drop: tuple[str, float, Heard] | None = None  # the last line dropped as another voice: words, when, voice
         self.on_request = lambda: None  # told when a turn's audio reaches the recogniser (the stall watchdog)
         self.on_dropped = lambda text, reason, heard: None  # told of a turn dropped before the copilot saw it
 
@@ -159,11 +167,27 @@ class LocalSTT(stt.STT):
         if not said:
             return ''  # silence or "hmm": Copilot.on_user_turn_completed lets it pass without a reply
         if heard.other:
+            if self._said_again(said, heard):
+                return ''
+            self._last_drop = (said.lower(), time.monotonic(), heard)
             return 'another voice'
         confidence = self.last_confidence
-        if confidence is not None and confidence < MIN_CONFIDENCE and len(said.split()) <= SHORT_WORDS and not REPLY.match(said):
+        caller = heard.score is not None and heard.score >= CALLER_LIKE  # clearly the caller's voice, unsure words or not
+        if confidence is not None and confidence < MIN_CONFIDENCE and len(said.split()) <= SHORT_WORDS and not REPLY.match(said) and not caller:
             return 'unsure and short'
         return ''
+
+    def _said_again(self, said: str, heard: Heard) -> bool:
+        """This line repeats the last one dropped as another voice, soon after: the caller asking twice. Both voices join theirs."""
+        last = self._last_drop
+        if last is None or time.monotonic() - last[1] > REPEAT_S:
+            return False
+        if difflib.SequenceMatcher(None, last[0], said.lower()).ratio() < REPEAT_LIKE:
+            return False
+        self._last_drop = None
+        self.prints.claim(last[2])
+        self.prints.claim(heard)
+        return True
 
 
 def _samples(frame: rtc.AudioFrame) -> np.ndarray:
