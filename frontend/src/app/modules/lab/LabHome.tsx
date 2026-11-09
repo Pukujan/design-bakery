@@ -3,7 +3,7 @@ import { HOME_PAGE_SEO } from '@/seo/pageSeoConfig';
 import { LabHero } from './LabHero';
 import { LabWork } from './LabWork';
 import { LabMarquee } from './LabMarquee';
-import { LabAbout, LabExperience } from './LabStory';
+import { LabAbout, LabCapabilities, LabExperience } from './LabStory';
 import './lab.css';
 
 /** The homepage (TASK-DB-0098), served at / and /lab. */
@@ -18,6 +18,7 @@ export function LabHome() {
           Software you can <em>trust</em> — built end to end —
         </LabMarquee>
         <LabAbout />
+        <LabCapabilities />
         <LabWork />
         <LabExperience />
       </main>

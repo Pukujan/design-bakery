@@ -39,6 +39,8 @@ export interface ResearchPaper {
   status: ResearchStatus;
   tags: string[];
   abstract: string;
+  /** One plain line with the paper's headline measured result, shown on the index (TASK-DB-0161). */
+  result?: string;
   /** Markdown body (supports GFM tables + ```mermaid fenced diagrams). */
   content: string;
   /** Optional BibTeX string shown/downloadable on the paper page. */
@@ -199,6 +201,8 @@ const PAPER_008: ResearchPaper = {
   tags: ['cortex', 'verification', 'evaluation', 'multi-model', 'benchmarks'],
   abstract:
     "Criticism of multi-model ensembles targets opinion aggregation - debate, voting, consensus - and is well founded. A different use of model diversity is not covered by it: a second, different-vendor model generates adversarial INPUTS that the incumbent's blind spot excludes, and the verdict is decided by deterministic execution rather than by any model's judgement. These are distinct mechanisms with different failure modes; opinion aggregation fails verdict-corruptingly, input generation fails only yield-reducingly. Includes observational evidence from one codebase (n is small throughout), a three-incident mechanism trace, and a falsifiable four-arm benchmark protocol with judge-free ground truth. No controlled benchmark was run.",
+  result:
+    'A hidden holdout rejected all 16 gamed artifacts that a visible test suite had passed, and changing the rubric moved judge agreement far more than changing the judge model (n=18 per cell).',
   content: PAPER_008_MD,
   bibtex: `@techreport{pujan2026verificationindependence,
   title       = {Verification independence without opinion aggregation: adversarial input generation with deterministic adjudication},
@@ -232,6 +236,8 @@ const PAPER_009: ResearchPaper = {
   tags: ['cortex', 'methodology', 'seating', 'verification', 'multi-model', 'process'],
   abstract:
     "A description of one project's AI-agent development cycle as it actually ran: contract, build, wire, end-to-end test, cold-start adversarial review, cross-family verdict, merge gate, with the measurement from 2026-07-26 that shows what each stage catches and no earlier stage can. Three findings. Seat separation must be by model family, not by name: a frozen clause voided a fully passing 25/25 verification pack the day it was adopted, and Knight & Leveson 1986 explains why independent construction does not give independent failure, and therefore why varying the per-seat frame matters as much as varying the model. Some work is irreducibly sequential (fix custody defects, then the pack that judges them, then the wiring, because wiring makes latent defects live) while independent tracks over disjoint file sets parallelise cleanly; every observed coordination hazard is a dated shared-working-tree incident. And most usefully: this project built sealed holdouts, mutation scoring, adapter differentials and cross-model adversarial review while having no code coverage, no static type checking, and no test-running CI in the kernel repo at all. The losses are included: the benchmark against a conventional stack loses 5 of 9 rows, 1 of 23 effect routes reaches the authoriser, detection of a stand-in security component scores 0/5, and the regime is not independent V&V in the IEEE 1012 sense.",
+  result:
+    'Three models from other vendors raised 11 issues against a module that passed its own 26/26 holdout; all 11 reproduced and 6 were code defects. Against a conventional security stack the kernel loses 5 of 9 rows.',
   content: PAPER_009_MD,
   bibtex: `@techreport{pujan2026developmentcycle,
   title       = {The development cycle of an agent-built system: seating, routing, and the instruments that were missing},
@@ -254,6 +260,8 @@ const PAPER_010: ResearchPaper = {
   tags: ['benchmarks', 'objective-evaluation', 'llm-judges', 'coverage', 'reproducibility', 'jev', 'qwen', 'grok'],
   abstract:
     'An AI judge is a model used to grade answers. We gave 25 of them, from laptop models to frontier APIs, the same 760 questions with known answers. The best got about 99% right and four are statistically tied, but a single accuracy number hid judges that skipped up to four in ten questions; the same model scored 84.5% or 97.4% depending only on its request settings; and most small local models did no better than always giving the same answer. Coverage and request settings belong next to accuracy.',
+  result:
+    'The best of 25 judges scored 99.2% on the same 760 questions with known answers; the same model scored 84.5% or 97.4% depending only on how it was asked.',
   content: PAPER_010_MD,
 };
 
@@ -273,6 +281,8 @@ const PAPER_011: ResearchPaper = {
   tags: ['ci', 'verification', 'dead-code', 'reachability', 'process', 'guards'],
   abstract:
     'A module can pass every check a continuous-integration gate runs while nothing in production ever calls it. We added a small set of guards to one quality gate in under two weeks, taking it from fewer than twenty steps to more than twenty. Two caught real defects the day they landed: a batch of committed backup files, a directory named after a drive letter, stray runtime files, and hardcoded home-path placeholders. The newest guard, for orphan modules, has caught no live regression yet; its demonstrated value is a recorded baseline and a suite of tests that fail on demand. The paper names where the gate is still blind, including a directory it does not scan, a baseline a single command could silently grow, and one gate that is not wired into CI at all.',
+  result:
+    'New CI guards, added in under two weeks, caught two real defect classes on the day they landed.',
   content: PAPER_011_MD,
   bibtex: `@techreport{db-r-2026-011,
   title       = {A module can pass every check and still run nowhere},

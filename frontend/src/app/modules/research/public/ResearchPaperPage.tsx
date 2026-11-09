@@ -305,6 +305,11 @@ export function ResearchPaperPage() {
             <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{paper.submitted}</p>
 
             <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">{paper.tags.join(', ')}</p>
+            {paper.result ? (
+              <p className="mt-4 border-l-2 border-amber-500 pl-3 text-base">
+                <strong>Result.</strong> {paper.result}
+              </p>
+            ) : null}
             {hasDeepDives ? (
               <div className="rp-readmode-row">
                 <ReadModeToggle mode={readMode} onChange={setReadMode} />

@@ -44,6 +44,38 @@ export function LabAbout() {
   );
 }
 
+/** What I can do with AI (TASK-DB-0161): sourced impact figures, then a short list backed by shipped work. */
+export function LabCapabilities() {
+  const about = useEngineeringAboutSection();
+  const section = about.aiSection;
+  const impact = about.impact ?? [];
+  if (!section?.items?.length) return null;
+  return (
+    <section className="story" id="ai" aria-labelledby="story-ai">
+      <p className="story-kicker lab-mono">{section.kicker}</p>
+      <h2 id="story-ai" className="story-headline">{section.headline}</h2>
+      {impact.length ? (
+        <ul className="story-impact" role="list">
+          {impact.map((item) => (
+            <li key={item.label}>
+              <span className="story-impact-value">{item.value}</span>
+              <span className="story-impact-label">{item.label}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <ul className="story-focus story-ai-list" role="list">
+        {section.items.map((item) => (
+          <li key={item.title}>
+            <span className="story-focus-title">{item.title}</span>
+            <span className="story-focus-desc">{item.desc}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function LabExperience() {
   const content = useRelevantExperienceContent();
   const roles = content.experiences as unknown as Experience[];
