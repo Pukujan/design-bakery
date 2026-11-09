@@ -195,7 +195,9 @@ serves them (`backend/src/api/ogPreview.ts`) and the Caddyfile routes those path
   and deploy again. To switch back, remove those two lines and deploy.
 - **The song maker.** The `music` service (`music-agent/`, TASK-DB-0160) makes songs on the owner's Flow Music
   plan (www.flowmusic.app) by driving a signed-in Google Chrome. Chrome starts cold for each song and closes when it
-  is done; only the Chrome profile (the sign-in) and the finished songs stay, in the `music-data` volume. The API
+  is done; only the Chrome profile (the sign-in) and the finished songs stay, in the `music-data` volume. Flow Music
+  makes two takes of each song: both are saved (`songs/<id>.m4a` and `<id>-2.m4a`), and the chat's player switches
+  between them. The API
   reaches it at `http://design-bakery-music:8790`. It is behind the compose profile `music` and deployed by
   `deploy.sh` once `deploy/vps/.env.music` exists (it may be empty); like the voice worker it goes last and never
   fails a deploy.
