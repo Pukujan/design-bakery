@@ -69,6 +69,11 @@ services:
       # compose origin would end up inside the tags. The shell is fetched from the
       # `web` service over the default network; override with OG_SHELL_ORIGIN.
       SITE_URL: ${SITE_URL:-https://www.design-bakery.com}
+      # The shared speech gateway (the voice worker's SPEECH_URL): the API asks it to load this project's speech models
+      # on the Pro when a visitor reaches for the call button, so the first words of a call are not heard late.
+      SPEECH_GATEWAY_URL: ${VOICE_SPEECH_URL:-http://host.docker.internal:18800}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     logging:
       driver: json-file
       options:
