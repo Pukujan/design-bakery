@@ -184,7 +184,10 @@ serves them (`backend/src/api/ogPreview.ts`) and the Caddyfile routes those path
     and speech through the shared speech gateway at `host.docker.internal:18800` (Komodo stack
     `speech-gateway`, TASK-DB-0154), which sends each call to a speech server (the Pro for English) and keeps
     it there; the worker sends `X-Speech-Project: design-bakery` and `X-Speech-Call: <room>` and releases the
-    call when it ends. When every server is full the call gets the usual speech error: no cloud voice. It goes last
+    call when it ends. The Pro swaps its models out for other projects' when idle, and cold the first words of a
+    call came back about 16 s late, so the API (`SPEECH_GATEWAY_URL`, same gateway) sends `POST /warm?project=design-bakery`
+    when a visitor reaches for the call button (`/api/copilot/voice/warm?call=1`) and when a call starts; at most once a
+    minute, never on a plain page view. When every server is full the call gets the usual speech error: no cloud voice. It goes last
     in a deploy and never fails one: a worker that does not register with LiveKit within
     `VOICE_TIMEOUT` (120 s) is put back on its previous image. `rollback.sh` leaves it alone.
   - Without them, the API asks the copilot stack for a token (`/api/voice/token`) and that stack's own

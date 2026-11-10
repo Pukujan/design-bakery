@@ -323,10 +323,28 @@ async function voiceGrant(): Promise<{ url?: unknown; token?: unknown }> {
 }
 
 let warmedAt = 0;
-// The page calls this when the call button shows, so the voice agent is awake before anyone presses it. The service stops
-// the agent after 10 idle minutes and starts it again (about 10 s) on /api/voice/options, without waiting; its health page
-// does not wake it. Once a minute at most, whoever asks; it hands out no token, so it needs no pass.
-copilotRouter.post('/voice/warm', (_req, res) => {
+let speechWarmedAt = 0;
+/**
+ * Calls on our own worker (VOICE_LIVEKIT_*) hear through the shared speech gateway, which runs the models on the Pro and
+ * swaps them out for other projects' when idle. Cold, the first words of a call came back 16 s late (2026-11-10: a call
+ * that "did not understand me at all"; warm, 5 s). So the gateway is asked to load them when a visitor reaches for the call
+ * button and when a call starts: it answers at once and loads in the background. Not on every page view, so a visitor
+ * only reading does not take the Pro from Riley's or Maybe Home's models. Once a minute at most.
+ */
+function warmSpeech() {
+  const gateway = process.env.SPEECH_GATEWAY_URL?.trim().replace(/\/$/, '');
+  if (!gateway || Date.now() - speechWarmedAt < 60_000) return;
+  speechWarmedAt = Date.now();
+  void fetch(`${gateway}/warm?project=design-bakery`, { method: 'POST', signal: AbortSignal.timeout(5000) }).catch(() => undefined);
+}
+
+// The page calls this when the call button shows, so the voice agent is awake before anyone presses it, and with ?call=1
+// when the visitor reaches for the button. The hosted service stops the agent after 10 idle minutes and starts it again
+// (about 10 s) on /api/voice/options, without waiting; its health page does not wake it. On our own worker only ?call=1
+// does anything: it warms the speech models (warmSpeech). Once a minute at most, whoever asks; it hands out no token, so
+// it needs no pass.
+copilotRouter.post('/voice/warm', (req, res) => {
+  if (voiceTokenConfigured() && req.query.call === '1') warmSpeech();
   if (!voiceTokenConfigured() && Date.now() - warmedAt > 60_000) {
     warmedAt = Date.now();
     void fetch(`${VOICE_SERVICE}/api/voice/options`, {
@@ -347,6 +365,7 @@ copilotRouter.post('/voice', async (req, res) => {
   }
   // `call` is the visitor's session: the page hands it to the voice agent, so the agent's spans join this session in Phoenix.
   if (voiceTokenConfigured()) {
+    warmSpeech();
     const grant = mintVoiceToken();
     res.set('cache-control', 'no-store').json({ url: grant.url, token: grant.token, call: session });
     return;

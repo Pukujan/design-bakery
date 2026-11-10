@@ -2,11 +2,13 @@ import { useId } from 'react';
 import { Mic, PhoneOff } from 'lucide-react';
 import { voice, useVoice } from './voice';
 import { useReplyNudge } from './replyPeek';
+import { warmVoice } from './store';
 
 /**
  * The voice call button: the moon mascot, dozing in a soft glow until the visitor comes near, then awake and smiling.
  * It is the first thing in the composer's actions, so a call reads as a first-class way to talk, not a side option.
- * Connecting, the moon thinks; on a call the button turns into End call.
+ * Connecting, the moon thinks; on a call the button turns into End call. Reaching for it (hover, focus, a touch) has the
+ * speech models loaded, so the caller's first words are not heard late.
  */
 export function MoonCallButton() {
   const { status } = useVoice();
@@ -20,8 +22,9 @@ export function MoonCallButton() {
       data-status={status}
       data-nudge={nudge || undefined}
       aria-label={idle ? 'Talk to AI Pujan by voice' : 'End voice call'}
-      onPointerEnter={() => voice.preload()}
-      onFocus={() => voice.preload()}
+      onPointerEnter={() => { voice.preload(); if (idle) warmVoice(true); }}
+      onPointerDown={() => { if (idle) warmVoice(true); }}
+      onFocus={() => { voice.preload(); if (idle) warmVoice(true); }}
       onClick={() => idle ? void voice.start() : voice.stop()}
     >
       {status === 'connected' ? (

@@ -894,11 +894,20 @@ export async function requestVoiceGrant(signal?: AbortSignal): Promise<{ url: st
 }
 
 let warmedAt = 0;
-/** Wakes the voice service while the visitor is still reading, so a call does not start against a sleeping one. */
-export function warmVoice() {
-  if (Date.now() - warmedAt < 4 * 60_000) return;
-  warmedAt = Date.now();
-  void fetch(`${base()}/api/copilot/voice/warm`, { method: 'POST', keepalive: true }).catch(() => undefined);
+let callWarmedAt = 0;
+/**
+ * Wakes the voice service while the visitor is still reading, so a call does not start against a sleeping one. With
+ * `call`, the visitor is reaching for the call button: the API also has the speech models loaded (route.ts warmSpeech).
+ */
+export function warmVoice(call = false) {
+  if (call) {
+    if (Date.now() - callWarmedAt < 60_000) return;
+    callWarmedAt = Date.now();
+  } else {
+    if (Date.now() - warmedAt < 4 * 60_000) return;
+    warmedAt = Date.now();
+  }
+  void fetch(`${base()}/api/copilot/voice/warm${call ? '?call=1' : ''}`, { method: 'POST', keepalive: true }).catch(() => undefined);
 }
 
 async function stream(

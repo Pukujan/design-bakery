@@ -8,6 +8,7 @@ Feature work resumed on the owner's direction after the DB-0102 rollback. The si
 
 ## Active
 
+- [DB-0162](../tasks/TASK-DB-0162-warm-speech.md): the call's speech models are loaded when a visitor reaches for the call button and when a call starts, so a cold Pro no longer hears the first words 16 s late.
 - [DB-0161](../tasks/TASK-DB-0161-reach-and-impact.md): a "What I can do with AI" section with sourced impact figures led by the 100M+ reach (the hero line was removed at the owner's request), Outcome lines on five project pages and Result lines on papers 008 to 011; open questions for the owner in the task file.
 - [DB-0160](../tasks/TASK-DB-0160-songs.md): songs from the owner's Flow Music plan: the song maker on the VPS (Chrome only while a song is made), the copilot's make_song (asks the style first, cached in Octo, daily limits), the chat player with both takes (Take 1 / Take 2), autoplay once per song; songs in the background card, audio copied to Octo files, daily sign-in renewal; 2 new songs a visitor a day (pass or address), saved songs free to replay. Not yet tried on a call.
 - [DB-0159](../tasks/TASK-DB-0159-seo-project-pages.md): SEO for the 18 project pages: in the sitemap, fuller descriptions, own share images, and server-side link previews for `/work/<slug>`.
