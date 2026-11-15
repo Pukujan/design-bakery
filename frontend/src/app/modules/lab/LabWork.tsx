@@ -32,6 +32,7 @@ const PROJECT_MEDIA: Record<number, string> = {
   18: 'octo',
   19: 'maybe-home',
   20: 'riley',
+  21: 'swarm-studio',
 };
 
 const mediaSrc = (slug: string) => `/lab/projects/${slug}.webp`;

@@ -33,6 +33,7 @@ const ALL_LEAD_TITLES = [
   'Maybe',
   'Maybe Home',
   'Riley',
+  'Swarm Studio',
   'NYC Map Agent',
   'Octo',
   'Ekagajpatra',
@@ -43,7 +44,7 @@ const ALL_LEAD_TITLES = [
 ];
 
 const WITHIN_CATEGORY: Record<ProjectCategory, readonly string[]> = {
-  shipped: ['Maybe', 'Maybe Home', 'Riley', 'NYC Map Agent', 'Ekagajpatra', 'Study OS', 'Precedent'],
+  shipped: ['Maybe', 'Maybe Home', 'Riley', 'Swarm Studio', 'NYC Map Agent', 'Ekagajpatra', 'Study OS', 'Precedent'],
   systems: [
     'Octo',
     'Agent Custom Setup',

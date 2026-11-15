@@ -391,6 +391,29 @@
     ]
   },
   {
+    "id": 21,
+    "slug": "swarm-studio",
+    "title": "Swarm Studio",
+    "category": "shipped",
+    "tagline": "A crew of agents builds your launch on a live canvas",
+    "description": "A plugin for Hermes Agent. You talk a product through with Hermia, the planner, and a crew of agents builds the site, the app, the game or the film on a canvas where you watch their cursors and steer them, by talking or by editing the canvas yourself. Every page is split into sections across the crew, code checks catch mistakes, and the crew fixes them live. Built for the Nous Research Hermes Agent hackathon.",
+    "outcome": "Submitted to the Hermes Agent hackathon on 11 November 2026, with 72 pull requests merged on its first day.",
+    "tech": ["Hermes Agent", "Python", "Multi-Agent", "Tailwind", "MCP", "Canvas"],
+    "color": "#0B0B0C",
+    "accentColor": "#F4F4F5",
+    "startedAt": "2026-11-08",
+    "startedAtSource": "GitHub repo creation date of Pukujan/swarm-studio (2026-11-08T23:58:26Z, which is 2026-11-08 US Eastern); first commit 2026-11-08 18:19 EST",
+    "status": "ongoing",
+    "stats": [
+      {"label": "A whole crew builds one page together", "icon": "Users"},
+      {"label": "72 pull requests merged on day one", "icon": "TrendingUp"},
+      {"label": "Hermes Agent hackathon entry", "icon": "Award"}
+    ],
+    "links": [
+      {"label": "GitHub · Public", "url": "https://github.com/Pukujan/swarm-studio"}
+    ]
+  },
+  {
     "id": 18,
     "slug": "octo",
     "title": "Octo",

@@ -76,6 +76,7 @@ assert.deepEqual(
     'Maybe',
     'Maybe Home',
     'Riley',
+    'Swarm Studio',
     'NYC Map Agent',
     'Octo',
     'Ekagajpatra',
@@ -96,7 +97,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   orderProjectsForShowcase(projects, 'shipped').map((project) => project.title),
-  ['Maybe', 'Maybe Home', 'Riley', 'NYC Map Agent', 'Ekagajpatra', 'Study OS', 'Precedent'],
+  ['Maybe', 'Maybe Home', 'Riley', 'Swarm Studio', 'NYC Map Agent', 'Ekagajpatra', 'Study OS', 'Precedent'],
 );
 assert.deepEqual(
   orderProjectsForShowcase(projects, 'systems').map((project) => project.title),
@@ -212,6 +213,14 @@ for (const [title, id, site] of [
 assert.ok(
   !projects.find((p) => p.title === 'Maybe Home').links.some((link) => link.url.includes('github.com')),
   'Maybe Home must not link its private repo',
+);
+const swarm = projects.find((p) => p.slug === 'swarm-studio');
+assert.ok(swarm, 'Swarm Studio should be in the showcase');
+assert.equal(swarm.id, 21, 'Swarm Studio takes the next free project id');
+assert.equal(swarm.startedAt, '2026-11-08', 'Swarm Studio startedAt is its repo creation date');
+assert.ok(
+  swarm.links.some((link) => link.url === 'https://github.com/Pukujan/swarm-studio'),
+  'Swarm Studio links its public repo',
 );
 const precedent = projects.find((p) => p.title === 'Precedent');
 assert.ok(precedent, 'Precedent should be in the showcase');
