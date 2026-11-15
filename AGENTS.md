@@ -42,6 +42,7 @@ surface that to the owner before building anything. See Octo's
 | CodeGraph | [additionals/guidelines/agent-devlog-codegraph.md](additionals/guidelines/agent-devlog-codegraph.md) |
 | Blog publish kit | [additionals/guidelines/agent-devlog-blog-publish-kit.md](additionals/guidelines/agent-devlog-blog-publish-kit.md) |
 | Open Graph link previews | [additionals/guidelines/agent-devlog-og-previews.md](additionals/guidelines/agent-devlog-og-previews.md) |
+| Adding a portfolio project (space cover, order, Octo, index) | [additionals/guidelines/agent-portfolio-project.md](additionals/guidelines/agent-portfolio-project.md) |
 | Supabase migration | [additionals/guidelines/agent-devlog-supabase-migration.md](additionals/guidelines/agent-devlog-supabase-migration.md) |
 
 ## CodeGraph

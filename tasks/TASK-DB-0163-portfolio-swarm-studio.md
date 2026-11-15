@@ -8,3 +8,5 @@
 - Order (frontend and backend `projectOrder.ts`): Swarm Studio follows Riley in All and Shipped.
 - The live list is Octo `cms_documents` (endtoend-engineer / engineering_projects). It matched the repo file before this change; the entry is appended there after the deploy, not with "Push repo defaults".
 - `scripts/test-homepage-content-stability.mjs` checks the new entry.
+
+**Follow-up (same day).** The first picture was a Studio screenshot; the owner pointed out the tiles are a space-themed series (DB-0120, DB-0157). Replaced with a Codex CLI space cover (Hermia on a platform directing courier drones that place glowing sections onto a floating website canvas), with Octo and NYC Map Agent covers as the style reference; accent changed to amber `#F2B866` to match. The checklist that would have caught this is now `additionals/guidelines/agent-portfolio-project.md`, linked from AGENTS.md.
