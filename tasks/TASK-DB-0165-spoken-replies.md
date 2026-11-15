@@ -26,3 +26,12 @@ Issue: [#262](https://github.com/Pukujan/design-bakery/issues/262) (leaf; parent
 - Typed question on /work/riley: reply text in 8.6 s, its clip (15.4 s, 737 KB) fetched 200 in 9.6 s (Pro cold) and played to its time updates.
 - Page button "Precedent": walk line played, summary text in 6.7 s, clip (17.7 s) fetched in 5.9 s and played. Both clips and the summary were then rows in Octo.
 - **Bug:** the same summary in a new chat came back kept in 186 ms but was not spoken: the page read the reply's typed-out text at `done`, still empty for a reply that arrives in one piece. Fix: read the whole reply (`reveals` target).
+
+**After #264 merged (c4d78fe, 2026-11-15 04:01 UTC).** Deployed: `design-bakery-web:c4d78fea544a-20261115T040016Z`, `design-bakery-api:c4d78fea544a-20261115T040136Z`. In the browser pane:
+- Kept summary, new chat on /work/precedent: reply in 248 ms, its 17.7 s clip playing 426 ms after Enter.
+- After the API restart the clip is served from Octo: 200 `audio/wav` 848,684 bytes in 0.6 s, then 0.15 s. An id never handed out: 404.
+- The speaker button: lit while a reply is read; pressed mid-reply, playback stopped at 3.1 s and stayed stopped, `db-copilot-voice-off` was saved and the label changed to "Read replies aloud".
+
+**Not verified.** Only that the audio element played (time advancing, 200s), not that sound came out of speakers; Safari and iOS were not tried (the unlock follows Safari's rule but is untested there); a page button pressed on a phone. A fresh reply waits on the Pro: 9.6 s cold, 5.9 s warm after the text, for 15 to 18 s clips (the gateway makes a whole clip before sending; streaming it would shorten that).
+
+**Next.** None required. Possible: stream fresh clips as they are made, and pre-make the summaries of every project page after a deploy so the first visitor also hears one at once.
