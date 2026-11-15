@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { copilot, requestVoiceGrant, typedReply } from './store';
+import { apiStatus, copilot, reportVoiceFailure, requestVoiceGrant, typedReply } from './store';
 import type { LocalAudioTrack, Room } from 'livekit-client';
 import { noteActivity, pauseNudges, playSpokenReply, preloadHold, isNudge, resumeNudges, setCallOn, startHold, startNudges, startThinking, stopHold, stopNudges, withoutEcho, type Thinking } from './holdAudio';
 import { pickOrigin, type SkyOrigin } from './skyOrigin';
@@ -146,6 +146,7 @@ function close(error = '') {
  * agent, ends with the message as before.
  */
 function dropped(message: string) {
+  if (!wasConnected) reportVoiceFailure({ step: 'dropped', error: 'disconnected before the agent answered', redial: redialed });
   if (wasConnected && !redialed) {
     redialed = true;
     close();
@@ -204,12 +205,15 @@ export const voice = {
     set({ status: 'connecting', error: '', muted: false, origin: pickOrigin() });
     // Inside the click: the first hold line plays now, while the call connects behind it.
     startHold((hold) => set({ hold }));
+    /** The step the call is on, reported if it fails (route.ts /voice/failed). */
+    let step = 'load';
     try {
       // The grant is requested at once, in parallel with the microphone prompt, so neither waits for the other.
       // Microphone permission is still only asked after the visitor explicitly starts a call.
       const grantRequest = requestVoiceGrant(controller.signal);
       void grantRequest.catch(() => undefined);
       const lk = await import('livekit-client');
+      step = 'mic';
       const [mic, grantResult] = await Promise.allSettled([
         lk.createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true, autoGainControl: true }),
         grantRequest,
@@ -217,6 +221,7 @@ export const voice = {
       if (mic.status === 'fulfilled' && (generation !== run || grantResult.status === 'rejected')) mic.value.stop();
       if (generation !== run) return;
       if (mic.status === 'rejected') throw mic.reason;
+      step = 'grant';
       if (grantResult.status === 'rejected') throw grantResult.reason;
       const track = mic.value;
       const grant = grantResult.value;
@@ -352,10 +357,15 @@ export const voice = {
         if (generation === run) dropped('The call disconnected. You can continue typing.');
       });
       timer = setTimeout(() => {
-        if (generation === run && state.status === 'connecting') close('The voice agent did not answer. You can continue typing.');
+        if (generation === run && state.status === 'connecting') {
+          reportVoiceFailure({ step: 'agent', error: 'no agent within 60 s', redial });
+          close('The voice agent did not answer. You can continue typing.');
+        }
       }, 60_000);
+      step = 'connect';
       await call.connect(grant.url, grant.token);
       if (generation !== run) return;
+      step = 'publish';
       await call.localParticipant.publishTrack(track, { source: lk.Track.Source.Microphone });
       if ([...call.remoteParticipants.values()].some((participant) => participant.isAgent)) {
         clearTimeout(timer);
@@ -364,6 +374,7 @@ export const voice = {
     } catch (error) {
       if (generation !== run) return;
       const name = error instanceof Error ? error.name : '';
+      reportVoiceFailure({ step, error: error instanceof Error ? `${error.name}: ${error.message}` : String(error), status: apiStatus(error), redial });
       close(name === 'NotAllowedError' || name === 'SecurityError'
         ? 'Microphone access is blocked. Allow it in your browser or continue typing.'
         : 'Voice is unavailable right now. You can continue typing.');

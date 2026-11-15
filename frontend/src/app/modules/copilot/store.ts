@@ -893,6 +893,18 @@ export async function requestVoiceGrant(signal?: AbortSignal): Promise<{ url: st
   return response.json() as Promise<{ url: string; token: string; call?: string }>;
 }
 
+/** The HTTP status behind a failed copilot request, if it was one. */
+export const apiStatus = (error: unknown) => (error instanceof ApiError ? error.status : undefined);
+
+/** Tells the API which step a call failed at (route.ts /voice/failed). Fire and forget. */
+export function reportVoiceFailure(report: { step: string; error?: string; status?: number; redial?: boolean }) {
+  const error = (report.error ?? '').replace(/[^\w .:-]/g, '').slice(0, 80);
+  void fetch(`${base()}/api/copilot/voice/failed`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, keepalive: true,
+    body: JSON.stringify({ ...report, error }),
+  }).catch(() => undefined);
+}
+
 let warmedAt = 0;
 let callWarmedAt = 0;
 /**
