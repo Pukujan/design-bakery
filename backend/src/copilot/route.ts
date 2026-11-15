@@ -29,7 +29,7 @@ import { createCitations } from './citations.js';
 import { withChip } from './chips.js';
 import { makeTools, type CopilotAction } from './tools.js';
 import { savedSongs, songAudio, songStatus } from './songs.js';
-import { TurnTrace } from './tracing.js';
+import { TurnTrace, recordEvent } from './tracing.js';
 import { takeDurableCopilotLimit, durableLimitConfigured } from './durableLimit.js';
 import { ALL_BOOKING_TOOLS, bookingTools, describe, type BookingFlow } from './bookingState.js';
 import { latestNews, newsBlock } from './news.js';
@@ -359,8 +359,9 @@ copilotRouter.post('/voice/warm', (req, res) => {
 // /chat, so it has the same published site knowledge and visitor limits.
 copilotRouter.post('/voice', async (req, res) => {
   const session = await checkPass(req.get('x-copilot-pass'));
-  if (!session) { res.status(401).json({ ok: false, code: 'NO_PASS' }); return; }
+  if (!session) { console.warn('[voice] grant refused: 401 NO_PASS'); res.status(401).json({ ok: false, code: 'NO_PASS' }); return; }
   if (!exemptReq(req) && (!limiter.take(`voice:${session}`).ok || !limiter.take(`voice-ip:${ipOf(req)}`).ok)) {
+    console.warn(`[voice] grant refused: 429 RATE_LIMITED session=${session.slice(0, 8)}`);
     res.status(429).json({ ok: false, code: 'RATE_LIMITED' }); return;
   }
   // `call` is the visitor's session: the page hands it to the voice agent, so the agent's spans join this session in Phoenix.
@@ -374,9 +375,32 @@ copilotRouter.post('/voice', async (req, res) => {
     const grant = await voiceGrant();
     if (grant.url !== 'wss://copilot.design-bakery.com' || typeof grant.token !== 'string') throw new Error('invalid voice grant');
     res.set('cache-control', 'no-store').json({ url: grant.url, token: grant.token, call: session });
-  } catch {
+  } catch (error) {
+    console.warn(`[voice] grant failed: 503 VOICE_UNAVAILABLE ${error instanceof Error ? error.message : ''}`);
     res.status(503).json({ ok: false, code: 'VOICE_UNAVAILABLE' });
   }
+});
+
+// The page reports a call that failed before it was up: the step it stopped at and the browser's error name, so a
+// "Voice is unavailable" seen by a visitor can be traced to the microphone, the grant, the room or the agent.
+// No pass needed (it may be the pass that failed); it carries no visitor text, and is limited per address.
+const voiceFailedBody = z.object({
+  step: z.enum(['grant', 'mic', 'load', 'connect', 'publish', 'agent', 'dropped']),
+  error: z.string().max(80).regex(/^[\w .:-]*$/).optional(),
+  status: z.number().int().min(0).max(599).optional(),
+  redial: z.boolean().optional(),
+});
+copilotRouter.post('/voice/failed', (req, res) => {
+  const parsed = voiceFailedBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ ok: false, code: 'VALIDATION' }); return; }
+  if (!limiter.take(`voice-failed-ip:${ipOf(req)}`).ok) { res.status(204).end(); return; }
+  const { step, error = '', status, redial = false } = parsed.data;
+  const ua = (req.get('user-agent') ?? '').slice(0, 160);
+  console.warn(`[voice] call failed at ${step}: ${error}${status ? ` (${status})` : ''}${redial ? ' redial' : ''} ua="${ua}"`);
+  recordEvent('voice.start_failed', {
+    'voice.step': step, 'voice.error': error, 'voice.redial': redial, 'http.status_code': status ?? 0, 'user_agent.original': ua,
+  });
+  res.status(204).end();
 });
 
 // A long chat is condensed into notes by one cheap model call, with a hard timeout. A failure is a plain 503: the

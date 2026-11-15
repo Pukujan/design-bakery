@@ -129,3 +129,11 @@ export class TurnTrace {
     root.end(end);
   }
 }
+
+/** A single event span (no turn), e.g. a voice call that failed before it connected. */
+export function recordEvent(name: string, attributes: Attributes): void {
+  const t = getTracer();
+  if (!t) return;
+  const span = t.startSpan(name, { attributes });
+  span.end();
+}
