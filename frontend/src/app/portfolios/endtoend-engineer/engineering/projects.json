@@ -400,7 +400,7 @@
     "outcome": "Submitted to the Hermes Agent hackathon on 11 November 2026, with 72 pull requests merged on its first day.",
     "tech": ["Hermes Agent", "Python", "Multi-Agent", "Tailwind", "MCP", "Canvas"],
     "color": "#0B0B0C",
-    "accentColor": "#F4F4F5",
+    "accentColor": "#F2B866",
     "startedAt": "2026-11-08",
     "startedAtSource": "GitHub repo creation date of Pukujan/swarm-studio (2026-11-08T23:58:26Z, which is 2026-11-08 US Eastern); first commit 2026-11-08 18:19 EST",
     "status": "ongoing",

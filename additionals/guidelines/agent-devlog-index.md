@@ -29,6 +29,7 @@
 | Publishing a private-repo case study | [agent-devlog-private-repo-publication.md](agent-devlog-private-repo-publication.md) | `.cursor/rules/private-repo-publication.mdc` | `frontend/src/app/modules/research/content/`, `frontend/src/app/modules/research/data/researchPapers.ts` |
 | Agent publishing API | [agent-devlog-agent-publishing.md](agent-devlog-agent-publishing.md) | — | `backend/src/api/agentPosts.ts`, `backend/src/middleware/agentAuth.ts`, `supabase/migrations/010_agent_tokens_and_draft_visibility.sql` |
 | Open Graph link previews | [agent-devlog-og-previews.md](agent-devlog-og-previews.md) | `.cursor/rules/og-previews.mdc` | `backend/src/api/ogPreview.ts`, `backend/src/og/`, `frontend/src/og/`, `deploy/vps/Caddyfile` |
+| Adding a portfolio project | [agent-portfolio-project.md](agent-portfolio-project.md) | — | `projects.json`, `frontend/public/lab/projects/`, `projectOrder.ts`, Octo `cms_documents` |
 
 ---
 
