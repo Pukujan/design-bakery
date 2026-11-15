@@ -1063,7 +1063,8 @@ function handle(event: Event, replyId: number) {
   } else if (event.type === 'done') {
     patchMessage(replyId, () => ({ model: event.model || 'live model' }));
     if (!voiceReplies.has(replyId)) {
-      const text = state.messages.find((m) => m.id === replyId)?.text;
+      // The whole reply, not the part typed out so far: a kept summary arrives in one piece and is still unshown here.
+      const text = reveals.get(replyId)?.target || state.messages.find((m) => m.id === replyId)?.text;
       if (text) {
         typedReply.hook?.(text);
         void speakReply(text, event.speech ? `${base()}/api/copilot/speech/${event.speech.id}` : null);
