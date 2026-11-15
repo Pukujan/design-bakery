@@ -243,6 +243,7 @@ export default function CopilotDock() {
             type="button"
             className="cp-pill"
             data-nudge={nudge || undefined}
+            data-live={messages.length ? (unseen ? 'unseen' : 'chat') : undefined}
             onClick={() => copilot.setOpen(true)}
             initial={reduceMotion ? false : { opacity: 0, y: 24, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

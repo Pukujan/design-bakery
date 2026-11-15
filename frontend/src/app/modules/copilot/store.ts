@@ -10,7 +10,7 @@ import { answer as localAnswer, type CopilotProject } from '../lab/copilotAnswer
 import { getTurnstileToken } from './turnstile';
 import { scrollStageToElement, scrollStageToTop, setStageScroll } from '../lab/stageScroll';
 import { agentCursor } from './agentCursor';
-import { preloadWalk, primeReplyVoice, replyVoiceOff, speakReply, walkIdle, walkLine, type WalkStep } from './holdAudio';
+import { preloadWalk, primeReplyVoice, replyVoiceOff, setWalking, speakReply, walkIdle, walkLine, type WalkStep } from './holdAudio';
 import { citeAt, MAX_CITES, passageSchedule, planRoute, sentenceStart, swipePlan, swipeY } from './citeRoute';
 import { clearQuote, highlightQuote } from './quoteHighlight';
 import { capPage, historyToSend, planSummary, RETRY_MS, type Summary } from './memory';
@@ -80,7 +80,7 @@ type Event =
   | { type: 'action'; action: CopilotAction }
   | { type: 'step'; name: string; status: 'start' | 'done' | 'error' }
   /** `speech`: the reply read aloud (backend speech.ts), when the page asked for it. */
-  | { type: 'done'; model: string; speech?: { id: string; ready: boolean } }
+  | { type: 'done'; model: string; speech?: { id: string; ready: boolean; parts?: { id: string; ready: boolean }[] } }
   | { type: 'ignored'; reason: string }
   | { type: 'flow'; flow: unknown }
   | { type: 'error'; message: string };
@@ -274,6 +274,16 @@ function detailParent(path: string): string | null {
 }
 
 const pause = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+
+/** Where on the home page the visitor is: the section crossing the upper part of the screen ("/#work"), or "/" at the top. */
+function homeSectionPath(): string {
+  const line = window.innerHeight * 0.4;
+  for (const id of ['about', 'experience', 'work']) {
+    const rect = document.getElementById(id)?.getBoundingClientRect();
+    if (rect && rect.top <= line && rect.bottom > line) return `/#${id}`;
+  }
+  return '/';
+}
 
 /** The moon's words for a step of a walk, in its bubble, and said aloud for a text-chat visitor. */
 function walkSay(step: WalkStep, aloud: boolean, ms?: number) {
@@ -626,8 +636,9 @@ export const copilot = {
         if (options.agent) {
           const shown = target ?? document.querySelector('main h1, h1');
           window.setTimeout(() => {
-            if (options.aloud && target) void walkIdle().then(() => walkSay('found', true));
-            void agentCursor.pointAtElement(shown).then(() => resolve());
+            // The move is over once "there it is" has started, so a reply that is already waiting does not start under it.
+            const found = options.aloud && target ? walkIdle().then(() => walkSay('found', true)) : Promise.resolve();
+            void Promise.all([found, agentCursor.pointAtElement(shown)]).then(() => resolve());
           }, seconds * 1000 + 150);
         } else resolve();
       });
@@ -662,7 +673,9 @@ export const copilot = {
       set({ open: false });
       await keyboardDown();
     }
-    return copilot.go(path, { slow: true, agent: true, aloud: true }).catch(() => agentCursor.hide());
+    // A reply that arrives during the walk is read once the moon has arrived (holdAudio walkQuiet).
+    setWalking(true);
+    return copilot.go(path, { slow: true, agent: true, aloud: true }).catch(() => agentCursor.hide()).finally(() => setWalking(false));
   },
   /**
    * A page button printed in the chat: walk there, then summarise what it opened, so pressing it is never just a move.
@@ -733,6 +746,10 @@ export const copilot = {
   async send(text: string, page: { path: string; title: string }, options: { typed?: boolean; voice?: boolean; toMe?: boolean } = {}) {
     const question = text.trim().slice(0, 2000);
     if (!question || state.busy) return '';
+    // The home page is several sections long: the request says which one is on screen, so the reply does not offer a
+    // button back to where the visitor already is ("See the work" pressed in the work section walked nowhere and
+    // summarised it a second time).
+    if (page.path === '/') page = { ...page, path: homeSectionPath() };
     // Pressing a button again ("Ask the copilot about X") must not send the same request over and over: while its
     // answer is the latest message, the repeat shows that answer instead of asking again. Voice turns are exempt,
     // since someone repeating themselves aloud means it.
@@ -1067,7 +1084,9 @@ function handle(event: Event, replyId: number) {
       const text = reveals.get(replyId)?.target || state.messages.find((m) => m.id === replyId)?.text;
       if (text) {
         typedReply.hook?.(text);
-        void speakReply(text, event.speech ? `${base()}/api/copilot/speech/${event.speech.id}` : null);
+        // A new reply comes as a clip a sentence or two (parts), so its voice starts after the first; a kept one as one clip.
+        const clips = event.speech ? (event.speech.parts?.length && !event.speech.ready ? event.speech.parts.map((part) => part.id) : [event.speech.id]) : null;
+        void speakReply(text, clips ? clips.map((id) => `${base()}/api/copilot/speech/${id}`) : null);
       }
     }
   }

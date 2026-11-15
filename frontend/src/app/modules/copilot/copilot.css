@@ -302,6 +302,35 @@
   .cp-call, .cp-call-moon svg { transition: none; }
 }
 
+/* A conversation that is under way keeps its way back lit (TASK-DB-0166): once the visitor has been walked away from the
+   chat, the pill is where it went. It lands with two ripples, then breathes in the accent for as long as there is a
+   chat to go back to; with a reply nobody has opened yet it breathes brighter and keeps sending a ring out. No words. */
+.cp-pill[data-live] {
+  border-color: color-mix(in oklab, var(--lab-accent) 70%, transparent);
+  animation: cp-pill-land 1.1s ease-out 2, cp-pill-breathe 3.2s ease-in-out 2.2s infinite;
+}
+.cp-pill[data-live='unseen'] {
+  border-color: var(--lab-accent);
+  animation: cp-pill-land 1.1s ease-out 2, cp-pill-call 1.8s ease-out 2.2s infinite;
+}
+.cp-pill[data-live] .lab-live-dot { box-shadow: 0 0 10px 2px color-mix(in oklab, var(--lab-accent) 70%, transparent); }
+
+@keyframes cp-pill-land {
+  0% { box-shadow: 0 10px 40px rgb(0 0 0 / 0.35), 0 0 0 0 color-mix(in oklab, var(--lab-accent) 75%, transparent); }
+  100% { box-shadow: 0 10px 40px rgb(0 0 0 / 0.35), 0 0 0 26px color-mix(in oklab, var(--lab-accent) 0%, transparent); }
+}
+@keyframes cp-pill-breathe {
+  0%, 100% { box-shadow: 0 10px 40px rgb(0 0 0 / 0.35), 0 0 10px 0 color-mix(in oklab, var(--lab-accent) 22%, transparent); }
+  50% { box-shadow: 0 10px 40px rgb(0 0 0 / 0.35), 0 0 26px 4px color-mix(in oklab, var(--lab-accent) 55%, transparent); }
+}
+@keyframes cp-pill-call {
+  0% { box-shadow: 0 0 22px 3px color-mix(in oklab, var(--lab-accent) 55%, transparent), 0 0 0 0 color-mix(in oklab, var(--lab-accent) 70%, transparent); }
+  100% { box-shadow: 0 0 22px 3px color-mix(in oklab, var(--lab-accent) 55%, transparent), 0 0 0 16px color-mix(in oklab, var(--lab-accent) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cp-pill[data-live] { animation: none; box-shadow: 0 10px 40px rgb(0 0 0 / 0.35), 0 0 0 2px color-mix(in oklab, var(--lab-accent) 55%, transparent); }
+}
+
 /* After a reply ends, the way to go on sparkles for a few seconds (useReplyNudge): the "Continue chat" pill when the
    chat is shut, the call button when it is open. A soft ring pulses out and three sparks burst around it. */
 .cp-nudge-spark {

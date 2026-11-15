@@ -23,7 +23,7 @@ import { fallbackFetch } from './model-fallback.js';
 import { checkPass, clientIp, issuePass, turnstileSiteKey } from './guard.js';
 import { contactMailConfigured, sendContactMessage } from './contactMail.js';
 import { createDailyBudget, createExemptMatcher, createLimiter, limitConfigFromEnv } from './fairUse.js';
-import { describePage, siteBrief } from './knowledge.js';
+import { describePage, loadProjects, projectPath, siteBrief } from './knowledge.js';
 import { devProvider, pickProfile, routeFor, smartProviders, type Provider } from './providers.js';
 import { createCitations } from './citations.js';
 import { withChip } from './chips.js';
@@ -39,14 +39,14 @@ import { createTextFilter } from './textFilter.js';
 import { contextBudget, estimateTokens, fitHistory, sanitizeSummary, summarize, summaryBlock, SUMMARY_MAX_CHARS } from './memory.js';
 import { isCutOff, trimToLastSentence } from './truncation.js';
 import { mintVoiceToken, voiceTokenConfigured } from './voiceToken.js';
-import { clipFor, keepSummary, keptSummary, registerReply, SUMMARY_QUESTION, type KeptReply } from './speech.js';
+import { clipFor, keepSummary, keptSummary, registerReply, SUMMARY_QUESTION, type KeptReply, type ReplySpeech } from './speech.js';
 
 export type CopilotEvent =
   | { type: 'text'; text: string; replace?: boolean }
   | { type: 'action'; action: CopilotAction }
   | { type: 'step'; name: string; status: 'start' | 'done' | 'error' }
   /** `speech`: the reply read aloud, for a page that asked (speak): GET /speech/:id; `ready` when the clip is already made. */
-  | { type: 'done'; model: string; speech?: { id: string; ready: boolean } }
+  | { type: 'done'; model: string; speech?: ReplySpeech }
   /** On a call, the model found the line was said to someone else in the visitor's room (the not_for_me tool): no reply, and the page greys it out. */
   | { type: 'ignored'; reason: string }
   | { type: 'flow'; flow: BookingFlow | null }
@@ -153,7 +153,7 @@ Be good company, not a brochure:
  * Added to the prompt in a text chat whose lane has suggest_followups: every reply leaves buttons to press, and a page is offered
  * as a button. The fixed answers that used to bring their own buttons are gone (#221), so without this the model rarely made any.
  */
-const CHAT_NOTE = `This is a text chat, and every reply leaves the visitor buttons to press. In the same reply as your words, call suggest_followups once: two or three short questions they might ask next, written as they would type them, and, when a page would help, up to two pages to open (for example /#work "See the work", /work/precedent "Open Precedent", /contact "Contact page"). A page button is how you offer a page in a chat: do not also ask "Want me to open...?" in words, and call navigate only when they asked to go there or said yes. Never list the buttons in your words.`;
+const CHAT_NOTE = `This is a text chat, and every reply leaves the visitor buttons to press. In the same reply as your words, call suggest_followups once: two or three short questions they might ask next, written as they would type them, and one or two pages to open. Every reply has at least one page: the place on this site that shows what you just talked about (a project you named: its own page, for example /work/precedent "Open Precedent"; my work in general: /#work "See the work"; my roles: /#experience; a paper or post: its page; hiring or reaching me: /contact "Contact page"). Never a page the visitor is already on, and never two buttons to the same place: pick the next best place instead. A page button is how you offer a page in a chat: do not also ask "Want me to open...?" in words, and call navigate only when they asked to go there or said yes. Never list the buttons in your words.`;
 
 /** Tools that only put something on the page; their result gives the model nothing new to say. */
 const SHOWS_ONLY = ['suggest_followups', 'show_projects', 'share_link', 'navigate', 'cite_section'];
@@ -168,7 +168,7 @@ const answeredWithButtons: StopCondition<ToolSet> = ({ steps }) => {
 };
 
 /** The one call a chat reply gets when the model wrote it without buttons: the reply is done, and this call can only make them. */
-const BUTTONS_ONLY = `You are AI Pujan on design-bakery.com, the portfolio of Pujan Bajracharya, an AI engineer, and you speak as him. The reply below is already written. Call suggest_followups for it: two or three short questions the visitor might ask next, written as they would type them, and up to two pages of the site worth opening next (/#about, /#experience, /#work, /blogs, /research, /contact).`;
+const BUTTONS_ONLY = `You are AI Pujan on design-bakery.com, the portfolio of Pujan Bajracharya, an AI engineer, and you speak as him. The reply below is already written. Call suggest_followups for it: two or three short questions the visitor might ask next, written as they would type them, and one or two pages of the site worth opening next: the page of a project the reply names (/work/<slug>), or /#about, /#experience, /#work, /blogs, /research, /contact. Never the page the visitor is on.`;
 
 async function backstopButtons(model: LanguageModel, suggest: Tool, question: string, answer: string, page: { path: string } | undefined, signal: AbortSignal) {
   await generateText({
@@ -182,6 +182,22 @@ async function backstopButtons(model: LanguageModel, suggest: Tool, question: st
     // The reply is already on screen: buttons that take longer than this are not worth holding the stream for.
     abortSignal: AbortSignal.any([signal, AbortSignal.timeout(8000)]),
   });
+}
+
+/**
+ * A chat button that takes the visitor somewhere, or nothing (TASK-DB-0166). A project page's "sections" are three labels
+ * in one sidebar (What it is, Built with, Go deeper): three "Jump to" buttons that all landed on the same screen, without a
+ * word. They become one button that opens the project, or none when the visitor is on it. And one place gets one button:
+ * a second button to a page this reply already offers is dropped.
+ */
+export function chatButton(action: CopilotAction, on: string | undefined, sent: CopilotAction[], titles: Map<string, string>): CopilotAction[] {
+  const here = (on ?? '').split('#')[0];
+  if (action.kind === 'cite' && titles.has(action.path)) {
+    if (action.path === here) return [];
+    action = { kind: 'navigate', path: action.path, label: `Open ${titles.get(action.path)}` };
+  }
+  if (action.kind === 'navigate' && !action.go && sent.some((earlier) => earlier.kind === 'navigate' && earlier.path === action.path)) return [];
+  return [action];
 }
 
 /** On a call there are no follow-up buttons: the tool that makes them only costs a model round trip and its suggestions go nowhere. */
@@ -590,11 +606,12 @@ copilotRouter.post('/chat', async (req, res) => {
       index === fit.messages.length - 1 && m.role === 'user' ? { role: 'user', content: `${m.content}${where}` } : { role: m.role, content: m.content },
     );
     const citations = createCitations();
+    const projectTitles = voice ? new Map<string, string>() : new Map((await loadProjects().catch(() => [])).map((p) => [projectPath(p), p.title]));
     const offered = onlyLaneTools(lane, callTools(makeTools(
         // On a call the model moves the page itself and sends no buttons; project cards and the booking button are what a call shows.
         (action) => {
           if (voice && action.kind !== 'navigate' && action.kind !== 'cite' && action.kind !== 'book' && action.kind !== 'projects' && action.kind !== 'song') return;
-          send({ type: 'action', action: withChip(action) });
+          for (const button of voice ? [action] : chatButton(action, page?.path, sentActions, projectTitles)) send({ type: 'action', action: withChip(button) });
         },
         {
           canNavigate: true, citations, voice, page, said, lastReply,
