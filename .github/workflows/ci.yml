@@ -78,6 +78,9 @@ jobs:
       - name: Check the copilot's session memory
         run: pnpm test:copilot-memory
 
+      - name: Check the copilot's spoken replies
+        run: pnpm test:copilot-speech
+
       - name: Check the copilot's owner rate-limit exemption
         run: pnpm test:copilot-exempt
 

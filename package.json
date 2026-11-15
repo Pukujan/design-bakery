@@ -31,6 +31,7 @@
     "test:copilot-lanes": "node scripts/test-copilot-lanes.mjs",
     "test:copilot-tools": "node scripts/test-copilot-tools.mjs",
     "test:copilot-memory": "node scripts/test-copilot-memory.mjs",
+    "test:copilot-speech": "node scripts/test-copilot-speech.mjs",
     "test:copilot-exempt": "node scripts/test-copilot-exempt.mjs",
     "test:copilot-news": "node scripts/test-copilot-news.mjs",
     "test:copilot-stream": "node scripts/test-copilot-stream.mjs",

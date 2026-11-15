@@ -417,6 +417,16 @@
   margin-bottom: 0;
 }
 
+/* Replies read aloud (holdAudio.ts speakReply): lit while a reply is being read, dimmed when switched off. */
+.cp-voice-switch[data-speaking='true'] {
+  border-color: var(--lab-accent);
+  color: var(--lab-accent);
+}
+
+.cp-voice-switch[aria-pressed='true'] {
+  opacity: 0.55;
+}
+
 .cp-hide-keys,
 .cp-min {
   height: 36px;

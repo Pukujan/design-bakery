@@ -492,7 +492,10 @@ let callOn = false;
 /** voice.ts says when a call is connecting or up, so the walk keeps quiet then. */
 export function setCallOn(on: boolean) {
   callOn = on;
-  if (on) stopWalkLine();
+  if (on) {
+    stopWalkLine();
+    stopReply();
+  }
 }
 
 let walkCurrent: HTMLAudioElement | null = null;
@@ -534,7 +537,7 @@ export function walkLine(step: WalkStep, aloud: boolean): string | null {
   if (index === lastWalk[step]) index = (index + 1) % lines.length;
   lastWalk[step] = index;
   const line = lines[index];
-  if (!aloud || callOn) return line.text;
+  if (!aloud || callOn || voiceOff) return line.text;
   const audio = clip(line.src);
   audio.currentTime = 0;
   audio.volume = 1;
@@ -549,4 +552,150 @@ export function walkLine(step: WalkStep, aloud: boolean): string | null {
     if (walkCurrent === audio) walkCurrent = null;
   });
   return line.text;
+}
+
+/* ---------- Replies read aloud (no call) ---------- */
+
+/**
+ * Outside a call every typed reply is read aloud in my voice (TASK-DB-0165): a summary that was answered before plays a
+ * saved clip at once; a new answer is synthesised by the API as soon as it is finished (backend/src/copilot/speech.ts).
+ * One audio element is reused, unlocked inside the visitor's click or Enter (primeReplyVoice), so the browser lets it play
+ * when the answer arrives seconds later (Safari only lets an element play after it has played once inside a gesture). Any
+ * click or key stops it, a call stops it, and the visitor can switch it off; that choice is remembered on this browser.
+ */
+const VOICE_OFF_KEY = 'db-copilot-voice-off';
+let voiceOff = (() => {
+  try {
+    return window.localStorage.getItem(VOICE_OFF_KEY) === '1';
+  } catch {
+    return false;
+  }
+})();
+const voiceListeners = new Set<() => void>();
+let replySpeaking = false;
+
+export const replyVoiceOff = () => voiceOff;
+export const replyVoiceSpeaking = () => replySpeaking;
+export function onReplyVoice(listener: () => void) {
+  voiceListeners.add(listener);
+  return () => {
+    voiceListeners.delete(listener);
+  };
+}
+const tell = () => voiceListeners.forEach((listener) => listener());
+
+export function setReplyVoiceOff(off: boolean) {
+  voiceOff = off;
+  try {
+    if (off) window.localStorage.setItem(VOICE_OFF_KEY, '1');
+    else window.localStorage.removeItem(VOICE_OFF_KEY);
+  } catch {
+    /* private window: the choice lasts this visit */
+  }
+  if (off) {
+    stopReply();
+    stopWalkLine();
+  }
+  tell();
+}
+
+/** 0.05 s of silence: played once inside a gesture to unlock the shared element. */
+const SILENCE = 'data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YSADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==';
+let replyAudio: HTMLAudioElement | null = null;
+let replyUnlocked = false;
+let replyToken = 0;
+let replyAbort: AbortController | null = null;
+let replyBlobUrl = '';
+const REPLY_STOPS = ['pointerdown', 'keydown'] as const;
+/** A fresh clip that takes longer than this (a cold Pro) is dropped: the reply has been read by then. */
+const REPLY_FETCH_MS = 30_000;
+
+/** Call inside the click or Enter that asks for a reply: stops what is being said and unlocks the voice for the answer. */
+export function primeReplyVoice() {
+  stopReply();
+  if (voiceOff || callOn) return;
+  if (!replyAudio) {
+    replyAudio = new Audio();
+    replyAudio.preload = 'auto';
+  }
+  if (replyUnlocked) return;
+  const audio = replyAudio;
+  audio.src = SILENCE;
+  audio.play().then(() => {
+    replyUnlocked = true;
+  }, () => undefined);
+}
+
+function dropReplyListeners() {
+  for (const type of REPLY_STOPS) window.removeEventListener(type, stopReply, true);
+}
+
+/** Stop the reply being read (a click, a key, a call, the switch). */
+export function stopReply() {
+  replyToken += 1;
+  replyAbort?.abort();
+  replyAbort = null;
+  dropReplyListeners();
+  if (replyAudio && !replyAudio.paused) fadeOut(replyAudio);
+  if (replySpeaking) {
+    replySpeaking = false;
+    tell();
+  }
+}
+
+/**
+ * Read a finished reply aloud. `url` is the clip the API made for it (null: speech is not set up, nothing is said). A saved
+ * greeting (SPOKEN_REPLIES) plays from the page instead. Waits for the moon's walk line to end, so they never overlap.
+ */
+export async function speakReply(text: string, url: string | null): Promise<void> {
+  if (voiceOff || callOn) return;
+  const mine = ++replyToken;
+  let src = SPOKEN_REPLIES[text] ?? '';
+  if (!src && url) {
+    const abort = new AbortController();
+    replyAbort = abort;
+    const timer = setTimeout(() => abort.abort(), REPLY_FETCH_MS);
+    try {
+      const response = await fetch(url, { signal: abort.signal });
+      if (!response.ok) return;
+      const blob = await response.blob();
+      if (mine !== replyToken) return;
+      if (replyBlobUrl) URL.revokeObjectURL(replyBlobUrl);
+      replyBlobUrl = URL.createObjectURL(blob);
+      src = replyBlobUrl;
+    } catch {
+      return;
+    } finally {
+      clearTimeout(timer);
+      if (replyAbort === abort) replyAbort = null;
+    }
+  }
+  if (!src) return;
+  await walkIdle(5000);
+  if (mine !== replyToken || voiceOff || callOn) return;
+  if (!replyAudio) replyAudio = new Audio();
+  const audio = replyAudio;
+  audio.onended = () => {
+    if (mine !== replyToken) return;
+    dropReplyListeners();
+    replySpeaking = false;
+    tell();
+  };
+  audio.src = src;
+  audio.currentTime = 0;
+  audio.volume = 1;
+  try {
+    await audio.play();
+  } catch {
+    return; // Blocked by the browser: the reply stays on screen, unspoken.
+  }
+  if (mine !== replyToken) {
+    audio.pause();
+    return;
+  }
+  noteSpoken(text, audio);
+  replySpeaking = true;
+  tell();
+  // Only now, so the click that asked for this reply does not stop it.
+  for (const type of REPLY_STOPS) window.addEventListener(type, stopReply, { capture: true, passive: true });
 }

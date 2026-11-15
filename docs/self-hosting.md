@@ -192,6 +192,15 @@ serves them (`backend/src/api/ogPreview.ts`) and the Caddyfile routes those path
     `VOICE_TIMEOUT` (120 s) is put back on its previous image. `rollback.sh` leaves it alone.
   - Without them, the API asks the copilot stack for a token (`/api/voice/token`) and that stack's own
     worker answers.
+  - **Replies read aloud outside a call** (TASK-DB-0165): a typed chat reply is spoken in the same voice. The
+    page sends `speak: true` with `/api/copilot/chat` (unless the visitor switched the voice off); the API warms
+    the speech models as the turn starts, and when the reply is finished hands back a speech id on the `done`
+    event and asks the same gateway for it (`POST /tts`, `X-Speech-Project: design-bakery`, no call id). The page
+    plays `GET /api/copilot/speech/<id>`. Each clip is kept as a public Octo file and a row in
+    `public.copilot_speech` (migration 018), so the same words play at once for every later visitor; a page
+    button's summary (`Summarise this for me.` on a page) is kept in `public.copilot_summaries` for 7 days, so
+    it is the same words, and the same clip, for everyone. Only ids `/chat` handed out are made. A gateway
+    error or a cold Pro past 30 s means the reply stays unspoken: no cloud voice.
 
   To switch calls to this repo's worker: create `.env.voice`, deploy, check that `docker logs
   design-bakery-voice` says `registered worker`, then add the two `VOICE_LIVEKIT_*` lines to `.env.api`

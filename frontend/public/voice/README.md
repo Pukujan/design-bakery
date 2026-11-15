@@ -10,3 +10,11 @@ curl -s -X POST http://127.0.0.1:8799/tts -H 'content-type: application/json' \
 ```
 
 If the wording changes, change `LINES` in `holdAudio.ts` to match and re-render the clip.
+
+## Replies read aloud
+
+Outside a call the chat also reads its typed replies aloud (`speakReply` in `holdAudio.ts`, TASK-DB-0165). Those are not
+files here: the API makes each reply's clip in the same voice through the speech gateway and keeps it in Octo
+(`backend/src/copilot/speech.ts`). The speaker button in the chat's top bar switches it off; the choice is kept in
+`localStorage` (`db-copilot-voice-off`) and also silences the walk lines. Any click or key stops a reply being read, and
+so does starting a call.

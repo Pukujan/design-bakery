@@ -10,7 +10,7 @@ import { answer as localAnswer, type CopilotProject } from '../lab/copilotAnswer
 import { getTurnstileToken } from './turnstile';
 import { scrollStageToElement, scrollStageToTop, setStageScroll } from '../lab/stageScroll';
 import { agentCursor } from './agentCursor';
-import { preloadWalk, walkIdle, walkLine, type WalkStep } from './holdAudio';
+import { preloadWalk, primeReplyVoice, replyVoiceOff, speakReply, walkIdle, walkLine, type WalkStep } from './holdAudio';
 import { citeAt, MAX_CITES, passageSchedule, planRoute, sentenceStart, swipePlan, swipeY } from './citeRoute';
 import { clearQuote, highlightQuote } from './quoteHighlight';
 import { capPage, historyToSend, planSummary, RETRY_MS, type Summary } from './memory';
@@ -79,7 +79,8 @@ type Event =
   | { type: 'text'; text: string; replace?: boolean }
   | { type: 'action'; action: CopilotAction }
   | { type: 'step'; name: string; status: 'start' | 'done' | 'error' }
-  | { type: 'done'; model: string }
+  /** `speech`: the reply read aloud (backend speech.ts), when the page asked for it. */
+  | { type: 'done'; model: string; speech?: { id: string; ready: boolean } }
   | { type: 'ignored'; reason: string }
   | { type: 'flow'; flow: unknown }
   | { type: 'error'; message: string };
@@ -668,6 +669,7 @@ export const copilot = {
    * The request carries the button's own path (with its section, such as /#experience), not the address bar's.
    */
   async openAndSummarise(path: string): Promise<void> {
+    primeReplyVoice();
     await copilot.guide(path);
     await copilot.send('Summarise this for me.', { path, title: document.title });
   },
@@ -735,6 +737,8 @@ export const copilot = {
     // answer is the latest message, the repeat shows that answer instead of asking again. Voice turns are exempt,
     // since someone repeating themselves aloud means it.
     const voice = options.voice === true;
+    // Still inside the visitor's click or Enter: what is being said stops, and the answer may be read aloud.
+    if (!voice) primeReplyVoice();
     if (!voice && options.typed !== false) {
       const key = askKey(question);
       const latest = state.messages.at(-1);
@@ -937,7 +941,7 @@ async function stream(
     signal,
     headers: { 'content-type': 'application/json', 'x-copilot-pass': await getPass(false, signal) },
     // `toMe`: the visitor said this line was for the copilot ("Answer this"), so the server does not ask whether it was.
-    body: JSON.stringify({ messages, page, voice, ...(toMe ? { toMe } : {}), ...(voice && callFlow ? { flow: callFlow } : {}), ...(notes ? { summary: notes.text, covered: notes.covers } : {}) }),
+    body: JSON.stringify({ messages, page, voice, ...(!voice && !replyVoiceOff() ? { speak: true } : {}), ...(toMe ? { toMe } : {}), ...(voice && callFlow ? { flow: callFlow } : {}), ...(notes ? { summary: notes.text, covered: notes.covers } : {}) }),
   });
   if (res.status === 401 && !retried) {
     pass = null;
@@ -1060,7 +1064,10 @@ function handle(event: Event, replyId: number) {
     patchMessage(replyId, () => ({ model: event.model || 'live model' }));
     if (!voiceReplies.has(replyId)) {
       const text = state.messages.find((m) => m.id === replyId)?.text;
-      if (text) typedReply.hook?.(text);
+      if (text) {
+        typedReply.hook?.(text);
+        void speakReply(text, event.speech ? `${base()}/api/copilot/speech/${event.speech.id}` : null);
+      }
     }
   }
 }
