@@ -39,12 +39,14 @@ import { createTextFilter } from './textFilter.js';
 import { contextBudget, estimateTokens, fitHistory, sanitizeSummary, summarize, summaryBlock, SUMMARY_MAX_CHARS } from './memory.js';
 import { isCutOff, trimToLastSentence } from './truncation.js';
 import { mintVoiceToken, voiceTokenConfigured } from './voiceToken.js';
+import { clipFor, keepSummary, keptSummary, registerReply, SUMMARY_QUESTION, type KeptReply } from './speech.js';
 
 export type CopilotEvent =
   | { type: 'text'; text: string; replace?: boolean }
   | { type: 'action'; action: CopilotAction }
   | { type: 'step'; name: string; status: 'start' | 'done' | 'error' }
-  | { type: 'done'; model: string }
+  /** `speech`: the reply read aloud, for a page that asked (speak): GET /speech/:id; `ready` when the clip is already made. */
+  | { type: 'done'; model: string; speech?: { id: string; ready: boolean } }
   /** On a call, the model found the line was said to someone else in the visitor's room (the not_for_me tool): no reply, and the page greys it out. */
   | { type: 'ignored'; reason: string }
   | { type: 'flow'; flow: BookingFlow | null }
@@ -83,6 +85,8 @@ const chatBody = z.object({
   }).nullable().optional(),
   /** The visitor tapped "Answer this" on a line the call had not answered: it is for me, so the model is not offered not_for_me. */
   toMe: z.boolean().optional(),
+  /** The page reads the reply aloud (a typed chat, not muted): the reply comes with a speech id (speech.ts). */
+  speak: z.boolean().optional(),
   /** Tests only: run this turn on a named lane (the spec's lane-swap relation). Ignored unless COPILOT_DEBUG_EVENTS=1. */
   lane: z.enum(LANE_NAMES).optional(),
   /** Rolling notes on the older part of a long chat, kept by the browser. Untrusted: capped, sanitised, quoted as data (memory.ts). */
@@ -302,6 +306,19 @@ copilotRouter.get('/songs/:id/audio', async (req, res) => {
   res.end();
 });
 
+// A reply read aloud (speech.ts): only ids /chat handed out, or clips already kept, are served. The id is a hash of the words
+// in a fixed voice, so a clip never changes: cached for a year.
+copilotRouter.get('/speech/:id', async (req, res) => {
+  const id = req.params.id.replace(/\.wav$/, '');
+  const audio = await clipFor(id).catch(() => null);
+  if (!audio) {
+    res.status(404).set('cache-control', 'no-store').end();
+    return;
+  }
+  res.set({ 'content-type': 'audio/wav', 'content-length': String(audio.byteLength), 'cache-control': 'public, max-age=31536000, immutable' });
+  res.end(audio);
+});
+
 const VOICE_SERVICE = 'https://copilot.design-bakery.com';
 /**
  * The voice service sleeps when idle and its first token after that took 11.7 s, past the old 10 s cut-off, so a visitor's
@@ -463,7 +480,7 @@ copilotRouter.post('/chat', async (req, res) => {
     res.status(429).set('retry-after', String(Math.ceil((bySession.retryAt - Date.now()) / 1000))).json({ ok: false, code: 'RATE_LIMITED' });
     return;
   }
-  const { messages, page, voice = false, covered = 0, toMe = false } = parsed.data;
+  const { messages, page, voice = false, covered = 0, toMe = false, speak = false } = parsed.data;
   const summary = sanitizeSummary(parsed.data.summary);
   const question = messages.at(-1)?.content ?? '';
   const turn = new TurnTrace(session);
@@ -499,6 +516,27 @@ copilotRouter.post('/chat', async (req, res) => {
     }
     console.warn('[copilot] no durable rate limiter configured; in-memory limits only');
   }
+  // Speech for a typed chat: the models load while the model thinks, so the reply's voice is not held up by a cold Pro.
+  const speaking = speak && !voice;
+  if (speaking) warmSpeech();
+  // A page button's summary ("Summarise this for me." on a post, paper or project) is the same for everyone: answered once,
+  // kept, and replayed, so it reads the same words and plays the same saved clip at once (speech.ts).
+  const summaryPath = !voice && !booking && question === SUMMARY_QUESTION && page ? page.path : '';
+  const kept = summaryPath ? await keptSummary(summaryPath) : null;
+  if (kept) {
+    res.status(200).set({ 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-store', 'x-accel-buffering': 'no' });
+    const write = (event: CopilotEvent) => res.write(`${JSON.stringify(event)}\n`);
+    write({ type: 'text', text: kept.text });
+    for (const action of kept.actions as CopilotAction[]) write({ type: 'action', action: withChip(action) });
+    const speech = speaking ? await registerReply(kept.text) : null;
+    write({ type: 'done', model: 'kept summary', ...(speech ? { speech } : {}) });
+    turn.model = 'kept summary';
+    turn.output = kept.text;
+    turn.finish('done');
+    res.end();
+    return;
+  }
+
   // The lane for this channel (lanes/): its providers, its limits, its tool list and its model fixes. The others are not loaded.
   // A test run (COPILOT_DEBUG_EVENTS=1) may name the lane and is sent a debug event; a public request can do neither.
   const debugEvents = process.env.COPILOT_DEBUG_EVENTS === '1';
@@ -514,7 +552,9 @@ copilotRouter.post('/chat', async (req, res) => {
   // Only now does the reply start streaming: a refusal above (limit, budget, no model) is still a proper HTTP status.
   res.status(200).set({ 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-store', 'x-accel-buffering': 'no' });
   res.flushHeaders();
+  const sentActions: CopilotAction[] = [];
   const send = (event: CopilotEvent) => {
+    if (event.type === 'action') sentActions.push(event.action);
     if (event.type === 'action') turn.actions.push(event.action.kind === 'navigate' ? `navigate:${event.action.path}${event.action.go ? '(go)' : ''}` : event.action.kind);
     res.write(`${JSON.stringify(event)}\n`);
   };
@@ -660,8 +700,14 @@ copilotRouter.post('/chat', async (req, res) => {
       }
     }
     debug();
-    send({ type: 'done', model: turn.model });
+    const speech = speaking && !empty && !abort.signal.aborted ? await registerReply(turn.output) : null;
+    send({ type: 'done', model: turn.model, ...(speech ? { speech } : {}) });
     turn.finish(empty ? 'error' : 'done');
+    // Kept only when whole: a clean finish, real words, and nothing that belongs to this visitor alone.
+    if (summaryPath && !empty && !turn.truncated && !bookingTouched && !sentActions.some((a) => a.kind === 'song' || a.kind === 'book' || (a.kind === 'navigate' && a.go))) {
+      const reply: KeptReply = { text: turn.output, actions: sentActions };
+      void keepSummary(summaryPath, reply);
+    }
   } catch (error) {
     if (!abort.signal.aborted) {
       console.warn('[copilot] turn failed:', error instanceof Error ? error.message.slice(0, 200) : 'unknown');

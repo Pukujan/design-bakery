@@ -13,6 +13,7 @@ Postgres schema for CMS + blog when `CONTENT_BACKEND=supabase`.
 | `migrations/007_cover_studio_format_platform.sql` | Cover Studio format + platform columns |
 | `migrations/008_cover_studio_pack_grouping.sql` | Cover Studio pack grouping (`pack_id`, `pack_title`) |
 | `migrations/013_copilot_lanes.sql` | The copilot's lanes (strong, hybrid, small): each lane's flagged turns, replay cases, eval sets and judge settings |
+| `migrations/018_copilot_speech.sql` | The chat's spoken replies: kept clips (`copilot_speech`) and kept page summaries (`copilot_summaries`); applied to Octo |
 
 **One-time data copy:** `pnpm run migrate:firestore-to-supabase` (see [additionals/doc/supabase-migration.md](../additionals/doc/supabase-migration.md)).
 

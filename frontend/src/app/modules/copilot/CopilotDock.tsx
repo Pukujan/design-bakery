@@ -9,7 +9,7 @@ import {
   type MouseEvent,
 } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown, Volume2, VolumeX, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import '../lab/lab.css';
 import './copilot.css';
@@ -23,6 +23,31 @@ import { useAgentCursor } from './agentCursor';
 import { useReplyNudge, useReplyPeek } from './replyPeek';
 import { copilot, useCopilot } from './store';
 import { useVoice } from './voice';
+import { onReplyVoice, replyVoiceOff, replyVoiceSpeaking, setReplyVoiceOff } from './holdAudio';
+
+/** Whether replies are read aloud, and whether one is being read now (holdAudio.ts speakReply). */
+function useReplyVoice() {
+  const off = useSyncExternalStore(onReplyVoice, replyVoiceOff, () => false);
+  const speaking = useSyncExternalStore(onReplyVoice, replyVoiceSpeaking, () => false);
+  return { off, speaking };
+}
+
+/** Replies are read aloud; this switches that off (and back on). Remembered on this browser. */
+function VoiceSwitch() {
+  const { off, speaking } = useReplyVoice();
+  return (
+    <button
+      type="button"
+      className="cp-close cp-voice-switch"
+      data-speaking={speaking && !off ? 'true' : undefined}
+      aria-pressed={off}
+      aria-label={off ? 'Read replies aloud' : 'Stop reading replies aloud'}
+      onClick={() => setReplyVoiceOff(!off)}
+    >
+      {off ? <VolumeX size={18} aria-hidden="true" /> : <Volume2 size={18} aria-hidden="true" />}
+    </button>
+  );
+}
 
 const EASE = [0.2, 0.7, 0.1, 1] as const;
 /** Phones: the chat is a bottom sheet that can fold into a strip. Matches the CSS breakpoint. */
@@ -270,6 +295,7 @@ export default function CopilotDock() {
                 <span />
               )}
               <div className="cp-bar-end">
+                <VoiceSwitch />
                 {mobile && (
                   <button
                     type="button"
