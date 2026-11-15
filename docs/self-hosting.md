@@ -201,6 +201,10 @@ serves them (`backend/src/api/ogPreview.ts`) and the Caddyfile routes those path
     button's summary (`Summarise this for me.` on a page) is kept in `public.copilot_summaries` for 7 days, so
     it is the same words, and the same clip, for everyone. Only ids `/chat` handed out are made. A gateway
     error or a cold Pro past 30 s means the reply stays unspoken: no cloud voice.
+    A new reply of several sentences is made as a clip a sentence or two, first sentence first (`done.speech.parts`,
+    TASK-DB-0166), and the page plays them in order, so the voice starts after the first sentence is made; the
+    whole-reply id is still served for a page opened before that change. The gateway makes a clip at about a
+    quarter of its length and sends none of it until it is whole.
 
   To switch calls to this repo's worker: create `.env.voice`, deploy, check that `docker logs
   design-bakery-voice` says `registered worker`, then add the two `VOICE_LIVEKIT_*` lines to `.env.api`

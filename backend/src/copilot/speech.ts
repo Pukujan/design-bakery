@@ -49,6 +49,43 @@ export function speakable(words: string): boolean {
   return latin / letters.length > 0.9;
 }
 
+/** Shorter than this, a sentence is said with its neighbour: a clip under half a second is refused, and a lone "Yes." sounds clipped. */
+const PART_MIN_CHARS = 40;
+const PART_TAIL_CHARS = 25;
+
+/**
+ * The spoken words cut into clips of one or two sentences, in order (TASK-DB-0166). The gateway makes a whole clip before it
+ * sends any of it, at about a quarter of its length: a 19 s reply was 4 to 5 s of silence. Cut up, the first sentence is
+ * ready in about a second and the rest are made while it plays.
+ */
+export function sentenceParts(words: string): string[] {
+  // An end is a full stop, ! or ? followed by a space and a capital or a digit: not the dot in 2.5, 9.11 or "a.m. today".
+  const sentences = words.split(/(?<=[.!?]["')\]]?)\s+(?=["'(]?[A-Z0-9])/).map((part) => part.trim()).filter(Boolean);
+  // A long opening sentence is cut once more at its first colon, semicolon or dash (a pause when spoken anyway), so the
+  // voice starts on a few words and not on a paragraph.
+  const lead = sentences[0] ?? '';
+  const pause = lead.length > 110 ? /[:;](?=\s)|\s[—–](?=\s)/.exec(lead.slice(PART_MIN_CHARS)) : null;
+  if (pause) {
+    const cut = PART_MIN_CHARS + pause.index + pause[0].length;
+    if (lead.length - cut >= PART_MIN_CHARS) sentences.splice(0, 1, lead.slice(0, cut).trim(), lead.slice(cut).trim());
+  }
+  const parts: string[] = [];
+  let open = '';
+  for (const sentence of sentences) {
+    open = open ? `${open} ${sentence}` : sentence;
+    if (open.length >= PART_MIN_CHARS) {
+      parts.push(open);
+      open = '';
+    }
+  }
+  if (open) {
+    if (parts.length && open.length < PART_TAIL_CHARS) parts[parts.length - 1] += ` ${open}`;
+    else parts.push(open);
+  }
+  // Nothing may be lost in the cutting: if the pieces do not add up to the words, the reply is one clip.
+  return parts.join(' ').replace(/\s+/g, ' ') === words.replace(/\s+/g, ' ') ? parts : [words];
+}
+
 export const speechId = (words: string) => createHash('sha256').update(`${VOICE}\n${words}`).digest('hex').slice(0, 32);
 
 type Clip = { audio: Buffer; at: number };
@@ -133,22 +170,57 @@ async function keep(id: string, words: string, audio: Buffer) {
   }
 }
 
+export type ReplySpeech = {
+  /** The whole reply as one clip: what a page from before TASK-DB-0166 fetches, and what plays when it is already kept. */
+  id: string;
+  ready: boolean;
+  /** The reply in sentence clips, in order, when it is new and has more than one: the page plays them one after another. */
+  parts?: { id: string; ready: boolean }[];
+};
+
+function note(id: string, words: string, now: number) {
+  registered.set(id, { words, at: now });
+}
+
+const have = async (id: string) => memory.has(id) || Boolean(await savedUrl(id));
+
 /**
  * A finished reply, to be spoken: returns its id and whether a clip is ready, and starts making it if not, so it is ready
- * (or nearly) by the time the page asks. Null when the reply has nothing to say aloud or speech is not set up here.
+ * (or nearly) by the time the page asks. A new reply of several sentences is made as one clip a sentence or two, first
+ * sentence first, so the voice starts after the first and not after all of them. Null when the reply has nothing to say
+ * aloud or speech is not set up here.
  */
-export async function registerReply(reply: string): Promise<{ id: string; ready: boolean } | null> {
+export async function registerReply(reply: string): Promise<ReplySpeech | null> {
   if (!speechConfigured()) return null;
   const words = spokenText(reply);
   if (!speakable(words)) return null;
   const id = speechId(words);
   const now = Date.now();
   for (const [key, entry] of registered) if (now - entry.at > REGISTERED_MS) registered.delete(key);
-  registered.set(id, { words, at: now });
+  note(id, words, now);
   if (memory.has(id) || making.has(id)) return { id, ready: memory.has(id) };
   if (await savedUrl(id)) return { id, ready: true };
-  start(id, words);
-  return { id, ready: false };
+  const pieces = sentenceParts(words).filter(speakable);
+  if (pieces.length < 2) {
+    start(id, words);
+    return { id, ready: false };
+  }
+  // The whole clip is not made unless a page asks for it by its id (clipFor): the parts are what a current page plays.
+  const ids = pieces.map(speechId);
+  const readies = await Promise.all(ids.map(have));
+  const parts = ids.map((partId, index) => ({ id: partId, ready: readies[index] }));
+  let before: Promise<unknown> = Promise.resolve();
+  pieces.forEach((piece, index) => {
+    const partId = ids[index];
+    note(partId, piece, now);
+    if (readies[index] || making.has(partId)) return;
+    // One after another, so the first sentence is never waiting behind the last.
+    const after = before;
+    const job = after.then(() => synthesise(partId, piece)).finally(() => making.delete(partId));
+    making.set(partId, job);
+    before = job;
+  });
+  return { id, ready: false, parts };
 }
 
 function start(id: string, words: string) {
@@ -192,7 +264,9 @@ const SUMMARY_DAYS = 7;
 
 export type KeptReply = { text: string; actions: unknown[] };
 
-export const summaryKey = (path: string) => `summary:${VOICE}:${path.slice(0, 200)}`;
+/** Bump when what a summary's reply or buttons may hold changes, so the old ones are answered afresh (2: TASK-DB-0166, no "Jump to" a project's sidebar). */
+const SUMMARY_VERSION = 2;
+export const summaryKey = (path: string) => `summary:${SUMMARY_VERSION}:${VOICE}:${path.slice(0, 200)}`;
 
 export async function keptSummary(path: string): Promise<KeptReply | null> {
   if (!isDataLayerConfigured()) return null;

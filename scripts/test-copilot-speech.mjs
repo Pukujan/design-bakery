@@ -61,6 +61,35 @@ const again = await speech.registerReply(reply);
 assert.deepEqual(again, { id: first.id, ready: true }, 'ready the second time');
 assert.equal(seen.length, 1, 'not made again');
 
+// A new reply of several sentences is a clip a sentence or two, made in order; the whole-reply id still works for a page
+// from before the change, and is only made when asked for.
+assert.deepEqual(speech.sentenceParts('Hi.'), ['Hi.']);
+const long = 'Riley is a phone screener for nurse applicants, and it calls every one of them back. A recruiter reads the result and decides what happens next. Riley never rejects anyone. Ok.';
+const cut = speech.sentenceParts(long);
+assert.equal(cut.length, 3, 'a short sentence rides with its neighbour');
+assert.equal(cut.join(' '), long, 'nothing lost in the cutting');
+assert.ok(cut.every((part) => part.length >= 25));
+assert.deepEqual(speech.sentenceParts('It costs 2.5 dollars at 9.11 a.m. today, which is fine by me and by everyone else here.'), ['It costs 2.5 dollars at 9.11 a.m. today, which is fine by me and by everyone else here.'], 'a dot inside a number is not an end');
+const before = seen.length;
+const parted = await speech.registerReply(long);
+assert.ok(parted && parted.ready === false && parted.parts?.length === 3);
+assert.equal(parted.id, speech.speechId(speech.spokenText(long)));
+assert.deepEqual(parted.parts.map((part) => part.id), cut.map(speech.speechId));
+const clips = await Promise.all(parted.parts.map((part) => speech.clipFor(part.id)));
+assert.ok(clips.every((clip) => clip && clip.byteLength === 48_044));
+assert.equal(seen.length, before + 3, 'one synthesis a part, none for the whole');
+assert.deepEqual(seen.slice(before).map((call) => call.body.text), cut, 'made in order, first sentence first');
+assert.ok(await speech.clipFor(parted.id), 'the whole reply is made for a page that asks by its id');
+assert.equal(seen.length, before + 4);
+const partedAgain = await speech.registerReply(long);
+assert.ok(partedAgain.ready && !partedAgain.parts, 'once the whole is kept, it is one ready clip');
+
+assert.deepEqual(
+  speech.sentenceParts('In short: I take a product from the first question to running in production — research, design, front end, back end and AI, on servers I run.'),
+  ['In short: I take a product from the first question to running in production —', 'research, design, front end, back end and AI, on servers I run.'],
+  'a long opening sentence starts speaking at its first pause',
+);
+
 // Only ids /chat handed out (or clips kept) are served: no "say anything".
 assert.equal(await speech.clipFor('0'.repeat(32)), null);
 assert.equal(await speech.clipFor('../etc'), null);

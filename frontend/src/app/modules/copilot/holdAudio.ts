@@ -522,6 +522,20 @@ export function walkIdle(maxMs = 2500): Promise<void> {
   });
 }
 
+let walking = 0;
+/** The store says when the moon is walking the visitor somewhere (a page button): the reply waits for it to arrive. */
+export function setWalking(on: boolean) {
+  walking = Math.max(0, walking + (on ? 1 : -1));
+}
+/**
+ * Resolves when the walk is over and its last line has been said (or after `maxMs`). A kept summary comes back in a fifth
+ * of a second, while the moon is still on its way: the reply started and "Ahh, there it is." was said over it.
+ */
+export async function walkQuiet(maxMs = 8000): Promise<void> {
+  const started = Date.now();
+  while (Date.now() - started < maxMs && (walking > 0 || (walkCurrent && !walkCurrent.paused))) await new Promise((resolve) => setTimeout(resolve, 80));
+}
+
 export function preloadWalk() {
   for (const line of Object.values(WALK).flat()) clip(line.src);
 }
@@ -605,7 +619,6 @@ let replyAudio: HTMLAudioElement | null = null;
 let replyUnlocked = false;
 let replyToken = 0;
 let replyAbort: AbortController | null = null;
-let replyBlobUrl = '';
 const REPLY_STOPS = ['pointerdown', 'keydown'] as const;
 /** A fresh clip that takes longer than this (a cold Pro) is dropped: the reply has been read by then. */
 const REPLY_FETCH_MS = 30_000;
@@ -644,54 +657,76 @@ export function stopReply() {
 }
 
 /**
- * Read a finished reply aloud. `url` is the clip the API made for it (null: speech is not set up, nothing is said). A saved
- * greeting (SPOKEN_REPLIES) plays from the page instead. Waits for the moon's walk line to end, so they never overlap.
+ * Read a finished reply aloud. `urls` are the clips the API made for it, in order: one for a kept reply, one a sentence or
+ * two for a new one, so the voice starts after the first sentence is made and not after the whole reply (TASK-DB-0166).
+ * Null: speech is not set up, nothing is said. A saved greeting (SPOKEN_REPLIES) plays from the page instead. Waits for the
+ * moon's walk to end, so they never talk over each other.
  */
-export async function speakReply(text: string, url: string | null): Promise<void> {
+export async function speakReply(text: string, urls: string[] | null): Promise<void> {
   if (voiceOff || callOn) return;
   const mine = ++replyToken;
-  let src = SPOKEN_REPLIES[text] ?? '';
-  if (!src && url) {
-    const abort = new AbortController();
-    replyAbort = abort;
-    const timer = setTimeout(() => abort.abort(), REPLY_FETCH_MS);
-    try {
-      const response = await fetch(url, { signal: abort.signal });
-      if (!response.ok) return;
-      const blob = await response.blob();
-      if (mine !== replyToken) return;
-      if (replyBlobUrl) URL.revokeObjectURL(replyBlobUrl);
-      replyBlobUrl = URL.createObjectURL(blob);
-      src = replyBlobUrl;
-    } catch {
-      return;
-    } finally {
-      clearTimeout(timer);
-      if (replyAbort === abort) replyAbort = null;
-    }
-  }
-  if (!src) return;
-  await walkIdle(5000);
-  if (mine !== replyToken || voiceOff || callOn) return;
+  const saved = SPOKEN_REPLIES[text];
+  const abort = new AbortController();
+  replyAbort = abort;
+  const timer = setTimeout(() => abort.abort(), REPLY_FETCH_MS);
+  // All asked for at once (the API makes them in order); each is played when the one before it has ended.
+  const clips: Promise<string | null>[] = saved
+    ? [Promise.resolve(saved)]
+    : (urls ?? []).map((url) =>
+        fetch(url, { signal: abort.signal })
+          .then((response) => (response.ok ? response.blob() : null))
+          .then((blob) => (blob ? URL.createObjectURL(blob) : null))
+          .catch(() => null));
+  const made: string[] = [];
+  const finish = () => {
+    clearTimeout(timer);
+    if (replyAbort === abort) replyAbort = null;
+    // The clips of the reply before this one are let go once this one has its own.
+    void Promise.all(clips).then(() => {
+      for (const url of made) if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+    });
+  };
+  if (!clips.length) return finish();
+  const first = await clips[0];
+  if (first) made.push(first);
+  if (!first || mine !== replyToken) return finish();
+  await walkQuiet(8000);
+  if (mine !== replyToken || voiceOff || callOn) return finish();
   if (!replyAudio) replyAudio = new Audio();
   const audio = replyAudio;
-  audio.onended = () => {
+  const end = () => {
+    audio.onended = null;
+    finish();
     if (mine !== replyToken) return;
     dropReplyListeners();
     replySpeaking = false;
     tell();
   };
-  audio.src = src;
-  audio.currentTime = 0;
-  audio.volume = 1;
-  try {
+  const play = async (src: string, index: number): Promise<void> => {
+    audio.onended = () => {
+      if (mine !== replyToken) return end();
+      const next = clips[index + 1];
+      if (!next) return end();
+      void next.then((url) => {
+        if (url) made.push(url);
+        // A sentence that could not be made ends the reading there: skipping it would garble the reply.
+        if (!url || mine !== replyToken) return end();
+        void play(url, index + 1).catch(end);
+      });
+    };
+    audio.src = src;
+    audio.currentTime = 0;
+    audio.volume = 1;
     await audio.play();
+  };
+  try {
+    await play(first, 0);
   } catch {
-    return; // Blocked by the browser: the reply stays on screen, unspoken.
+    return end(); // Blocked by the browser: the reply stays on screen, unspoken.
   }
   if (mine !== replyToken) {
     audio.pause();
-    return;
+    return end();
   }
   noteSpoken(text, audio);
   replySpeaking = true;
