@@ -21,3 +21,8 @@ Issue: [#262](https://github.com/Pukujan/design-bakery/issues/262) (leaf; parent
 **Evidence (before merge).** `pnpm test:copilot-speech` passes against a fake gateway; backend and frontend `tsc` and eslint clean.
 
 **Next.** Merge, check the Komodo deploy, then on the live site: a typed question and a page button with sound.
+
+**After #263 merged (731a313, 2026-11-15 03:52 UTC).** Komodo deployed `design-bakery-api:731a313b1054-20261115T035202Z` and `design-bakery-web:731a313b1054-20261115T035116Z`. In the browser pane on www.design-bakery.com:
+- Typed question on /work/riley: reply text in 8.6 s, its clip (15.4 s, 737 KB) fetched 200 in 9.6 s (Pro cold) and played to its time updates.
+- Page button "Precedent": walk line played, summary text in 6.7 s, clip (17.7 s) fetched in 5.9 s and played. Both clips and the summary were then rows in Octo.
+- **Bug:** the same summary in a new chat came back kept in 186 ms but was not spoken: the page read the reply's typed-out text at `done`, still empty for a reply that arrives in one piece. Fix: read the whole reply (`reveals` target).
